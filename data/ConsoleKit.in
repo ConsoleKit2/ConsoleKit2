@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# ConsoleKit: ConsoleKit daemon
+#
+# chkconfig: 345 98 02
+# description: The ConsoleKit maintains a list of sessions
+#
+# processname: console-kit
+# pidfile: @CONSOLE_KIT_PID_FILE@
+#
+
+# Sanity checks.
+[ -x @SBINDIR@/console-kit-daemon ] || exit 0
+
+# Source function library.
+. @SYSCONFDIR@/rc.d/init.d/functions
+
+# so we can rearrange this easily
+processname=console-kit-daemon
+servicename=console-kit
+
+RETVAL=0
+
+start() {
+    echo -n $"Starting console-kit daemon: "
+    daemon --check $servicename $processname
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch @LOCALSTATEDIR@/lock/subsys/$servicename
+}
+
+stop() {
+    echo -n $"Stopping console-kit daemon: "
+
+    killproc $processname -TERM
+    RETVAL=$?
+    echo
+    if [ $RETVAL -eq 0 ]; then
+        rm -f @LOCALSTATEDIR@/lock/subsys/$servicename
+        rm -f @CONSOLE_KIT_PID_FILE@
+    fi
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $processname
+        RETVAL=$?
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    condrestart)
+        if [ -f @LOCALSTATEDIR@/lock/subsys/$servicename ]; then
+            stop
+            start
+        fi
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart}"
+        ;;
+esac
+exit $RETVAL

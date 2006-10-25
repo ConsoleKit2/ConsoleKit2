@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node>
+
+  <interface name="org.freedesktop.ConsoleKit.Seat">
+
+    <method name="GetId">
+      <arg name="sid" direction="out" type="o"/>
+    </method>
+
+    <method name="GetSessions">
+      <arg name="sessions" direction="out" type="ao"/>
+    </method>
+
+    <method name="GetActiveSession">
+      <arg name="ssid" direction="out" type="o"/>
+    </method>
+
+    <method name="ActivateSession">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="ssid" direction="in" type="o"/>
+    </method>
+
+    <signal name="ActiveSessionChanged"/>
+    <signal name="SessionAdded"/>
+    <signal name="SessionRemoved"/>
+  </interface>
+</node>
