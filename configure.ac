@@ -46,7 +46,7 @@ PKG_CHECK_MODULES(CONSOLE_KIT,
 )
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
-GNOME_COMPILE_WARNINGS(yes)
+EXTRA_COMPILE_WARNINGS(yes)
 
 # Solaris requires libresolv for daemon()
 case "$host" in

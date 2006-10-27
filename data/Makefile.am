@@ -12,3 +12,7 @@ initd_SCRIPTS= 		\
 EXTRA_DIST =						\
 	$(dbusconf_DATA)				\
 	$(NULL)
+
+MAINTAINERCLEANFILES =			\
+	*~				\
+	Makefile.in

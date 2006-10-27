@@ -16,7 +16,6 @@ EXTRA_DIST =			\
 	AUTHORS			\
 	INSTALL			\
 	README			\
-	ChangeLog		\
 	NEWS			\
 	intltool-extract.in     \
 	intltool-merge.in       \
@@ -35,7 +34,6 @@ MAINTAINERCLEANFILES =		\
 	compile			\
 	configure		\
 	INSTALL			\
-	COPYING			\
 	install-sh		\
 	missing			\
 	mkinstalldirs		\
@@ -46,6 +44,5 @@ MAINTAINERCLEANFILES =		\
 	Makefile.in		\
 	config.h.*		\
 	aclocal.m4		\
-	acinclude.m4		\
 	$(NULL)
 
