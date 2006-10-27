@@ -1,0 +1,13 @@
+*.la
+*.lo
+*.o
+.deps
+.libs
+Makefile
+Makefile.in
+console-kit-daemon
+ck-marshal.c
+ck-marshal.h
+ck-manager-glue.h
+ck-seat-glue.h
+ck-session-glue.h

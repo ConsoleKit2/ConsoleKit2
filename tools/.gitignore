@@ -1,0 +1,8 @@
+*.la
+*.lo
+*.o
+.deps
+.libs
+Makefile
+Makefile.in
+list-sessions

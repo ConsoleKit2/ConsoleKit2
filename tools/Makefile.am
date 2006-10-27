@@ -23,14 +23,14 @@ INCLUDES =							\
 	$(NULL)
 
 noinst_PROGRAMS = \
-	list-consoles		\
+	list-sessions			\
 	$(NULL)
 
-list_consoles_SOURCES =	\
-	list-consoles.c			\
+list_sessions_SOURCES =	\
+	list-sessions.c			\
 	$(NULL)
 
-list_consoles_LDADD =			\
+list_sessions_LDADD =			\
 	$(CONSOLE_KIT_LIBS)		\
 	$(NULL)
 
