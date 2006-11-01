@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+#
+# Test fast-user-switch functionality
+#
+
+import os
+import sys
+import gobject
+import dbus
+import dbus.glib
+
+def activate_reply (res):
+    print "session activated"
+
+def activate_error (e):
+    print str (e)
+
+def session_added_cb (ssid):
+    print "Session added: %s" % ssid
+
+def session_removed_cb (ssid):
+    print "Session removed: %s" % ssid
+
+def active_session_changed_cb (ssid):
+    print "Active session changed: %s" % ssid
+
+bus = dbus.SystemBus ()
+
+manager_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Manager')
+
+manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
+
+current_ssid = manager.GetCurrentSession ()
+current_session_obj = bus.get_object ('org.freedesktop.ConsoleKit', current_ssid)
+current_session = dbus.Interface (current_session_obj, 'org.freedesktop.ConsoleKit.Session')
+
+sid = current_session.GetSeatId ()
+if not sid:
+    print "Current session is not attached to a seat, no switching possible"
+    sys.exit ()
+
+seat_obj = bus.get_object ('org.freedesktop.ConsoleKit', sid)
+seat = dbus.Interface (seat_obj, 'org.freedesktop.ConsoleKit.Seat')
+seat.connect_to_signal ('SessionAdded', session_added_cb)
+seat.connect_to_signal ('SessionRemoved', session_removed_cb)
+seat.connect_to_signal ('ActiveSessionChanged', active_session_changed_cb)
+
+# Show a list of sessions on the current seat
+sessions = seat.GetSessions ()
+for ssid in sessions:
+    session_obj = bus.get_object ('org.freedesktop.ConsoleKit', ssid)
+    session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
+    uid = session.GetUser ()
+    print "Session %s user=%u" % (ssid, uid)
+
+# then pretend a session-ID is selected:
+ssid = current_ssid
+session_obj = bus.get_object ('org.freedesktop.ConsoleKit', ssid)
+session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
+session.Activate (reply_handler = activate_reply, error_handler = activate_error)
+
+mainloop = gobject.MainLoop ()
+mainloop.run()

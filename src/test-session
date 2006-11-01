@@ -1,15 +1,12 @@
 #!/usr/bin/env python
+#
+# Test opening a new session
+#
 
 import os
 import gobject
 import dbus
-
-def activate_reply (res):
-    print "session activated"
-
-def activate_error (e):
-    print str (e)
-
+import dbus.glib
 
 bus = dbus.SystemBus ()
 
@@ -41,8 +38,6 @@ print "Current session: %s" % current_session
 
 session_obj = bus.get_object ('org.freedesktop.ConsoleKit', ssid)
 session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
-
-session.Activate (reply_handler = activate_reply, error_handler = activate_error)
 
 mainloop = gobject.MainLoop ()
 

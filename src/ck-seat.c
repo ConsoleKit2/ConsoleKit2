@@ -369,7 +369,10 @@ session_activate (CkSession             *session,
                   DBusGMethodInvocation *context,
                   CkSeat                *seat)
 {
-        return _seat_activate_session (seat, session, context);
+        _seat_activate_session (seat, session, context);
+
+        /* always return TRUE to indicate that the signal was handled */
+        return TRUE;
 }
 
 gboolean
