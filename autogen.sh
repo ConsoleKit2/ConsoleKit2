@@ -421,6 +421,7 @@ for configure_ac in $configure_files; do
 	printbold "Running $AUTOMAKE..."
         cp -pf COPYING COPYING.autogen_bak
         cp -pf INSTALL INSTALL.autogen_bak
+        touch ChangeLog
 	if [ $REQUIRED_AUTOMAKE_VERSION != 1.4 ]; then
 	    $AUTOMAKE --gnu --add-missing --force --copy || exit 1
 	else
@@ -428,7 +429,7 @@ for configure_ac in $configure_files; do
 	fi
         cmp COPYING COPYING.autogen_bak || cp -pf COPYING.autogen_bak COPYING
         cmp INSTALL INSTALL.autogen_bak || cp -pf INSTALL.autogen_bak INSTALL
-        rm -f COPYING.autogen_bak INSTALL.autogen_bak
+        rm -f COPYING.autogen_bak INSTALL.autogen_bak ChangeLog
 
 	cd "$topdir"
     fi
