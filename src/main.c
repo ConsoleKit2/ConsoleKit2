@@ -99,6 +99,8 @@ main (int    argc,
                 if (error != NULL) {
                         g_warning ("Failed to acquire %s: %s", CK_DBUS_NAME, error->message);
                         g_error_free (error);
+                } else {
+                        g_warning ("Failed to acquire %s", CK_DBUS_NAME);
                 }
                 exit (1);
 	}
@@ -107,6 +109,8 @@ main (int    argc,
                 if (error != NULL) {
                         g_warning ("Failed to acquire %s: %s", CK_DBUS_NAME, error->message);
                         g_error_free (error);
+                } else {
+                        g_warning ("Failed to acquire %s", CK_DBUS_NAME);
                 }
                 exit (1);
         }

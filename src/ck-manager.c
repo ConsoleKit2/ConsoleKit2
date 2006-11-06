@@ -821,7 +821,6 @@ register_manager (CkManager *manager)
                 exit (1);
         }
 
-
 	manager->priv->bus_proxy = dbus_g_proxy_new_for_name (manager->priv->connection,
                                                               DBUS_SERVICE_DBUS,
                                                               DBUS_PATH_DBUS,
