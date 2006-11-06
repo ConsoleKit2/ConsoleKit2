@@ -269,6 +269,7 @@ find_seat_for_session (CkManager *manager,
                 char *sid;
                 sid = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, 1);
                 seat = g_hash_table_lookup (manager->priv->seats, sid);
+                g_free (sid);
         }
 
         return seat;
@@ -500,7 +501,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
 
         ck_session_get_id (session, &ssid, NULL);
 
-	dbus_g_method_return (context, g_strdup (ssid));
+	dbus_g_method_return (context, ssid);
 
         g_free (ssid);
 
@@ -647,6 +648,8 @@ ck_manager_open_session (CkManager             *manager,
 
 	dbus_g_method_return (context, cookie);
 
+        g_free (cookie);
+
         return TRUE;
 }
 
@@ -663,6 +666,8 @@ ck_manager_open_session_with_parameters (CkManager             *manager,
 
         error = NULL;
         cookie = create_session_for_caller (manager, sender, parameters, &error);
+        g_free (sender);
+
         if (cookie == NULL) {
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
@@ -670,6 +675,8 @@ ck_manager_open_session_with_parameters (CkManager             *manager,
         }
 
 	dbus_g_method_return (context, cookie);
+
+        g_free (cookie);
 
         return TRUE;
 }
@@ -910,6 +917,8 @@ ck_manager_get_sessions_for_user (CkManager             *manager,
 
         dbus_g_method_return (context, data->sessions);
 
+        g_ptr_array_foreach (data->sessions, (GFunc)g_free, NULL);
+        g_ptr_array_free (data->sessions, TRUE);
         g_free (data);
 
         return TRUE;

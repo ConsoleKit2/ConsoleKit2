@@ -671,6 +671,7 @@ ck_session_finalize (GObject *object)
         g_return_if_fail (session->priv != NULL);
 
         g_free (session->priv->id);
+        g_free (session->priv->cookie);
         g_free (session->priv->seat_id);
         g_free (session->priv->session_type);
         g_free (session->priv->xdisplay);
@@ -732,6 +733,7 @@ ck_session_new_with_parameters (const char      *ssid,
                                         G_MAXUINT);
 
                 g_object_set_property (object, prop_name, prop_val);
+                g_value_unset (prop_val);
         }
 
         res = register_session (CK_SESSION (object));

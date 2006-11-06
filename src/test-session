@@ -22,6 +22,7 @@ params.append (("display-device", dbus.Variant ("/dev/tty8")))
 
 cookie = manager.OpenSessionWithParameters (params)
 os.environ['XDG_SESSION_COOKIE'] = cookie
+print "Got cookie: %s" % cookie
 
 seats = manager.GetSeats ()
 for sid in seats:
@@ -33,7 +34,7 @@ for sid in seats:
             session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
             uid = session.GetUser ()
 
-current_session = manager.GetSession (cookie)
+current_session = manager.GetCurrentSession ()
 print "Current session: %s" % current_session
 
 session_obj = bus.get_object ('org.freedesktop.ConsoleKit', ssid)

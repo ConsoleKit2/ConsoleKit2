@@ -60,6 +60,7 @@ main (int    argc,
         static GOptionEntry entries []   = {
                 { "debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging code"), NULL },
                 { "no-daemon", 0, 0, G_OPTION_ARG_NONE, &no_daemon, N_("Don't become a daemon"), NULL },
+                { "timed-exit", 0, 0, G_OPTION_ARG_NONE, &do_timed_exit, N_("Exit after a time - for debugging"), NULL },
                 { NULL }
         };
 
@@ -133,7 +134,7 @@ main (int    argc,
         loop = g_main_loop_new (NULL, FALSE);
 
 	if (do_timed_exit) {
-		g_timeout_add (1000 * 60, (GSourceFunc) timed_exit_cb, loop);
+		g_timeout_add (3000 * 60, (GSourceFunc) timed_exit_cb, loop);
 	}
 
         g_main_loop_run (loop);
