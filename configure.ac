@@ -11,7 +11,6 @@ AM_CONFIG_HEADER(config.h)
 
 AM_MAINTAINER_MODE
 
-IT_PROG_INTLTOOL([0.35.0])
 AC_ISC_POSIX
 AC_PROG_CC
 AC_STDC_HEADERS
@@ -210,7 +209,6 @@ src/Makefile
 tools/Makefile
 data/Makefile
 data/ConsoleKit
-po/Makefile.in
 ])
 
 echo "
