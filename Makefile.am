@@ -16,6 +16,7 @@ EXTRA_DIST =			\
 	INSTALL			\
 	README			\
 	NEWS			\
+	ChangeLog		\
 	$(NULL)
 
 DISTCLEANFILES =		\
