@@ -15,6 +15,7 @@ EXTRA_DIST =			\
 	AUTHORS			\
 	INSTALL			\
 	README			\
+	HACKING			\
 	NEWS			\
 	ChangeLog		\
 	$(NULL)
