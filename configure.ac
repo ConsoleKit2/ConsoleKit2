@@ -1,7 +1,7 @@
 dnl -*- mode: m4 -*-
 
 AC_INIT([console-kit],
-        [0.0.5],
+        [0.1.0],
         [mccann@jhu.edu])
 
 AC_CONFIG_SRCDIR(src/ck-manager.c)
