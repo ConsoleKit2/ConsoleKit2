@@ -1,7 +1,7 @@
 NULL =
 
 dbusconfdir = $(DBUS_SYS_DIR)
-dbusconf_DATA = console-kit.conf
+dbusconf_DATA = ConsoleKit.conf
 
 SCRIPT_IN_FILES = ConsoleKit.in
 initddir=$(sysconfdir)/rc.d/init.d
