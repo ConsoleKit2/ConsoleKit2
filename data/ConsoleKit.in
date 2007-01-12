@@ -5,7 +5,7 @@
 # chkconfig: 345 98 02
 # description: The ConsoleKit maintains a list of sessions
 #
-# processname: console-kit
+# processname: console-kit-daemon
 # pidfile: @CONSOLE_KIT_PID_FILE@
 #
 
@@ -17,12 +17,12 @@
 
 # so we can rearrange this easily
 processname=console-kit-daemon
-servicename=console-kit
+servicename=ConsoleKit
 
 RETVAL=0
 
 start() {
-    echo -n $"Starting console-kit daemon: "
+    echo -n $"Starting ConsoleKit: "
     daemon --check $servicename $processname
     RETVAL=$?
     echo
@@ -30,7 +30,7 @@ start() {
 }
 
 stop() {
-    echo -n $"Stopping console-kit daemon: "
+    echo -n $"Stopping ConsoleKit: "
 
     killproc $processname -TERM
     RETVAL=$?

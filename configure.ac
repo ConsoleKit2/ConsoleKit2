@@ -1,12 +1,13 @@
 dnl -*- mode: m4 -*-
 
-AC_INIT([console-kit],
+AC_INIT([ConsoleKit],
         [0.1.1],
         [mccann@jhu.edu])
 
 AC_CONFIG_SRCDIR(src/ck-manager.c)
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(ConsoleKit, 0.1.1)
+
 AM_CONFIG_HEADER(config.h)
 
 AM_MAINTAINER_MODE
@@ -23,7 +24,7 @@ AC_SUBST(VERSION)
 # Save flags to aclocal
 ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
-GETTEXT_PACKAGE=console-kit
+GETTEXT_PACKAGE=ConsoleKit
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Name of default gettext domain])
 
@@ -126,7 +127,7 @@ AC_ARG_WITH(pid-file,    [  --with-pid-file=<file>     pid file])
 if ! test -z "$with_pid_file"; then
    CONSOLE_KIT_PID_FILE=$with_pid_file
 else
-   CONSOLE_KIT_PID_FILE=${LOCALSTATEDIR}/run/console-kit/pid
+   CONSOLE_KIT_PID_FILE=${LOCALSTATEDIR}/run/ConsoleKit/pid
 fi
 
 AC_SUBST(CONSOLE_KIT_PID_FILE)
@@ -212,7 +213,7 @@ data/ConsoleKit
 ])
 
 echo "
-                    console-kit $VERSION
+                    ConsoleKit $VERSION
                     ========================
 
 	prefix:                   ${prefix}
