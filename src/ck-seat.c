@@ -356,9 +356,7 @@ maybe_update_active_session (CkSeat *seat)
                 ck_debug ("Active device: %s", device);
 
                 session = find_session_for_display_device (seat, device);
-                if (session != NULL) {
-                        change_active_session (seat, session);
-                }
+                change_active_session (seat, session);
 
                 g_free (device);
         }
