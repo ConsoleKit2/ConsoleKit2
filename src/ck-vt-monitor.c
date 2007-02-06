@@ -271,7 +271,7 @@ watch_vts (CkVtMonitor *vt_monitor)
                         ck_debug ("Creating thread for vt %d", i);
 
                         error = NULL;
-                        thread = g_thread_create ((GThreadFunc)vt_thread_start, data, FALSE, &error);
+                        thread = g_thread_create_full ((GThreadFunc)vt_thread_start, data, 16384, FALSE, TRUE, G_THREAD_PRIORITY_NORMAL, &error);
                         if (thread == NULL) {
                                 ck_debug ("Unable to create thread: %s", error->message);
                                 g_error_free (error);
