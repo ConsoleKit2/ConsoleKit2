@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2006 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2006-2007 William Jon McCann <mccann@jhu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -691,6 +691,8 @@ remove_session_for_cookie (CkManager  *manager,
         char       *ssid;
         char       *sid;
 
+        ck_debug ("Removing session for cookie: %s", cookie);
+
         leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
 
         if (leader_info == NULL) {
@@ -746,6 +748,8 @@ ck_manager_close_session (CkManager             *manager,
         gboolean res;
         GError  *error;
 
+        ck_debug ("Closing session for cookie: %s", cookie);
+
         error = NULL;
         res = remove_session_for_cookie (manager, cookie, &error);
         if (! res) {
@@ -791,6 +795,8 @@ remove_sessions_for_connection (CkManager  *manager,
 
         data.service_name = service_name;
         data.manager = manager;
+
+        ck_debug ("Removing sessions for service name: %s", service_name);
 
         n_removed = g_hash_table_foreach_remove (manager->priv->leaders,
                                                  (GHRFunc)remove_leader_for_connection,

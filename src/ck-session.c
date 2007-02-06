@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2006 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2006-2007 William Jon McCann <mccann@jhu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +133,7 @@ ck_session_lock (CkSession             *session,
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
+        ck_debug ("Emitting lock for session %s", session->priv->id);
         g_signal_emit (session, signals [LOCK], 0);
 
 	dbus_g_method_return (context, TRUE);
@@ -146,6 +147,7 @@ ck_session_unlock (CkSession             *session,
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
+        ck_debug ("Emitting unlock for session %s", session->priv->id);
         g_signal_emit (session, signals [UNLOCK], 0);
 
 	dbus_g_method_return (context, TRUE);
