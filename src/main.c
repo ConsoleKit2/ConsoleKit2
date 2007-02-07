@@ -29,10 +29,17 @@
 #include <glib/gi18n.h>
 #include <glib-object.h>
 
+#define DBUS_API_SUBJECT_TO_CHANGE
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus-glib-lowlevel.h>
+
 #include "ck-manager.h"
 #include "ck-debug.h"
 
 #define CK_DBUS_NAME         "org.freedesktop.ConsoleKit"
+
+static void bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
+                                    CkManager  *manager);
 
 static gboolean
 timed_exit_cb (GMainLoop *loop)
@@ -41,51 +48,21 @@ timed_exit_cb (GMainLoop *loop)
 	return FALSE;
 }
 
-int
-main (int    argc,
-      char **argv)
+static DBusGProxy *
+get_bus_proxy (DBusGConnection *connection)
 {
-        GMainLoop       *loop;
-        CkManager       *manager;
-        GOptionContext  *context;
-        GError          *error;
-	DBusGProxy      *bus_proxy;
-        DBusGConnection *connection;
-        gboolean         res;
-	guint            result;
-
-        static gboolean     debug            = FALSE;
-        static gboolean     no_daemon        = FALSE;
-        static gboolean     do_timed_exit    = FALSE;
-        static GOptionEntry entries []   = {
-                { "debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging code"), NULL },
-                { "no-daemon", 0, 0, G_OPTION_ARG_NONE, &no_daemon, N_("Don't become a daemon"), NULL },
-                { "timed-exit", 0, 0, G_OPTION_ARG_NONE, &do_timed_exit, N_("Exit after a time - for debugging"), NULL },
-                { NULL }
-        };
-
-
-        g_type_init ();
-        g_thread_init (NULL);
-        dbus_g_thread_init ();
-
-        context = g_option_context_new (_("Console kit daemon"));
-        g_option_context_add_main_entries (context, entries, NULL);
-        g_option_context_parse (context, &argc, &argv, NULL);
-        g_option_context_free (context);
-
-        error = NULL;
-        connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
-        if (connection == NULL) {
-                g_warning ("Couldn't connect to system bus: %s", error->message);
-                g_error_free (error);
-                exit (1);
-        }
+        DBusGProxy *bus_proxy;
+        GError     *error;
+        guint       result;
+        gboolean    res;
 
 	bus_proxy = dbus_g_proxy_new_for_name (connection,
                                                DBUS_SERVICE_DBUS,
                                                DBUS_PATH_DBUS,
                                                DBUS_INTERFACE_DBUS);
+        if (bus_proxy == NULL) {
+                goto out;
+        }
 
         error = NULL;
 	res = dbus_g_proxy_call (bus_proxy,
@@ -103,8 +80,9 @@ main (int    argc,
                 } else {
                         g_warning ("Failed to acquire %s", CK_DBUS_NAME);
                 }
-                exit (1);
+                goto out;
 	}
+
 
  	if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
                 if (error != NULL) {
@@ -113,7 +91,128 @@ main (int    argc,
                 } else {
                         g_warning ("Failed to acquire %s", CK_DBUS_NAME);
                 }
+                goto out;
+        }
+
+out:
+        return bus_proxy;
+}
+
+static DBusGConnection *
+get_system_bus (void)
+{
+        GError          *error;
+        DBusGConnection *bus;
+        DBusConnection  *connection;
+
+        error = NULL;
+        bus = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
+        if (bus == NULL) {
+                g_warning ("Couldn't connect to system bus: %s",
+                           error->message);
+                g_error_free (error);
+                goto out;
+        }
+
+        connection = dbus_g_connection_get_connection (bus);
+        dbus_connection_set_exit_on_disconnect (connection, FALSE);
+
+ out:
+        return bus;
+}
+
+static gboolean
+bus_reconnect (CkManager *manager)
+{
+        DBusGConnection *bus;
+        DBusGProxy      *bus_proxy;
+        gboolean         ret;
+
+        ret = TRUE;
+
+        bus = get_system_bus ();
+        if (bus == NULL) {
+                goto out;
+        }
+
+        bus_proxy = get_bus_proxy (bus);
+        if (bus_proxy == NULL) {
+                g_warning ("Could not construct bus_proxy object; will retry");
+                goto out;
+        }
+
+        manager = ck_manager_new ();
+        if (manager == NULL) {
+                g_warning ("Could not construct manager object; will retry");
                 exit (1);
+        }
+
+        g_signal_connect (bus_proxy,
+                          "destroy",
+                          G_CALLBACK (bus_proxy_destroyed_cb),
+                          manager);
+
+        ck_debug ("Successfully reconnected to D-Bus");
+
+        ret = FALSE;
+
+ out:
+        return ret;
+}
+
+static void
+bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
+                        CkManager  *manager)
+{
+        ck_debug ("Disconnected from D-Bus");
+
+        g_object_unref (manager);
+        manager = NULL;
+
+        g_timeout_add (3000, (GSourceFunc)bus_reconnect, manager);
+}
+
+int
+main (int    argc,
+      char **argv)
+{
+        GMainLoop       *loop;
+        CkManager       *manager;
+        GOptionContext  *context;
+        DBusGProxy      *bus_proxy;
+        DBusGConnection *connection;
+        int              ret;
+
+        static gboolean     debug            = FALSE;
+        static gboolean     no_daemon        = FALSE;
+        static gboolean     do_timed_exit    = FALSE;
+        static GOptionEntry entries []   = {
+                { "debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging code"), NULL },
+                { "no-daemon", 0, 0, G_OPTION_ARG_NONE, &no_daemon, N_("Don't become a daemon"), NULL },
+                { "timed-exit", 0, 0, G_OPTION_ARG_NONE, &do_timed_exit, N_("Exit after a time - for debugging"), NULL },
+                { NULL }
+        };
+
+        ret = 1;
+
+        g_type_init ();
+        g_thread_init (NULL);
+        dbus_g_thread_init ();
+
+        context = g_option_context_new (_("Console kit daemon"));
+        g_option_context_add_main_entries (context, entries, NULL);
+        g_option_context_parse (context, &argc, &argv, NULL);
+        g_option_context_free (context);
+
+        connection = get_system_bus ();
+        if (connection == NULL) {
+                goto out;
+        }
+
+        bus_proxy = get_bus_proxy (connection);
+        if (bus_proxy == NULL) {
+                g_warning ("Could not construct bus_proxy object; bailing out");
+                goto out;
         }
 
         /* debug to a file if in deamon mode */
@@ -128,19 +227,28 @@ main (int    argc,
         manager = ck_manager_new ();
 
         if (manager == NULL) {
-                exit (1);
+                goto out;
         }
+
+        g_signal_connect (bus_proxy,
+                          "destroy",
+                          G_CALLBACK (bus_proxy_destroyed_cb),
+                          manager);
 
         loop = g_main_loop_new (NULL, FALSE);
 
-	if (do_timed_exit) {
-		g_timeout_add (3000 * 60, (GSourceFunc) timed_exit_cb, loop);
-	}
+        if (do_timed_exit) {
+                g_timeout_add (3000 * 60, (GSourceFunc) timed_exit_cb, loop);
+        }
 
         g_main_loop_run (loop);
 
         g_object_unref (manager);
 
-        return 0;
+        ret = 0;
+
+ out:
+
+        return ret;
 }
 
