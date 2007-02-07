@@ -48,16 +48,17 @@ ck_debug_real (const char *func,
                const char *format, ...)
 {
         va_list args;
-        char    buffer [1025];
+        char    buffer [256];
         char   *str_time;
         time_t  the_time;
+        FILE   *stream;
 
         if (debugging == FALSE)
                 return;
 
         va_start (args, format);
 
-        g_vsnprintf (buffer, 1024, format, args);
+        g_vsnprintf (buffer, 255, format, args);
 
         va_end (args);
 
@@ -65,12 +66,11 @@ ck_debug_real (const char *func,
         str_time = g_new0 (char, 255);
         strftime (str_time, 254, "%H:%M:%S", localtime (&the_time));
 
-        fprintf ((debug_out ? debug_out : stderr),
+        stream = debug_out ? debug_out : stderr;
+        setbuf (stream, NULL);
+        fprintf (stream,
                  "[%s] %s:%d (%s):\t %s\n",
                  func, file, line, str_time, buffer);
-
-        if (debug_out)
-                fflush (debug_out);
 
         g_free (str_time);
 }
