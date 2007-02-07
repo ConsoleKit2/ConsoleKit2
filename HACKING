@@ -13,11 +13,11 @@ Source Code Repository
 
  - anonymous checkouts
 
-   $ git clone git://git.freedesktop.org/git/hal.git
+   $ git clone git://git.freedesktop.org/git/ConsoleKit
 
  - checkouts if you have an ssh account on fd.o (username@ is optional)
 
-   $ git clone ssh://[username@]git.freedesktop.org/git/hal.git
+   $ git clone ssh://[username@]git.freedesktop.org/git/ConsoleKit
 
  - commit to local repository
 
