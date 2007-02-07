@@ -2,7 +2,7 @@
 #
 # ConsoleKit: ConsoleKit daemon
 #
-# chkconfig: 345 98 02
+# chkconfig: 345 90 10
 # description: The ConsoleKit maintains a list of sessions
 #
 # processname: console-kit-daemon
