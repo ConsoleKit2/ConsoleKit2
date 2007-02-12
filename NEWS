@@ -1,4 +1,16 @@
 =============
+Version 0.1.1
+=============
+
+        * use the supplied vt number when updating active session
+        * add support for reconnecting the the system bus
+        * start before HAL (David)
+        * don't keep last session active when switching without one (David)
+        * make threads use small stack size rather than the default (Matthias)
+        * change a console-kit to ConsoleKit in a few places
+        * add more debugging output
+
+=============
 Version 0.1.0
 =============
 
