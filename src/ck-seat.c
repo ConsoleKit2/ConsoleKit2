@@ -339,6 +339,23 @@ change_active_session (CkSeat    *seat,
 }
 
 static void
+update_active_vt (CkSeat *seat,
+                  guint   num)
+{
+        CkSession *session;
+        char      *device;
+
+        device = g_strdup_printf ("/dev/tty%u", num);
+
+        ck_debug ("Active device: %s", device);
+
+        session = find_session_for_display_device (seat, device);
+        change_active_session (seat, session);
+
+        g_free (device);
+}
+
+static void
 maybe_update_active_session (CkSeat *seat)
 {
         guint num;
@@ -348,17 +365,7 @@ maybe_update_active_session (CkSeat *seat)
         }
 
         if (ck_vt_monitor_get_active (seat->priv->vt_monitor, &num, NULL)) {
-                CkSession *session;
-                char      *device;
-
-                device = g_strdup_printf ("/dev/tty%u", num);
-
-                ck_debug ("Active device: %s", device);
-
-                session = find_session_for_display_device (seat, device);
-                change_active_session (seat, session);
-
-                g_free (device);
+                update_active_vt (seat, num);
         }
 }
 
@@ -476,7 +483,7 @@ active_vt_changed (CkVtMonitor    *vt_monitor,
 {
         ck_debug ("Active vt changed: %u", num);
 
-        maybe_update_active_session (seat);
+        update_active_vt (seat, num);
 }
 
 static gboolean
