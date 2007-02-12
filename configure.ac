@@ -1,12 +1,12 @@
 dnl -*- mode: m4 -*-
 
 AC_INIT([ConsoleKit],
-        [0.1.1],
+        [0.1.2],
         [mccann@jhu.edu])
 
 AC_CONFIG_SRCDIR(src/ck-manager.c)
 
-AM_INIT_AUTOMAKE(ConsoleKit, 0.1.1)
+AM_INIT_AUTOMAKE(ConsoleKit, 0.1.2)
 
 AM_CONFIG_HEADER(config.h)
 
