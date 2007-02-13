@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -241,10 +242,10 @@ main (int    argc,
 
         /* make a new pid file */
         if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) > 0) {
-            snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
-            written = write (pf, pid, strlen (pid));
-            close (pf);
-            g_atexit (delete_pid);
+                snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
+                written = write (pf, pid, strlen (pid));
+                close (pf);
+                g_atexit (delete_pid);
         }
 
         manager = ck_manager_new ();
