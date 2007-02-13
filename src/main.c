@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2006 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2006-2007 William Jon McCann <mccann@jhu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -172,6 +175,12 @@ bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
         g_timeout_add (3000, (GSourceFunc)bus_reconnect, manager);
 }
 
+static void
+delete_pid (void)
+{
+        unlink (CONSOLE_KIT_PID_FILE);
+}
+
 int
 main (int    argc,
       char **argv)
@@ -182,6 +191,9 @@ main (int    argc,
         DBusGProxy      *bus_proxy;
         DBusGConnection *connection;
         int              ret;
+        int              pf;
+        ssize_t          written;
+        char             pid[9];
 
         static gboolean     debug            = FALSE;
         static gboolean     no_daemon        = FALSE;
@@ -222,6 +234,17 @@ main (int    argc,
         /* Don't close stdout and stderr for now */
         if (! no_daemon && daemon (0, 1)) {
                 g_error ("Could not daemonize: %s", g_strerror (errno));
+        }
+
+        /* remove old pid file */
+        unlink (CONSOLE_KIT_PID_FILE);
+
+        /* make a new pid file */
+        if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) > 0) {
+            snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
+            written = write (pf, pid, strlen (pid));
+            close (pf);
+            g_atexit (delete_pid);
         }
 
         manager = ck_manager_new ();
