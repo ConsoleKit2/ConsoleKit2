@@ -135,9 +135,14 @@ gboolean            ck_session_get_session_type    (CkSession             *sessi
 gboolean            ck_session_get_host_name       (CkSession             *session,
                                                     char                 **host_name,
                                                     GError               **error);
+gboolean            ck_session_get_creation_time   (CkSession             *session,
+                                                    char                 **iso8601_datetime,
+                                                    GError               **error);
 
 /* Non-authoritative properties */
 gboolean            ck_session_get_idle            (CkSession             *session,
+                                                    DBusGMethodInvocation *context);
+gboolean            ck_session_get_idle_since      (CkSession             *session,
                                                     DBusGMethodInvocation *context);
 gboolean            ck_session_set_idle            (CkSession             *session,
                                                     gboolean               idle,

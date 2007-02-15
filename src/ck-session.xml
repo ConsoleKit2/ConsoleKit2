@@ -30,6 +30,9 @@
     <method name="IsLocal">
       <arg name="local" direction="out" type="b"/>
     </method>
+    <method name="GetCreationTime">
+      <arg name="iso8601_datetime" type="s" direction="out"/>
+    </method>
 
     <method name="Activate">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
@@ -44,6 +47,10 @@
     <method name="GetIdle">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="idle" type="b" direction="out"/>
+    </method>
+    <method name="GetIdleSince">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="iso8601_datetime" type="s" direction="out"/>
     </method>
     <method name="SetIdle">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>

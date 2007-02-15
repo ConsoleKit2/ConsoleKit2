@@ -167,6 +167,8 @@ list_session (DBusGConnection *connection,
         char       *xdisplay;
         char       *display_device;
         char       *host_name;
+        char       *creation_time;
+        char       *idle_since;
         gboolean    is_active;
         gboolean    is_local;
         char       *short_sid;
@@ -184,6 +186,8 @@ list_session (DBusGConnection *connection,
         session_type = NULL;
         xdisplay = NULL;
         host_name = NULL;
+        creation_time = NULL;
+        idle_since = NULL;
 
         get_int (proxy, "GetUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
@@ -193,6 +197,8 @@ list_session (DBusGConnection *connection,
         get_string (proxy, "GetHostName", &host_name);
         get_boolean (proxy, "IsActive", &is_active);
         get_boolean (proxy, "IsLocal", &is_local);
+        get_string (proxy, "GetCreationTime", &creation_time);
+        get_string (proxy, "GetIdleSince", &idle_since);
 
         realname = get_real_name (uid);
 
@@ -206,9 +212,16 @@ list_session (DBusGConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("uid='%d' realname='%s' seat='%s' session='%s' session-type='%s' active=%s x11-display='%s' display-device='%s' host-name='%s' is-local=%s\n",
-                uid, realname, short_sid, short_ssid, session_type, is_active ? "TRUE" : "FALSE", xdisplay, display_device, host_name, is_local ? "TRUE" : "FALSE");
+        printf ("uid='%d' realname='%s' seat='%s' session='%s' session-type='%s' active=%s x11-display='%s' display-device='%s' host-name='%s' is-local=%s on-since='%s'",
+                uid, realname, short_sid, short_ssid, session_type, is_active ? "TRUE" : "FALSE", xdisplay, display_device, host_name, is_local ? "TRUE" : "FALSE", creation_time);
+        if (idle_since != NULL && idle_since[0] != '\0') {
+                printf (" idle-since='%s'", idle_since);
+        }
+        printf ("\n");
 
+        g_free (idle_since);
+        g_free (creation_time);
+        g_free (host_name);
         g_free (realname);
         g_free (sid);
         g_free (session_type);

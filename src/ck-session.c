@@ -58,7 +58,10 @@ struct CkSessionPrivate
         gboolean         active;
         gboolean         is_local;
 
+        GTimeVal         creation_time;
+
         gboolean         idle;
+        GTimeVal         idle_since;
 
         DBusGConnection *connection;
         DBusGProxy      *bus_proxy;
@@ -216,6 +219,10 @@ session_set_idle_internal (CkSession      *session,
 {
         if (session->priv->idle != idle) {
                 session->priv->idle = idle;
+
+                /* FIXME: can we get a time from the dbus message? */
+                g_get_current_time (&session->priv->idle_since);
+
                 ck_debug ("Emitting idle-changed for session %s", session->priv->id);
                 g_signal_emit (session, signals [IDLE_CHANGED], 0);
         }
@@ -223,6 +230,13 @@ session_set_idle_internal (CkSession      *session,
         return TRUE;
 }
 
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Session1 \
+  org.freedesktop.ConsoleKit.Session.SetIdle boolean:TRUE
+*/
 gboolean
 ck_session_set_idle (CkSession             *session,
                      gboolean               idle,
@@ -279,6 +293,25 @@ ck_session_get_idle (CkSession             *session,
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         dbus_g_method_return (context, session->priv->idle);
+        return TRUE;
+}
+
+gboolean
+ck_session_get_idle_since (CkSession             *session,
+                           DBusGMethodInvocation *context)
+{
+        char *date_str;
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        date_str = NULL;
+        if (session->priv->idle) {
+                date_str = g_time_val_to_iso8601 (&session->priv->idle_since);
+        }
+
+        dbus_g_method_return (context, date_str);
+        g_free (date_str);
+
         return TRUE;
 }
 
@@ -419,6 +452,20 @@ ck_session_get_host_name (CkSession      *session,
 
         if (host_name != NULL) {
                 *host_name = g_strdup (session->priv->host_name);
+        }
+
+        return TRUE;
+}
+
+gboolean
+ck_session_get_creation_time (CkSession      *session,
+                              char          **iso8601_datetime,
+                              GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        if (iso8601_datetime != NULL) {
+                *iso8601_datetime = g_time_val_to_iso8601 (&session->priv->creation_time);
         }
 
         return TRUE;
@@ -808,6 +855,8 @@ ck_session_init (CkSession *session)
 {
         session->priv = CK_SESSION_GET_PRIVATE (session);
 
+        /* FIXME: should we have a property for this? */
+        g_get_current_time (&session->priv->creation_time);
 }
 
 static void
