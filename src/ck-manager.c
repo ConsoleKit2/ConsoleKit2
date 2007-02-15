@@ -740,15 +740,92 @@ remove_session_for_cookie (CkManager  *manager,
         return TRUE;
 }
 
+static gboolean
+paranoia_check_is_cookie_owner (CkManager  *manager,
+                                const char *cookie,
+                                uid_t       calling_uid,
+                                pid_t       calling_pid,
+                                GError    **error)
+{
+        LeaderInfo *leader_info;
+
+        if (cookie == NULL) {
+                g_set_error (error,
+                             CK_MANAGER_ERROR,
+                             CK_MANAGER_ERROR_GENERAL,
+                             "No cookie specified");
+                return FALSE;
+        }
+
+        leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
+        if (leader_info == NULL) {
+                g_set_error (error,
+                             CK_MANAGER_ERROR,
+                             CK_MANAGER_ERROR_GENERAL,
+                             _("Unable to find session for cookie"));
+                return FALSE;
+        }
+
+        if (leader_info->uid != calling_uid) {
+                g_set_error (error,
+                             CK_MANAGER_ERROR,
+                             CK_MANAGER_ERROR_GENERAL,
+                             _("User ID does not match the owner of cookie"));
+                return FALSE;
+
+        }
+
+        /* do we want to restrict to the same process? */
+        if (leader_info->pid != calling_pid) {
+                g_set_error (error,
+                             CK_MANAGER_ERROR,
+                             CK_MANAGER_ERROR_GENERAL,
+                             _("Process ID does not match the owner of cookie"));
+                return FALSE;
+
+        }
+
+        return TRUE;
+}
+
 gboolean
 ck_manager_close_session (CkManager             *manager,
                           const char            *cookie,
                           DBusGMethodInvocation *context)
 {
         gboolean res;
+        char    *sender;
+        uid_t    calling_uid;
+        pid_t    calling_pid;
         GError  *error;
 
         ck_debug ("Closing session for cookie: %s", cookie);
+
+        sender = dbus_g_method_get_sender (context);
+        res = get_caller_info (manager,
+                               sender,
+                               &calling_uid,
+                               &calling_pid);
+        g_free (sender);
+
+        if (! res) {
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_GENERAL,
+                                     "Unable to get information about the calling process");
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+
+                return FALSE;
+        }
+
+        error = NULL;
+        res = paranoia_check_is_cookie_owner (manager, cookie, calling_uid, calling_pid, &error);
+        if (! res) {
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+
+                return FALSE;
+        }
 
         error = NULL;
         res = remove_session_for_cookie (manager, cookie, &error);
