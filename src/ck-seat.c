@@ -489,7 +489,7 @@ active_vt_changed (CkVtMonitor    *vt_monitor,
 static gboolean
 register_seat (CkSeat *seat)
 {
-	GError *error = NULL;
+        GError *error = NULL;
 
         error = NULL;
         seat->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
@@ -501,7 +501,7 @@ register_seat (CkSeat *seat)
                 return FALSE;
         }
 
-	dbus_g_connection_register_g_object (seat->priv->connection, seat->priv->id, G_OBJECT (seat));
+        dbus_g_connection_register_g_object (seat->priv->connection, seat->priv->id, G_OBJECT (seat));
 
         return TRUE;
 }
@@ -598,7 +598,7 @@ ck_seat_constructor (GType                  type,
                      GObjectConstructParam *construct_properties)
 {
         CkSeat      *seat;
-	CkSeatClass *klass;
+        CkSeatClass *klass;
 
         klass = CK_SEAT_CLASS (g_type_class_peek (CK_TYPE_SEAT));
 
@@ -621,7 +621,7 @@ ck_seat_class_init (CkSeatClass *klass)
 
         object_class->get_property = ck_seat_get_property;
         object_class->set_property = ck_seat_set_property;
-	object_class->constructor = ck_seat_constructor;
+        object_class->constructor = ck_seat_constructor;
         object_class->finalize = ck_seat_finalize;
 
         signals [ACTIVE_SESSION_CHANGED] = g_signal_new ("active-session-changed",
@@ -662,15 +662,15 @@ ck_seat_class_init (CkSeatClass *klass)
         g_object_class_install_property (object_class,
                                          PROP_KIND,
                                          g_param_spec_enum ("kind",
-					        	    "kind",
-							    "kind",
-							    CK_TYPE_SEAT_KIND,
-							    CK_SEAT_KIND_DYNAMIC,
+                                                            "kind",
+                                                            "kind",
+                                                            CK_TYPE_SEAT_KIND,
+                                                            CK_SEAT_KIND_DYNAMIC,
                                                             G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
         g_type_class_add_private (klass, sizeof (CkSeatPrivate));
 
-	dbus_g_object_type_install_info (CK_TYPE_SEAT, &dbus_glib_ck_seat_object_info);
+        dbus_g_object_type_install_info (CK_TYPE_SEAT, &dbus_glib_ck_seat_object_info);
 }
 
 static void

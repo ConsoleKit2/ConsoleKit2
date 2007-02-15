@@ -104,7 +104,7 @@ ck_session_error_quark (void)
 static gboolean
 register_session (CkSession *session)
 {
-	GError *error = NULL;
+        GError *error = NULL;
 
         error = NULL;
         session->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
@@ -116,7 +116,7 @@ register_session (CkSession *session)
                 return FALSE;
         }
 
-	dbus_g_connection_register_g_object (session->priv->connection, session->priv->id, G_OBJECT (session));
+        dbus_g_connection_register_g_object (session->priv->connection, session->priv->id, G_OBJECT (session));
 
         return TRUE;
 }
@@ -136,7 +136,7 @@ ck_session_lock (CkSession             *session,
         ck_debug ("Emitting lock for session %s", session->priv->id);
         g_signal_emit (session, signals [LOCK], 0);
 
-	dbus_g_method_return (context, TRUE);
+        dbus_g_method_return (context, TRUE);
 
         return TRUE;
 }
@@ -150,7 +150,7 @@ ck_session_unlock (CkSession             *session,
         ck_debug ("Emitting unlock for session %s", session->priv->id);
         g_signal_emit (session, signals [UNLOCK], 0);
 
-	dbus_g_method_return (context, TRUE);
+        dbus_g_method_return (context, TRUE);
 
         return TRUE;
 }
@@ -176,9 +176,9 @@ ck_session_activate (CkSession             *session,
                 error = g_error_new (CK_SESSION_ERROR,
                                      CK_SESSION_ERROR_GENERAL,
                                      _("Unable to activate session"));
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
+                return FALSE;
         }
 
         return TRUE;
@@ -650,7 +650,7 @@ ck_session_class_init (CkSessionClass *klass)
 
         g_type_class_add_private (klass, sizeof (CkSessionPrivate));
 
-	dbus_g_object_type_install_info (CK_TYPE_SESSION, &dbus_glib_ck_session_object_info);
+        dbus_g_object_type_install_info (CK_TYPE_SESSION, &dbus_glib_ck_session_object_info);
 }
 
 static void

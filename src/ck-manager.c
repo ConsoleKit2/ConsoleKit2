@@ -57,11 +57,11 @@ struct CkManagerPrivate
         GHashTable      *sessions;
         GHashTable      *leaders;
 
-	DBusGProxy      *bus_proxy;
+        DBusGProxy      *bus_proxy;
         DBusGConnection *connection;
 
-	guint32          session_serial;
-	guint32          seat_serial;
+        guint32          session_serial;
+        guint32          seat_serial;
 };
 
 
@@ -112,29 +112,29 @@ ck_manager_error_quark (void)
 static guint32
 get_next_session_serial (CkManager *manager)
 {
-	guint32 serial;
+        guint32 serial;
 
-	serial = manager->priv->session_serial++;
+        serial = manager->priv->session_serial++;
 
-	if ((gint32)manager->priv->session_serial < 0) {
-		manager->priv->session_serial = 1;
-	}
+        if ((gint32)manager->priv->session_serial < 0) {
+                manager->priv->session_serial = 1;
+        }
 
-	return serial;
+        return serial;
 }
 
 static guint32
 get_next_seat_serial (CkManager *manager)
 {
-	guint32 serial;
+        guint32 serial;
 
-	serial = manager->priv->seat_serial++;
+        serial = manager->priv->seat_serial++;
 
-	if ((gint32)manager->priv->seat_serial < 0) {
-		manager->priv->seat_serial = 1;
-	}
+        if ((gint32)manager->priv->seat_serial < 0) {
+                manager->priv->seat_serial = 1;
+        }
 
-	return serial;
+        return serial;
 }
 
 static char *
@@ -282,42 +282,42 @@ get_caller_info (CkManager   *manager,
                  uid_t       *calling_uid,
                  pid_t       *calling_pid)
 {
-	gboolean res;
-	GError  *error = NULL;
+        gboolean res;
+        GError  *error = NULL;
 
-	res = FALSE;
+        res = FALSE;
 
-	if (sender == NULL) {
-		goto out;
+        if (sender == NULL) {
+                goto out;
         }
 
-	if (! dbus_g_proxy_call (manager->priv->bus_proxy, "GetConnectionUnixUser", &error,
+        if (! dbus_g_proxy_call (manager->priv->bus_proxy, "GetConnectionUnixUser", &error,
                                  G_TYPE_STRING, sender,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_uid,
                                  G_TYPE_INVALID)) {
-		g_warning ("GetConnectionUnixUser() failed: %s", error->message);
-		g_error_free (error);
-		goto out;
-	}
+                g_warning ("GetConnectionUnixUser() failed: %s", error->message);
+                g_error_free (error);
+                goto out;
+        }
 
-	if (! dbus_g_proxy_call (manager->priv->bus_proxy, "GetConnectionUnixProcessID", &error,
+        if (! dbus_g_proxy_call (manager->priv->bus_proxy, "GetConnectionUnixProcessID", &error,
                                  G_TYPE_STRING, sender,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_pid,
                                  G_TYPE_INVALID)) {
-		g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
-		g_error_free (error);
-		goto out;
-	}
+                g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
+                g_error_free (error);
+                goto out;
+        }
 
-	res = TRUE;
+        res = TRUE;
 
-	ck_debug ("uid = %d", *calling_uid);
+        ck_debug ("uid = %d", *calling_uid);
         ck_debug ("pid = %d", *calling_pid);
 
 out:
-	return res;
+        return res;
 }
 
 static char *
@@ -339,7 +339,7 @@ create_session_for_caller (CkManager       *manager,
         gboolean    res;
         LeaderInfo *leader_info;
 
-	res = get_caller_info (manager,
+        res = get_caller_info (manager,
                                sender,
                                &uid,
                                &pid);
@@ -349,8 +349,8 @@ create_session_for_caller (CkManager       *manager,
                              CK_MANAGER_ERROR_GENERAL,
                              "Unable to get information about the calling process");
 
-		return NULL;
-	}
+                return NULL;
+        }
 
         cookie = generate_session_cookie (manager);
         ssid = generate_session_id (manager);
@@ -434,7 +434,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                    DBusGMethodInvocation *context)
 {
         gboolean    res;
-	char       *sender;
+        char       *sender;
         uid_t       calling_uid;
         pid_t       calling_pid;
         proc_t     *stat;
@@ -444,9 +444,9 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
 
         ssid = NULL;
 
-	sender = dbus_g_method_get_sender (context);
+        sender = dbus_g_method_get_sender (context);
 
-	res = get_caller_info (manager,
+        res = get_caller_info (manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
@@ -457,10 +457,10 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to get information about the calling process"));
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
-	}
+                return FALSE;
+        }
 
         res = proc_stat_pid (calling_pid, &stat);
         if (! res) {
@@ -470,9 +470,9 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to lookup information about calling process '%d'"),
                                      calling_pid);
                 g_warning ("stat on pid %d failed", calling_pid);
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
+                return FALSE;
         }
 
         /* FIXME: should we restrict this by uid? */
@@ -483,8 +483,8 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to find session for cookie"));
-		dbus_g_method_return_error (context, error);
-		g_error_free (error);
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
                 return FALSE;
         }
 
@@ -494,14 +494,14 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to find session for cookie"));
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
+                return FALSE;
         }
 
         ck_session_get_id (session, &ssid, NULL);
 
-	dbus_g_method_return (context, ssid);
+        dbus_g_method_return (context, ssid);
 
         g_free (ssid);
 
@@ -534,15 +534,15 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                                          DBusGMethodInvocation *context)
 {
         gboolean    res;
-	char       *sender;
+        char       *sender;
         uid_t       calling_uid;
         pid_t       calling_pid;
         proc_t     *stat;
         char       *cookie;
 
-	sender = dbus_g_method_get_sender (context);
+        sender = dbus_g_method_get_sender (context);
 
-	res = get_caller_info (manager,
+        res = get_caller_info (manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
@@ -553,10 +553,10 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to get information about the calling process"));
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
-	}
+                return FALSE;
+        }
 
         res = proc_stat_pid (calling_pid, &stat);
         if (! res) {
@@ -566,9 +566,9 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to lookup information about calling process '%d'"),
                                      calling_pid);
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
+                return FALSE;
         }
 
         cookie = get_cookie_for_pid (manager, pid);
@@ -578,9 +578,9 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to lookup session information for process '%d'"),
                                      pid);
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
+                return FALSE;
         }
 
         res = ck_manager_get_session_for_cookie (manager, cookie, context);
@@ -601,13 +601,13 @@ ck_manager_get_current_session (CkManager             *manager,
                                 DBusGMethodInvocation *context)
 {
         gboolean    res;
-	char       *sender;
+        char       *sender;
         uid_t       calling_uid;
         pid_t       calling_pid;
 
-	sender = dbus_g_method_get_sender (context);
+        sender = dbus_g_method_get_sender (context);
 
-	res = get_caller_info (manager,
+        res = get_caller_info (manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
@@ -618,10 +618,10 @@ ck_manager_get_current_session (CkManager             *manager,
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to get information about the calling process"));
-		dbus_g_method_return_error (context, error);
+                dbus_g_method_return_error (context, error);
                 g_error_free (error);
-		return FALSE;
-	}
+                return FALSE;
+        }
 
         res = ck_manager_get_session_for_unix_process (manager, calling_pid, context);
 
@@ -632,11 +632,11 @@ gboolean
 ck_manager_open_session (CkManager             *manager,
                          DBusGMethodInvocation *context)
 {
-	char    *sender;
+        char    *sender;
         char    *cookie;
         GError  *error;
 
-	sender = dbus_g_method_get_sender (context);
+        sender = dbus_g_method_get_sender (context);
 
         error = NULL;
         cookie = create_session_for_caller (manager, sender, NULL, &error);
@@ -646,7 +646,7 @@ ck_manager_open_session (CkManager             *manager,
                 return FALSE;
         }
 
-	dbus_g_method_return (context, cookie);
+        dbus_g_method_return (context, cookie);
 
         g_free (cookie);
 
@@ -658,11 +658,11 @@ ck_manager_open_session_with_parameters (CkManager             *manager,
                                          const GPtrArray       *parameters,
                                          DBusGMethodInvocation *context)
 {
-	char    *sender;
+        char    *sender;
         char    *cookie;
         GError  *error;
 
-	sender = dbus_g_method_get_sender (context);
+        sender = dbus_g_method_get_sender (context);
 
         error = NULL;
         cookie = create_session_for_caller (manager, sender, parameters, &error);
@@ -674,7 +674,7 @@ ck_manager_open_session_with_parameters (CkManager             *manager,
                 return FALSE;
         }
 
-	dbus_g_method_return (context, cookie);
+        dbus_g_method_return (context, cookie);
 
         g_free (cookie);
 
@@ -760,7 +760,7 @@ ck_manager_close_session (CkManager             *manager,
                 g_hash_table_remove (manager->priv->leaders, cookie);
         }
 
-	dbus_g_method_return (context, res);
+        dbus_g_method_return (context, res);
 
         return TRUE;
 }
@@ -822,7 +822,7 @@ bus_name_owner_changed (DBusGProxy  *bus_proxy,
 static gboolean
 register_manager (CkManager *manager)
 {
-	GError *error = NULL;
+        GError *error = NULL;
 
         error = NULL;
         manager->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
@@ -834,7 +834,7 @@ register_manager (CkManager *manager)
                 exit (1);
         }
 
-	manager->priv->bus_proxy = dbus_g_proxy_new_for_name (manager->priv->connection,
+        manager->priv->bus_proxy = dbus_g_proxy_new_for_name (manager->priv->connection,
                                                               DBUS_SERVICE_DBUS,
                                                               DBUS_PATH_DBUS,
                                                               DBUS_INTERFACE_DBUS);
@@ -847,10 +847,10 @@ register_manager (CkManager *manager)
         dbus_g_proxy_connect_signal (manager->priv->bus_proxy,
                                      "NameOwnerChanged",
                                      G_CALLBACK (bus_name_owner_changed),
-				     manager,
+                                     manager,
                                      NULL);
 
-	dbus_g_connection_register_g_object (manager->priv->connection, CK_MANAGER_DBUS_PATH, G_OBJECT (manager));
+        dbus_g_connection_register_g_object (manager->priv->connection, CK_MANAGER_DBUS_PATH, G_OBJECT (manager));
 
         return TRUE;
 }
@@ -881,7 +881,7 @@ ck_manager_class_init (CkManagerClass *klass)
                                              G_TYPE_NONE,
                                              1, G_TYPE_STRING);
 
-	dbus_g_object_type_install_info (CK_TYPE_MANAGER, &dbus_glib_ck_manager_object_info);
+        dbus_g_object_type_install_info (CK_TYPE_MANAGER, &dbus_glib_ck_manager_object_info);
 
         g_type_class_add_private (klass, sizeof (CkManagerPrivate));
 }
