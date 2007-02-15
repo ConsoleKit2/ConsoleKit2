@@ -41,9 +41,20 @@
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
     </method>
 
+    <method name="GetIdle">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="idle" type="b" direction="out"/>
+    </method>
+    <method name="SetIdle">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="idle" type="b" direction="in"/>
+    </method>
+
     <signal name="ActiveChanged"/>
     <signal name="Lock"/>
     <signal name="Unlock"/>
+
+    <signal name="IdleChanged"/>
 
   </interface>
 </node>

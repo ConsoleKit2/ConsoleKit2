@@ -55,6 +55,8 @@ typedef struct
         void          (* unlock)         (CkSession *session);
         void          (* active_changed) (CkSession *session,
                                           gboolean   active);
+        void          (* idle_changed)   (CkSession *session,
+                                          gboolean   idle);
 } CkSessionClass;
 
 typedef enum
@@ -136,11 +138,10 @@ gboolean            ck_session_get_host_name       (CkSession             *sessi
 
 /* Non-authoritative properties */
 gboolean            ck_session_get_idle            (CkSession             *session,
-                                                    gboolean              *idle,
-                                                    GError               **error);
+                                                    DBusGMethodInvocation *context);
 gboolean            ck_session_set_idle            (CkSession             *session,
                                                     gboolean               idle,
-                                                    GError               **error);
+                                                    DBusGMethodInvocation *context);
 
 /* Privileged actions */
 gboolean            ck_session_activate            (CkSession             *session,

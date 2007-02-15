@@ -58,7 +58,10 @@ struct CkSessionPrivate
         gboolean         active;
         gboolean         is_local;
 
+        gboolean         idle;
+
         DBusGConnection *connection;
+        DBusGProxy      *bus_proxy;
 };
 
 enum {
@@ -66,6 +69,7 @@ enum {
         LOCK,
         UNLOCK,
         ACTIVE_CHANGED,
+        IDLE_CHANGED,
         LAST_SIGNAL
 };
 
@@ -80,6 +84,7 @@ enum {
         PROP_HOST_NAME,
         PROP_IS_LOCAL,
         PROP_ACTIVE,
+        PROP_IDLE,
 };
 
 static guint signals [LAST_SIGNAL] = { 0, };
@@ -116,6 +121,11 @@ register_session (CkSession *session)
                 return FALSE;
         }
 
+        session->priv->bus_proxy = dbus_g_proxy_new_for_name (session->priv->connection,
+                                                              DBUS_SERVICE_DBUS,
+                                                              DBUS_PATH_DBUS,
+                                                              DBUS_INTERFACE_DBUS);
+
         dbus_g_connection_register_g_object (session->priv->connection, session->priv->id, G_OBJECT (session));
 
         return TRUE;
@@ -136,7 +146,7 @@ ck_session_lock (CkSession             *session,
         ck_debug ("Emitting lock for session %s", session->priv->id);
         g_signal_emit (session, signals [LOCK], 0);
 
-        dbus_g_method_return (context, TRUE);
+        dbus_g_method_return (context);
 
         return TRUE;
 }
@@ -150,8 +160,125 @@ ck_session_unlock (CkSession             *session,
         ck_debug ("Emitting unlock for session %s", session->priv->id);
         g_signal_emit (session, signals [UNLOCK], 0);
 
-        dbus_g_method_return (context, TRUE);
+        dbus_g_method_return (context);
 
+        return TRUE;
+}
+
+/* adapted from PolicyKit */
+static gboolean
+get_caller_info (CkSession   *session,
+                 const char  *sender,
+                 uid_t       *calling_uid,
+                 pid_t       *calling_pid)
+{
+        gboolean res;
+        GError  *error = NULL;
+
+        res = FALSE;
+
+        if (sender == NULL) {
+                goto out;
+        }
+
+        if (! dbus_g_proxy_call (session->priv->bus_proxy, "GetConnectionUnixUser", &error,
+                                 G_TYPE_STRING, sender,
+                                 G_TYPE_INVALID,
+                                 G_TYPE_UINT, calling_uid,
+                                 G_TYPE_INVALID)) {
+                g_warning ("GetConnectionUnixUser() failed: %s", error->message);
+                g_error_free (error);
+                goto out;
+        }
+
+        if (! dbus_g_proxy_call (session->priv->bus_proxy, "GetConnectionUnixProcessID", &error,
+                                 G_TYPE_STRING, sender,
+                                 G_TYPE_INVALID,
+                                 G_TYPE_UINT, calling_pid,
+                                 G_TYPE_INVALID)) {
+                g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
+                g_error_free (error);
+                goto out;
+        }
+
+        res = TRUE;
+
+        ck_debug ("uid = %d", *calling_uid);
+        ck_debug ("pid = %d", *calling_pid);
+
+out:
+        return res;
+}
+
+static gboolean
+session_set_idle_internal (CkSession      *session,
+                           gboolean        idle)
+{
+        if (session->priv->idle != idle) {
+                session->priv->idle = idle;
+                ck_debug ("Emitting idle-changed for session %s", session->priv->id);
+                g_signal_emit (session, signals [IDLE_CHANGED], 0);
+        }
+
+        return TRUE;
+}
+
+gboolean
+ck_session_set_idle (CkSession             *session,
+                     gboolean               idle,
+                     DBusGMethodInvocation *context)
+{
+        char       *sender;
+        uid_t       calling_uid;
+        pid_t       calling_pid;
+        gboolean    res;
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        sender = dbus_g_method_get_sender (context);
+
+        res = get_caller_info (session,
+                               sender,
+                               &calling_uid,
+                               &calling_pid);
+        g_free (sender);
+
+        if (! res) {
+                GError *error;
+                error = g_error_new (CK_SESSION_ERROR,
+                                     CK_SESSION_ERROR_GENERAL,
+                                     _("Unable to lookup information about calling process '%d'"),
+                                     calling_pid);
+                g_warning ("stat on pid %d failed", calling_pid);
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+                return FALSE;
+        }
+
+        /* only restrict this by UID for now */
+        if (session->priv->uid != calling_uid) {
+                GError *error;
+                error = g_error_new (CK_SESSION_ERROR,
+                                     CK_SESSION_ERROR_GENERAL,
+                                     _("Only session owner may set idle state"));
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+                return FALSE;
+        }
+
+        session_set_idle_internal (session, idle);
+        dbus_g_method_return (context);
+
+        return TRUE;
+}
+
+gboolean
+ck_session_get_idle (CkSession             *session,
+                     DBusGMethodInvocation *context)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        dbus_g_method_return (context, session->priv->idle);
         return TRUE;
 }
 
@@ -480,6 +607,9 @@ ck_session_set_property (GObject            *object,
         case PROP_HOST_NAME:
                 ck_session_set_host_name (self, g_value_get_string (value), NULL);
                 break;
+        case PROP_IDLE:
+                session_set_idle_internal (self, g_value_get_boolean (value));
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
                 break;
@@ -523,6 +653,9 @@ ck_session_get_property (GObject    *object,
                 break;
         case PROP_HOST_NAME:
                 g_value_set_string (value, self->priv->host_name);
+                break;
+        case PROP_IDLE:
+                g_value_set_boolean (value, self->priv->idle);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -579,6 +712,16 @@ ck_session_class_init (CkSessionClass *klass)
                               g_cclosure_marshal_VOID__VOID,
                               G_TYPE_NONE,
                               0);
+        signals [IDLE_CHANGED] =
+                g_signal_new ("idle-changed",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkSessionClass, idle_changed),
+                              NULL,
+                              NULL,
+                              g_cclosure_marshal_VOID__BOOLEAN,
+                              G_TYPE_NONE,
+                              1, G_TYPE_BOOLEAN);
 
         g_object_class_install_property (object_class,
                                          PROP_ACTIVE,
@@ -641,12 +784,19 @@ ck_session_class_init (CkSessionClass *klass)
         g_object_class_install_property (object_class,
                                          PROP_USER,
                                          g_param_spec_uint ("user",
-                                                           "User Id",
-                                                           "User Id",
-                                                           0,
-                                                           G_MAXINT,
-                                                           0,
-                                                           G_PARAM_READWRITE));
+                                                            "User Id",
+                                                            "User Id",
+                                                            0,
+                                                            G_MAXINT,
+                                                            0,
+                                                            G_PARAM_READWRITE));
+        g_object_class_install_property (object_class,
+                                         PROP_ACTIVE,
+                                         g_param_spec_boolean ("idle",
+                                                               NULL,
+                                                               NULL,
+                                                               FALSE,
+                                                               G_PARAM_READWRITE));
 
         g_type_class_add_private (klass, sizeof (CkSessionPrivate));
 
