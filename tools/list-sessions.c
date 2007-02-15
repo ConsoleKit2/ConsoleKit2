@@ -212,10 +212,10 @@ list_session (DBusGConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("uid='%d' realname='%s' seat='%s' session='%s' session-type='%s' active=%s x11-display='%s' display-device='%s' host-name='%s' is-local=%s on-since='%s'",
-                uid, realname, short_sid, short_ssid, session_type, is_active ? "TRUE" : "FALSE", xdisplay, display_device, host_name, is_local ? "TRUE" : "FALSE", creation_time);
+        printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tdisplay-device = '%s'\n\thost-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
+                short_ssid, uid, realname, short_sid, session_type, is_active ? "TRUE" : "FALSE", xdisplay, display_device, host_name, is_local ? "TRUE" : "FALSE", creation_time);
         if (idle_since != NULL && idle_since[0] != '\0') {
-                printf (" idle-since='%s'", idle_since);
+                printf ("\n\tidle-since = '%s'", idle_since);
         }
         printf ("\n");
 
