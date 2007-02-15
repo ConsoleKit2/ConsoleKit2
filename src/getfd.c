@@ -13,7 +13,8 @@
  */
 
 static int
-is_a_console(int fd) {
+is_a_console (int fd)
+{
     char arg;
 
     arg = 0;
@@ -22,7 +23,8 @@ is_a_console(int fd) {
 }
 
 static int
-open_a_console(char *fnam) {
+open_a_console (char *fnam)
+{
     int fd;
 
     fd = open(fnam, O_RDONLY);
@@ -33,7 +35,8 @@ open_a_console(char *fnam) {
     return fd;
 }
 
-int getfd() {
+int getfd (void)
+{
     int fd;
 
     fd = open_a_console("/dev/tty");
