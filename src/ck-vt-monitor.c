@@ -286,20 +286,23 @@ vt_thread_start (ThreadData *data)
         ck_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
 
         if (ret == ERROR) {
+                const char *errmsg;
+
+                errmsg = g_strerror (errno);
 
                 if (errno == EINTR) {
                         ck_debug ("Interrupted waiting for native console %d activation: %s",
                                   num,
-                                  g_strerror (errno));
+                                  errmsg);
                        goto again;
                 } else {
                         ck_debug ("Error waiting for native console %d activation: %s",
                                    num,
-                                   g_strerror (errno));
+                                   errmsg);
 
                         g_warning ("Error waiting for native console %d activation: %s",
                                    num,
-                                   g_strerror (errno));
+                                   errmsg);
                 }
 
                 g_free (data);
@@ -445,8 +448,10 @@ ck_vt_monitor_init (CkVtMonitor *vt_monitor)
         vt_monitor->priv->vfd = fd;
 
         if (fd == ERROR) {
-                ck_debug ("Unable to open console: %s", g_strerror (errno));
-                g_warning ("Unable to open console: %s", g_strerror (errno));
+                const char *errmsg;
+                errmsg = g_strerror (errno);
+                ck_debug ("Unable to open a console: %s", errmsg);
+                g_warning ("Unable to open a console: %s", errmsg);
         } else {
                 vt_monitor->priv->event_queue = g_async_queue_new ();
                 vt_monitor->priv->vt_thread_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
