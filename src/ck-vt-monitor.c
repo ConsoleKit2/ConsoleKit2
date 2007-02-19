@@ -48,7 +48,6 @@
 #include "ck-debug.h"
 
 #define ERROR -1
-#define DEBUG_ENABLED 1
 
 #define CK_VT_MONITOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_VT_MONITOR, CkVtMonitorPrivate))
 
@@ -115,6 +114,14 @@ ck_vt_monitor_set_active (CkVtMonitor    *vt_monitor,
                 return FALSE;
         }
 
+        if (vt_monitor->priv->vfd == ERROR) {
+                g_set_error (error,
+                             CK_VT_MONITOR_ERROR,
+                             CK_VT_MONITOR_ERROR_GENERAL,
+                             _("No consoles available"));
+                return FALSE;
+        }
+
         res = ioctl (vt_monitor->priv->vfd, VT_ACTIVATE, num);
         if (res == 0) {
                 ret = TRUE;
@@ -134,7 +141,19 @@ ck_vt_monitor_get_active (CkVtMonitor    *vt_monitor,
                           guint32        *num,
                           GError        **error)
 {
+        if (num != NULL) {
+                *num = 0;
+        }
+
         g_return_val_if_fail (CK_IS_VT_MONITOR (vt_monitor), FALSE);
+
+        if (vt_monitor->priv->vfd == ERROR) {
+                g_set_error (error,
+                             CK_VT_MONITOR_ERROR,
+                             CK_VT_MONITOR_ERROR_GENERAL,
+                             _("No consoles available"));
+                return FALSE;
+        }
 
         if (num != NULL) {
                 *num = vt_monitor->priv->active_num;
@@ -423,18 +442,19 @@ ck_vt_monitor_init (CkVtMonitor *vt_monitor)
         vt_monitor->priv = CK_VT_MONITOR_GET_PRIVATE (vt_monitor);
 
         fd = getfd ();
+        vt_monitor->priv->vfd = fd;
+
         if (fd == ERROR) {
                 ck_debug ("Unable to open console: %s", g_strerror (errno));
-                g_critical ("Unable to open console: %s", g_strerror (errno));
+                g_warning ("Unable to open console: %s", g_strerror (errno));
+        } else {
+                vt_monitor->priv->event_queue = g_async_queue_new ();
+                vt_monitor->priv->vt_thread_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
+
+                vt_monitor->priv->active_num = get_active_native (vt_monitor);
+
+                vt_add_watches (vt_monitor);
         }
-
-        vt_monitor->priv->event_queue = g_async_queue_new ();
-        vt_monitor->priv->vfd = fd;
-        vt_monitor->priv->vt_thread_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
-
-        vt_monitor->priv->active_num = get_active_native (vt_monitor);
-
-        vt_add_watches (vt_monitor);
 }
 
 static void
@@ -461,7 +481,9 @@ ck_vt_monitor_finalize (GObject *object)
                 g_hash_table_destroy (vt_monitor->priv->vt_thread_hash);
         }
 
-        close (vt_monitor->priv->vfd);
+        if (vt_monitor->priv->vfd != ERROR) {
+                close (vt_monitor->priv->vfd);
+        }
 
         G_OBJECT_CLASS (ck_vt_monitor_parent_class)->finalize (object);
 }

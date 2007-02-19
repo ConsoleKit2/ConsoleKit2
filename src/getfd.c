@@ -1,3 +1,9 @@
+/*
+ * Copied from kbd-1.12
+ * License: GPL
+ *
+ */
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
