@@ -57,6 +57,9 @@ struct CkVtMonitorPrivate
         int              vfd;
         GHashTable      *vt_thread_hash;
         guint            active_num;
+
+        GAsyncQueue     *event_queue;
+        guint            process_queue_id;
 };
 
 enum {
@@ -74,9 +77,12 @@ static void     ck_vt_monitor_class_init  (CkVtMonitorClass *klass);
 static void     ck_vt_monitor_init        (CkVtMonitor      *vt_monitor);
 static void     ck_vt_monitor_finalize    (GObject          *object);
 
+static void     vt_add_watches            (CkVtMonitor      *vt_monitor);
+
 G_DEFINE_TYPE (CkVtMonitor, ck_vt_monitor, G_TYPE_OBJECT)
 
-static void watch_vts (CkVtMonitor *vt_monitor);
+G_LOCK_DEFINE_STATIC (hash_lock);
+G_LOCK_DEFINE_STATIC (schedule_lock);
 
 static gpointer vt_object = NULL;
 
@@ -143,13 +149,16 @@ change_active_num (CkVtMonitor *vt_monitor,
 {
 
         if (vt_monitor->priv->active_num != num) {
+                ck_debug ("Changing active VT: %d", num);
 
                 vt_monitor->priv->active_num = num;
 
-                g_hash_table_remove (vt_monitor->priv->vt_thread_hash, GUINT_TO_POINTER (num));
-                watch_vts (vt_monitor);
+                /* add a watch to every vt without a thread */
+                vt_add_watches (vt_monitor);
 
                 g_signal_emit (vt_monitor, signals[ACTIVE_CHANGED], 0, num);
+        } else {
+                ck_debug ("VT activated but already active: %d", num);
         }
 }
 
@@ -158,14 +167,87 @@ typedef struct {
         CkVtMonitor *vt_monitor;
 } ThreadData;
 
-static gboolean
-vt_activated (ThreadData *data)
+typedef struct {
+        gint32       num;
+} EventData;
+
+static void
+thread_data_free (ThreadData *data)
 {
-        change_active_num (data->vt_monitor, data->num);
+        if (data == NULL) {
+                return;
+        }
 
         g_free (data);
+}
+
+static void
+event_data_free (EventData *data)
+{
+        if (data == NULL) {
+                return;
+        }
+
+        g_free (data);
+}
+
+static gboolean
+process_queue (CkVtMonitor *vt_monitor)
+{
+        int        i;
+        int        queue_length;
+        EventData *data;
+        EventData *d;
+
+        g_async_queue_lock (vt_monitor->priv->event_queue);
+
+        ck_debug ("Processing VT event queue");
+
+        queue_length = g_async_queue_length_unlocked (vt_monitor->priv->event_queue);
+        data = NULL;
+
+        G_LOCK (hash_lock);
+
+        /* compress events in the queue */
+        for (i = 0; i < queue_length; i++) {
+                d = g_async_queue_try_pop_unlocked (vt_monitor->priv->event_queue);
+                if (d == NULL) {
+                        continue;
+
+                }
+
+                if (data != NULL) {
+                        ck_debug ("Compressing queue; skipping event for VT %d", data->num);
+                        event_data_free (data);
+                }
+
+                data = d;
+        }
+
+        G_UNLOCK (hash_lock);
+
+        if (data != NULL) {
+                change_active_num (vt_monitor, data->num);
+                event_data_free (data);
+        }
+
+        G_LOCK (schedule_lock);
+        vt_monitor->priv->process_queue_id = 0;
+        G_UNLOCK (schedule_lock);
+
+        g_async_queue_unlock (vt_monitor->priv->event_queue);
 
         return FALSE;
+}
+
+static void
+schedule_process_queue (CkVtMonitor *vt_monitor)
+{
+        G_LOCK (schedule_lock);
+        if (vt_monitor->priv->process_queue_id == 0) {
+                vt_monitor->priv->process_queue_id = g_idle_add ((GSourceFunc)process_queue, vt_monitor);
+        }
+        G_UNLOCK (schedule_lock);
 }
 
 static void *
@@ -182,7 +264,7 @@ vt_thread_start (ThreadData *data)
         ck_debug ("VT_WAITACTIVE for vt %d", num);
         ret = ioctl (vt_monitor->priv->vfd, VT_WAITACTIVE, num);
 
-        ck_debug ("VT_WAITACTIVE returned %d", ret);
+        ck_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
 
         if (ret == ERROR) {
 
@@ -202,17 +284,86 @@ vt_thread_start (ThreadData *data)
                 }
 
                 g_free (data);
-
-                if (vt_monitor->priv->vt_thread_hash != NULL) {
-                        g_hash_table_remove (vt_monitor->priv->vt_thread_hash, GUINT_TO_POINTER (num));
-                }
         } else {
-                g_idle_add ((GSourceFunc)vt_activated, data);
+                EventData *event;
+
+                /* add event to queue */
+                event = g_new0 (EventData, 1);
+                event->num = num;
+                ck_debug ("Pushing activation event for VT %d onto queue", num);
+
+                g_async_queue_push (vt_monitor->priv->event_queue, event);
+
+                /* schedule processing of queue */
+                schedule_process_queue (vt_monitor);
         }
 
+        G_LOCK (hash_lock);
+        if (vt_monitor->priv->vt_thread_hash != NULL) {
+                g_hash_table_remove (vt_monitor->priv->vt_thread_hash, GUINT_TO_POINTER (num));
+        }
+        G_UNLOCK (hash_lock);
+
         g_thread_exit (NULL);
+        thread_data_free (data);
 
         return NULL;
+}
+
+static void
+vt_add_watch_unlocked (CkVtMonitor *vt_monitor,
+                       gint32       num)
+{
+        GThread    *thread;
+        GError     *error;
+        ThreadData *data;
+        gpointer    id;
+
+        data = g_new0 (ThreadData, 1);
+        data->num = num;
+        data->vt_monitor = vt_monitor;
+
+        ck_debug ("Creating thread for vt %d", num);
+
+        id = GINT_TO_POINTER (num);
+
+        error = NULL;
+        thread = g_thread_create_full ((GThreadFunc)vt_thread_start, data, 65536, FALSE, TRUE, G_THREAD_PRIORITY_NORMAL, &error);
+        if (thread == NULL) {
+                ck_debug ("Unable to create thread: %s", error->message);
+                g_error_free (error);
+        } else {
+                g_hash_table_insert (vt_monitor->priv->vt_thread_hash, id, thread);
+        }
+}
+
+static void
+vt_add_watches (CkVtMonitor *vt_monitor)
+{
+        int    i;
+        gint32 current_num;
+
+        G_LOCK (hash_lock);
+
+        current_num = vt_monitor->priv->active_num;
+
+        for (i = 1; i < MAX_NR_CONSOLES; i++) {
+                gpointer id;
+
+                /* don't wait on the active vc */
+                if (i == current_num) {
+                        continue;
+                }
+
+                id = GINT_TO_POINTER (i);
+
+                /* add a watch to all other VTs that don't have threads */
+                if (g_hash_table_lookup (vt_monitor->priv->vt_thread_hash, id) == NULL) {
+                        vt_add_watch_unlocked (vt_monitor, i);
+                }
+        }
+
+        G_UNLOCK (hash_lock);
 }
 
 static guint
@@ -240,46 +391,6 @@ get_active_native (CkVtMonitor *vt_monitor)
         }
 
         return stat.v_active;
-}
-
-static void
-watch_vts (CkVtMonitor *vt_monitor)
-{
-        int    i;
-        gint32 current_num;
-
-        current_num = vt_monitor->priv->active_num;
-
-        for (i = 1; i < MAX_NR_CONSOLES; i++) {
-                gpointer id;
-
-                /* don't wait on the active vc */
-                if (i == current_num) {
-                        continue;
-                }
-
-                id = GINT_TO_POINTER (i);
-                if (g_hash_table_lookup (vt_monitor->priv->vt_thread_hash, id) == NULL) {
-                        GThread    *thread;
-                        GError     *error;
-                        ThreadData *data;
-
-                        data = g_new0 (ThreadData, 1);
-                        data->num = i;
-                        data->vt_monitor = vt_monitor;
-
-                        ck_debug ("Creating thread for vt %d", i);
-
-                        error = NULL;
-                        thread = g_thread_create_full ((GThreadFunc)vt_thread_start, data, 65536, FALSE, TRUE, G_THREAD_PRIORITY_NORMAL, &error);
-                        if (thread == NULL) {
-                                ck_debug ("Unable to create thread: %s", error->message);
-                                g_error_free (error);
-                        } else {
-                                g_hash_table_insert (vt_monitor->priv->vt_thread_hash, id, thread);
-                        }
-                }
-        }
 }
 
 static void
@@ -317,12 +428,13 @@ ck_vt_monitor_init (CkVtMonitor *vt_monitor)
                 g_critical ("Unable to open console: %s", g_strerror (errno));
         }
 
+        vt_monitor->priv->event_queue = g_async_queue_new ();
         vt_monitor->priv->vfd = fd;
         vt_monitor->priv->vt_thread_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
 
         vt_monitor->priv->active_num = get_active_native (vt_monitor);
 
-        watch_vts (vt_monitor);
+        vt_add_watches (vt_monitor);
 }
 
 static void
@@ -337,7 +449,17 @@ ck_vt_monitor_finalize (GObject *object)
 
         g_return_if_fail (vt_monitor->priv != NULL);
 
-        g_hash_table_destroy (vt_monitor->priv->vt_thread_hash);
+        if (vt_monitor->priv->process_queue_id > 0) {
+                g_source_remove (vt_monitor->priv->process_queue_id);
+        }
+
+        if (vt_monitor->priv->event_queue != NULL) {
+                g_async_queue_unref (vt_monitor->priv->event_queue);
+        }
+
+        if (vt_monitor->priv->vt_thread_hash != NULL) {
+                g_hash_table_destroy (vt_monitor->priv->vt_thread_hash);
+        }
 
         close (vt_monitor->priv->vfd);
 
