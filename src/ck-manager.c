@@ -62,6 +62,9 @@ struct CkManagerPrivate
 
         guint32          session_serial;
         guint32          seat_serial;
+
+        gboolean         system_idle_hint;
+        GTimeVal         system_idle_since_hint;
 };
 
 
@@ -76,6 +79,7 @@ typedef struct {
 enum {
         SEAT_ADDED,
         SEAT_REMOVED,
+        SYSTEM_IDLE_HINT_CHANGED,
         LAST_SIGNAL
 };
 
@@ -320,6 +324,105 @@ out:
         return res;
 }
 
+static gboolean
+manager_set_system_idle_hint (CkManager *manager,
+                              gboolean   idle_hint)
+{
+        if (manager->priv->system_idle_hint != idle_hint) {
+                manager->priv->system_idle_hint = idle_hint;
+
+                /* FIXME: can we get a time from the dbus message? */
+                g_get_current_time (&manager->priv->system_idle_since_hint);
+
+                ck_debug ("Emitting system-idle-changed");
+                g_signal_emit (manager, signals [SYSTEM_IDLE_HINT_CHANGED], 0, idle_hint);
+        }
+
+        return TRUE;
+}
+
+static gboolean
+is_session_busy (char      *id,
+                 CkSession *session,
+                 gpointer   data)
+{
+        gboolean idle_hint;
+
+        idle_hint = FALSE;
+
+        ck_session_get_idle_hint (session, &idle_hint, NULL);
+
+        /* return TRUE to stop search */
+        return !idle_hint;
+}
+
+static void
+manager_update_system_idle_hint (CkManager *manager)
+{
+        CkSession *session;
+        gboolean   system_idle;
+
+        /* just look for any session that doesn't have the idle-hint set */
+        session = g_hash_table_find (manager->priv->sessions, (GHRFunc)is_session_busy, NULL);
+
+        /* if there aren't any busy sessions then the system is idle */
+        system_idle = (session == NULL);
+
+        manager_set_system_idle_hint (manager, system_idle);
+}
+
+static void
+session_idle_hint_changed (CkSession  *session,
+                           gboolean    idle_hint,
+                           CkManager  *manager)
+{
+        manager_update_system_idle_hint (manager);
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.GetSystemIdleHint
+*/
+gboolean
+ck_manager_get_system_idle_hint (CkManager *manager,
+                                 gboolean  *idle_hint,
+                                 GError   **error)
+{
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        if (idle_hint != NULL) {
+                *idle_hint = manager->priv->system_idle_hint;
+        }
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_get_system_idle_since_hint (CkManager *manager,
+                                       char    **iso8601_datetime,
+                                       GError  **error)
+{
+        char *date_str;
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        date_str = NULL;
+        if (manager->priv->system_idle_hint) {
+                date_str = g_time_val_to_iso8601 (&manager->priv->system_idle_since_hint);
+        }
+
+        if (iso8601_datetime != NULL) {
+                *iso8601_datetime = g_strdup (date_str);
+        }
+
+        g_free (date_str);
+
+        return TRUE;
+}
+
 static char *
 create_session_for_caller (CkManager       *manager,
                            const char      *sender,
@@ -411,6 +514,11 @@ create_session_for_caller (CkManager       *manager,
 
         /* FIXME: connect to signals */
         /* FIXME: add weak ref */
+
+        manager_update_system_idle_hint (manager);
+        g_signal_connect (session, "idle-hint-changed",
+                          G_CALLBACK (session_idle_hint_changed),
+                          manager);
 
         g_object_unref (session);
 
@@ -737,6 +845,8 @@ remove_session_for_cookie (CkManager  *manager,
 
         g_free (ssid);
 
+        manager_update_system_idle_hint (manager);
+
         return TRUE;
 }
 
@@ -939,24 +1049,36 @@ ck_manager_class_init (CkManagerClass *klass)
 
         object_class->finalize = ck_manager_finalize;
 
-        signals [SEAT_ADDED] = g_signal_new ("seat-added",
-                                             G_TYPE_FROM_CLASS (object_class),
-                                             G_SIGNAL_RUN_LAST,
-                                             G_STRUCT_OFFSET (CkManagerClass, seat_added),
-                                             NULL,
-                                             NULL,
-                                             g_cclosure_marshal_VOID__STRING,
-                                             G_TYPE_NONE,
-                                             1, G_TYPE_STRING);
-        signals [SEAT_REMOVED] = g_signal_new ("seat-removed",
-                                             G_TYPE_FROM_CLASS (object_class),
-                                             G_SIGNAL_RUN_LAST,
-                                             G_STRUCT_OFFSET (CkManagerClass, seat_removed),
-                                             NULL,
-                                             NULL,
-                                             g_cclosure_marshal_VOID__STRING,
-                                             G_TYPE_NONE,
-                                             1, G_TYPE_STRING);
+        signals [SEAT_ADDED] =
+                g_signal_new ("seat-added",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkManagerClass, seat_added),
+                              NULL,
+                              NULL,
+                              g_cclosure_marshal_VOID__STRING,
+                              G_TYPE_NONE,
+                              1, G_TYPE_STRING);
+        signals [SEAT_REMOVED] =
+                g_signal_new ("seat-removed",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkManagerClass, seat_removed),
+                              NULL,
+                              NULL,
+                              g_cclosure_marshal_VOID__STRING,
+                              G_TYPE_NONE,
+                              1, G_TYPE_STRING);
+        signals [SYSTEM_IDLE_HINT_CHANGED] =
+                g_signal_new ("system-idle-hint-changed",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkManagerClass, system_idle_hint_changed),
+                              NULL,
+                              NULL,
+                              g_cclosure_marshal_VOID__BOOLEAN,
+                              G_TYPE_NONE,
+                              1, G_TYPE_BOOLEAN);
 
         dbus_g_object_type_install_info (CK_TYPE_MANAGER, &dbus_glib_ck_manager_object_info);
 
@@ -1049,6 +1171,8 @@ ck_manager_init (CkManager *manager)
         /* reserve zero */
         manager->priv->session_serial = 1;
         manager->priv->seat_serial = 1;
+
+        manager->priv->system_idle_hint = TRUE;
 
         manager->priv->seats = g_hash_table_new_full (g_str_hash,
                                                       g_str_equal,

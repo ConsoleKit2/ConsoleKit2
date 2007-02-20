@@ -48,10 +48,12 @@ typedef struct
 {
         GObjectClass   parent_class;
 
-        void          (* seat_added)    (CkManager  *manager,
-                                         const char *sid);
-        void          (* seat_removed)  (CkManager  *manager,
-                                         const char *sid);
+        void          (* seat_added)               (CkManager  *manager,
+                                                    const char *sid);
+        void          (* seat_removed)             (CkManager  *manager,
+                                                    const char *sid);
+        void          (* system_idle_hint_changed) (CkManager  *manager,
+                                                    gboolean    idle_hint);
 } CkManagerClass;
 
 typedef enum
@@ -67,6 +69,8 @@ GType               ck_manager_get_type                       (void);
 CkManager         * ck_manager_new                            (void);
 
 /* unprivileged methods */
+
+/* Authoritative properties */
 gboolean            ck_manager_open_session                   (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
 gboolean            ck_manager_get_seats                      (CkManager             *manager,
@@ -86,6 +90,14 @@ gboolean            ck_manager_get_session_for_unix_process   (CkManager        
 gboolean            ck_manager_get_sessions_for_user          (CkManager             *manager,
                                                                guint                  uid,
                                                                DBusGMethodInvocation *context);
+
+/* Non-authoritative properties */
+gboolean            ck_manager_get_system_idle_hint           (CkManager             *manager,
+                                                               gboolean              *idle_hint,
+                                                               GError               **error);
+gboolean            ck_manager_get_system_idle_since_hint     (CkManager             *manager,
+                                                               char                 **iso8601_datetime,
+                                                               GError               **error);
 
 /* privileged methods - should be protected by D-Bus policy */
 gboolean            ck_manager_open_session_with_parameters   (CkManager             *manager,

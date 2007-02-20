@@ -42,7 +42,15 @@
       <arg name="sessions" direction="out" type="ao"/>
     </method>
 
+    <method name="GetSystemIdleHint">
+      <arg name="idle_hint" type="b" direction="out"/>
+    </method>
+    <method name="GetSystemIdleSinceHint">
+      <arg name="iso8601_datetime" type="s" direction="out"/>
+    </method>
+
     <signal name="SeatAdded"/>
     <signal name="SeatRemoved"/>
+    <signal name="SystemIdleHintChanged"/>
   </interface>
 </node>
