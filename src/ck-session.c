@@ -219,12 +219,13 @@ session_set_idle_hint_internal (CkSession      *session,
 {
         if (session->priv->idle_hint != idle_hint) {
                 session->priv->idle_hint = idle_hint;
+                g_object_notify (G_OBJECT (session), "idle-hint");
 
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&session->priv->idle_since_hint);
 
                 ck_debug ("Emitting idle-changed for session %s", session->priv->id);
-                g_signal_emit (session, signals [IDLE_HINT_CHANGED], 0);
+                g_signal_emit (session, signals [IDLE_HINT_CHANGED], 0, idle_hint);
         }
 
         return TRUE;
@@ -287,18 +288,23 @@ ck_session_set_idle_hint (CkSession             *session,
 }
 
 gboolean
-ck_session_get_idle_hint (CkSession             *session,
-                          DBusGMethodInvocation *context)
+ck_session_get_idle_hint (CkSession *session,
+                          gboolean  *idle_hint,
+                          GError   **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        dbus_g_method_return (context, session->priv->idle_hint);
+        if (idle_hint != NULL) {
+                *idle_hint = session->priv->idle_hint;
+        }
+
         return TRUE;
 }
 
 gboolean
-ck_session_get_idle_since_hint (CkSession             *session,
-                                DBusGMethodInvocation *context)
+ck_session_get_idle_since_hint (CkSession *session,
+                                char     **iso8601_datetime,
+                                GError   **error)
 {
         char *date_str;
 
@@ -309,7 +315,10 @@ ck_session_get_idle_since_hint (CkSession             *session,
                 date_str = g_time_val_to_iso8601 (&session->priv->idle_since_hint);
         }
 
-        dbus_g_method_return (context, date_str);
+        if (iso8601_datetime != NULL) {
+                *iso8601_datetime = g_strdup (date_str);
+        }
+
         g_free (date_str);
 
         return TRUE;

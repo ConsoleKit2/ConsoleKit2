@@ -45,11 +45,9 @@
     </method>
 
     <method name="GetIdleHint">
-      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="idle_hint" type="b" direction="out"/>
     </method>
     <method name="GetIdleSinceHint">
-      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="iso8601_datetime" type="s" direction="out"/>
     </method>
     <method name="SetIdleHint">

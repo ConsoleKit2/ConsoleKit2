@@ -141,9 +141,11 @@ gboolean            ck_session_get_creation_time   (CkSession             *sessi
 
 /* Non-authoritative properties */
 gboolean            ck_session_get_idle_hint       (CkSession             *session,
-                                                    DBusGMethodInvocation *context);
+                                                    gboolean              *idle_hint,
+                                                    GError               **error);
 gboolean            ck_session_get_idle_since_hint (CkSession             *session,
-                                                    DBusGMethodInvocation *context);
+                                                    char                 **iso8601_datetime,
+                                                    GError               **error);
 gboolean            ck_session_set_idle_hint       (CkSession             *session,
                                                     gboolean               idle_hint,
                                                     DBusGMethodInvocation *context);
