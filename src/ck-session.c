@@ -60,8 +60,8 @@ struct CkSessionPrivate
 
         GTimeVal         creation_time;
 
-        gboolean         idle;
-        GTimeVal         idle_since;
+        gboolean         idle_hint;
+        GTimeVal         idle_since_hint;
 
         DBusGConnection *connection;
         DBusGProxy      *bus_proxy;
@@ -72,7 +72,7 @@ enum {
         LOCK,
         UNLOCK,
         ACTIVE_CHANGED,
-        IDLE_CHANGED,
+        IDLE_HINT_CHANGED,
         LAST_SIGNAL
 };
 
@@ -87,7 +87,7 @@ enum {
         PROP_HOST_NAME,
         PROP_IS_LOCAL,
         PROP_ACTIVE,
-        PROP_IDLE,
+        PROP_IDLE_HINT,
 };
 
 static guint signals [LAST_SIGNAL] = { 0, };
@@ -214,17 +214,17 @@ out:
 }
 
 static gboolean
-session_set_idle_internal (CkSession      *session,
-                           gboolean        idle)
+session_set_idle_hint_internal (CkSession      *session,
+                                gboolean        idle_hint)
 {
-        if (session->priv->idle != idle) {
-                session->priv->idle = idle;
+        if (session->priv->idle_hint != idle_hint) {
+                session->priv->idle_hint = idle_hint;
 
                 /* FIXME: can we get a time from the dbus message? */
-                g_get_current_time (&session->priv->idle_since);
+                g_get_current_time (&session->priv->idle_since_hint);
 
                 ck_debug ("Emitting idle-changed for session %s", session->priv->id);
-                g_signal_emit (session, signals [IDLE_CHANGED], 0);
+                g_signal_emit (session, signals [IDLE_HINT_CHANGED], 0);
         }
 
         return TRUE;
@@ -235,12 +235,12 @@ session_set_idle_internal (CkSession      *session,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Session1 \
-  org.freedesktop.ConsoleKit.Session.SetIdle boolean:TRUE
+  org.freedesktop.ConsoleKit.Session.SetIdleHint boolean:TRUE
 */
 gboolean
-ck_session_set_idle (CkSession             *session,
-                     gboolean               idle,
-                     DBusGMethodInvocation *context)
+ck_session_set_idle_hint (CkSession             *session,
+                          gboolean               idle_hint,
+                          DBusGMethodInvocation *context)
 {
         char       *sender;
         uid_t       calling_uid;
@@ -274,39 +274,39 @@ ck_session_set_idle (CkSession             *session,
                 GError *error;
                 error = g_error_new (CK_SESSION_ERROR,
                                      CK_SESSION_ERROR_GENERAL,
-                                     _("Only session owner may set idle state"));
+                                     _("Only session owner may set idle hint state"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
                 return FALSE;
         }
 
-        session_set_idle_internal (session, idle);
+        session_set_idle_hint_internal (session, idle_hint);
         dbus_g_method_return (context);
 
         return TRUE;
 }
 
 gboolean
-ck_session_get_idle (CkSession             *session,
-                     DBusGMethodInvocation *context)
+ck_session_get_idle_hint (CkSession             *session,
+                          DBusGMethodInvocation *context)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        dbus_g_method_return (context, session->priv->idle);
+        dbus_g_method_return (context, session->priv->idle_hint);
         return TRUE;
 }
 
 gboolean
-ck_session_get_idle_since (CkSession             *session,
-                           DBusGMethodInvocation *context)
+ck_session_get_idle_since_hint (CkSession             *session,
+                                DBusGMethodInvocation *context)
 {
         char *date_str;
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         date_str = NULL;
-        if (session->priv->idle) {
-                date_str = g_time_val_to_iso8601 (&session->priv->idle_since);
+        if (session->priv->idle_hint) {
+                date_str = g_time_val_to_iso8601 (&session->priv->idle_since_hint);
         }
 
         dbus_g_method_return (context, date_str);
@@ -654,8 +654,8 @@ ck_session_set_property (GObject            *object,
         case PROP_HOST_NAME:
                 ck_session_set_host_name (self, g_value_get_string (value), NULL);
                 break;
-        case PROP_IDLE:
-                session_set_idle_internal (self, g_value_get_boolean (value));
+        case PROP_IDLE_HINT:
+                session_set_idle_hint_internal (self, g_value_get_boolean (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -701,8 +701,8 @@ ck_session_get_property (GObject    *object,
         case PROP_HOST_NAME:
                 g_value_set_string (value, self->priv->host_name);
                 break;
-        case PROP_IDLE:
-                g_value_set_boolean (value, self->priv->idle);
+        case PROP_IDLE_HINT:
+                g_value_set_boolean (value, self->priv->idle_hint);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -759,11 +759,11 @@ ck_session_class_init (CkSessionClass *klass)
                               g_cclosure_marshal_VOID__VOID,
                               G_TYPE_NONE,
                               0);
-        signals [IDLE_CHANGED] =
-                g_signal_new ("idle-changed",
+        signals [IDLE_HINT_CHANGED] =
+                g_signal_new ("idle-hint-changed",
                               G_TYPE_FROM_CLASS (object_class),
                               G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, idle_changed),
+                              G_STRUCT_OFFSET (CkSessionClass, idle_hint_changed),
                               NULL,
                               NULL,
                               g_cclosure_marshal_VOID__BOOLEAN,
@@ -839,7 +839,7 @@ ck_session_class_init (CkSessionClass *klass)
                                                             G_PARAM_READWRITE));
         g_object_class_install_property (object_class,
                                          PROP_ACTIVE,
-                                         g_param_spec_boolean ("idle",
+                                         g_param_spec_boolean ("idle-hint",
                                                                NULL,
                                                                NULL,
                                                                FALSE,

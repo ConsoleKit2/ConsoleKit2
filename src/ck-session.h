@@ -47,16 +47,16 @@ typedef struct
         GObjectClass   parent_class;
 
         /* internal signals */
-        void          (* activate)       (CkSession             *session,
-                                          DBusGMethodInvocation *context);
+        void          (* activate)          (CkSession             *session,
+                                             DBusGMethodInvocation *context);
 
         /* exported signals */
-        void          (* lock)           (CkSession *session);
-        void          (* unlock)         (CkSession *session);
-        void          (* active_changed) (CkSession *session,
-                                          gboolean   active);
-        void          (* idle_changed)   (CkSession *session,
-                                          gboolean   idle);
+        void          (* lock)              (CkSession *session);
+        void          (* unlock)            (CkSession *session);
+        void          (* active_changed)    (CkSession *session,
+                                             gboolean   active);
+        void          (* idle_hint_changed) (CkSession *session,
+                                             gboolean   idle_hint);
 } CkSessionClass;
 
 typedef enum
@@ -140,12 +140,12 @@ gboolean            ck_session_get_creation_time   (CkSession             *sessi
                                                     GError               **error);
 
 /* Non-authoritative properties */
-gboolean            ck_session_get_idle            (CkSession             *session,
+gboolean            ck_session_get_idle_hint       (CkSession             *session,
                                                     DBusGMethodInvocation *context);
-gboolean            ck_session_get_idle_since      (CkSession             *session,
+gboolean            ck_session_get_idle_since_hint (CkSession             *session,
                                                     DBusGMethodInvocation *context);
-gboolean            ck_session_set_idle            (CkSession             *session,
-                                                    gboolean               idle,
+gboolean            ck_session_set_idle_hint       (CkSession             *session,
+                                                    gboolean               idle_hint,
                                                     DBusGMethodInvocation *context);
 
 /* Privileged actions */

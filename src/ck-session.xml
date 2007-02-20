@@ -44,24 +44,24 @@
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
     </method>
 
-    <method name="GetIdle">
+    <method name="GetIdleHint">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="idle" type="b" direction="out"/>
+      <arg name="idle_hint" type="b" direction="out"/>
     </method>
-    <method name="GetIdleSince">
+    <method name="GetIdleSinceHint">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="iso8601_datetime" type="s" direction="out"/>
     </method>
-    <method name="SetIdle">
+    <method name="SetIdleHint">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="idle" type="b" direction="in"/>
+      <arg name="idle_hint" type="b" direction="in"/>
     </method>
 
     <signal name="ActiveChanged"/>
     <signal name="Lock"/>
     <signal name="Unlock"/>
 
-    <signal name="IdleChanged"/>
+    <signal name="IdleHintChanged"/>
 
   </interface>
 </node>

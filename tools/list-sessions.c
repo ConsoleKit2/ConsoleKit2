@@ -168,7 +168,7 @@ list_session (DBusGConnection *connection,
         char       *display_device;
         char       *host_name;
         char       *creation_time;
-        char       *idle_since;
+        char       *idle_since_hint;
         gboolean    is_active;
         gboolean    is_local;
         char       *short_sid;
@@ -187,7 +187,7 @@ list_session (DBusGConnection *connection,
         xdisplay = NULL;
         host_name = NULL;
         creation_time = NULL;
-        idle_since = NULL;
+        idle_since_hint = NULL;
 
         get_int (proxy, "GetUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
@@ -198,7 +198,7 @@ list_session (DBusGConnection *connection,
         get_boolean (proxy, "IsActive", &is_active);
         get_boolean (proxy, "IsLocal", &is_local);
         get_string (proxy, "GetCreationTime", &creation_time);
-        get_string (proxy, "GetIdleSince", &idle_since);
+        get_string (proxy, "GetIdleSinceHint", &idle_since_hint);
 
         realname = get_real_name (uid);
 
@@ -214,12 +214,12 @@ list_session (DBusGConnection *connection,
 
         printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tdisplay-device = '%s'\n\thost-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
                 short_ssid, uid, realname, short_sid, session_type, is_active ? "TRUE" : "FALSE", xdisplay, display_device, host_name, is_local ? "TRUE" : "FALSE", creation_time);
-        if (idle_since != NULL && idle_since[0] != '\0') {
-                printf ("\n\tidle-since = '%s'", idle_since);
+        if (idle_since_hint != NULL && idle_since_hint[0] != '\0') {
+                printf ("\n\tidle-since-hint = '%s'", idle_since_hint);
         }
         printf ("\n");
 
-        g_free (idle_since);
+        g_free (idle_since_hint);
         g_free (creation_time);
         g_free (host_name);
         g_free (realname);
