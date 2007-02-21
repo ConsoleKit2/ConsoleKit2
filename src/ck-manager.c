@@ -483,6 +483,7 @@ create_session_for_caller (CkManager       *manager,
 
         /* If the parameters are not set then try to get them */
         if (parameters == NULL) {
+                /* FIXME: try to make this complete */
                 ck_session_set_user (session, uid, NULL);
                 ck_session_set_session_type (session, cmd, NULL);
                 ck_session_set_display_device (session, tty, NULL);
