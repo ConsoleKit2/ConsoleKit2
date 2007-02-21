@@ -929,21 +929,23 @@ ck_session_new_with_parameters (const char      *ssid,
                                "cookie", cookie,
                                NULL);
 
-        for (i = 0; i < parameters->len; i++) {
-                GValue      val_struct = { 0, };
-                const char *prop_name;
-                GValue     *prop_val;
+        if (parameters != NULL) {
+                for (i = 0; i < parameters->len; i++) {
+                        GValue      val_struct = { 0, };
+                        const char *prop_name;
+                        GValue     *prop_val;
 
-                g_value_init (&val_struct, CK_TYPE_PARAMETER_STRUCT);
-                g_value_set_static_boxed (&val_struct, g_ptr_array_index (parameters, i));
+                        g_value_init (&val_struct, CK_TYPE_PARAMETER_STRUCT);
+                        g_value_set_static_boxed (&val_struct, g_ptr_array_index (parameters, i));
 
-                dbus_g_type_struct_get (&val_struct,
-                                        0, &prop_name,
-                                        1, &prop_val,
-                                        G_MAXUINT);
+                        dbus_g_type_struct_get (&val_struct,
+                                                0, &prop_name,
+                                                1, &prop_val,
+                                                G_MAXUINT);
 
-                g_object_set_property (object, prop_name, prop_val);
-                g_value_unset (prop_val);
+                        g_object_set_property (object, prop_name, prop_val);
+                        g_value_unset (prop_val);
+                }
         }
 
         res = register_session (CK_SESSION (object));
