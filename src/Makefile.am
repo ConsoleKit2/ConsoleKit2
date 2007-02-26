@@ -80,7 +80,8 @@ EXTRA_DIST =			\
 	ck-seat.xml		\
 	ck-session.xml		\
 	valgrind.sh		\
-	test-session		\
+	test-open-session	\
+	test-open-session-with-parameters	\
 	$(NULL)
 
 CLEANFILES = $(BUILT_SOURCES)

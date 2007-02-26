@@ -1,4 +1,17 @@
 =============
+Version 0.1.2
+=============
+
+        * don't use NULL parameters
+        * add system-idle-hint and system-idle-since-hint
+        * add session idle-hint and idle-since-hint
+        * add session creation time
+        * don't spew errors when can't get a console fd
+        * improve thread safety in vt monitor
+        * split output of list-sessions onto separate lines
+        * create/delete pid file (caglar)
+
+=============
 Version 0.1.1
 =============
 
