@@ -300,7 +300,7 @@ get_caller_info (CkManager   *manager,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_uid,
                                  G_TYPE_INVALID)) {
-                g_warning ("GetConnectionUnixUser() failed: %s", error->message);
+                ck_debug ("GetConnectionUnixUser() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -310,7 +310,7 @@ get_caller_info (CkManager   *manager,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_pid,
                                  G_TYPE_INVALID)) {
-                g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
+                ck_debug ("GetConnectionUnixProcessID() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -452,18 +452,19 @@ create_session_for_caller (CkManager       *manager,
                            const GPtrArray *parameters,
                            GError         **error)
 {
-        char       *ssid;
-        proc_t     *stat;
-        char       *cmd;
-        char       *xdisplay;
-        char       *tty;
-        CkSession  *session;
-        CkSeat     *seat;
-        char       *cookie;
-        pid_t       pid;
-        uid_t       uid;
-        gboolean    res;
-        LeaderInfo *leader_info;
+        char        *ssid;
+        proc_stat_t *stat;
+        char        *cmd;
+        char        *xdisplay;
+        char        *tty;
+        CkSession   *session;
+        CkSeat      *seat;
+        char        *cookie;
+        pid_t        pid;
+        uid_t        uid;
+        gboolean     res;
+        LeaderInfo  *leader_info;
+        GError      *local_error;
 
         res = get_caller_info (manager,
                                sender,
@@ -488,7 +489,7 @@ create_session_for_caller (CkManager       *manager,
                                                   parameters);
 
         if (session == NULL) {
-                g_warning ("Unable to create new session");
+                ck_debug ("Unable to create new session");
                 g_free (cookie);
                 cookie = NULL;
                 g_set_error (error,
@@ -498,11 +499,25 @@ create_session_for_caller (CkManager       *manager,
                 goto out;
         }
 
-        proc_stat_pid (pid, &stat);
-        tty = proc_get_tty (stat);
-        cmd = proc_get_cmd (stat);
+        local_error = NULL;
+        res = proc_stat_new_for_pid (pid, &stat, &local_error);
+        if (! res) {
+                g_set_error (error,
+                             CK_MANAGER_ERROR,
+                             CK_MANAGER_ERROR_GENERAL,
+                             _("Unable to lookup information about calling process '%d'"),
+                             pid);
+                if (local_error != NULL) {
+                        ck_debug ("stat on pid %d failed: %s", pid, local_error->message);
+                        g_error_free (local_error);
+                }
+                return FALSE;
+        }
+
+        tty = proc_stat_get_tty (stat);
+        cmd = proc_stat_get_cmd (stat);
         xdisplay = NULL;
-        proc_free (stat);
+        proc_stat_free (stat);
 
         /* If the parameters are not set then try to get them */
         if (parameters == NULL) {
@@ -565,14 +580,15 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                    const char            *cookie,
                                    DBusGMethodInvocation *context)
 {
-        gboolean    res;
-        char       *sender;
-        uid_t       calling_uid;
-        pid_t       calling_pid;
-        proc_t     *stat;
-        char       *ssid;
-        CkSession  *session;
-        LeaderInfo *leader_info;
+        gboolean     res;
+        char        *sender;
+        uid_t        calling_uid;
+        pid_t        calling_pid;
+        proc_stat_t *stat;
+        char        *ssid;
+        CkSession   *session;
+        LeaderInfo  *leader_info;
+        GError      *local_error;
 
         ssid = NULL;
 
@@ -594,20 +610,26 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                 return FALSE;
         }
 
-        res = proc_stat_pid (calling_pid, &stat);
+        local_error = NULL;
+        res = proc_stat_new_for_pid (calling_pid, &stat, &local_error);
         if (! res) {
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to lookup information about calling process '%d'"),
                                      calling_pid);
-                g_warning ("stat on pid %d failed", calling_pid);
+                if (local_error != NULL) {
+                        ck_debug ("stat on pid %d failed: %s", calling_pid, local_error->message);
+                        g_error_free (local_error);
+                }
+
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
                 return FALSE;
         }
 
         /* FIXME: should we restrict this by uid? */
+        proc_stat_free (stat);
 
         leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
         if (leader_info == NULL) {
@@ -648,7 +670,7 @@ get_cookie_for_pid (CkManager *manager,
 
         /* FIXME: need a better way to get the cookie */
 
-        cookie = proc_get_env (pid, "XDG_SESSION_COOKIE");
+        cookie = proc_pid_get_env (pid, "XDG_SESSION_COOKIE");
 
         return cookie;
 }
@@ -665,12 +687,13 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                                          guint                  pid,
                                          DBusGMethodInvocation *context)
 {
-        gboolean    res;
-        char       *sender;
-        uid_t       calling_uid;
-        pid_t       calling_pid;
-        proc_t     *stat;
-        char       *cookie;
+        gboolean     res;
+        char        *sender;
+        uid_t        calling_uid;
+        pid_t        calling_pid;
+        proc_stat_t *stat;
+        char        *cookie;
+        GError      *error;
 
         sender = dbus_g_method_get_sender (context);
 
@@ -690,10 +713,11 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                 return FALSE;
         }
 
-        res = proc_stat_pid (calling_pid, &stat);
+        error = NULL;
+        res = proc_stat_new_for_pid (calling_pid, &stat, &error);
         if (! res) {
                 GError *error;
-                g_warning ("stat on pid %d failed", calling_pid);
+                ck_debug ("stat on pid %d failed", calling_pid);
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to lookup information about calling process '%d'"),
@@ -702,6 +726,10 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                 g_error_free (error);
                 return FALSE;
         }
+
+        /* FIXME: check stuff? */
+
+        proc_stat_free (stat);
 
         cookie = get_cookie_for_pid (manager, pid);
         if (cookie == NULL) {

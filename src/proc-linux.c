@@ -30,7 +30,8 @@
 
 #include "proc.h"
 
-struct _proc_t
+/* adapted from procps */
+struct _proc_stat_t
 {
         int pid;
         int ppid;                       /* stat,status     pid of parent process */
@@ -258,14 +259,14 @@ link_name (guint       maj,
 }
 
 char *
-proc_get_cmd (proc_t *stat)
+proc_stat_get_cmd (proc_stat_t *stat)
 {
         return g_strdup (stat->cmd);
 }
 
 /* adapted from procps */
 char *
-proc_get_tty (proc_t *stat)
+proc_stat_get_tty (proc_stat_t *stat)
 {
         guint dev;
         char *tty;
@@ -311,8 +312,8 @@ proc_get_tty (proc_t *stat)
 #define KLF "l"
 /* adapted from procps */
 static void
-stat2proc (const char *S,
-           proc_t     *P)
+stat2proc (const char  *S,
+           proc_stat_t *P)
 {
         unsigned num;
         char   * tmp;
@@ -375,15 +376,16 @@ stat2proc (const char *S,
 }
 
 gboolean
-proc_stat_pid (pid_t    pid,
-               proc_t **stat)
+proc_stat_new_for_pid (pid_t         pid,
+                       proc_stat_t **stat,
+                       GError      **error)
 {
-        char    *path;
-        char    *contents;
-        gsize    length;
-        gboolean res;
-        GError  *error;
-        proc_t  *proc;
+        char        *path;
+        char        *contents;
+        gsize        length;
+        gboolean     res;
+        GError      *local_error;
+        proc_stat_t *proc;
 
         if (stat == NULL) {
                 return FALSE;
@@ -392,15 +394,19 @@ proc_stat_pid (pid_t    pid,
         path = g_strdup_printf ("/proc/%d/stat", pid);
 
         contents = NULL;
+        local_error = NULL;
         res = g_file_get_contents (path,
                                    &contents,
                                    &length,
-                                   &error);
+                                   &local_error);
         if (res) {
-                proc = g_new0 (proc_t, 1);
+                proc = g_new0 (proc_stat_t, 1);
                 proc->pid = pid;
                 stat2proc (contents, proc);
                 *stat = proc;
+        } else {
+                g_propagate_error (error, local_error);
+                *stat = NULL;
         }
 
         g_free (contents);
@@ -410,14 +416,14 @@ proc_stat_pid (pid_t    pid,
 }
 
 void
-proc_free (proc_t *stat)
+proc_stat_free (proc_stat_t *stat)
 {
         g_free (stat);
 }
 
 char *
-proc_get_env (pid_t       pid,
-              const char *var)
+proc_pid_get_env (pid_t       pid,
+                  const char *var)
 {
         char      *path;
         gboolean   res;

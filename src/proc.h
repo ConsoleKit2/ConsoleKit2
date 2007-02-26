@@ -25,16 +25,17 @@
 
 G_BEGIN_DECLS
 
-typedef struct _proc_t proc_t;
+typedef struct _proc_stat_t proc_stat_t;
 
-gboolean proc_stat_pid (pid_t    pid,
-                        proc_t **stat);
-char    *proc_get_tty  (proc_t  *stat);
-char    *proc_get_cmd  (proc_t  *stat);
-void     proc_free     (proc_t  *stat);
+gboolean proc_stat_new_for_pid (pid_t         pid,
+                                proc_stat_t **stat,
+                                GError      **error);
+char    *proc_stat_get_tty     (proc_stat_t  *stat);
+char    *proc_stat_get_cmd     (proc_stat_t  *stat);
+void     proc_stat_free        (proc_stat_t  *stat);
 
-char    *proc_get_env  (pid_t       pid,
-                        const char *var);
+char    *proc_pid_get_env      (pid_t         pid,
+                                const char   *var);
 
 G_END_DECLS
 
