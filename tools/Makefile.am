@@ -22,15 +22,15 @@ INCLUDES =							\
 	$(DBUS_CFLAGS)						\
 	$(NULL)
 
-noinst_PROGRAMS = \
-	list-sessions			\
+bin_PROGRAMS = \
+	ck-list-sessions		\
 	$(NULL)
 
-list_sessions_SOURCES =	\
+ck_list_sessions_SOURCES =		\
 	list-sessions.c			\
 	$(NULL)
 
-list_sessions_LDADD =			\
+ck_list_sessions_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
 	$(NULL)
 
