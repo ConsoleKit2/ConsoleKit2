@@ -34,7 +34,10 @@ for sid in seats:
             session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
             uid = session.GetUser ()
 
-current_session = manager.GetCurrentSession ()
+# Hmm looks like the proc environment doesn't get updated when
+# os.environ is set.  So, we won't use GetCurrentSession.
+#current_session = manager.GetCurrentSession ()
+current_session = manager.GetSessionForCookie (cookie)
 print "Current session: %s" % current_session
 
 session_obj = bus.get_object ('org.freedesktop.ConsoleKit', ssid)
