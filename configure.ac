@@ -134,6 +134,26 @@ AC_SUBST(CONSOLE_KIT_PID_FILE)
 AC_DEFINE_UNQUOTED(CONSOLE_KIT_PID_FILE, "$CONSOLE_KIT_PID_FILE", [pid file])
 
 dnl ---------------------------------------------------------------------------
+dnl Figure out what tools backend to build
+dnl ---------------------------------------------------------------------------
+
+CK_BACKEND=""
+case "$host" in
+        *-*-freebsd*)
+        ;;
+        *-*-linux*)
+        CK_BACKEND="linux"
+        ;;
+        *-*-solaris*)
+        ;;
+esac
+
+AM_CONDITIONAL(CK_COMPILE_LINUX, test x$CK_BACKEND = xlinux, [Compiling for Linux])
+AM_CONDITIONAL(CK_COMPILE_FREEBSD, test x$CK_BACKEND = xfreebsd, [Compiling for FreeBSD])
+AM_CONDITIONAL(CK_COMPILE_SOLARIS, test x$CK_BACKEND = xsolaris, [Compiling for Solaris])
+AC_SUBST(CK_BACKEND)
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
@@ -207,6 +227,7 @@ AC_OUTPUT([
 Makefile
 src/Makefile
 tools/Makefile
+tools/linux/Makefile
 data/Makefile
 data/ConsoleKit
 ])
@@ -228,6 +249,8 @@ echo "
 	cflags:		          ${CFLAGS}
         Base libs:                ${CONSOLE_KIT_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
+
+        Backend:                  ${CK_BACKEND}
 
         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
 
