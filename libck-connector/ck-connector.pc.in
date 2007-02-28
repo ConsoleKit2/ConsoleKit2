@@ -1,0 +1,9 @@
+libdir=/lib
+includedir=@prefix@/include
+
+Name: ck-connector
+Description: Library for connecting new sessions to ConsoleKit
+Version: @VERSION@
+Requires: dbus-1
+Libs: -L${libdir} -lck-connector
+Cflags: -I${includedir}/ConsoleKit/ck-connector

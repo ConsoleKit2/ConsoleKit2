@@ -8,6 +8,8 @@ SUBDIRS =			\
 	src			\
 	tools			\
 	data			\
+	libck-connector         \
+	pam-ck-connector        \
 	$(NULL)
 
 EXTRA_DIST =			\

@@ -1,0 +1,80 @@
+.\"     Title: pam_ck_connector
+.\"    Author: David Zeuthen <davidz@redhat.com>
+.\"      Date: 02/27/2007
+.\"
+.TH "PAM_CK_CONNECTOR" "8" "02/27/2007" "ConsoleKit Manual" "ConsoleKit Manual"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "NAME"
+pam_ck_connector \- Register sessin with ConsoleKit
+.SH "SYNOPSIS"
+.HP 12
+\fBpam_ck_connector.so\fR [debug]
+.SH "DESCRIPTION"
+.PP
+The pam_ck_connector PAM module registers a login session with
+the system-wide 
+.I ConsoleKit 
+daemon. This PAM module should be used with
+caution; only local login managers such as 
+.B login(1)
+should use this. Since the 
+.I ConsoleKit
+daemon can accept both an
+.B tty
+and an X11 display the normal parameters set by PAM are not always
+useful. 
+
+An application can therefore override these with the PAM environment
+variables
+.B CKCON_TTY
+and
+.B CHCON_X11_DISPLAY
+(the application should remember to unset these before starting the
+login session). 
+
+Also note that the
+.I ConsoleKit
+daemon may reject registration attempts if the given set of data are
+inconsistent with each other. More more information, see the
+.I ConsoleKit
+documentation on the
+.B OpenSessionWithParameters()
+method call on the
+.B org.freedesktop.ConsoleKit.Manager
+D-Bus interface.
+
+If registration with the
+.I ConsoleKit
+daemon succeeds, this PAM module will set the environment variable
+.B XDG_SESSION_COOKIE
+which is used to defined membership of a login session.
+
+This PAM module has the side effect that it creates a connection to
+the system message bus that is kept open until the session ends. This
+is used by the 
+.I ConsoleKit
+daemon to track the life-cycle of the
+session and, as such, should the login manager crash, the session will
+be properly unregistered.
+
+.SH "OPTIONS"
+.PP
+.TP 3n
+\fBdebug\fR
+Print debug information.
+.fi
+.RE
+.sp
+.SH "SEE ALSO"
+.PP
+
+\fBpam.conf\fR(5),
+\fBpam.d\fR(8),
+\fBpam\fR(8),
+\fBdbus-daemon\fR(1)
+.SH "AUTHOR"
+.PP
+pam_ck_connector was written by David Zeuthen <davidz@redhat.com>.

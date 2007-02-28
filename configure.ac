@@ -44,6 +44,9 @@ PKG_CHECK_MODULES(CONSOLE_KIT,
         gobject-2.0 >= $GLIB_REQUIRED_VERSION
         gthread-2.0 >= $GLIB_REQUIRED_VERSION
 )
+PKG_CHECK_MODULES(LIBDBUS,
+	dbus-1 >= $DBUS_REQUIRED_VERSION
+)
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
 EXTRA_COMPILE_WARNINGS(yes)
@@ -198,6 +201,28 @@ else
 fi
 
 #
+# Check for pam
+#
+have_pam=no
+AC_CHECK_LIB(pam, pam_getenv, have_pam=yes)
+AM_CONDITIONAL(HAVE_PAM, test x$have_pam = xyes)
+AC_SUBST(HAVE_PAM)
+
+#
+# Check if we should build the PAM module
+#
+msg_pam_module=no
+AC_ARG_ENABLE(pam-module, [AC_HELP_STRING([--enable-pam-module], [build PAM module])],, enable_pam_module=no)
+if test "x$enable_pam_module" = "xyes"; then
+  if test "x$have_pam" = "xno"; then
+    AC_MSG_ERROR([--enable-pam-module requires PAM but PAM was not found])
+  fi
+  AC_DEFINE(ENABLE_PAM_MODULE, [], [Set if we build PAM module])
+  msg_pam_module=yes
+fi
+AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
+
+#
 # Enable Debug
 #
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug=[no/yes]], [turn on debugging])],, enable_debug=yes)
@@ -230,6 +255,9 @@ tools/Makefile
 tools/linux/Makefile
 data/Makefile
 data/ConsoleKit
+libck-connector/Makefile
+libck-connector/ck-connector.pc
+pam-ck-connector/Makefile
 ])
 
 echo "
@@ -253,5 +281,6 @@ echo "
         Backend:                  ${CK_BACKEND}
 
         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
+        build PAM module:         ${msg_pam_module}
 
 "
