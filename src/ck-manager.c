@@ -51,6 +51,12 @@
 #define CK_MANAGER_DBUS_PATH CK_DBUS_PATH "/Manager"
 #define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"
 
+#define CK_TYPE_PARAMETER_STRUCT (dbus_g_type_get_struct ("GValueArray", \
+							  G_TYPE_STRING, \
+							  G_TYPE_VALUE, \
+							  G_TYPE_INVALID))
+#define CK_TYPE_PARAMETER_LIST (dbus_g_type_get_collection ("GPtrArray", \
+							    CK_TYPE_PARAMETER_STRUCT))
 struct CkManagerPrivate
 {
         GHashTable      *seats;
@@ -69,11 +75,12 @@ struct CkManagerPrivate
 
 
 typedef struct {
-        uid_t  uid;
-        pid_t  pid;
-        char  *service_name;
-        char  *ssid;
-        char  *cookie;
+        uid_t       uid;
+        pid_t       pid;
+        char       *service_name;
+        char       *ssid;
+        char       *cookie;
+        GHashTable *pending_ids;
 } LeaderInfo;
 
 enum {
@@ -93,12 +100,37 @@ static gpointer manager_object = NULL;
 
 G_DEFINE_TYPE (CkManager, ck_manager, G_TYPE_OBJECT)
 
+static LeaderInfo *
+leader_info_copy (LeaderInfo *info)
+{
+        LeaderInfo *new;
+
+        new = g_new0 (LeaderInfo, 1);
+
+        new->uid = info->uid;
+        new->pid = info->pid;
+        new->service_name = g_strdup (info->service_name);
+        new->ssid = g_strdup (info->ssid);
+        new->cookie = g_strdup (info->cookie);
+
+        if (info->pending_ids != NULL) {
+                new->pending_ids = g_hash_table_ref (info->pending_ids);
+        }
+
+        return new;
+}
+
 static void
 leader_info_free (LeaderInfo *info)
 {
         g_free (info->ssid);
         g_free (info->cookie);
         g_free (info->service_name);
+
+        if (info->pending_ids != NULL) {
+                g_hash_table_unref (info->pending_ids);
+        }
+
         g_free (info);
 }
 
@@ -446,101 +478,32 @@ ck_manager_get_system_idle_since_hint (CkManager *manager,
         return TRUE;
 }
 
-static char *
-create_session_for_caller (CkManager       *manager,
-                           const char      *sender,
-                           const GPtrArray *parameters,
-                           GError         **error)
+static void
+open_session_for_leader_info (CkManager             *manager,
+                              LeaderInfo            *leader_info,
+                              const GPtrArray       *parameters,
+                              DBusGMethodInvocation *context)
 {
-        char        *ssid;
-        proc_stat_t *stat;
-        char        *cmd;
-        char        *xdisplay;
-        char        *tty;
         CkSession   *session;
         CkSeat      *seat;
-        char        *cookie;
-        pid_t        pid;
-        uid_t        uid;
-        gboolean     res;
-        LeaderInfo  *leader_info;
-        GError      *local_error;
 
-        res = get_caller_info (manager,
-                               sender,
-                               &uid,
-                               &pid);
-        if (! res) {
-                g_set_error (error,
-                             CK_MANAGER_ERROR,
-                             CK_MANAGER_ERROR_GENERAL,
-                             "Unable to get information about the calling process");
-
-                return NULL;
-        }
-
-        cookie = generate_session_cookie (manager);
-        ssid = generate_session_id (manager);
-
-        ck_debug ("Creating new session ssid: %s", ssid);
-
-        session = ck_session_new_with_parameters (ssid,
-                                                  cookie,
+        session = ck_session_new_with_parameters (leader_info->ssid,
+                                                  leader_info->cookie,
                                                   parameters);
 
         if (session == NULL) {
+                GError *error;
                 ck_debug ("Unable to create new session");
-                g_free (cookie);
-                cookie = NULL;
-                g_set_error (error,
-                             CK_MANAGER_ERROR,
-                             CK_MANAGER_ERROR_GENERAL,
-                             "Unable to create new session");
-                goto out;
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_GENERAL,
+                                     "Unable to create new session");
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+
+                return;
         }
 
-        local_error = NULL;
-        res = proc_stat_new_for_pid (pid, &stat, &local_error);
-        if (! res) {
-                g_set_error (error,
-                             CK_MANAGER_ERROR,
-                             CK_MANAGER_ERROR_GENERAL,
-                             _("Unable to lookup information about calling process '%d'"),
-                             pid);
-                if (local_error != NULL) {
-                        ck_debug ("stat on pid %d failed: %s", pid, local_error->message);
-                        g_error_free (local_error);
-                }
-                return FALSE;
-        }
-
-        tty = proc_stat_get_tty (stat);
-        cmd = proc_stat_get_cmd (stat);
-        xdisplay = NULL;
-        proc_stat_free (stat);
-
-        /* If the parameters are not set then try to get them */
-        if (parameters == NULL) {
-                /* FIXME: try to make this complete */
-                ck_session_set_user (session, uid, NULL);
-                ck_session_set_session_type (session, cmd, NULL);
-                ck_session_set_display_device (session, tty, NULL);
-                ck_session_set_x11_display (session, xdisplay, NULL);
-        }
-
-        g_free (xdisplay);
-        g_free (cmd);
-        g_free (tty);
-
-        leader_info = g_new0 (LeaderInfo, 1);
-        leader_info->uid = uid;
-        leader_info->pid = pid;
-        leader_info->service_name = g_strdup (sender);
-        leader_info->ssid = g_strdup (ssid);
-        leader_info->cookie = g_strdup (cookie);
-
-        g_hash_table_insert (manager->priv->leaders, g_strdup (cookie), leader_info);
-        g_hash_table_insert (manager->priv->sessions, g_strdup (ssid), g_object_ref (session));
+        g_hash_table_insert (manager->priv->sessions, g_strdup (leader_info->ssid), g_object_ref (session));
 
         /* Add to seat */
         seat = find_seat_for_session (manager, session);
@@ -561,11 +524,197 @@ create_session_for_caller (CkManager       *manager,
 
         g_object_unref (session);
 
- out:
+        dbus_g_method_return (context, leader_info->cookie);
+}
 
-        g_free (ssid);
+static void
+verify_and_open_session_for_leader_info (CkManager             *manager,
+                                         LeaderInfo            *leader_info,
+                                         const GPtrArray       *parameters,
+                                         DBusGMethodInvocation *context)
+{
+        /* for now don't bother verifying since we protect OpenSessionWithParameters */
+        open_session_for_leader_info (manager,
+                                      leader_info,
+                                      parameters,
+                                      context);
+}
 
-        return cookie;
+static void
+add_param_int (GPtrArray       *parameters,
+               const char      *key,
+               int              value)
+{
+        GValue val = { 0, };
+        GValue param_val = { 0, };
+
+        g_value_init (&val, G_TYPE_INT);
+        g_value_set_int (&val, value);
+        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
+        g_value_take_boxed (&param_val,
+                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
+        dbus_g_type_struct_set (&param_val,
+                                0, key,
+                                1, &val,
+                                G_MAXUINT);
+        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
+}
+
+static void
+add_param_boolean (GPtrArray       *parameters,
+                   const char      *key,
+                   gboolean         value)
+{
+        GValue val = { 0, };
+        GValue param_val = { 0, };
+
+        g_value_init (&val, G_TYPE_BOOLEAN);
+        g_value_set_boolean (&val, value);
+        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
+        g_value_take_boxed (&param_val,
+                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
+        dbus_g_type_struct_set (&param_val,
+                                0, key,
+                                1, &val,
+                                G_MAXUINT);
+        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
+}
+
+static void
+add_param_string (GPtrArray       *parameters,
+                  const char      *key,
+                  const char      *value)
+{
+        GValue val = { 0, };
+        GValue param_val = { 0, };
+
+        g_value_init (&val, G_TYPE_STRING);
+        g_value_set_string (&val, value);
+
+        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
+        g_value_take_boxed (&param_val,
+                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
+
+        dbus_g_type_struct_set (&param_val,
+                                0, key,
+                                1, &val,
+                                G_MAXUINT);
+        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
+}
+
+static void
+generate_session_for_leader_info (CkManager             *manager,
+                                  LeaderInfo            *leader_info,
+                                  DBusGMethodInvocation *context)
+{
+        GPtrArray   *parameters;
+        GError      *local_error;
+        proc_stat_t *stat;
+        char        *cmd;
+        char        *x11_display;
+        char        *tty;
+        gboolean     res;
+
+        /* FIXME: callout to a helper tool to generate all parameters */
+
+        local_error = NULL;
+        res = proc_stat_new_for_pid (leader_info->pid, &stat, &local_error);
+        if (! res) {
+                GError *error;
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_GENERAL,
+                                     "Unable to get information about the calling process");
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+
+                if (local_error != NULL) {
+                        ck_debug ("stat on pid %d failed: %s", leader_info->pid, local_error->message);
+                        g_error_free (local_error);
+                }
+
+                return;
+        }
+
+        tty = proc_stat_get_tty (stat);
+        cmd = proc_stat_get_cmd (stat);
+        x11_display = NULL;
+        proc_stat_free (stat);
+
+        parameters = g_ptr_array_sized_new (10);
+        /* FIXME: What should this be? */
+        add_param_boolean (parameters, "is-local", TRUE);
+        add_param_int (parameters, "user", leader_info->uid);
+        add_param_string (parameters, "x11-display", x11_display);
+        add_param_string (parameters, "display-device", tty);
+        /* FIXME: this isn't really a reliable value to use */
+        add_param_string (parameters, "session-type", cmd);
+
+        g_free (x11_display);
+        g_free (cmd);
+        g_free (tty);
+
+        verify_and_open_session_for_leader_info (manager,
+                                                 leader_info,
+                                                 parameters,
+                                                 context);
+
+	g_ptr_array_free (parameters, TRUE);
+}
+
+static gboolean
+create_session_for_sender (CkManager             *manager,
+                           const char            *sender,
+                           const GPtrArray       *parameters,
+                           DBusGMethodInvocation *context)
+{
+        pid_t        pid;
+        uid_t        uid;
+        gboolean     res;
+        char        *cookie;
+        char        *ssid;
+        LeaderInfo  *leader_info;
+
+        res = get_caller_info (manager,
+                               sender,
+                               &uid,
+                               &pid);
+        if (! res) {
+                GError *error;
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_GENERAL,
+                                     "Unable to get information about the calling process");
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+                return FALSE;
+        }
+
+        cookie = generate_session_cookie (manager);
+        ssid = generate_session_id (manager);
+
+        ck_debug ("Creating new session ssid: %s", ssid);
+
+        leader_info = g_new0 (LeaderInfo, 1);
+        leader_info->uid = uid;
+        leader_info->pid = pid;
+        leader_info->service_name = g_strdup (sender);
+        leader_info->ssid = g_strdup (ssid);
+        leader_info->cookie = g_strdup (cookie);
+
+        /* need to store the leader info first so the pending request can be revoked */
+        g_hash_table_insert (manager->priv->leaders, g_strdup (leader_info->cookie), leader_info);
+
+        if (parameters == NULL) {
+                generate_session_for_leader_info (manager,
+                                                  leader_info,
+                                                  context);
+        } else {
+                verify_and_open_session_for_leader_info (manager,
+                                                         leader_info,
+                                                         parameters,
+                                                         context);
+        }
+
+        return TRUE;
 }
 
 /*
@@ -793,24 +942,13 @@ ck_manager_open_session (CkManager             *manager,
                          DBusGMethodInvocation *context)
 {
         char    *sender;
-        char    *cookie;
-        GError  *error;
+        gboolean ret;
 
         sender = dbus_g_method_get_sender (context);
+        ret = create_session_for_sender (manager, sender, NULL, context);
+        g_free (sender);
 
-        error = NULL;
-        cookie = create_session_for_caller (manager, sender, NULL, &error);
-        if (cookie == NULL) {
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-                return FALSE;
-        }
-
-        dbus_g_method_return (context, cookie);
-
-        g_free (cookie);
-
-        return TRUE;
+        return ret;
 }
 
 gboolean
@@ -819,25 +957,19 @@ ck_manager_open_session_with_parameters (CkManager             *manager,
                                          DBusGMethodInvocation *context)
 {
         char    *sender;
-        char    *cookie;
-        GError  *error;
+        gboolean ret;
 
         sender = dbus_g_method_get_sender (context);
-
-        error = NULL;
-        cookie = create_session_for_caller (manager, sender, parameters, &error);
+        ret = create_session_for_sender (manager, sender, parameters, context);
         g_free (sender);
 
-        if (cookie == NULL) {
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-                return FALSE;
-        }
+        return ret;
+}
 
-        dbus_g_method_return (context, cookie);
-
-        g_free (cookie);
-
+static gboolean
+cancel_pending_actions_for_cookie (CkManager  *manager,
+                                   const char *cookie)
+{
         return TRUE;
 }
 
@@ -1018,7 +1150,9 @@ remove_leader_for_connection (const char       *cookie,
         g_assert (data->service_name != NULL);
 
         if (strcmp (info->service_name, data->service_name) == 0) {
+                cancel_pending_actions_for_cookie (data->manager, cookie);
                 remove_session_for_cookie (data->manager, cookie, NULL);
+
                 return TRUE;
         }
 
