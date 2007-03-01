@@ -118,7 +118,7 @@ out:
 }
 
 /* our singleton */
-static CKConnector *ckc = NULL;
+static CkConnector *ckc = NULL;
 
 PAM_EXTERN int
 pam_sm_close_session (pam_handle_t *pamh,
@@ -207,8 +207,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                         dbus_error_free (&error);
                 } else {
                         if (opt_debug) {
-                                pam_syslog (pamh, LOG_DEBUG, "insufficient privileges or
- D-Bus / ConsoleKit not available");
+                                pam_syslog (pamh, LOG_DEBUG, "insufficient privileges or D-Bus / ConsoleKit not available");
                         }
                 }
 
@@ -230,7 +229,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                 pam_syslog (pamh, LOG_DEBUG, "registered uid=%d on tty='%s' with ConsoleKit", uid, tty);
         }
 
-        /* note that we're leaking our CKConnector instance ckc - this
+        /* note that we're leaking our CkConnector instance ckc - this
          * is *by design* such that when the login manager (that uses
          * us) exits / crashes / etc. ConsoleKit will notice, via D-Bus
          * connection tracking, that the login session ended.
