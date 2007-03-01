@@ -206,7 +206,11 @@ fi
 have_pam=no
 AC_CHECK_LIB(pam, pam_getenv, have_pam=yes)
 AM_CONDITIONAL(HAVE_PAM, test x$have_pam = xyes)
+if test "x$have_pam" = "xyes"; then
+    PAM_LIBS="${PAM_LIBS} -lpam"
+fi
 AC_SUBST(HAVE_PAM)
+AC_SUBST(PAM_LIBS)
 
 #
 # Check if we should build the PAM module

@@ -60,7 +60,7 @@ _parse_pam_args (const pam_handle_t *pamh,
 
         opt_debug = FALSE;
         for (i = 0; i < argc && argv[i] != NULL; i++) {
-                if (strcmp (argv[i] ,"debug") == 0) {
+                if (strcmp (argv[i] , "debug") == 0) {
                         opt_debug = TRUE;
                 } else {
                         pam_syslog (pamh, LOG_ERR, "unknown option: %s", argv[i]);
