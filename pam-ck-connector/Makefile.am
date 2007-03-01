@@ -43,5 +43,9 @@ MAINTAINERCLEANFILES =				\
 	Makefile.in				\
 	$(NULL)
 
+EXTRA_DIST =                                    \
+       pam_ck_connector.8                       \
+       $(NULL)
+
 clean-local :
 	rm -f *~
