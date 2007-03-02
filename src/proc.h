@@ -27,15 +27,17 @@ G_BEGIN_DECLS
 
 typedef struct _proc_stat_t proc_stat_t;
 
-gboolean proc_stat_new_for_pid (pid_t         pid,
-                                proc_stat_t **stat,
-                                GError      **error);
-char    *proc_stat_get_tty     (proc_stat_t  *stat);
-char    *proc_stat_get_cmd     (proc_stat_t  *stat);
-void     proc_stat_free        (proc_stat_t  *stat);
+gboolean     proc_stat_new_for_pid (pid_t         pid,
+                                    proc_stat_t **stat,
+                                    GError      **error);
+char        *proc_stat_get_tty     (proc_stat_t  *stat);
+char        *proc_stat_get_cmd     (proc_stat_t  *stat);
+void         proc_stat_free        (proc_stat_t  *stat);
 
-char    *proc_pid_get_env      (pid_t         pid,
-                                const char   *var);
+char        *proc_pid_get_env      (pid_t         pid,
+                                    const char   *var);
+
+GHashTable  *proc_pid_get_env_hash (pid_t         pid);
 
 G_END_DECLS
 

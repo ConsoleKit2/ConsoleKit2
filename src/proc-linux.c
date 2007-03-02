@@ -421,6 +421,62 @@ proc_stat_free (proc_stat_t *stat)
         g_free (stat);
 }
 
+GHashTable *
+proc_pid_get_env_hash (pid_t pid)
+{
+        char       *path;
+        gboolean    res;
+        char       *contents;
+        gsize       length;
+        GError     *error;
+        GHashTable *hash;
+        int         i;
+        gboolean    last_was_null;
+
+        contents = NULL;
+        hash = NULL;
+
+        path = g_strdup_printf ("/proc/%u/environ", (guint)pid);
+
+        error = NULL;
+        res = g_file_get_contents (path,
+                                   &contents,
+                                   &length,
+                                   &error);
+        if (! res) {
+                g_warning ("Couldn't read %s: %s", path, error->message);
+                g_error_free (error);
+                goto out;
+        }
+
+        hash = g_hash_table_new_full (g_str_hash,
+                                      g_str_equal,
+                                      g_free,
+                                      g_free);
+
+        last_was_null = TRUE;
+        for (i = 0; i < length; i++) {
+                if (contents[i] == '\0') {
+                        last_was_null = TRUE;
+                        continue;
+                }
+                if (last_was_null) {
+                        char **vals;
+                        vals = g_strsplit (contents + i, "=", 2);
+                        if (vals != NULL) {
+                                g_hash_table_insert (hash, vals[0], vals[1]);
+                        }
+                }
+                last_was_null = FALSE;
+        }
+
+ out:
+        g_free (contents);
+        g_free (path);
+
+        return hash;
+}
+
 char *
 proc_pid_get_env (pid_t       pid,
                   const char *var)
@@ -468,6 +524,7 @@ proc_pid_get_env (pid_t       pid,
                         val = g_strdup (contents + i + prefix_len);
                         break;
                 }
+                last_was_null = FALSE;
         }
 
  out:
