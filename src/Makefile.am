@@ -58,6 +58,8 @@ console_kit_daemon_SOURCES =	\
 	ck-manager.c		\
 	ck-vt-monitor.h		\
 	ck-vt-monitor.c		\
+	ck-job.h		\
+	ck-job.c		\
 	ck-seat.h		\
 	ck-seat.c		\
 	ck-session.h		\

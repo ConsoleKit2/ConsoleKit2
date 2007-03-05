@@ -308,6 +308,7 @@ fill_session_info (SessionInfo *si)
 static void
 print_session_info (SessionInfo *si)
 {
+        printf ("user = %u\n", si->uid);
         if (si->display_device != NULL) {
                 printf ("display-device = %s\n", si->display_device);
         }
@@ -362,6 +363,12 @@ main (int    argc,
                 { NULL }
         };
 
+        /* For now at least restrict this to root */
+        if (getuid () != 0) {
+                g_warning ("You must be root to run this program");
+                exit (1);
+        }
+
         context = g_option_context_new (NULL);
         g_option_context_add_main_entries (context, entries, NULL);
         error = NULL;
@@ -374,7 +381,7 @@ main (int    argc,
                 exit (1);
         }
 
-        if (user_id < 500) {
+        if (user_id < 0) {
                 g_warning ("Invalid UID");
                 exit (1);
         }
@@ -386,5 +393,5 @@ main (int    argc,
 
         ret = collect_session_info (user_id, process_id);
 
-	return ret;
+	return ret != TRUE;
 }

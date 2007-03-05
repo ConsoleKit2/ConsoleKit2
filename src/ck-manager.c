@@ -40,6 +40,7 @@
 #include "ck-manager-glue.h"
 #include "ck-seat.h"
 #include "ck-session.h"
+#include "ck-job.h"
 #include "ck-marshal.h"
 
 #include "ck-debug.h"
@@ -75,12 +76,14 @@ struct CkManagerPrivate
 
 
 typedef struct {
+        int         refcount;
+        gboolean    cancelled;
         uid_t       uid;
         pid_t       pid;
         char       *service_name;
         char       *ssid;
         char       *cookie;
-        GHashTable *pending_ids;
+        GList      *pending_jobs;
 } LeaderInfo;
 
 enum {
@@ -100,38 +103,65 @@ static gpointer manager_object = NULL;
 
 G_DEFINE_TYPE (CkManager, ck_manager, G_TYPE_OBJECT)
 
-static LeaderInfo *
-leader_info_copy (LeaderInfo *info)
+static void
+remove_pending_job (CkJob *job)
 {
-        LeaderInfo *new;
+        if (job != NULL) {
+                char *command;
 
-        new = g_new0 (LeaderInfo, 1);
+                command = NULL;
+                ck_job_get_command (job, &command);
+                ck_debug ("Removing pending job: %s", command);
+                g_free (command);
 
-        new->uid = info->uid;
-        new->pid = info->pid;
-        new->service_name = g_strdup (info->service_name);
-        new->ssid = g_strdup (info->ssid);
-        new->cookie = g_strdup (info->cookie);
-
-        if (info->pending_ids != NULL) {
-                new->pending_ids = g_hash_table_ref (info->pending_ids);
+                ck_job_cancel (job);
+                g_object_unref (job);
         }
-
-        return new;
 }
 
 static void
-leader_info_free (LeaderInfo *info)
+_leader_info_free (LeaderInfo *info)
 {
-        g_free (info->ssid);
-        g_free (info->cookie);
-        g_free (info->service_name);
+        ck_debug ("Freeing leader info: %s", info->ssid);
 
-        if (info->pending_ids != NULL) {
-                g_hash_table_unref (info->pending_ids);
-        }
+        g_free (info->ssid);
+        info->ssid = NULL;
+        g_free (info->cookie);
+        info->cookie = NULL;
+        g_free (info->service_name);
+        info->service_name = NULL;
 
         g_free (info);
+}
+
+static void
+leader_info_cancel (LeaderInfo *info)
+{
+        if (info->pending_jobs != NULL) {
+                g_list_foreach (info->pending_jobs, (GFunc)remove_pending_job, NULL);
+                g_list_free (info->pending_jobs);
+                info->pending_jobs = NULL;
+        }
+
+        info->cancelled = TRUE;
+}
+
+static void
+leader_info_unref (LeaderInfo *info)
+{
+        /* Probably should use some kind of atomic op here */
+        info->refcount -= 1;
+        if (info->refcount == 0) {
+                _leader_info_free (info);
+        }
+}
+
+static LeaderInfo *
+leader_info_ref (LeaderInfo *info)
+{
+        info->refcount += 1;
+
+        return info;
 }
 
 GQuark
@@ -366,7 +396,7 @@ manager_set_system_idle_hint (CkManager *manager,
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&manager->priv->system_idle_since_hint);
 
-                ck_debug ("Emitting system-idle-changed");
+                ck_debug ("Emitting system-idle-hint-changed: %d", idle_hint);
                 g_signal_emit (manager, signals [SYSTEM_IDLE_HINT_CHANGED], 0, idle_hint);
         }
 
@@ -541,15 +571,18 @@ verify_and_open_session_for_leader_info (CkManager             *manager,
 }
 
 static void
-add_param_int (GPtrArray       *parameters,
-               const char      *key,
-               int              value)
+add_param_int (GPtrArray  *parameters,
+               const char *key,
+               const char *value)
 {
         GValue val = { 0, };
         GValue param_val = { 0, };
+        int    num;
+
+        num = atoi (value);
 
         g_value_init (&val, G_TYPE_INT);
-        g_value_set_int (&val, value);
+        g_value_set_int (&val, num);
         g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
         g_value_take_boxed (&param_val,
                             dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
@@ -561,15 +594,22 @@ add_param_int (GPtrArray       *parameters,
 }
 
 static void
-add_param_boolean (GPtrArray       *parameters,
-                   const char      *key,
-                   gboolean         value)
+add_param_boolean (GPtrArray  *parameters,
+                   const char *key,
+                   const char *value)
 {
-        GValue val = { 0, };
-        GValue param_val = { 0, };
+        GValue   val = { 0, };
+        GValue   param_val = { 0, };
+        gboolean b;
+
+        if (value != NULL && strcmp (value, "true") == 0) {
+                b = TRUE;
+        } else {
+                b = FALSE;
+        }
 
         g_value_init (&val, G_TYPE_BOOLEAN);
-        g_value_set_boolean (&val, value);
+        g_value_set_boolean (&val, b);
         g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
         g_value_take_boxed (&param_val,
                             dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
@@ -581,9 +621,9 @@ add_param_boolean (GPtrArray       *parameters,
 }
 
 static void
-add_param_string (GPtrArray       *parameters,
-                  const char      *key,
-                  const char      *value)
+add_param_string (GPtrArray  *parameters,
+                  const char *key,
+                  const char *value)
 {
         GValue val = { 0, };
         GValue param_val = { 0, };
@@ -602,23 +642,135 @@ add_param_string (GPtrArray       *parameters,
         g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
 }
 
+typedef void (* CkAddParamFunc) (GPtrArray  *arr,
+                                 const char *key,
+                                 const char *value);
+
+static struct {
+	char          *key;
+        CkAddParamFunc func;
+} parse_ops[] = {
+        { "display-device", add_param_string },
+        { "x11-display",    add_param_string },
+        { "host-name",      add_param_string },
+        { "session-type",   add_param_string },
+        { "is-local",       add_param_boolean },
+        { "user",           add_param_int },
+};
+
+static GPtrArray *
+parse_output (const char *output)
+{
+        GPtrArray *parameters;
+        char     **lines;
+        int        i;
+        int        j;
+
+        lines = g_strsplit (output, "\n", -1);
+        if (lines == NULL) {
+                return NULL;
+        }
+
+        parameters = g_ptr_array_sized_new (10);
+
+        for (i = 0; lines[i] != NULL; i++) {
+                char **vals;
+
+                vals = g_strsplit (lines[i], " = ", 2);
+                if (vals == NULL || vals[0] == NULL) {
+                        continue;
+                }
+
+                for (j = 0; j < G_N_ELEMENTS (parse_ops); j++) {
+                        if (strcmp (vals[0], parse_ops[j].key) == 0) {
+                                parse_ops[j].func (parameters, vals[0], vals[1]);
+                                break;
+                        }
+                }
+                g_strfreev (vals);
+        }
+
+        return parameters;
+}
+
+typedef struct {
+        CkManager             *manager;
+        LeaderInfo            *leader_info;
+        DBusGMethodInvocation *context;
+} JobData;
+
+static void
+job_data_free (JobData *data)
+{
+        leader_info_unref (data->leader_info);
+        g_free (data);
+}
+
+static void
+job_completed (CkJob     *job,
+               int        status,
+               JobData   *data)
+{
+        ck_debug ("Job status: %d", status);
+        if (status == 0) {
+                char      *output;
+                GPtrArray *parameters;
+
+                output = NULL;
+                ck_job_get_stdout (job, &output);
+                ck_debug ("Job output: %s", output);
+
+                parameters = parse_output (output);
+                g_free (output);
+
+                verify_and_open_session_for_leader_info (data->manager,
+                                                         data->leader_info,
+                                                         parameters,
+                                                         data->context);
+
+                g_ptr_array_free (parameters, TRUE);
+
+        }
+
+        /* remove job from queue */
+        data->leader_info->pending_jobs = g_list_remove (data->leader_info->pending_jobs, job);
+
+        g_signal_handlers_disconnect_by_func (job, job_completed, data);
+        g_object_unref (job);
+}
+
 static void
 generate_session_for_leader_info (CkManager             *manager,
                                   LeaderInfo            *leader_info,
                                   DBusGMethodInvocation *context)
 {
-        GPtrArray   *parameters;
         GError      *local_error;
-        proc_stat_t *stat;
-        char        *cmd;
-        char        *x11_display;
-        char        *tty;
+        char        *command;
         gboolean     res;
+        CkJob       *job;
+        JobData     *data;
 
-        /* FIXME: callout to a helper tool to generate all parameters */
+        command = g_strdup_printf ("%s --uid %u --pid %u",
+                                   LIBEXECDIR "/ck-collect-session-info",
+                                   leader_info->uid,
+                                   leader_info->pid);
+        job = ck_job_new ();
+        ck_job_set_command (job, command);
+        g_free (command);
+
+        data = g_new0 (JobData, 1);
+        data->manager = manager;
+        data->leader_info = leader_info_ref (leader_info);
+        data->context = context;
+        g_signal_connect_data (job,
+                               "completed",
+                               G_CALLBACK (job_completed),
+                               data,
+                               (GClosureNotify)job_data_free,
+                               0);
 
         local_error = NULL;
-        res = proc_stat_new_for_pid (leader_info->pid, &stat, &local_error);
+        res = ck_job_execute (job, &local_error);
         if (! res) {
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
@@ -632,33 +784,13 @@ generate_session_for_leader_info (CkManager             *manager,
                         g_error_free (local_error);
                 }
 
+                g_object_unref (job);
+
                 return;
         }
 
-        tty = proc_stat_get_tty (stat);
-        cmd = proc_stat_get_cmd (stat);
-        x11_display = NULL;
-        proc_stat_free (stat);
-
-        parameters = g_ptr_array_sized_new (10);
-        /* FIXME: What should this be? */
-        add_param_boolean (parameters, "is-local", TRUE);
-        add_param_int (parameters, "user", leader_info->uid);
-        add_param_string (parameters, "x11-display", x11_display);
-        add_param_string (parameters, "display-device", tty);
-        /* FIXME: this isn't really a reliable value to use */
-        add_param_string (parameters, "session-type", cmd);
-
-        g_free (x11_display);
-        g_free (cmd);
-        g_free (tty);
-
-        verify_and_open_session_for_leader_info (manager,
-                                                 leader_info,
-                                                 parameters,
-                                                 context);
-
-	g_ptr_array_free (parameters, TRUE);
+        /* Add job to queue */
+        leader_info->pending_jobs = g_list_prepend (leader_info->pending_jobs, job);
 }
 
 static gboolean
@@ -701,7 +833,9 @@ create_session_for_sender (CkManager             *manager,
         leader_info->cookie = g_strdup (cookie);
 
         /* need to store the leader info first so the pending request can be revoked */
-        g_hash_table_insert (manager->priv->leaders, g_strdup (leader_info->cookie), leader_info);
+        g_hash_table_insert (manager->priv->leaders,
+                             g_strdup (leader_info->cookie),
+                             leader_info_ref (leader_info));
 
         if (parameters == NULL) {
                 generate_session_for_leader_info (manager,
@@ -967,13 +1101,6 @@ ck_manager_open_session_with_parameters (CkManager             *manager,
 }
 
 static gboolean
-cancel_pending_actions_for_cookie (CkManager  *manager,
-                                   const char *cookie)
-{
-        return TRUE;
-}
-
-static gboolean
 remove_session_for_cookie (CkManager  *manager,
                            const char *cookie,
                            GError    **error)
@@ -1150,9 +1277,8 @@ remove_leader_for_connection (const char       *cookie,
         g_assert (data->service_name != NULL);
 
         if (strcmp (info->service_name, data->service_name) == 0) {
-                cancel_pending_actions_for_cookie (data->manager, cookie);
                 remove_session_for_cookie (data->manager, cookie, NULL);
-
+                leader_info_cancel (info);
                 return TRUE;
         }
 
@@ -1371,7 +1497,7 @@ ck_manager_init (CkManager *manager)
         manager->priv->leaders = g_hash_table_new_full (g_str_hash,
                                                         g_str_equal,
                                                         g_free,
-                                                        (GDestroyNotify) leader_info_free);
+                                                        (GDestroyNotify) leader_info_unref);
 
         create_seats (manager);
 }
