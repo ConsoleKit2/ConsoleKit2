@@ -18,6 +18,9 @@
     <method name="GetX11Display">
       <arg name="display" direction="out" type="s"/>
     </method>
+    <method name="GetX11DisplayDevice">
+       <arg name="x11_display_device" direction="out" type="s"/>
+    </method>
     <method name="GetDisplayDevice">
       <arg name="display_device" direction="out" type="s"/>
     </method>

@@ -51,7 +51,8 @@ struct CkSessionPrivate
 
         char            *session_type;
         char            *display_device;
-        char            *xdisplay;
+        char            *x11_display_device;
+        char            *x11_display;
         char            *host_name;
         guint            uid;
 
@@ -82,6 +83,7 @@ enum {
         PROP_COOKIE,
         PROP_USER,
         PROP_X11_DISPLAY,
+        PROP_X11_DISPLAY_DEVICE,
         PROP_DISPLAY_DEVICE,
         PROP_SESSION_TYPE,
         PROP_HOST_NAME,
@@ -449,13 +451,13 @@ ck_session_get_user (CkSession      *session,
 
 gboolean
 ck_session_get_x11_display (CkSession      *session,
-                            char          **xdisplay,
+                            char          **x11_display,
                             GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (xdisplay != NULL) {
-                *xdisplay = g_strdup (session->priv->xdisplay);
+        if (x11_display != NULL) {
+                *x11_display = g_strdup (session->priv->x11_display);
         }
 
         return TRUE;
@@ -470,6 +472,20 @@ ck_session_get_display_device (CkSession      *session,
 
         if (display_device != NULL) {
                 *display_device = g_strdup (session->priv->display_device);
+        }
+
+        return TRUE;
+}
+
+gboolean
+ck_session_get_x11_display_device (CkSession      *session,
+                                   char          **x11_display_device,
+                                   GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        if (x11_display_device != NULL) {
+                *x11_display_device = g_strdup (session->priv->x11_display_device);
         }
 
         return TRUE;
@@ -598,13 +614,13 @@ ck_session_set_user (CkSession      *session,
 
 gboolean
 ck_session_set_x11_display (CkSession      *session,
-                            const char     *xdisplay,
+                            const char     *x11_display,
                             GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        g_free (session->priv->xdisplay);
-        session->priv->xdisplay = g_strdup (xdisplay);
+        g_free (session->priv->x11_display);
+        session->priv->x11_display = g_strdup (x11_display);
 
         return TRUE;
 }
@@ -618,6 +634,19 @@ ck_session_set_display_device (CkSession      *session,
 
         g_free (session->priv->display_device);
         session->priv->display_device = g_strdup (display_device);
+
+        return TRUE;
+}
+
+gboolean
+ck_session_set_x11_display_device (CkSession      *session,
+                                   const char     *x11_display_device,
+                                   GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        g_free (session->priv->x11_display_device);
+        session->priv->x11_display_device = g_strdup (x11_display_device);
 
         return TRUE;
 }
@@ -677,6 +706,9 @@ ck_session_set_property (GObject            *object,
         case PROP_X11_DISPLAY:
                 ck_session_set_x11_display (self, g_value_get_string (value), NULL);
                 break;
+        case PROP_X11_DISPLAY_DEVICE:
+                ck_session_set_x11_display_device (self, g_value_get_string (value), NULL);
+                break;
         case PROP_DISPLAY_DEVICE:
                 ck_session_set_display_device (self, g_value_get_string (value), NULL);
                 break;
@@ -722,7 +754,10 @@ ck_session_get_property (GObject    *object,
                 g_value_set_string (value, self->priv->session_type);
                 break;
         case PROP_X11_DISPLAY:
-                g_value_set_string (value, self->priv->xdisplay);
+                g_value_set_string (value, self->priv->x11_display);
+                break;
+        case PROP_X11_DISPLAY_DEVICE:
+                g_value_set_string (value, self->priv->x11_display_device);
                 break;
         case PROP_DISPLAY_DEVICE:
                 g_value_set_string (value, self->priv->display_device);
@@ -846,6 +881,13 @@ ck_session_class_init (CkSessionClass *klass)
                                                               NULL,
                                                               G_PARAM_READWRITE));
         g_object_class_install_property (object_class,
+                                         PROP_X11_DISPLAY_DEVICE,
+                                         g_param_spec_string ("x11-display-device",
+                                                              "x11-display-device",
+                                                              "X11 Display device",
+                                                              NULL,
+                                                              G_PARAM_READWRITE));
+        g_object_class_install_property (object_class,
                                          PROP_DISPLAY_DEVICE,
                                          g_param_spec_string ("display-device",
                                                               "display-device",
@@ -907,7 +949,7 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->cookie);
         g_free (session->priv->seat_id);
         g_free (session->priv->session_type);
-        g_free (session->priv->xdisplay);
+        g_free (session->priv->x11_display);
         g_free (session->priv->host_name);
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);

@@ -38,6 +38,7 @@ typedef struct {
         uid_t    uid;
         pid_t    pid;
         char    *display_device;
+        char    *x11_display_device;
         char    *x11_display;
         gboolean x11_can_connect;
         char    *hostname;
@@ -50,6 +51,7 @@ static void
 session_info_free (SessionInfo *si)
 {
         g_free (si->display_device);
+        g_free (si->x11_display_device);
         g_free (si->x11_display);
         g_free (si->hostname);
         g_free (si->session_type);
@@ -252,6 +254,9 @@ fill_x11_info (SessionInfo *si)
 
                 si->is_local = FALSE;
                 si->is_local_is_set = TRUE;
+
+                /* FIXME: get the remote hostname */
+
                 return;
         }
 
@@ -266,9 +271,7 @@ fill_x11_info (SessionInfo *si)
                 return;
         }
 
-        /* overwrite the tty value */
-        g_free (si->display_device);
-        si->display_device = proc_stat_get_tty (xorg_stat);
+        si->x11_display_device = proc_stat_get_tty (xorg_stat);
         proc_stat_free (xorg_stat);
 
         si->is_local = TRUE;
@@ -302,6 +305,13 @@ fill_session_info (SessionInfo *si)
 
         fill_x11_info (si);
 
+        if (! si->is_local_is_set) {
+                /* FIXME: how should we set this? */
+                /* non x11 sessions must be local I guess */
+                si->is_local = TRUE;
+                si->is_local_is_set = TRUE;
+        }
+
         return TRUE;
 }
 
@@ -309,11 +319,14 @@ static void
 print_session_info (SessionInfo *si)
 {
         printf ("user = %u\n", si->uid);
-        if (si->display_device != NULL) {
-                printf ("display-device = %s\n", si->display_device);
-        }
         if (si->x11_display != NULL) {
                 printf ("x11-display = %s\n", si->x11_display);
+        }
+        if (si->x11_display_device != NULL) {
+                printf ("x11-display-device = %s\n", si->x11_display_device);
+        }
+        if (si->display_device != NULL) {
+                printf ("display-device = %s\n", si->display_device);
         }
         if (si->session_type != NULL) {
                 printf ("session-type = %s\n", si->session_type);
@@ -355,8 +368,8 @@ main (int    argc,
         GOptionContext     *context;
         gboolean            ret;
         GError             *error;
-        static int          user_id;
-        static int          process_id;
+        static int          user_id = -1;
+        static int          process_id = -1;
         static GOptionEntry entries [] = {
                 { "uid", 0, 0, G_OPTION_ARG_INT, &user_id, "User ID", NULL },
                 { "pid", 0, 0, G_OPTION_ARG_INT, &process_id, "Process ID", NULL },
