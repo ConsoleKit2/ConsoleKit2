@@ -164,7 +164,8 @@ list_session (DBusGConnection *connection,
         char       *realname;
         char       *sid;
         char       *session_type;
-        char       *xdisplay;
+        char       *x11_display;
+        char       *x11_display_device;
         char       *display_device;
         char       *host_name;
         char       *creation_time;
@@ -184,7 +185,9 @@ list_session (DBusGConnection *connection,
 
         sid = NULL;
         session_type = NULL;
-        xdisplay = NULL;
+        x11_display = NULL;
+        x11_display_device = NULL;
+        display_device = NULL;
         host_name = NULL;
         creation_time = NULL;
         idle_since_hint = NULL;
@@ -192,7 +195,8 @@ list_session (DBusGConnection *connection,
         get_int (proxy, "GetUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
         get_string (proxy, "GetSessionType", &session_type);
-        get_string (proxy, "GetX11Display", &xdisplay);
+        get_string (proxy, "GetX11Display", &x11_display);
+        get_string (proxy, "GetX11DisplayDevice", &x11_display_device);
         get_string (proxy, "GetDisplayDevice", &display_device);
         get_string (proxy, "GetHostName", &host_name);
         get_boolean (proxy, "IsActive", &is_active);
@@ -212,8 +216,19 @@ list_session (DBusGConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tdisplay-device = '%s'\n\thost-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
-                short_ssid, uid, realname, short_sid, session_type, is_active ? "TRUE" : "FALSE", xdisplay, display_device, host_name, is_local ? "TRUE" : "FALSE", creation_time);
+        printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\thost-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
+                short_ssid,
+                uid,
+                realname,
+                short_sid,
+                session_type,
+                is_active ? "TRUE" : "FALSE",
+                x11_display,
+                x11_display_device,
+                display_device,
+                host_name,
+                is_local ? "TRUE" : "FALSE",
+                creation_time);
         if (idle_since_hint != NULL && idle_since_hint[0] != '\0') {
                 printf ("\n\tidle-since-hint = '%s'", idle_since_hint);
         }
@@ -225,7 +240,8 @@ list_session (DBusGConnection *connection,
         g_free (realname);
         g_free (sid);
         g_free (session_type);
-        g_free (xdisplay);
+        g_free (x11_display);
+        g_free (x11_display_device);
         g_free (display_device);
         g_object_unref (proxy);
 }
