@@ -464,10 +464,6 @@ ck_connector_open_session_for_user (CkConnector *connector,
                 goto out;
         }
 
-        if (! add_param_string (&iter_array, "host-name", "localhost")) {
-                goto out;
-        }
-
         if (! add_param_string (&iter_array, "display-device", tty)) {
                 goto out;
         }
@@ -479,10 +475,6 @@ ck_connector_open_session_for_user (CkConnector *connector,
         }
 
         if (! add_param_int32 (&iter_array, "user", user)) {
-                goto out;
-        }
-
-        if (! add_param_bool (&iter_array, "is-local", TRUE)) {
                 goto out;
         }
 

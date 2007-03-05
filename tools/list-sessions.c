@@ -167,7 +167,7 @@ list_session (DBusGConnection *connection,
         char       *x11_display;
         char       *x11_display_device;
         char       *display_device;
-        char       *host_name;
+        char       *remote_host_name;
         char       *creation_time;
         char       *idle_since_hint;
         gboolean    is_active;
@@ -188,7 +188,7 @@ list_session (DBusGConnection *connection,
         x11_display = NULL;
         x11_display_device = NULL;
         display_device = NULL;
-        host_name = NULL;
+        remote_host_name = NULL;
         creation_time = NULL;
         idle_since_hint = NULL;
 
@@ -198,7 +198,7 @@ list_session (DBusGConnection *connection,
         get_string (proxy, "GetX11Display", &x11_display);
         get_string (proxy, "GetX11DisplayDevice", &x11_display_device);
         get_string (proxy, "GetDisplayDevice", &display_device);
-        get_string (proxy, "GetHostName", &host_name);
+        get_string (proxy, "GetRemoteHostName", &remote_host_name);
         get_boolean (proxy, "IsActive", &is_active);
         get_boolean (proxy, "IsLocal", &is_local);
         get_string (proxy, "GetCreationTime", &creation_time);
@@ -216,7 +216,7 @@ list_session (DBusGConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\thost-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
+        printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
                 short_ssid,
                 uid,
                 realname,
@@ -226,7 +226,7 @@ list_session (DBusGConnection *connection,
                 x11_display,
                 x11_display_device,
                 display_device,
-                host_name,
+                remote_host_name,
                 is_local ? "TRUE" : "FALSE",
                 creation_time);
         if (idle_since_hint != NULL && idle_since_hint[0] != '\0') {
@@ -236,7 +236,7 @@ list_session (DBusGConnection *connection,
 
         g_free (idle_since_hint);
         g_free (creation_time);
-        g_free (host_name);
+        g_free (remote_host_name);
         g_free (realname);
         g_free (sid);
         g_free (session_type);

@@ -41,7 +41,7 @@ typedef struct {
         char    *x11_display_device;
         char    *x11_display;
         gboolean x11_can_connect;
-        char    *hostname;
+        char    *remote_host_name;
         char    *session_type;
         gboolean is_local;
         gboolean is_local_is_set;
@@ -53,7 +53,7 @@ session_info_free (SessionInfo *si)
         g_free (si->display_device);
         g_free (si->x11_display_device);
         g_free (si->x11_display);
-        g_free (si->hostname);
+        g_free (si->remote_host_name);
         g_free (si->session_type);
         g_free (si);
 }
@@ -277,8 +277,8 @@ fill_x11_info (SessionInfo *si)
         si->is_local = TRUE;
         si->is_local_is_set = TRUE;
 
-        g_free (si->hostname);
-        si->hostname = g_strdup ("localhost");
+        g_free (si->remote_host_name);
+        si->remote_host_name = NULL;
 }
 
 static gboolean
@@ -331,8 +331,8 @@ print_session_info (SessionInfo *si)
         if (si->session_type != NULL) {
                 printf ("session-type = %s\n", si->session_type);
         }
-        if (si->hostname != NULL) {
-                printf ("host-name = %s\n", si->hostname);
+        if (si->remote_host_name != NULL) {
+                printf ("remote-host-name = %s\n", si->remote_host_name);
         }
         if (si->is_local_is_set == TRUE) {
                 printf ("is-local = %s\n", si->is_local ? "true" : "false");

@@ -53,7 +53,7 @@ struct CkSessionPrivate
         char            *display_device;
         char            *x11_display_device;
         char            *x11_display;
-        char            *host_name;
+        char            *remote_host_name;
         guint            uid;
 
         gboolean         active;
@@ -86,7 +86,7 @@ enum {
         PROP_X11_DISPLAY_DEVICE,
         PROP_DISPLAY_DEVICE,
         PROP_SESSION_TYPE,
-        PROP_HOST_NAME,
+        PROP_REMOTE_HOST_NAME,
         PROP_IS_LOCAL,
         PROP_ACTIVE,
         PROP_IDLE_HINT,
@@ -492,14 +492,14 @@ ck_session_get_x11_display_device (CkSession      *session,
 }
 
 gboolean
-ck_session_get_host_name (CkSession      *session,
-                          char          **host_name,
-                          GError        **error)
+ck_session_get_remote_host_name (CkSession      *session,
+                                 char          **remote_host_name,
+                                 GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (host_name != NULL) {
-                *host_name = g_strdup (session->priv->host_name);
+        if (remote_host_name != NULL) {
+                *remote_host_name = g_strdup (session->priv->remote_host_name);
         }
 
         return TRUE;
@@ -652,14 +652,14 @@ ck_session_set_x11_display_device (CkSession      *session,
 }
 
 gboolean
-ck_session_set_host_name (CkSession      *session,
-                          const char     *host_name,
-                          GError        **error)
+ck_session_set_remote_host_name (CkSession      *session,
+                                 const char     *remote_host_name,
+                                 GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        g_free (session->priv->host_name);
-        session->priv->host_name = g_strdup (host_name);
+        g_free (session->priv->remote_host_name);
+        session->priv->remote_host_name = g_strdup (remote_host_name);
 
         return TRUE;
 }
@@ -715,8 +715,8 @@ ck_session_set_property (GObject            *object,
         case PROP_USER:
                 ck_session_set_user (self, g_value_get_uint (value), NULL);
                 break;
-        case PROP_HOST_NAME:
-                ck_session_set_host_name (self, g_value_get_string (value), NULL);
+        case PROP_REMOTE_HOST_NAME:
+                ck_session_set_remote_host_name (self, g_value_get_string (value), NULL);
                 break;
         case PROP_IDLE_HINT:
                 session_set_idle_hint_internal (self, g_value_get_boolean (value));
@@ -765,8 +765,8 @@ ck_session_get_property (GObject    *object,
         case PROP_USER:
                 g_value_set_uint (value, self->priv->uid);
                 break;
-        case PROP_HOST_NAME:
-                g_value_set_string (value, self->priv->host_name);
+        case PROP_REMOTE_HOST_NAME:
+                g_value_set_string (value, self->priv->remote_host_name);
                 break;
         case PROP_IDLE_HINT:
                 g_value_set_boolean (value, self->priv->idle_hint);
@@ -895,10 +895,10 @@ ck_session_class_init (CkSessionClass *klass)
                                                               NULL,
                                                               G_PARAM_READWRITE));
         g_object_class_install_property (object_class,
-                                         PROP_HOST_NAME,
-                                         g_param_spec_string ("host-name",
-                                                              "host-name",
-                                                              "Host name",
+                                         PROP_REMOTE_HOST_NAME,
+                                         g_param_spec_string ("remote-host-name",
+                                                              "remote-host-name",
+                                                              "Remote host name",
                                                               NULL,
                                                               G_PARAM_READWRITE));
 
@@ -950,7 +950,7 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->seat_id);
         g_free (session->priv->session_type);
         g_free (session->priv->x11_display);
-        g_free (session->priv->host_name);
+        g_free (session->priv->remote_host_name);
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
 }
@@ -1008,7 +1008,12 @@ ck_session_new_with_parameters (const char      *ssid,
                                                 1, &prop_val,
                                                 G_MAXUINT);
 
-                        g_object_set_property (object, prop_name, prop_val);
+                        if (g_object_class_find_property (G_OBJECT_GET_CLASS (object), prop_name)) {
+                                g_object_set_property (object, prop_name, prop_val);
+                        } else {
+                                ck_debug ("Skipping unknown parameter: %s", prop_name);
+                        }
+
                         g_value_unset (prop_val);
                 }
         }

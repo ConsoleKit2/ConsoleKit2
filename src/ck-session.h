@@ -101,8 +101,8 @@ gboolean            ck_session_set_x11_display_device (CkSession             *se
 gboolean            ck_session_set_display_device     (CkSession             *session,
                                                        const char            *device,
                                                        GError               **error);
-gboolean            ck_session_set_host_name          (CkSession             *session,
-                                                       const char            *host_name,
+gboolean            ck_session_set_remote_host_name   (CkSession             *session,
+                                                       const char            *remote_host_name,
                                                        GError               **error);
 gboolean            ck_session_set_session_type       (CkSession             *session,
                                                        const char            *type,
@@ -138,7 +138,7 @@ gboolean            ck_session_get_display_device     (CkSession             *se
 gboolean            ck_session_get_session_type       (CkSession             *session,
                                                        char                 **type,
                                                        GError               **error);
-gboolean            ck_session_get_host_name          (CkSession             *session,
+gboolean            ck_session_get_remote_host_name   (CkSession             *session,
                                                        char                 **host_name,
                                                        GError               **error);
 gboolean            ck_session_get_creation_time      (CkSession             *session,
