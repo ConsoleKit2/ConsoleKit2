@@ -427,7 +427,6 @@ ck_connector_open_session_for_user (CkConnector *connector,
         char           *cookie;
 
         _ck_return_val_if_fail (connector != NULL, FALSE);
-        _ck_return_val_if_fail (user > 0, FALSE);
         _ck_return_val_if_fail (tty != NULL, FALSE);
 
         reply = NULL;
