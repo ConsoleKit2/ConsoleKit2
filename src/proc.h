@@ -30,6 +30,7 @@ typedef struct _proc_stat_t proc_stat_t;
 gboolean     proc_stat_new_for_pid (pid_t         pid,
                                     proc_stat_t **stat,
                                     GError      **error);
+pid_t        proc_stat_get_ppid    (proc_stat_t  *stat);
 char        *proc_stat_get_tty     (proc_stat_t  *stat);
 char        *proc_stat_get_cmd     (proc_stat_t  *stat);
 void         proc_stat_free        (proc_stat_t  *stat);
@@ -38,6 +39,9 @@ char        *proc_pid_get_env      (pid_t         pid,
                                     const char   *var);
 
 GHashTable  *proc_pid_get_env_hash (pid_t         pid);
+
+pid_t        proc_pid_get_ppid     (pid_t         pid);
+uid_t        proc_pid_get_uid      (pid_t         pid);
 
 G_END_DECLS
 

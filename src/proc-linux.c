@@ -258,6 +258,16 @@ link_name (guint       maj,
         return tty;
 }
 
+pid_t
+proc_stat_get_ppid (proc_stat_t *stat)
+{
+        if (stat == NULL) {
+                return -1;
+        }
+
+        return stat->ppid;
+}
+
 char *
 proc_stat_get_cmd (proc_stat_t *stat)
 {
@@ -533,4 +543,47 @@ proc_pid_get_env (pid_t       pid,
         g_free (path);
 
         return val;
+}
+
+uid_t
+proc_pid_get_uid (pid_t pid)
+{
+        struct stat st;
+        char       *path;
+        int         uid;
+        int         res;
+
+        uid = -1;
+
+        path = g_strdup_printf ("/proc/%u", (guint)pid);
+        res = stat (path, &st);
+        g_free (path);
+
+        if (res == 0) {
+                uid = st.st_uid;
+        }
+
+        return uid;
+}
+
+pid_t
+proc_pid_get_ppid (pid_t pid)
+{
+        int          ppid;
+        gboolean     res;
+        proc_stat_t *stat;
+
+        ppid = -1;
+
+        res = proc_stat_new_for_pid (pid, &stat, NULL);
+        if (! res) {
+                goto out;
+        }
+
+        ppid = proc_stat_get_ppid (stat);
+
+        proc_stat_free (stat);
+
+ out:
+        return ppid;
 }
