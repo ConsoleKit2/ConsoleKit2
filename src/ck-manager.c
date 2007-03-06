@@ -314,6 +314,8 @@ remove_seat (CkManager *manager,
         g_free (sid);
 }
 
+#define IS_STR_SET(x) (x != NULL && x[0] != '\0')
+
 static CkSeat *
 find_seat_for_session (CkManager *manager,
                        CkSession *session)
@@ -345,15 +347,15 @@ find_seat_for_session (CkManager *manager,
         ck_session_get_remote_host_name (session, &remote_host_name, NULL);
         ck_session_is_local (session, &is_local, NULL);
 
-        if (x11_display != NULL
-            && x11_display_device != NULL
-            && remote_host_name == NULL
+        if (IS_STR_SET (x11_display)
+            && IS_STR_SET (x11_display_device)
+            && ! IS_STR_SET (remote_host_name)
             && is_local == TRUE) {
                 is_static_x11 = TRUE;
-        } else if (x11_display == NULL
-                   && x11_display_device == NULL
-                   && display_device != NULL
-                   && remote_host_name == NULL
+        } else if (! IS_STR_SET (x11_display)
+                   && ! IS_STR_SET (x11_display_device)
+                   && IS_STR_SET (display_device)
+                   && ! IS_STR_SET (remote_host_name)
                    && is_local == TRUE) {
                 is_static_text = TRUE;
         }
