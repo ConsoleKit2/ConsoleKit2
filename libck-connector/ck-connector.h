@@ -38,22 +38,26 @@ DBUS_BEGIN_DECLS
 struct _CkConnecter;
 typedef struct _CkConnector CkConnector;
 
-CkConnector  *ck_connector_new                   (void);
+CkConnector  *ck_connector_new                          (void);
 
-CkConnector  *ck_connector_ref                   (CkConnector *ckc);
-void          ck_connector_unref                 (CkConnector *ckc);
+CkConnector  *ck_connector_ref                          (CkConnector *ckc);
+void          ck_connector_unref                        (CkConnector *ckc);
 
-dbus_bool_t   ck_connector_open_session_for_user (CkConnector *ckc,
-                                                  uid_t        user,
-                                                  const char  *tty,
-                                                  const char  *x11_display,
-                                                  DBusError   *error);
-dbus_bool_t   ck_connector_open_session          (CkConnector *ckc,
-                                                  DBusError   *error);
+dbus_bool_t   ck_connector_open_session_for_user        (CkConnector *ckc,
+                                                         uid_t        user,
+                                                         const char  *tty,
+                                                         const char  *x11_display,
+                                                         DBusError   *error);
+dbus_bool_t   ck_connector_open_session_with_parameters (CkConnector *ckc,
+                                                         DBusError   *error,
+                                                         const char  *first_parameter_name,
+                                                         ...);
+dbus_bool_t   ck_connector_open_session                 (CkConnector *ckc,
+                                                         DBusError   *error);
 
-const char   *ck_connector_get_cookie            (CkConnector *ckc);
-dbus_bool_t   ck_connector_close_session         (CkConnector *ckc,
-                                                  DBusError   *error);
+const char   *ck_connector_get_cookie                   (CkConnector *ckc);
+dbus_bool_t   ck_connector_close_session                (CkConnector *ckc,
+                                                         DBusError   *error);
 
 DBUS_END_DECLS
 

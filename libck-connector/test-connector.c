@@ -36,7 +36,12 @@ main (int argc, char *argv[])
 {
         CkConnector *connector;
         int          ret;
+        int          res;
         DBusError    error;
+        int          user;
+        const char  *display_device;
+        const char  *x11_display;
+        const char  *remote_host_name;
 
         ret = 1;
 
@@ -46,8 +51,19 @@ main (int argc, char *argv[])
                 goto out;
         }
 
+        user = 730;
+        display_device = "/dev/tty3";
+        x11_display = ":20";
+        remote_host_name = "";
         dbus_error_init (&error);
-        if (! ck_connector_open_session_for_user (connector, 500, "/dev/tty2", ":1", &error)) {
+        res = ck_connector_open_session_with_parameters (connector,
+                                                         &error,
+                                                         "user", &user,
+                                                         "display-device", &display_device,
+                                                         "x11-display", &x11_display,
+                                                         "remote-host-name", &remote_host_name,
+                                                         NULL);
+        if (! res) {
                 if (dbus_error_is_set (&error)) {
                         printf ("%s\n",
                                 error.message);
