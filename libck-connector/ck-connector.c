@@ -493,9 +493,13 @@ out:
  *
  * @code
  *
+ * DBusError    error;
  * dbus_int32_t v_INT32 = 500;
  * const char  *v_STRING = "/dev/tty3";
+ *
+ * dbus_error_init (&error);
  * ck_connector_open_session_with_parameters (connector,
+ *                                            &error,
  *                                            "user", &v_INT32,
  *                                            "display-device", &v_STRING,
  *                                            NULL);
