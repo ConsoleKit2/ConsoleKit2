@@ -650,12 +650,13 @@ static struct {
 	char          *key;
         CkAddParamFunc func;
 } parse_ops[] = {
-        { "display-device",   add_param_string },
-        { "x11-display",      add_param_string },
-        { "remote-host-name", add_param_string },
-        { "session-type",     add_param_string },
-        { "is-local",         add_param_boolean },
-        { "user",             add_param_int },
+        { "display-device",     add_param_string },
+        { "x11-display-device", add_param_string },
+        { "x11-display",        add_param_string },
+        { "remote-host-name",   add_param_string },
+        { "session-type",       add_param_string },
+        { "is-local",           add_param_boolean },
+        { "user",               add_param_int },
 };
 
 static GPtrArray *

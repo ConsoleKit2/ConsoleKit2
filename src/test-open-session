@@ -8,6 +8,8 @@ import gobject
 import dbus
 import dbus.glib
 
+print "uid=%d pid=%d" % (os.geteuid (), os.getpid ())
+
 bus = dbus.SystemBus ()
 
 manager_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Manager')
