@@ -148,6 +148,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         const char *s;
         uid_t       uid;
         char        buf[256];
+        char        ttybuf[PATH_MAX];
         DBusError   error;
 
         ret = PAM_IGNORE;
@@ -178,6 +179,15 @@ pam_sm_open_session (pam_handle_t *pamh,
         if (pam_get_item (pamh, PAM_TTY, (const void **) &display_device) != PAM_SUCCESS || display_device == NULL) {
                 pam_syslog (pamh, LOG_ERR, "cannot determine display-device");
                 goto out;
+        }
+
+        /* interpret any tty with a colon as a DISPLAY */
+        if (strchr (display_device, ':') != NULL) {
+                x11_display = display_device;
+                display_device = "";
+        } else if (strncmp ("/dev/", display_device, 5) != 0) {
+                snprintf (ttybuf, sizeof (ttybuf), "/dev/%s", display_device);
+                display_device = ttybuf;
         }
 
         if (pam_get_item (pamh, PAM_RHOST, (const void **) &s) == PAM_SUCCESS && s != NULL) {
