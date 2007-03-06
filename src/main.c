@@ -56,14 +56,24 @@ static DBusGProxy *
 get_bus_proxy (DBusGConnection *connection)
 {
         DBusGProxy *bus_proxy;
-        GError     *error;
-        guint       result;
-        gboolean    res;
 
 	bus_proxy = dbus_g_proxy_new_for_name (connection,
                                                DBUS_SERVICE_DBUS,
                                                DBUS_PATH_DBUS,
                                                DBUS_INTERFACE_DBUS);
+        return bus_proxy;
+}
+
+static gboolean
+acquire_name_on_proxy (DBusGProxy *bus_proxy)
+{
+        GError     *error;
+        guint       result;
+        gboolean    res;
+        gboolean    ret;
+
+        ret = FALSE;
+
         if (bus_proxy == NULL) {
                 goto out;
         }
@@ -87,7 +97,6 @@ get_bus_proxy (DBusGConnection *connection)
                 goto out;
 	}
 
-
  	if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
                 if (error != NULL) {
                         g_warning ("Failed to acquire %s: %s", CK_DBUS_NAME, error->message);
@@ -98,8 +107,10 @@ get_bus_proxy (DBusGConnection *connection)
                 goto out;
         }
 
-out:
-        return bus_proxy;
+        ret = TRUE;
+
+ out:
+        return ret;
 }
 
 static DBusGConnection *
@@ -145,9 +156,14 @@ bus_reconnect (CkManager *manager)
                 goto out;
         }
 
+        if (! acquire_name_on_proxy (bus_proxy) ) {
+                g_warning ("Could not acquire name; will retry");
+                goto out;
+        }
+
         manager = ck_manager_new ();
         if (manager == NULL) {
-                g_warning ("Could not construct manager object; will retry");
+                g_warning ("Could not construct manager object");
                 exit (1);
         }
 
@@ -208,9 +224,11 @@ main (int    argc,
 
         ret = 1;
 
-        g_type_init ();
-        g_thread_init (NULL);
+        if (! g_thread_supported ()) {
+                g_thread_init (NULL);
+        }
         dbus_g_thread_init ();
+        g_type_init ();
 
         context = g_option_context_new (_("Console kit daemon"));
         g_option_context_add_main_entries (context, entries, NULL);
@@ -225,6 +243,11 @@ main (int    argc,
         bus_proxy = get_bus_proxy (connection);
         if (bus_proxy == NULL) {
                 g_warning ("Could not construct bus_proxy object; bailing out");
+                goto out;
+        }
+
+        if (! acquire_name_on_proxy (bus_proxy) ) {
+                g_warning ("Could not acquire name; bailing out");
                 goto out;
         }
 
