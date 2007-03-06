@@ -17,9 +17,12 @@ manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
 params = dbus.Array ([], signature = "sv")
 params.append (("user", dbus.Variant (730)))
 params.append (("session-type", dbus.Variant ("gnome-session")))
-params.append (("x11-display", dbus.Variant (":0.0")))
+#params.append (("x11-display", dbus.Variant (":0.0")))
 params.append (("display-device", dbus.Variant ("/dev/tty8")))
 params.append (("is-local", dbus.Variant (True)))
+params.append (("bogus-property", dbus.Variant ("Something bogus")))
+params.append (("cookie", dbus.Variant ("This should be ignored")))
+params.append (("id", dbus.Variant ("This should be ignored too")))
 
 cookie = manager.OpenSessionWithParameters (params)
 os.environ['XDG_SESSION_COOKIE'] = cookie

@@ -25,9 +25,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
+#include <string.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <glib/gstdio.h>
 #include <glib-object.h>
 #define DBUS_API_SUBJECT_TO_CHANGE
 #include <dbus/dbus-glib.h>
@@ -63,6 +66,8 @@ struct CkSessionPrivate
 
         gboolean         idle_hint;
         GTimeVal         idle_since_hint;
+
+        guint            idle_timeout_id;
 
         DBusGConnection *connection;
         DBusGProxy      *bus_proxy;
@@ -776,12 +781,119 @@ ck_session_get_property (GObject    *object,
                 break;
         }
 }
+#define IS_STR_SET(x) (x != NULL && x[0] != '\0')
+static gboolean
+session_is_text (CkSession *session)
+{
+        gboolean ret;
+
+        ret = FALSE;
+
+        if (! IS_STR_SET (session->priv->x11_display_device)
+            && ! IS_STR_SET (session->priv->x11_display)
+            && IS_STR_SET (session->priv->display_device)) {
+                ret = TRUE;
+        }
+
+        ck_debug ("Identified session '%s' as %s",
+                  session->priv->id,
+                  ret ? "text" : "graphical");
+
+        return ret;
+}
+
+static void
+maybe_update_idle_hint_from_access_time (CkSession *session,
+                                         time_t     last_access)
+{
+        time_t   now;
+        time_t   idletime;
+        gboolean is_idle;
+
+        time (&now);
+        if (last_access > now) {
+                last_access = now;
+        }
+
+        idletime = now - last_access;
+
+        is_idle = (idletime > 60);
+        ck_debug ("session idletime %ld", (glong)idletime);
+        session_set_idle_hint_internal (session, is_idle);
+}
+
+static gboolean
+check_tty_idle (CkSession *session)
+{
+        struct stat sb;
+
+        if (session->priv->display_device == NULL) {
+                return FALSE;
+        }
+
+        if (g_stat (session->priv->display_device, &sb) < 0) {
+                ck_debug ("Unable to stat: %s: %s", session->priv->display_device, g_strerror (errno));
+                return FALSE;
+        }
+
+        maybe_update_idle_hint_from_access_time (session, sb.st_atime);
+
+        return TRUE;
+}
+
+static void
+add_idle_hint_timeout (CkSession *session)
+{
+        ck_debug ("Adding watch for text session idle");
+        /* yes this sucks - we'll add file monitoring when it is in glib */
+        if (session->priv->idle_timeout_id == 0) {
+#if GLIB_CHECK_VERSION(2,14,0)
+                session->priv->idle_timeout_id = g_timeout_add_seconds (30,
+                                                                        (GSourceFunc)check_tty_idle,
+                                                                        session);
+#else
+                session->priv->idle_timeout_id = g_timeout_add (30000,
+                                                                (GSourceFunc)check_tty_idle,
+                                                                session);
+#endif
+        }
+}
+
+static void
+remove_idle_hint_timeout (CkSession *session)
+{
+        if (session->priv->idle_timeout_id > 0) {
+                g_source_remove (session->priv->idle_timeout_id);
+        }
+}
+
+static GObject *
+ck_session_constructor (GType                  type,
+                        guint                  n_construct_properties,
+                        GObjectConstructParam *construct_properties)
+{
+        CkSession      *session;
+        CkSessionClass *klass;
+
+        klass = CK_SESSION_CLASS (g_type_class_peek (CK_TYPE_SESSION));
+
+        session = CK_SESSION (G_OBJECT_CLASS (ck_session_parent_class)->constructor (type,
+                                                                                     n_construct_properties,
+                                                                                     construct_properties));
+        if (session_is_text (session)) {
+                /* FIXME: use file monitoring once it is in glib */
+                add_idle_hint_timeout (session);
+        }
+
+        return G_OBJECT (session);
+}
 
 static void
 ck_session_class_init (CkSessionClass *klass)
 {
         GObjectClass   *object_class = G_OBJECT_CLASS (klass);
 
+        object_class->constructor = ck_session_constructor;
         object_class->get_property = ck_session_get_property;
         object_class->set_property = ck_session_set_property;
         object_class->finalize = ck_session_finalize;
@@ -850,7 +962,7 @@ ck_session_class_init (CkSessionClass *klass)
                                                                NULL,
                                                                NULL,
                                                                TRUE,
-                                                               G_PARAM_READWRITE));
+                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_ID,
                                          g_param_spec_string ("id",
@@ -872,35 +984,35 @@ ck_session_class_init (CkSessionClass *klass)
                                                               "session-type",
                                                               "session type",
                                                               NULL,
-                                                              G_PARAM_READWRITE));
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_X11_DISPLAY,
                                          g_param_spec_string ("x11-display",
                                                               "x11-display",
                                                               "X11 Display",
                                                               NULL,
-                                                              G_PARAM_READWRITE));
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_X11_DISPLAY_DEVICE,
                                          g_param_spec_string ("x11-display-device",
                                                               "x11-display-device",
                                                               "X11 Display device",
                                                               NULL,
-                                                              G_PARAM_READWRITE));
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_DISPLAY_DEVICE,
                                          g_param_spec_string ("display-device",
                                                               "display-device",
                                                               "Display device",
                                                               NULL,
-                                                              G_PARAM_READWRITE));
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_REMOTE_HOST_NAME,
                                          g_param_spec_string ("remote-host-name",
                                                               "remote-host-name",
                                                               "Remote host name",
                                                               NULL,
-                                                              G_PARAM_READWRITE));
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
         g_object_class_install_property (object_class,
                                          PROP_USER,
@@ -910,7 +1022,7 @@ ck_session_class_init (CkSessionClass *klass)
                                                             0,
                                                             G_MAXINT,
                                                             0,
-                                                            G_PARAM_READWRITE));
+                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_ACTIVE,
                                          g_param_spec_boolean ("idle-hint",
@@ -944,6 +1056,8 @@ ck_session_finalize (GObject *object)
         session = CK_SESSION (object);
 
         g_return_if_fail (session->priv != NULL);
+
+        remove_idle_hint_timeout (session);
 
         g_free (session->priv->id);
         g_free (session->priv->cookie);
@@ -985,38 +1099,103 @@ ck_session_new_with_parameters (const char      *ssid,
                                 const char      *cookie,
                                 const GPtrArray *parameters)
 {
-        GObject *object;
-        gboolean res;
-        int      i;
+        GObject      *object;
+        gboolean      res;
+        int           i;
+        GParameter   *params;
+        guint         n_allocated_params;
+        guint         n_params;
+        GObjectClass *class;
+        GType	      object_type;
 
-        object = g_object_new (CK_TYPE_SESSION,
-                               "id", ssid,
-                               "cookie", cookie,
-                               NULL);
+        object_type = CK_TYPE_SESSION;
+        class = g_type_class_ref (object_type);
+
+        n_allocated_params = 2;
+        if (parameters != NULL) {
+                n_allocated_params += parameters->len;
+        }
+
+        params = g_new0 (GParameter, n_allocated_params);
+
+        n_params = 0;
+        params[n_params].name = "id";
+        params[n_params].value.g_type = 0;
+        g_value_init (&params[n_params].value, G_TYPE_STRING);
+        g_value_set_string (&params[n_params].value, ssid);
+        n_params++;
+
+        params[n_params].name = "cookie";
+        params[n_params].value.g_type = 0;
+        g_value_init (&params[n_params].value, G_TYPE_STRING);
+        g_value_set_string (&params[n_params].value, cookie);
+        n_params++;
 
         if (parameters != NULL) {
                 for (i = 0; i < parameters->len; i++) {
+                        gboolean    res;
                         GValue      val_struct = { 0, };
                         const char *prop_name;
                         GValue     *prop_val;
+                        GParamSpec *pspec;
 
                         g_value_init (&val_struct, CK_TYPE_PARAMETER_STRUCT);
                         g_value_set_static_boxed (&val_struct, g_ptr_array_index (parameters, i));
 
-                        dbus_g_type_struct_get (&val_struct,
-                                                0, &prop_name,
-                                                1, &prop_val,
-                                                G_MAXUINT);
-
-                        if (g_object_class_find_property (G_OBJECT_GET_CLASS (object), prop_name)) {
-                                g_object_set_property (object, prop_name, prop_val);
-                        } else {
-                                ck_debug ("Skipping unknown parameter: %s", prop_name);
+                        res = dbus_g_type_struct_get (&val_struct,
+                                                      0, &prop_name,
+                                                      1, &prop_val,
+                                                      G_MAXUINT);
+                        if (! res) {
+                                ck_debug ("Unable to extract parameter input");
+                                continue;
                         }
 
-                        g_value_unset (prop_val);
+                        if (prop_name == NULL) {
+                                ck_debug ("Skipping NULL parameter");
+                                continue;
+                        }
+
+                        if (strcmp (prop_name, "id") == 0
+                            || strcmp (prop_name, "cookie") == 0) {
+                                ck_debug ("Skipping restricted parameter: %s", prop_name);
+                                continue;
+                        }
+
+                        pspec = g_object_class_find_property (class, prop_name);
+                        if (! pspec) {
+                                ck_debug ("Skipping unknown parameter: %s", prop_name);
+                                if (prop_val != NULL) {
+                                        g_value_unset (prop_val);
+                                }
+                                continue;
+                        }
+
+                        if (!(pspec->flags & G_PARAM_WRITABLE)) {
+                                ck_debug ("property '%s' is not writable", pspec->name);
+                                continue;
+                        }
+
+                        params[n_params].name = prop_name;
+                        params[n_params].value.g_type = 0;
+                        g_value_init (&params[n_params].value, G_PARAM_SPEC_VALUE_TYPE (pspec));
+                        res = g_value_transform (prop_val, &params[n_params].value);
+                        if (! res) {
+                                ck_debug ("unable to transform property value for '%s'", pspec->name);
+                                continue;
+                        }
+
+                        n_params++;
                 }
         }
+
+        object = g_object_newv (object_type, n_params, params);
+
+        while (n_params--) {
+                g_value_unset (&params[n_params].value);
+        }
+        g_free (params);
+        g_type_class_unref (class);
 
         res = register_session (CK_SESSION (object));
         if (! res) {
