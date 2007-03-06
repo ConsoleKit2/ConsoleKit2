@@ -818,7 +818,7 @@ maybe_update_idle_hint_from_access_time (CkSession *session,
         idletime = now - last_access;
 
         is_idle = (idletime > 60);
-        ck_debug ("session idletime %ld", (glong)idletime);
+
         session_set_idle_hint_internal (session, is_idle);
 }
 
