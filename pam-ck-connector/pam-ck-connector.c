@@ -26,6 +26,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "config.h"
+
 #include <ctype.h>
 #include <pwd.h>
 #include <stdarg.h>
@@ -38,6 +40,14 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+
+#ifdef HAVE_PATHS_H
+#include <paths.h>
+#endif /* HAVE_PATHS_H */
+
+#ifndef _PATH_DEV
+#define _PATH_DEV "/dev/"
+#endif
 
 #define PAM_SM_SESSION
 
@@ -187,8 +197,8 @@ pam_sm_open_session (pam_handle_t *pamh,
         if (strchr (display_device, ':') != NULL) {
                 x11_display = display_device;
                 display_device = "";
-        } else if (strncmp ("/dev/", display_device, 5) != 0) {
-                snprintf (ttybuf, sizeof (ttybuf), "/dev/%s", display_device);
+        } else if (strncmp (_PATH_DEV, display_device, 5) != 0) {
+                snprintf (ttybuf, sizeof (ttybuf), _PATH_DEV "%s", display_device);
                 display_device = ttybuf;
         }
 

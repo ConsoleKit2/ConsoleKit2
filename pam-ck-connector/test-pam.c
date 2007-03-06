@@ -24,12 +24,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
+
+#ifdef HAVE_PATHS_H
+#include <paths.h>
+#endif /* HAVE_PATHS_H */
 
 #define PAM_MAX_LOGIN_TRIES	3
 #define PAM_FAIL_CHECK if (retcode != PAM_SUCCESS) { \
@@ -69,7 +75,7 @@ main (int argc, char *argv[])
 
         ttyn = ttyname (0);
 
-        if (strncmp(ttyn, "/dev/", 5) == 0) {
+        if (strncmp (ttyn, _PATH_DEV, 5) == 0) {
                 tty_name = ttyn + 5;
         } else {
                 tty_name = ttyn;

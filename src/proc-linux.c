@@ -28,6 +28,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef HAVE_PATHS_H
+#include <paths.h>
+#endif /* HAVE_PATHS_H */
+
 #include "proc.h"
 
 /* adapted from procps */
@@ -107,7 +111,7 @@ load_drivers (void)
 
         buf[bytes] = '\0';
         p = buf;
-        while ((p = strstr (p, " /dev/"))){
+        while ((p = strstr (p, " " _PATH_DEV))){
                 tty_map_node *tmn;
                 int len;
                 char *end;
@@ -188,7 +192,7 @@ driver_name (guint maj,
                 tmn = tmn->next;
         }
 
-        tty = g_strdup_printf ("/dev/%s%d", tmn->name, min);  /* like "/dev/ttyZZ255" */
+        tty = g_strdup_printf (_PATH_DEV "%s%d", tmn->name, min);  /* like "/dev/ttyZZ255" */
         if (stat (tty, &sbuf) < 0){
                 g_free (tty);
 
@@ -196,7 +200,7 @@ driver_name (guint maj,
                         return NULL;
                 }
 
-                tty = g_strdup_printf ("/dev/%s", tmn->name);  /* like "/dev/ttyZZ255" */
+                tty = g_strdup_printf (_PATH_DEV "%s", tmn->name);  /* like "/dev/ttyZZ255" */
 
                 if (stat (tty, &sbuf) < 0) {
                         g_free (tty);

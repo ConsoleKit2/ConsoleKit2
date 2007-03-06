@@ -37,6 +37,8 @@ GLIB_REQUIRED_VERSION=2.7.0
 GDK_REQUIRED_VERSION=2.8.0
 
 AC_CHECK_HEADERS(unistd.h)
+AC_CHECK_HEADERS(paths.h)
+
 AC_TYPE_UID_T
 
 AC_CHECK_FUNCS([setresuid setenv unsetenv clearenv])
