@@ -150,12 +150,14 @@ pam_sm_open_session (pam_handle_t *pamh,
         char        buf[256];
         char        ttybuf[PATH_MAX];
         DBusError   error;
+        dbus_bool_t is_local;
 
         ret = PAM_IGNORE;
 
         display_device = "";
         x11_display = "";
         remote_host_name = "";
+        is_local = TRUE;
 
         _parse_pam_args (pamh, flags, argc, argv);
 
@@ -195,6 +197,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                 if (opt_debug) {
                         pam_syslog (pamh, LOG_INFO, "using '%s' as remote-host-name", remote_host_name);
                 }
+                is_local = FALSE;
         }
 
         if ((s = pam_getenv (pamh, "CKCON_TTY")) != NULL) {
@@ -228,6 +231,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                                                          "display-device", &display_device,
                                                          "x11-display", &x11_display,
                                                          "remote-host-name", &remote_host_name,
+                                                         "is-local", &is_local,
                                                          NULL);
         if (opt_debug) {
                 pam_syslog (pamh, LOG_INFO, "open session result: %d", res);
