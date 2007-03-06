@@ -267,9 +267,9 @@ ck_seat_activate_session (CkSeat                *seat,
 }
 
 static gboolean
-match_session_display_device (const char  *key,
-                              CkSession   *session,
-                              const char  *display_device)
+match_session_display_device (const char *key,
+                              CkSession  *session,
+                              const char *display_device)
 {
         char    *device;
         gboolean ret;
@@ -286,6 +286,7 @@ match_session_display_device (const char  *key,
         if (device != NULL
             && display_device != NULL
             && strcmp (device, display_device) == 0) {
+                ck_debug ("Matched display-device %s to %s", display_device, key);
                 ret = TRUE;
         }
 out:
@@ -295,15 +296,149 @@ out:
         return ret;
 }
 
-static CkSession *
-find_session_for_display_device (CkSeat         *seat,
-                                 const char     *device)
+static gboolean
+match_session_x11_display_device (const char *key,
+                                  CkSession  *session,
+                                  const char *x11_display_device)
 {
+        char    *device;
+        gboolean ret;
+
+        device = NULL;
+        ret = FALSE;
+
+        if (session == NULL) {
+                goto out;
+        }
+
+        ck_session_get_x11_display_device (session, &device, NULL);
+
+        if (device != NULL
+            && x11_display_device != NULL
+            && strcmp (device, x11_display_device) == 0) {
+                ck_debug ("Matched x11-display-device %s to %s", x11_display_device, key);
+                ret = TRUE;
+        }
+out:
+
+        g_free (device);
+
+        return ret;
+}
+
+typedef struct
+{
+        GHRFunc  predicate;
+        gpointer user_data;
+        GList   *list;
+} HashTableFindAllData;
+
+static void
+find_all_func (gpointer              key,
+               gpointer              value,
+               HashTableFindAllData *data)
+{
+        gboolean res;
+
+        res = data->predicate (key, value, data->user_data);
+        if (res) {
+                data->list = g_list_prepend (data->list, value);
+        }
+}
+
+static GList *
+hash_table_find_all (GHashTable *hash_table,
+                     GHRFunc     predicate,
+                     gpointer    user_data)
+{
+        HashTableFindAllData *data;
+        GList                *list;
+
+        data = g_new0 (HashTableFindAllData, 1);
+        data->predicate = predicate;
+        data->user_data = user_data;
+        g_hash_table_foreach (hash_table, (GHFunc) find_all_func, data);
+        list = data->list;
+        g_free (data);
+        return list;
+}
+
+static GList *
+find_sessions_for_display_device (CkSeat     *seat,
+                                  const char *device)
+{
+        GList *sessions;
+
+        sessions = hash_table_find_all (seat->priv->sessions,
+                                        (GHRFunc) match_session_display_device,
+                                        (gpointer) device);
+        return sessions;
+}
+
+static GList *
+find_sessions_for_x11_display_device (CkSeat     *seat,
+                                      const char *device)
+{
+        GList *sessions;
+
+        sessions = hash_table_find_all (seat->priv->sessions,
+                                        (GHRFunc) match_session_x11_display_device,
+                                        (gpointer) device);
+        return sessions;
+}
+
+static int
+sort_sessions_by_age (CkSession *a,
+                      CkSession *b)
+{
+        char *iso_a;
+        char *iso_b;
+        int   ret;
+
+        ck_session_get_creation_time (a, &iso_a, NULL);
+        ck_session_get_creation_time (b, &iso_b, NULL);
+
+        ret = strcmp (iso_a, iso_b);
+
+        g_free (iso_a);
+        g_free (iso_b);
+
+        return ret;
+}
+
+static CkSession *
+find_oldest_session (GList *sessions)
+{
+
+        sessions = g_list_sort (sessions,
+                                (GCompareFunc) sort_sessions_by_age);
+        return sessions->data;
+}
+
+static CkSession *
+find_session_for_display_device (CkSeat     *seat,
+                                 const char *device)
+{
+        GList     *sessions;
         CkSession *session;
 
-        session = g_hash_table_find (seat->priv->sessions,
-                                     (GHRFunc) match_session_display_device,
-                                     (gpointer)device);
+        sessions = find_sessions_for_display_device (seat, device);
+        if (sessions == NULL) {
+                sessions = find_sessions_for_x11_display_device (seat, device);
+        }
+
+        if (sessions == NULL) {
+                return NULL;
+        }
+
+        if (g_list_length (sessions) == 1) {
+                session = sessions->data;
+        } else {
+                session = find_oldest_session (sessions);
+        }
+
+        g_list_free (sessions);
+
         return session;
 }
 
@@ -408,15 +543,10 @@ ck_seat_remove_session (CkSeat         *seat,
 
         g_signal_emit (seat, signals [SESSION_REMOVED], 0, ssid);
 
+        g_hash_table_remove (seat->priv->sessions, ssid);
+
         /* try to change the active session */
         maybe_update_active_session (seat);
-
-        /* if the active session is still the one to be removed, unset it */
-        if (seat->priv->active_session == session) {
-                change_active_session (seat, NULL);
-        }
-
-        g_hash_table_remove (seat->priv->sessions, ssid);
 
         return TRUE;
 }
