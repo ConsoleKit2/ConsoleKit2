@@ -319,19 +319,46 @@ find_seat_for_session (CkManager *manager,
                        CkSession *session)
 {
         CkSeat  *seat;
-        gboolean is_static;
+        gboolean is_static_x11;
+        gboolean is_static_text;
+        char    *display_device;
+        char    *x11_display_device;
+        char    *x11_display;
+        char    *remote_host_name;
         gboolean is_local;
 
+        is_static_text = FALSE;
+        is_static_x11 = FALSE;
+
         seat = NULL;
-        is_local = TRUE;
+        display_device = NULL;
+        x11_display_device = NULL;
+        x11_display = NULL;
+        remote_host_name = NULL;
+        is_local = FALSE;
 
         /* FIXME: use matching to group entries? */
 
-        /* for now group all local entries */
+        ck_session_get_display_device (session, &display_device, NULL);
+        ck_session_get_x11_display_device (session, &x11_display_device, NULL);
+        ck_session_get_x11_display (session, &x11_display, NULL);
+        ck_session_get_remote_host_name (session, &remote_host_name, NULL);
         ck_session_is_local (session, &is_local, NULL);
-        is_static = is_local;
 
-        if (is_static) {
+        if (x11_display != NULL
+            && x11_display_device != NULL
+            && remote_host_name == NULL
+            && is_local == TRUE) {
+                is_static_x11 = TRUE;
+        } else if (x11_display == NULL
+                   && x11_display_device == NULL
+                   && display_device != NULL
+                   && remote_host_name == NULL
+                   && is_local == TRUE) {
+                is_static_text = TRUE;
+        }
+
+        if (is_static_x11 || is_static_text) {
                 char *sid;
                 sid = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, 1);
                 seat = g_hash_table_lookup (manager->priv->seats, sid);

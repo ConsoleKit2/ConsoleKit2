@@ -19,6 +19,7 @@ params.append (("user", dbus.Variant (730)))
 params.append (("session-type", dbus.Variant ("gnome-session")))
 params.append (("x11-display", dbus.Variant (":0.0")))
 params.append (("display-device", dbus.Variant ("/dev/tty8")))
+params.append (("is-local", dbus.Variant (True)))
 
 cookie = manager.OpenSessionWithParameters (params)
 os.environ['XDG_SESSION_COOKIE'] = cookie
