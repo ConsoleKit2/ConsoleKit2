@@ -140,15 +140,21 @@ pam_sm_open_session (pam_handle_t *pamh,
                      const char  **argv)
 {
         int         ret;
+        int         res;
         const char *user;
-        const char *tty;
+        const char *display_device;
         const char *x11_display;
+        const char *remote_host_name;
         const char *s;
         uid_t       uid;
         char        buf[256];
         DBusError   error;
 
         ret = PAM_IGNORE;
+
+        display_device = "";
+        x11_display = "";
+        remote_host_name = "";
 
         _parse_pam_args (pamh, flags, argc, argv);
 
@@ -169,33 +175,55 @@ pam_sm_open_session (pam_handle_t *pamh,
                 goto out;
         }
 
-        if (pam_get_item (pamh, PAM_TTY, (const void **) &tty) != PAM_SUCCESS || tty == NULL) {
-                pam_syslog (pamh, LOG_ERR, "cannot determine tty");
+        if (pam_get_item (pamh, PAM_TTY, (const void **) &display_device) != PAM_SUCCESS || display_device == NULL) {
+                pam_syslog (pamh, LOG_ERR, "cannot determine display-device");
                 goto out;
         }
 
-        if ((s = pam_getenv (pamh, "CKCON_TTY")) != NULL) {
-                tty = s;
+        if (pam_get_item (pamh, PAM_RHOST, (const void **) &s) == PAM_SUCCESS && s != NULL) {
+                remote_host_name = s;
                 if (opt_debug) {
-                        pam_syslog (pamh, LOG_INFO, "using '%s' as tty (from CKCON_TTY)", tty);
+                        pam_syslog (pamh, LOG_INFO, "using '%s' as remote-host-name", remote_host_name);
                 }
         }
 
-        x11_display = NULL;
+        if ((s = pam_getenv (pamh, "CKCON_TTY")) != NULL) {
+                display_device = s;
+                if (opt_debug) {
+                        pam_syslog (pamh, LOG_INFO, "using '%s' as display-device (from CKCON_TTY)", display_device);
+                }
+        }
+
         if ((s = pam_getenv (pamh, "CKCON_X11_DISPLAY")) != NULL) {
                 x11_display = s;
-                if (opt_debug)
+                if (opt_debug) {
                         pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display (from CKCON_X11_DISPLAY)", x11_display);
+                }
         }
 
         uid = _util_name_to_uid (user, NULL);
         if (uid == (uid_t) -1) {
                 pam_syslog (pamh, LOG_ERR, "cannot determine uid for user '%s'", user);
                 goto out;
+        } else {
+                if (opt_debug) {
+                        pam_syslog (pamh, LOG_INFO, "using %d as uid", uid);
+                }
         }
 
         dbus_error_init (&error);
-        if (! ck_connector_open_session_for_user (ckc, uid, tty, x11_display, &error)) {
+        res = ck_connector_open_session_with_parameters (ckc,
+                                                         &error,
+                                                         "user", &uid,
+                                                         "display-device", &display_device,
+                                                         "x11-display", &x11_display,
+                                                         "remote-host-name", &remote_host_name,
+                                                         NULL);
+        if (opt_debug) {
+                pam_syslog (pamh, LOG_INFO, "open session result: %d", res);
+        }
+
+        if (! res) {
                 /* this might not be a bug for servers that don't have
                  * the message bus or ConsoleKit daemon running - so
                  * only log a message in debugging mode.
@@ -218,15 +246,16 @@ pam_sm_open_session (pam_handle_t *pamh,
         buf[sizeof (buf) - 1] = '\0';
         snprintf (buf, sizeof (buf) - 1, "XDG_SESSION_COOKIE=%s", ck_connector_get_cookie (ckc));
         if (pam_putenv (pamh, buf) != PAM_SUCCESS) {
-                pam_syslog (pamh, LOG_ERR, "unable to set XDG_SESSION_COOKIE vairable");
+                pam_syslog (pamh, LOG_ERR, "unable to set XDG_SESSION_COOKIE in environment");
                 /* tear down session the hard way */
                 ck_connector_unref (ckc);
                 ckc = NULL;
+
                 goto out;
         }
 
         if (opt_debug) {
-                pam_syslog (pamh, LOG_DEBUG, "registered uid=%d on tty='%s' with ConsoleKit", uid, tty);
+                pam_syslog (pamh, LOG_DEBUG, "registered uid=%d on tty='%s' with ConsoleKit", uid, display_device);
         }
 
         /* note that we're leaking our CkConnector instance ckc - this
