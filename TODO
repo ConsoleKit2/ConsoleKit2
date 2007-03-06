@@ -1,0 +1,24 @@
+TODO
+====
+
+ - Update GDM for recent changes
+    http://bugzilla.gnome.org/show_bug.cgi?id=415181
+
+ - Patch all login managers to open CK sessions
+
+ - Get shell/text sessions to report idle time
+
+ - Report idle time per Seat
+
+ - Establish what session-types should be
+
+ - Improve the ck-list-sessions interface
+
+ - Write documentation (particularly for attributes)
+
+ - Make openssh report sessions correctly
+   Not as easy as just using the PAM module.
+
+ - Figure out how to register activation handlers
+
+ - Use a configuration file for defining how to add sessions to seats
