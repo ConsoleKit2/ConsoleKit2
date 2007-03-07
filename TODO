@@ -1,12 +1,10 @@
 TODO
 ====
 
- - Update GDM for recent changes
-    http://bugzilla.gnome.org/show_bug.cgi?id=415181
-
  - Patch all login managers to open CK sessions
 
- - Get shell/text sessions to report idle time
+ - Make a registration interface for per-session
+   idle time delegates
 
  - Report idle time per Seat
 
