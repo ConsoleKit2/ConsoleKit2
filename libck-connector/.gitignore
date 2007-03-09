@@ -5,4 +5,5 @@
 .libs
 Makefile
 Makefile.in
-ck-list-sessions
+test-connector
+ck-connector.pc

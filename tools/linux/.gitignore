@@ -5,4 +5,5 @@
 .libs
 Makefile
 Makefile.in
-ck-list-sessions
+ck-collect-session-info
+ck-get-x11-server-pid

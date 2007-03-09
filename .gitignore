@@ -43,3 +43,4 @@ intltool-update
 xmldocs.make
 omf.make
 gtk-doc.make
+*~
