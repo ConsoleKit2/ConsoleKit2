@@ -58,11 +58,16 @@
       <arg name="idle_hint" type="b" direction="in"/>
     </method>
 
-    <signal name="ActiveChanged"/>
+    <signal name="ActiveChanged">
+      <arg name="is_active" type="b"/>
+    </signal>
+    <signal name="IdleHintChanged">
+      <arg name="hint" type="b"/>
+    </signal>
     <signal name="Lock"/>
     <signal name="Unlock"/>
 
-    <signal name="IdleHintChanged"/>
+    <property name="is-local" access="read" type="b"/>
 
   </interface>
 </node>

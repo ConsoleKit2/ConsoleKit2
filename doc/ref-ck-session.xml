@@ -1,0 +1,262 @@
+<refentry id="Session">
+  <refmeta>
+    <refentrytitle role="top_of_page">org.freedesktop.ConsoleKit.Session</refentrytitle>
+  </refmeta>
+  <refnamediv>
+    <refname>org.freedesktop.ConsoleKit.Session</refname>
+    <refpurpose>Session interface</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv role="synopsis">
+    <title role="synopsis.title">Methods</title>
+    <synopsis><link linkend="Session-GetId">GetId</link>               (out 'o' ssid)
+<link linkend="Session-GetSeatId">GetSeatId</link>           (out 'o' sid)
+<link linkend="Session-GetSessionType">GetSessionType</link>      (out 's' type)
+<link linkend="Session-GetUser">GetUser</link>             (out 'i' uid)
+<link linkend="Session-GetX11Display">GetX11Display</link>       (out 's' display)
+<link linkend="Session-GetX11DisplayDevice">GetX11DisplayDevice</link> (out 's' x11_display_device)
+<link linkend="Session-GetDisplayDevice">GetDisplayDevice</link>    (out 's' display_device)
+<link linkend="Session-GetRemoteHostName">GetRemoteHostName</link>   (out 's' remote_host_name)
+<link linkend="Session-IsActive">IsActive</link>            (out 'b' active)
+<link linkend="Session-IsLocal">IsLocal</link>             (out 'b' local)
+<link linkend="Session-GetCreationTime">GetCreationTime</link>     (out 's' iso8601_datetime)
+<link linkend="Session-Activate">Activate</link>            ()
+<link linkend="Session-Lock">Lock</link>                ()
+<link linkend="Session-Unlock">Unlock</link>              ()
+<link linkend="Session-GetIdleHint">GetIdleHint</link>         (out 'b' idle_hint)
+<link linkend="Session-GetIdleSinceHint">GetIdleSinceHint</link>    (out 's' iso8601_datetime)
+<link linkend="Session-SetIdleHint">SetIdleHint</link>         (in  'b' idle_hint)
+</synopsis>
+  </refsynopsisdiv>
+  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis><link linkend="Session-signal-ActiveChanged">ActiveChanged</link>   ('b' is_active)
+<link linkend="Session-signal-IdleHintChanged">IdleHintChanged</link> ('b' hint)
+<link linkend="Session-signal-Lock">Lock</link>            ()
+<link linkend="Session-signal-Unlock">Unlock</link>          ()
+</synopsis>
+  </refsect1>
+  <refsect1 role="impl_interfaces">
+    <title role="impl_interfaces.title">Implemented Interfaces</title>
+    <para>org.freedesktop.ConsoleKit.Session implements
+    org.freedesktop.DBus.Introspectable,
+    org.freedesktop.DBus.Properties
+    </para>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis><link linkend="Session-property-is-local">'is-local'</link> read      'b'
+</synopsis>
+  </refsect1>
+  <refsect1 role="desc">
+    <title role="desc.title">Description</title>
+    <para/>
+  </refsect1>
+  <refsect1 role="details">
+    <title role="details.title">Details</title>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetId"/>GetId ()</title>
+      <indexterm>
+        <primary>GetId</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetId (out 'o' ssid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetSeatId"/>GetSeatId ()</title>
+      <indexterm>
+        <primary>GetSeatId</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSeatId (out 'o' sid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetSessionType"/>GetSessionType ()</title>
+      <indexterm>
+        <primary>GetSessionType</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSessionType (out 's' type)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetUser"/>GetUser ()</title>
+      <indexterm>
+        <primary>GetUser</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetUser (out 'i' uid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetX11Display"/>GetX11Display ()</title>
+      <indexterm>
+        <primary>GetX11Display</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetX11Display (out 's' display)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetX11DisplayDevice"/>GetX11DisplayDevice ()</title>
+      <indexterm>
+        <primary>GetX11DisplayDevice</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetX11DisplayDevice (out 's' x11_display_device)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetDisplayDevice"/>GetDisplayDevice ()</title>
+      <indexterm>
+        <primary>GetDisplayDevice</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetDisplayDevice (out 's' display_device)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetRemoteHostName"/>GetRemoteHostName ()</title>
+      <indexterm>
+        <primary>GetRemoteHostName</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetRemoteHostName (out 's' remote_host_name)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-IsActive"/>IsActive ()</title>
+      <indexterm>
+        <primary>IsActive</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>IsActive (out 'b' active)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-IsLocal"/>IsLocal ()</title>
+      <indexterm>
+        <primary>IsLocal</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>IsLocal (out 'b' local)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetCreationTime"/>GetCreationTime ()</title>
+      <indexterm>
+        <primary>GetCreationTime</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetCreationTime (out 's' iso8601_datetime)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-Activate"/>Activate ()</title>
+      <indexterm>
+        <primary>Activate</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>Activate ()</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-Lock"/>Lock ()</title>
+      <indexterm>
+        <primary>Lock</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>Lock ()</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-Unlock"/>Unlock ()</title>
+      <indexterm>
+        <primary>Unlock</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>Unlock ()</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetIdleHint"/>GetIdleHint ()</title>
+      <indexterm>
+        <primary>GetIdleHint</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetIdleHint (out 'b' idle_hint)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-GetIdleSinceHint"/>GetIdleSinceHint ()</title>
+      <indexterm>
+        <primary>GetIdleSinceHint</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetIdleSinceHint (out 's' iso8601_datetime)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-SetIdleHint"/>SetIdleHint ()</title>
+      <indexterm>
+        <primary>SetIdleHint</primary>
+        <secondary>Session</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>SetIdleHint (in  'b' idle_hint)</programlisting>
+    </refsect2>
+  </refsect1>
+  <refsect1 role="signals">
+    <title role="signals.title">Signal Details</title>
+    <refsect2>
+      <title><anchor role="function" id="Session-signal-ActiveChanged"/>ActiveChanged ()</title>
+      <indexterm>
+        <primary>ActiveChanged</primary>
+        <secondary>Session</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>ActiveChanged ('b' is_active)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-signal-IdleHintChanged"/>IdleHintChanged ()</title>
+      <indexterm>
+        <primary>IdleHintChanged</primary>
+        <secondary>Session</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>IdleHintChanged ('b' hint)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-signal-Lock"/>Lock ()</title>
+      <indexterm>
+        <primary>Lock</primary>
+        <secondary>Session</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>Lock ()</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Session-signal-Unlock"/>Unlock ()</title>
+      <indexterm>
+        <primary>Unlock</primary>
+        <secondary>Session</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>Unlock ()</programlisting>
+    </refsect2>
+  </refsect1>
+  <refsect1 role="property_details">
+    <title role="property_details.title">Property Details</title>
+    <refsect2>
+      <title><anchor role="function" id="Session-property-is-local"/>'is-local'</title>
+      <indexterm>
+        <primary>is-local</primary>
+        <secondary>Session</secondary>
+        <tertiary>property</tertiary>
+      </indexterm>
+      <programlisting>'is-local'  read      'b'
+</programlisting>
+    </refsect2>
+  </refsect1>
+</refentry>

@@ -1,0 +1,181 @@
+<refentry id="Manager">
+  <refmeta>
+    <refentrytitle role="top_of_page">org.freedesktop.ConsoleKit.Manager</refentrytitle>
+  </refmeta>
+  <refnamediv>
+    <refname>org.freedesktop.ConsoleKit.Manager</refname>
+    <refpurpose>Manager interface</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv role="synopsis">
+    <title role="synopsis.title">Methods</title>
+    <synopsis><link linkend="Manager-OpenSession">OpenSession</link>               (out 's'     cookie)
+<link linkend="Manager-OpenSessionWithParameters">OpenSessionWithParameters</link> (in  'a(sv)' parameters,
+                           out 's'     cookie)
+<link linkend="Manager-CloseSession">CloseSession</link>              (in  's'     cookie,
+                           out 'b'     result)
+<link linkend="Manager-GetSeats">GetSeats</link>                  (out 'ao'    seats)
+<link linkend="Manager-GetCurrentSession">GetCurrentSession</link>         (out 'o'     ssid)
+<link linkend="Manager-GetSessionForCookie">GetSessionForCookie</link>       (in  's'     cookie,
+                           out 'o'     ssid)
+<link linkend="Manager-GetSessionForUnixProcess">GetSessionForUnixProcess</link>  (in  'u'     pid,
+                           out 'o'     ssid)
+<link linkend="Manager-GetSessionsForUser">GetSessionsForUser</link>        (in  'u'     uid,
+                           out 'ao'    sessions)
+<link linkend="Manager-GetSystemIdleHint">GetSystemIdleHint</link>         (out 'b'     idle_hint)
+<link linkend="Manager-GetSystemIdleSinceHint">GetSystemIdleSinceHint</link>    (out 's'     iso8601_datetime)
+</synopsis>
+  </refsynopsisdiv>
+  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis><link linkend="Manager-signal-SeatAdded">SeatAdded</link>             ('o' sid)
+<link linkend="Manager-signal-SeatRemoved">SeatRemoved</link>           ('o' sid)
+<link linkend="Manager-signal-SystemIdleHintChanged">SystemIdleHintChanged</link> ('b' hint)
+</synopsis>
+  </refsect1>
+  <refsect1 role="impl_interfaces">
+    <title role="impl_interfaces.title">Implemented Interfaces</title>
+    <para>org.freedesktop.ConsoleKit.Manager implements
+    org.freedesktop.DBus.Introspectable,
+    org.freedesktop.DBus.Properties
+    </para>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis/>
+  </refsect1>
+  <refsect1 role="desc">
+    <title role="desc.title">Description</title>
+    <para/>
+  </refsect1>
+  <refsect1 role="details">
+    <title role="details.title">Details</title>
+    <refsect2>
+      <title><anchor role="function" id="Manager-OpenSession"/>OpenSession ()</title>
+      <indexterm>
+        <primary>OpenSession</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>OpenSession (out 's' cookie)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-OpenSessionWithParameters"/>OpenSessionWithParameters ()</title>
+      <indexterm>
+        <primary>OpenSessionWithParameters</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>OpenSessionWithParameters (in  'a(sv)' parameters,
+                           out 's'     cookie)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-CloseSession"/>CloseSession ()</title>
+      <indexterm>
+        <primary>CloseSession</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>CloseSession (in  's' cookie,
+              out 'b' result)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetSeats"/>GetSeats ()</title>
+      <indexterm>
+        <primary>GetSeats</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSeats (out 'ao' seats)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetCurrentSession"/>GetCurrentSession ()</title>
+      <indexterm>
+        <primary>GetCurrentSession</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetCurrentSession (out 'o' ssid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetSessionForCookie"/>GetSessionForCookie ()</title>
+      <indexterm>
+        <primary>GetSessionForCookie</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSessionForCookie (in  's' cookie,
+                     out 'o' ssid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetSessionForUnixProcess"/>GetSessionForUnixProcess ()</title>
+      <indexterm>
+        <primary>GetSessionForUnixProcess</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSessionForUnixProcess (in  'u' pid,
+                          out 'o' ssid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetSessionsForUser"/>GetSessionsForUser ()</title>
+      <indexterm>
+        <primary>GetSessionsForUser</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSessionsForUser (in  'u'  uid,
+                    out 'ao' sessions)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetSystemIdleHint"/>GetSystemIdleHint ()</title>
+      <indexterm>
+        <primary>GetSystemIdleHint</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSystemIdleHint (out 'b' idle_hint)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-GetSystemIdleSinceHint"/>GetSystemIdleSinceHint ()</title>
+      <indexterm>
+        <primary>GetSystemIdleSinceHint</primary>
+        <secondary>Manager</secondary>
+        <tertiary>method</tertiary>
+      </indexterm>
+      <programlisting>GetSystemIdleSinceHint (out 's' iso8601_datetime)</programlisting>
+    </refsect2>
+  </refsect1>
+  <refsect1 role="signals">
+    <title role="signals.title">Signal Details</title>
+    <refsect2>
+      <title><anchor role="function" id="Manager-signal-SeatAdded"/>SeatAdded ()</title>
+      <indexterm>
+        <primary>SeatAdded</primary>
+        <secondary>Manager</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>SeatAdded ('o' sid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-signal-SeatRemoved"/>SeatRemoved ()</title>
+      <indexterm>
+        <primary>SeatRemoved</primary>
+        <secondary>Manager</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>SeatRemoved ('o' sid)</programlisting>
+    </refsect2>
+    <refsect2>
+      <title><anchor role="function" id="Manager-signal-SystemIdleHintChanged"/>SystemIdleHintChanged ()</title>
+      <indexterm>
+        <primary>SystemIdleHintChanged</primary>
+        <secondary>Manager</secondary>
+        <tertiary>signal</tertiary>
+      </indexterm>
+      <programlisting>SystemIdleHintChanged ('b' hint)</programlisting>
+    </refsect2>
+  </refsect1>
+  <refsect1 role="property_details">
+    <title role="property_details.title">Property Details</title>
+  </refsect1>
+</refentry>

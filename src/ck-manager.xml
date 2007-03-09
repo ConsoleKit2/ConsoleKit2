@@ -49,8 +49,14 @@
       <arg name="iso8601_datetime" type="s" direction="out"/>
     </method>
 
-    <signal name="SeatAdded"/>
-    <signal name="SeatRemoved"/>
-    <signal name="SystemIdleHintChanged"/>
+    <signal name="SeatAdded">
+      <arg name="sid" type="o"/>
+    </signal>
+    <signal name="SeatRemoved">
+      <arg name="sid" type="o"/>
+    </signal>
+    <signal name="SystemIdleHintChanged">
+      <arg name="hint" type="b"/>
+    </signal>
   </interface>
 </node>

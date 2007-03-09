@@ -3,9 +3,9 @@ NULL =
 SPEC_XML_FILES =			\
 	ConsoleKit.xml			\
 	ck-introduction.xml		\
-	ck-dbus-manager.xml		\
-	ck-dbus-seat.xml		\
-	ck-dbus-session.xml		\
+	ref-ck-manager.xml		\
+	ref-ck-seat.xml			\
+	ref-ck-session.xml		\
 	$(NULL)
 
 if DOCBOOK_DOCS_ENABLED

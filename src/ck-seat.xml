@@ -20,8 +20,14 @@
       <arg name="ssid" direction="in" type="o"/>
     </method>
 
-    <signal name="ActiveSessionChanged"/>
-    <signal name="SessionAdded"/>
-    <signal name="SessionRemoved"/>
+    <signal name="ActiveSessionChanged">
+      <arg name="sid" type="o"/>
+    </signal>
+    <signal name="SessionAdded">
+      <arg name="sid" type="o"/>
+    </signal>
+    <signal name="SessionRemoved">
+      <arg name="sid" type="o"/>
+    </signal>
   </interface>
 </node>
