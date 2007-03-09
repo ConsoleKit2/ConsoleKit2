@@ -209,6 +209,12 @@ generate_session_cookie (CkManager *manager)
         guint32  num;
         char    *cookie;
         GTimeVal tv;
+        char    *uuid;
+
+        uuid = dbus_get_local_machine_id ();
+        if (uuid == NULL) {
+                uuid = g_strdup (g_get_host_name ());
+        }
 
         /* We want this to be globally unique
            or at least such that it won't cycle when there
@@ -221,11 +227,13 @@ generate_session_cookie (CkManager *manager)
         g_get_current_time (&tv);
 
         g_free (cookie);
-        cookie = g_strdup_printf ("%ld.%ld-%u", tv.tv_sec, tv.tv_usec, num);
+        cookie = g_strdup_printf ("%s-%ld.%ld-%u", uuid, tv.tv_sec, tv.tv_usec, num);
 
         if (g_hash_table_lookup (manager->priv->leaders, cookie)) {
                 goto again;
         }
+
+        g_free (uuid);
 
         return cookie;
 }
