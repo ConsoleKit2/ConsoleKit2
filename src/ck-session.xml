@@ -67,15 +67,15 @@
     <signal name="Lock"/>
     <signal name="Unlock"/>
 
-    <property name="user" access="read" type="i"/>
-    <property name="session-type" access="read" type="s"/>
-    <property name="remote-host-name" access="read" type="s"/>
-    <property name="display-device" access="read" type="s"/>
-    <property name="x11-display" access="read" type="s"/>
-    <property name="x11-display-device" access="read" type="s"/>
-    <property name="active" access="read" type="b"/>
-    <property name="is-local" access="read" type="b"/>
-    <property name="idle-hint" access="read" type="b"/>
+    <property name="user" type="u" access="readwrite"/>
+    <property name="session-type" type="s" access="readwrite"/>
+    <property name="remote-host-name" type="s" access="readwrite"/>
+    <property name="display-device" type="s" access="readwrite"/>
+    <property name="x11-display" type="s" access="readwrite"/>
+    <property name="x11-display-device" type="s" access="readwrite"/>
+    <property name="active" type="b" access="readwrite"/>
+    <property name="is-local" type="b" access="readwrite"/>
+    <property name="idle-hint" type="b" access="readwrite"/>
 
   </interface>
 </node>
