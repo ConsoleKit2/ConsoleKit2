@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+
+<chapter id="introduction">
+  <title>Introduction</title>
+
+  <sect1>
+    <title>About</title>
+    <para>
+      ConsoleKit is a framework for keeping track of the various
+      users, sessions, and seats present on a system.  It
+      provides a mechanism for software to react to changes of any of
+      these items or of any of the metadata associated with them.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Defining the Problem</title>
+    <para>
+    </para>
+  </sect1>
+
+</chapter>

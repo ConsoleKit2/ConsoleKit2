@@ -8,6 +8,7 @@ SUBDIRS =			\
 	src			\
 	tools			\
 	data			\
+	doc			\
 	libck-connector         \
 	pam-ck-connector        \
 	$(NULL)

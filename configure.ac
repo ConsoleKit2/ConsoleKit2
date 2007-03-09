@@ -164,6 +164,73 @@ AM_CONDITIONAL(CK_COMPILE_SOLARIS, test x$CK_BACKEND = xsolaris, [Compiling for 
 AC_SUBST(CK_BACKEND)
 
 dnl ---------------------------------------------------------------------------
+dnl Check for PAM
+dnl ---------------------------------------------------------------------------
+
+have_pam=no
+AC_CHECK_LIB(pam, pam_getenv, have_pam=yes)
+AM_CONDITIONAL(HAVE_PAM, test x$have_pam = xyes)
+if test "x$have_pam" = "xyes"; then
+    PAM_LIBS="${PAM_LIBS} -lpam"
+fi
+AC_SUBST(HAVE_PAM)
+AC_SUBST(PAM_LIBS)
+
+
+# Check if we should build the PAM module
+msg_pam_module=no
+AC_ARG_ENABLE(pam-module, [AC_HELP_STRING([--enable-pam-module], [build PAM module])],, enable_pam_module=no)
+if test "x$enable_pam_module" = "xyes"; then
+  if test "x$have_pam" = "xno"; then
+    AC_MSG_ERROR([--enable-pam-module requires PAM but PAM was not found])
+  fi
+  AC_DEFINE(ENABLE_PAM_MODULE, [], [Set if we build PAM module])
+  msg_pam_module=yes
+fi
+AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
+
+dnl ---------------------------------------------------------------------------
+dnl - Where should we put documentation ?
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(doc-dir,
+              [AC_HELP_STRING([--with-doc-dir=<dir>],
+              [directory to install documentation])])
+if ! test -z "$with_doc_dir"; then
+   DOCDIR="$with_doc_dir/ConsoleKit-$VERSION"
+else
+   DOCDIR="$datadir/doc/ConsoleKit-$VERSION"
+fi
+AC_SUBST(DOCDIR)
+
+dnl ---------------------------------------------------------------------------
+dnl - DocBook Documentation
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_ENABLE(docbook-docs, [  --enable-docbook-docs   build documentation (requires xmlto)],enable_docbook_docs=$enableval,enable_docbook_docs=no)
+AC_PATH_PROG(XMLTO, xmlto, no)
+AC_MSG_CHECKING([whether to build DocBook documentation])
+if test x$XMLTO = xno ; then
+    have_docbook=no
+else
+    have_docbook=yes
+fi
+if test x$enable_docbook_docs = xauto ; then
+    if test x$have_docbook = xno ; then
+        enable_docbook_docs=no
+    else
+        enable_docbook_docs=yes
+    fi
+fi
+if test x$enable_docbook_docs = xyes; then
+    if test x$have_docbook = xno; then
+	AC_MSG_ERROR([Building DocBook docs explicitly required, but DocBook not found])
+    fi
+fi
+AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
+AC_MSG_RESULT(yes)
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
@@ -208,32 +275,6 @@ else
 fi
 
 #
-# Check for pam
-#
-have_pam=no
-AC_CHECK_LIB(pam, pam_getenv, have_pam=yes)
-AM_CONDITIONAL(HAVE_PAM, test x$have_pam = xyes)
-if test "x$have_pam" = "xyes"; then
-    PAM_LIBS="${PAM_LIBS} -lpam"
-fi
-AC_SUBST(HAVE_PAM)
-AC_SUBST(PAM_LIBS)
-
-#
-# Check if we should build the PAM module
-#
-msg_pam_module=no
-AC_ARG_ENABLE(pam-module, [AC_HELP_STRING([--enable-pam-module], [build PAM module])],, enable_pam_module=no)
-if test "x$enable_pam_module" = "xyes"; then
-  if test "x$have_pam" = "xno"; then
-    AC_MSG_ERROR([--enable-pam-module requires PAM but PAM was not found])
-  fi
-  AC_DEFINE(ENABLE_PAM_MODULE, [], [Set if we build PAM module])
-  msg_pam_module=yes
-fi
-AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
-
-#
 # Enable Debug
 #
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug=[no/yes]], [turn on debugging])],, enable_debug=yes)
@@ -266,6 +307,8 @@ tools/Makefile
 tools/linux/Makefile
 data/Makefile
 data/ConsoleKit
+doc/Makefile
+doc/ConsoleKit.xml
 libck-connector/Makefile
 libck-connector/ck-connector.pc
 pam-ck-connector/Makefile
@@ -289,9 +332,8 @@ echo "
         Base libs:                ${CONSOLE_KIT_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
 
-        Backend:                  ${CK_BACKEND}
-
         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
-        build PAM module:         ${msg_pam_module}
-
+        Build backend:            ${CK_BACKEND}
+        Build PAM module:         ${msg_pam_module}
+        Build docs:               ${enable_docbook_docs}
 "

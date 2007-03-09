@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+<!ENTITY dbus-Manager SYSTEM "./ck-dbus-manager.xml">
+<!ENTITY dbus-Seat SYSTEM "./ck-dbus-seat.xml">
+<!ENTITY dbus-Session SYSTEM "./ck-dbus-session.xml">
+]>
+
+<book id="index">
+  <bookinfo>
+    <title>ConsoleKit @VERSION@ Documentation</title>
+    <releaseinfo>Version @VERSION@</releaseinfo>
+    <date>8 March, 2007</date>
+    <authorgroup>
+      <author>
+        <firstname>William Jon</firstname>
+        <surname>McCann</surname>
+        <affiliation>
+          <address>
+            <email>mccann@jhu.edu</email>
+          </address>
+        </affiliation>
+      </author>
+    </authorgroup>
+  </bookinfo>
+
+  <preface>
+    <title>Introduction</title>
+    <para>
+    </para>
+  </preface>
+
+  <part>
+    <title>Concepts</title>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="ck-introduction.xml" />
+  </part>
+
+  <part>
+    <title>Reference</title>
+
+    <reference id="dbus-reference">
+      <title>D-Bus API Reference</title>
+
+      <partintro>
+        <para>
+        ConsoleKit provides a D-Bus API for programs to obtain information about the
+        users, sessions, and seats that are present on a system.
+        </para>
+        <para>
+        Please see the other sections of this manual for an introduction to
+        these concepts.
+        </para>
+        <para>
+        This API is not yet stable and is likely to change in the future.
+        </para>
+      </partintro>
+
+      &dbus-Manager;
+      &dbus-Seat;
+      &dbus-Session;
+
+    </reference>
+  </part>
+
+  <index>
+    <title>Index</title>
+  </index>
+
+</book>

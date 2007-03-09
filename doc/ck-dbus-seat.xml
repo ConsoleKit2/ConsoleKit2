@@ -1,0 +1,39 @@
+<refentry id="ck-seat">
+  <refmeta>
+    <refentrytitle role="top_of_page">org.freedesktop.ConsoleKit.Seat</refentrytitle>
+    <manvolnum>2</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>org.freedesktop.ConsoleKit.Seat</refname>
+    <refpurpose>Seat interface</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv role="synopsis">
+    <title role="synopsis.title">Synopsis</title>
+    <synopsis>
+
+  Interface:
+          org.freedesktop.ConsoleKit.Seat
+
+  Methods:
+          GetId                (out OBJECT_PATH       sid)
+          ActivateSession      (in  OBJECT_PATH       ssid)
+          GetActiveSession     (out OBJECT_PATH       ssid)
+          GetSessions          (out OBJECT_PATH ARRAY sessions)
+
+  Signals:
+          SessionAdded         (STRING ssid)
+          SessionRemoved       (STRING ssid)
+          ActiveSessionChanged (STRING ssid)
+
+    </synopsis>
+  </refsynopsisdiv>
+
+  <refsect1 role="desc">
+    <title role="desc.title">Description</title>
+    <para>
+    </para>
+  </refsect1>
+
+</refentry>
