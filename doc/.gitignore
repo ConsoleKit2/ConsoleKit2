@@ -1,6 +1,5 @@
 Makefile
 Makefile.in
 ConsoleKit.xml
-ConsoleKit.html
 *.o
 *~
