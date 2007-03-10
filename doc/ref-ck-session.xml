@@ -44,15 +44,15 @@
   </refsect1>
   <refsect1 role="properties">
     <title role="properties.title">Properties</title>
-    <synopsis><link linkend="Session-property-user">'user'</link>               read      'i'
-<link linkend="Session-property-session-type">'session-type'</link>       read      's'
-<link linkend="Session-property-remote-host-name">'remote-host-name'</link>   read      's'
-<link linkend="Session-property-display-device">'display-device'</link>     read      's'
-<link linkend="Session-property-x11-display">'x11-display'</link>        read      's'
-<link linkend="Session-property-x11-display-device">'x11-display-device'</link> read      's'
-<link linkend="Session-property-active">'active'</link>             read      'b'
-<link linkend="Session-property-is-local">'is-local'</link>           read      'b'
-<link linkend="Session-property-idle-hint">'idle-hint'</link>          read      'b'
+    <synopsis><link linkend="Session-property-user">'user'</link>               readwrite 'u'
+<link linkend="Session-property-session-type">'session-type'</link>       readwrite 's'
+<link linkend="Session-property-remote-host-name">'remote-host-name'</link>   readwrite 's'
+<link linkend="Session-property-display-device">'display-device'</link>     readwrite 's'
+<link linkend="Session-property-x11-display">'x11-display'</link>        readwrite 's'
+<link linkend="Session-property-x11-display-device">'x11-display-device'</link> readwrite 's'
+<link linkend="Session-property-active">'active'</link>             readwrite 'b'
+<link linkend="Session-property-is-local">'is-local'</link>           readwrite 'b'
+<link linkend="Session-property-idle-hint">'idle-hint'</link>          readwrite 'b'
 </synopsis>
   </refsect1>
   <refsect1 role="desc">
@@ -263,7 +263,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'user'  read      'i'
+      <programlisting>'user'  readwrite 'u'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -273,7 +273,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'session-type'  read      's'
+      <programlisting>'session-type'  readwrite 's'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -283,7 +283,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'remote-host-name'  read      's'
+      <programlisting>'remote-host-name'  readwrite 's'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -293,7 +293,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'display-device'  read      's'
+      <programlisting>'display-device'  readwrite 's'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -303,7 +303,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'x11-display'  read      's'
+      <programlisting>'x11-display'  readwrite 's'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -313,7 +313,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'x11-display-device'  read      's'
+      <programlisting>'x11-display-device'  readwrite 's'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -323,7 +323,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'active'  read      'b'
+      <programlisting>'active'  readwrite 'b'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -333,7 +333,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'is-local'  read      'b'
+      <programlisting>'is-local'  readwrite 'b'
 </programlisting>
     </refsect2>
     <refsect2>
@@ -343,7 +343,7 @@
         <secondary>Session</secondary>
         <tertiary>property</tertiary>
       </indexterm>
-      <programlisting>'idle-hint'  read      'b'
+      <programlisting>'idle-hint'  readwrite 'b'
 </programlisting>
     </refsect2>
   </refsect1>
