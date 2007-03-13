@@ -190,6 +190,20 @@ fi
 AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
 
 dnl ---------------------------------------------------------------------------
+dnl - Install directory for connector
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(slibdir,
+              [AC_HELP_STRING([--with-slibdir=<dir>],
+              [directory to install system libraries])])
+if ! test -z "$with_slibdir"; then
+   SLIBDIR="$with_slibdir"
+else
+   SLIBDIR="$libdir"
+fi
+AC_SUBST(SLIBDIR)
+
+dnl ---------------------------------------------------------------------------
 dnl - Where should we put documentation ?
 dnl ---------------------------------------------------------------------------
 
@@ -323,6 +337,7 @@ echo "
         libdir:                   ${LIBDIR}
         bindir:                   ${BINDIR}
         sbindir:                  ${SBINDIR}
+        slibdir:                  ${SLIBDIR}
         sysconfdir:               ${SYSCONFDIR}
         localstatedir:            ${LOCALSTATEDIR}
         datadir:                  ${DATADIR}

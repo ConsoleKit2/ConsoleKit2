@@ -5,7 +5,8 @@ INCLUDES = 				\
 	$(LIBDBUS_CFLAGS)		\
 	$(NULL)
 
-lib_LTLIBRARIES = 			\
+slibdir = $(SLIBDIR)
+slib_LTLIBRARIES = 			\
 	libck-connector.la		\
 	$(NULL)
 
