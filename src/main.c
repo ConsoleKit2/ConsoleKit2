@@ -285,12 +285,14 @@ main (int    argc,
         loop = g_main_loop_new (NULL, FALSE);
 
         if (do_timed_exit) {
-                g_timeout_add (3000 * 60, (GSourceFunc) timed_exit_cb, loop);
+                g_timeout_add (1000 * 30, (GSourceFunc) timed_exit_cb, loop);
         }
 
         g_main_loop_run (loop);
 
         g_object_unref (manager);
+
+        g_main_loop_unref (loop);
 
         ret = 0;
 

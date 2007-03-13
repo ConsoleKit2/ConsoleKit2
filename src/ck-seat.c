@@ -527,10 +527,12 @@ ck_seat_remove_session (CkSeat         *seat,
                         CkSession      *session,
                         GError        **error)
 {
-        char *ssid;
+        char    *ssid;
+        gboolean ret;
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
+        ret = FALSE;
         ssid = NULL;
         ck_session_get_id (session, &ssid, NULL);
 
@@ -540,8 +542,7 @@ ck_seat_remove_session (CkSeat         *seat,
                              CK_SEAT_ERROR,
                              CK_SEAT_ERROR_GENERAL,
                              _("Session is not attached to this seat"));
-                g_free (ssid);
-                return FALSE;
+                goto out;
         }
 
         g_signal_handlers_disconnect_by_func (session, session_activate, seat);
@@ -555,7 +556,11 @@ ck_seat_remove_session (CkSeat         *seat,
         /* try to change the active session */
         maybe_update_active_session (seat);
 
-        return TRUE;
+        ret = TRUE;
+ out:
+        g_free (ssid);
+
+        return ret;
 }
 
 gboolean
@@ -581,6 +586,8 @@ ck_seat_add_session (CkSeat         *seat,
         g_signal_emit (seat, signals [SESSION_ADDED], 0, ssid);
 
         maybe_update_active_session (seat);
+
+        g_free (ssid);
 
         return TRUE;
 }

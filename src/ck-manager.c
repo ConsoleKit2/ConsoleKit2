@@ -375,6 +375,11 @@ find_seat_for_session (CkManager *manager,
                 g_free (sid);
         }
 
+        g_free (display_device);
+        g_free (x11_display_device);
+        g_free (x11_display);
+        g_free (remote_host_name);
+
         return seat;
 }
 
@@ -627,6 +632,8 @@ add_param_int (GPtrArray  *parameters,
                                 0, key,
                                 1, &val,
                                 G_MAXUINT);
+        g_value_unset (&val);
+
         g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
 }
 
@@ -654,6 +661,8 @@ add_param_boolean (GPtrArray  *parameters,
                                 0, key,
                                 1, &val,
                                 G_MAXUINT);
+        g_value_unset (&val);
+
         g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
 }
 
@@ -676,6 +685,8 @@ add_param_string (GPtrArray  *parameters,
                                 0, key,
                                 1, &val,
                                 G_MAXUINT);
+        g_value_unset (&val);
+
         g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
 }
 
@@ -716,6 +727,7 @@ parse_output (const char *output)
 
                 vals = g_strsplit (lines[i], " = ", 2);
                 if (vals == NULL || vals[0] == NULL) {
+                        g_strfreev (vals);
                         continue;
                 }
 
@@ -727,6 +739,8 @@ parse_output (const char *output)
                 }
                 g_strfreev (vals);
         }
+
+        g_strfreev (lines);
 
         return parameters;
 }
@@ -742,6 +756,22 @@ job_data_free (JobData *data)
 {
         leader_info_unref (data->leader_info);
         g_free (data);
+}
+
+static void
+parameters_free (GPtrArray *parameters)
+{
+        int i;
+
+        for (i = 0; i < parameters->len; i++) {
+                gpointer data;
+                data = g_ptr_array_index (parameters, i);
+                if (data != NULL) {
+                        g_boxed_free (CK_TYPE_PARAMETER_STRUCT, data);
+                }
+        }
+
+        g_ptr_array_free (parameters, TRUE);
 }
 
 static void
@@ -765,9 +795,7 @@ job_completed (CkJob     *job,
                                                          data->leader_info,
                                                          parameters,
                                                          data->context);
-
-                g_ptr_array_free (parameters, TRUE);
-
+                parameters_free (parameters);
         }
 
         /* remove job from queue */
@@ -885,6 +913,9 @@ create_session_for_sender (CkManager             *manager,
                                                          parameters,
                                                          context);
         }
+
+        g_free (cookie);
+        g_free (ssid);
 
         return TRUE;
 }
@@ -1192,6 +1223,7 @@ remove_session_for_cookie (CkManager  *manager,
 
         g_hash_table_remove (manager->priv->sessions, ssid);
 
+        g_free (sid);
         g_free (ssid);
 
         manager_update_system_idle_hint (manager);

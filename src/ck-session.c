@@ -1064,6 +1064,8 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->seat_id);
         g_free (session->priv->session_type);
         g_free (session->priv->x11_display);
+        g_free (session->priv->display_device);
+        g_free (session->priv->x11_display_device);
         g_free (session->priv->remote_host_name);
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
@@ -1119,13 +1121,13 @@ ck_session_new_with_parameters (const char      *ssid,
         params = g_new0 (GParameter, n_allocated_params);
 
         n_params = 0;
-        params[n_params].name = "id";
+        params[n_params].name = g_strdup ("id");
         params[n_params].value.g_type = 0;
         g_value_init (&params[n_params].value, G_TYPE_STRING);
         g_value_set_string (&params[n_params].value, ssid);
         n_params++;
 
-        params[n_params].name = "cookie";
+        params[n_params].name = g_strdup ("cookie");
         params[n_params].value.g_type = 0;
         g_value_init (&params[n_params].value, G_TYPE_STRING);
         g_value_set_string (&params[n_params].value, cookie);
@@ -1135,7 +1137,7 @@ ck_session_new_with_parameters (const char      *ssid,
                 for (i = 0; i < parameters->len; i++) {
                         gboolean    res;
                         GValue      val_struct = { 0, };
-                        const char *prop_name;
+                        char       *prop_name;
                         GValue     *prop_val;
                         GParamSpec *pspec;
 
@@ -1148,50 +1150,54 @@ ck_session_new_with_parameters (const char      *ssid,
                                                       G_MAXUINT);
                         if (! res) {
                                 ck_debug ("Unable to extract parameter input");
-                                continue;
+                                goto cont;
                         }
 
                         if (prop_name == NULL) {
                                 ck_debug ("Skipping NULL parameter");
-                                continue;
+                                goto cont;
                         }
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {
                                 ck_debug ("Skipping restricted parameter: %s", prop_name);
-                                continue;
+                                goto cont;
                         }
 
                         pspec = g_object_class_find_property (class, prop_name);
                         if (! pspec) {
                                 ck_debug ("Skipping unknown parameter: %s", prop_name);
-                                if (prop_val != NULL) {
-                                        g_value_unset (prop_val);
-                                }
-                                continue;
+                                goto cont;
                         }
 
                         if (!(pspec->flags & G_PARAM_WRITABLE)) {
                                 ck_debug ("property '%s' is not writable", pspec->name);
-                                continue;
+                                goto cont;
                         }
 
-                        params[n_params].name = prop_name;
+                        params[n_params].name = g_strdup (prop_name);
                         params[n_params].value.g_type = 0;
                         g_value_init (&params[n_params].value, G_PARAM_SPEC_VALUE_TYPE (pspec));
                         res = g_value_transform (prop_val, &params[n_params].value);
                         if (! res) {
                                 ck_debug ("unable to transform property value for '%s'", pspec->name);
-                                continue;
+                                goto cont;
                         }
 
                         n_params++;
+                cont:
+                        g_free (prop_name);
+                        if (prop_val != NULL) {
+                                g_value_unset (prop_val);
+                                g_free (prop_val);
+                        }
                 }
         }
 
         object = g_object_newv (object_type, n_params, params);
 
         while (n_params--) {
+                g_free ((char *)params[n_params].name);
                 g_value_unset (&params[n_params].value);
         }
         g_free (params);
