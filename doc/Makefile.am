@@ -3,6 +3,8 @@ NULL =
 SPEC_XML_FILES =			\
 	ConsoleKit.xml			\
 	xml/ck-introduction.xml		\
+	xml/ck-terms.xml		\
+	xml/ck-design.xml		\
 	xml/ref-ck-manager.xml		\
 	xml/ref-ck-seat.xml		\
 	xml/ref-ck-session.xml		\

@@ -4,6 +4,8 @@
 <!ENTITY dbus-Seat SYSTEM "xml/ref-ck-seat.xml">
 <!ENTITY dbus-Session SYSTEM "xml/ref-ck-session.xml">
 <!ENTITY Intro SYSTEM "xml/ck-introduction.xml">
+<!ENTITY Terms SYSTEM "xml/ck-terms.xml">
+<!ENTITY Design SYSTEM "xml/ck-design.xml">
 ]>
 
 <book id="index">
@@ -34,6 +36,8 @@
     <title>Concepts</title>
 
     &Intro;
+    &Terms;
+    &Design;
   </part>
 
   <part>

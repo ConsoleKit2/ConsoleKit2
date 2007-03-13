@@ -1,8 +1,8 @@
-<chapter id="introduction">
-  <title>Introduction</title>
+<chapter id="terms">
+  <title>Terminology</title>
 
   <sect1>
-    <title>About</title>
+    <title>Session</title>
     <para>
       ConsoleKit is a framework for keeping track of the various
       users, sessions, and seats present on a system.  It
@@ -12,13 +12,13 @@
   </sect1>
 
   <sect1>
-    <title>Defining the Problem</title>
+    <title>Session leader</title>
     <para>
     </para>
   </sect1>
 
   <sect1>
-    <title>Relevant art</title>
+    <title>Seat</title>
     <para>
     </para>
   </sect1>
