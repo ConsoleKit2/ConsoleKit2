@@ -8,7 +8,7 @@
 <!ELEMENT permission (#PCDATA|ref|para)*>
 <!ELEMENT since EMPTY>
 <!ATTLIST since version CDATA #REQUIRED>
-<!ELEMENT deprecated EMPTY>
+<!ELEMENT deprecated (#PCDATA|ref)>
 <!ATTLIST deprecated version CDATA #REQUIRED>
 <!ELEMENT seealso (ref+)>
 

@@ -19,6 +19,8 @@
 <link linkend="Manager.GetSessionForUnixProcess">GetSessionForUnixProcess</link>  (in  'u'     pid,
                            out 'o'     ssid)
 <link linkend="Manager.GetCurrentSession">GetCurrentSession</link>         (out 'o'     ssid)
+<link linkend="Manager.GetSessionsForUnixUser">GetSessionsForUnixUser</link>    (in  'u'     uid,
+                           out 'ao'    sessions)
 <link linkend="Manager.GetSessionsForUser">GetSessionsForUser</link>        (in  'u'     uid,
                            out 'ao'    sessions)
 <link linkend="Manager.GetSystemIdleHint">GetSystemIdleHint</link>         (out 'b'     idle_hint)
@@ -143,13 +145,22 @@ See also:
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetCurrentSession
           </programlisting></informalexample></para>
-        <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>The object identifier for the current session</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Manager.GetSessionsForUser"/>GetSessionsForUser ()</title><indexterm><primary>GetSessionsForUser</primary><secondary>Manager</secondary></indexterm><programlisting>GetSessionsForUser (in  'u'  uid,
+        <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>The object identifier for the current session</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Manager.GetSessionsForUnixUser"/>GetSessionsForUnixUser ()</title><indexterm><primary>GetSessionsForUnixUser</primary><secondary>Manager</secondary></indexterm><programlisting>GetSessionsForUnixUser (in  'u'  uid,
+                        out 'ao' sessions)</programlisting></refsect2>
+          <para>This gets a list of all the <link linkend="Session">Sessions</link>
+          that are currently open for the specified user.</para>
+          <para>Each Session ID is an D-Bus object path for the object that implements the
+          <link linkend="Session">Session</link> interface.</para>
+        <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>POSIX User identification</simpara></listitem></varlistentry><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Manager.GetSessionsForUser"/>GetSessionsForUser ()</title><indexterm><primary>GetSessionsForUser</primary><secondary>Manager</secondary></indexterm><programlisting>GetSessionsForUser (in  'u'  uid,
                     out 'ao' sessions)</programlisting></refsect2>
           <para>This gets a list of all the <link linkend="Session">Sessions</link>
           that are currently open for the specified user.</para>
           <para>Each Session ID is an D-Bus object path for the object that implements the
           <link linkend="Session">Session</link> interface.</para>
-        <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>User identification</simpara></listitem></varlistentry><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Manager.GetSystemIdleHint"/>GetSystemIdleHint ()</title><indexterm><primary>GetSystemIdleHint</primary><secondary>Manager</secondary></indexterm><programlisting>GetSystemIdleHint (out 'b' idle_hint)</programlisting></refsect2>
+        <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>User identification</simpara></listitem></varlistentry><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><para role="deprecated"><warning><para><literal>GetSessionsForUser</literal> is deprecated since version 0.1.3 and should not be used in newly-written code. Use
+
+  <link linkend="Manager.GetSessionsForUnixUser"><function>GetSessionsForUnixUser</function></link>
+instead.</para></warning></para><refsect2><title><anchor role="function" id="Manager.GetSystemIdleHint"/>GetSystemIdleHint ()</title><indexterm><primary>GetSystemIdleHint</primary><secondary>Manager</secondary></indexterm><programlisting>GetSystemIdleHint (out 'b' idle_hint)</programlisting></refsect2>
           <para>Returns TRUE if the <link linkend="Session:idle-hint"><literal>idle-hint</literal></link>
           property of every open session is TRUE or if there are no open sessions.
           </para>

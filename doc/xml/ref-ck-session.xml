@@ -12,6 +12,7 @@
 <link linkend="Session.GetSeatId">GetSeatId</link>           (out 'o' sid)
 <link linkend="Session.GetSessionType">GetSessionType</link>      (out 's' type)
 <link linkend="Session.GetUser">GetUser</link>             (out 'i' uid)
+<link linkend="Session.GetUnixUser">GetUnixUser</link>         (out 'i' uid)
 <link linkend="Session.GetX11Display">GetX11Display</link>       (out 's' display)
 <link linkend="Session.GetX11DisplayDevice">GetX11DisplayDevice</link> (out 's' x11_display_device)
 <link linkend="Session.GetDisplayDevice">GetDisplayDevice</link>    (out 's' display_device)
@@ -44,7 +45,8 @@
   </refsect1>
   <refsect1 role="properties">
     <title role="properties.title">Properties</title>
-    <synopsis><link linkend="Session:user">'user'</link>               readwrite 'u'
+    <synopsis><link linkend="Session:unix-user">'unix-user'</link>          readwrite 'u'
+<link linkend="Session:user">'user'</link>               readwrite 'u'
 <link linkend="Session:session-type">'session-type'</link>       readwrite 's'
 <link linkend="Session:remote-host-name">'remote-host-name'</link>   readwrite 's'
 <link linkend="Session:display-device">'display-device'</link>     readwrite 's'
@@ -81,9 +83,15 @@ See also:
         <variablelist role="params"><varlistentry><term><parameter>type</parameter>:</term><listitem><simpara>Session type</simpara></listitem></varlistentry></variablelist><para>
 See also:
 <link linkend="Session:session-type"><literal>session-type</literal></link></para><refsect2><title><anchor role="function" id="Session.GetUser"/>GetUser ()</title><indexterm><primary>GetUser</primary><secondary>Session</secondary></indexterm><programlisting>GetUser (out 'i' uid)</programlisting></refsect2><para>Returns the user that the session belongs to.</para>
-        <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>User ID</simpara></listitem></varlistentry></variablelist><para>
+        <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>User ID</simpara></listitem></varlistentry></variablelist><para role="deprecated"><warning><para><literal>GetUser</literal> is deprecated since version 0.1.3 and should not be used in newly-written code. Use
+
+  <link linkend="Session.GetUnixUser"><function>GetUnixUser</function></link>
+instead.</para></warning></para><para>
 See also:
-<link linkend="Session:user"><literal>user</literal></link></para><refsect2><title><anchor role="function" id="Session.GetX11Display"/>GetX11Display ()</title><indexterm><primary>GetX11Display</primary><secondary>Session</secondary></indexterm><programlisting>GetX11Display (out 's' display)</programlisting></refsect2><para>Returns the value of the X11 DISPLAY for this session
+<link linkend="Session:user"><literal>user</literal></link></para><refsect2><title><anchor role="function" id="Session.GetUnixUser"/>GetUnixUser ()</title><indexterm><primary>GetUnixUser</primary><secondary>Session</secondary></indexterm><programlisting>GetUnixUser (out 'i' uid)</programlisting></refsect2><para>Returns the POSIX user ID that the session belongs to.</para>
+        <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>POSIX User ID</simpara></listitem></varlistentry></variablelist><para>
+See also:
+<link linkend="Session:unix-user"><literal>unix-user</literal></link></para><refsect2><title><anchor role="function" id="Session.GetX11Display"/>GetX11Display ()</title><indexterm><primary>GetX11Display</primary><secondary>Session</secondary></indexterm><programlisting>GetX11Display (out 's' display)</programlisting></refsect2><para>Returns the value of the X11 DISPLAY for this session
         if one is present.</para>
         <variablelist role="params"><varlistentry><term><parameter>display</parameter>:</term><listitem><simpara>The value of the X11 display</simpara></listitem></varlistentry></variablelist><para>
 See also:
@@ -167,10 +175,16 @@ See also:
           <para>Emitted in response to a call to the <link linkend="Session.Unlock"><function>Unlock()</function></link> method.</para>
           <para>It is intended that the screensaver for the session should unlock the screen in response to this signal.</para>
         <variablelist role="params"/></refsect1>
-  <refsect1 role="property_details"><title role="property_details.title">Property Details</title><refsect2><title><anchor role="function" id="Session:user"/>The "user" property</title><indexterm><primary>user</primary><secondary>Session</secondary></indexterm><programlisting>'user'  readwrite 'u'
+  <refsect1 role="property_details"><title role="property_details.title">Property Details</title><refsect2><title><anchor role="function" id="Session:unix-user"/>The "unix-user" property</title><indexterm><primary>unix-user</primary><secondary>Session</secondary></indexterm><programlisting>'unix-user'  readwrite 'u'
 </programlisting></refsect2>
           <para>The user assigned to the session.</para>
-        <variablelist role="params"/><refsect2><title><anchor role="function" id="Session:session-type"/>The "session-type" property</title><indexterm><primary>session-type</primary><secondary>Session</secondary></indexterm><programlisting>'session-type'  readwrite 's'
+        <variablelist role="params"/><refsect2><title><anchor role="function" id="Session:user"/>The "user" property</title><indexterm><primary>user</primary><secondary>Session</secondary></indexterm><programlisting>'user'  readwrite 'u'
+</programlisting></refsect2>
+          <para>The user assigned to the session.</para>
+        <variablelist role="params"/><para role="deprecated"><warning><para><literal>user</literal> is deprecated since version 0.1.3 and should not be used in newly-written code. Use
+
+  <link linkend="Session:unix-user"><literal>unix-user</literal></link>
+instead.</para></warning></para><refsect2><title><anchor role="function" id="Session:session-type"/>The "session-type" property</title><indexterm><primary>session-type</primary><secondary>Session</secondary></indexterm><programlisting>'session-type'  readwrite 's'
 </programlisting></refsect2>
           <para>The type of the session.</para>
           <para>Warning: we haven't yet defined the allowed values for this property.

@@ -192,6 +192,27 @@
         </doc:description>
       </doc:doc>
     </method>
+    <method name="GetSessionsForUnixUser">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="uid" direction="in" type="u">
+         <doc:doc>
+          <doc:summary>POSIX User identification</doc:summary>
+        </doc:doc>
+     </arg>
+      <arg name="sessions" direction="out" type="ao">
+        <doc:doc>
+          <doc:summary>an array of Session IDs</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This gets a list of all the <doc:ref type="interface" to="Session">Sessions</doc:ref>
+          that are currently open for the specified user.</doc:para>
+          <doc:para>Each Session ID is an D-Bus object path for the object that implements the
+          <doc:ref type="interface" to="Session">Session</doc:ref> interface.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
     <method name="GetSessionsForUser">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="uid" direction="in" type="u">
@@ -211,6 +232,7 @@
           <doc:para>Each Session ID is an D-Bus object path for the object that implements the
           <doc:ref type="interface" to="Session">Session</doc:ref> interface.</doc:para>
         </doc:description>
+        <doc:deprecated version="0.1.3" instead="GetSessionsForUnixUser"/>
       </doc:doc>
     </method>
 

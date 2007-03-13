@@ -61,7 +61,20 @@
       <doc:doc>
         <doc:description><doc:para>Returns the user that the session belongs to.</doc:para>
         </doc:description>
+        <doc:deprecated version="0.1.3" instead="GetUnixUser"/>
         <doc:seealso><doc:ref type="property" to="Session:user">user</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+    <method name="GetUnixUser">
+      <arg name="uid" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>POSIX User ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description><doc:para>Returns the POSIX user ID that the session belongs to.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="property" to="Session:unix-user">unix-user</doc:ref></doc:seealso>
       </doc:doc>
     </method>
     <method name="GetX11Display">
@@ -291,11 +304,19 @@
       </doc:doc>
     </signal>
 
+    <property name="unix-user" type="u" access="readwrite">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The user assigned to the session.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
     <property name="user" type="u" access="readwrite">
       <doc:doc>
         <doc:description>
           <doc:para>The user assigned to the session.</doc:para>
         </doc:description>
+        <doc:deprecated version="0.1.3" instead="unix-user"/>
       </doc:doc>
     </property>
     <property name="session-type" type="s" access="readwrite">

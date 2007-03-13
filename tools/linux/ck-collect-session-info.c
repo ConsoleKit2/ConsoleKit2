@@ -318,7 +318,7 @@ fill_session_info (SessionInfo *si)
 static void
 print_session_info (SessionInfo *si)
 {
-        printf ("user = %u\n", si->uid);
+        printf ("unix-user = %u\n", si->uid);
         if (si->x11_display != NULL) {
                 printf ("x11-display = %s\n", si->x11_display);
         }

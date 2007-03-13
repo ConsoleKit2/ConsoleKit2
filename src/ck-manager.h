@@ -87,6 +87,10 @@ gboolean            ck_manager_get_session_for_cookie         (CkManager        
 gboolean            ck_manager_get_session_for_unix_process   (CkManager             *manager,
                                                                guint                  pid,
                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_get_sessions_for_unix_user     (CkManager             *manager,
+                                                               guint                  uid,
+                                                               DBusGMethodInvocation *context);
+/* deprecated */
 gboolean            ck_manager_get_sessions_for_user          (CkManager             *manager,
                                                                guint                  uid,
                                                                DBusGMethodInvocation *context);

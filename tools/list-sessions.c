@@ -192,7 +192,7 @@ list_session (DBusGConnection *connection,
         creation_time = NULL;
         idle_since_hint = NULL;
 
-        get_int (proxy, "GetUser", &uid);
+        get_int (proxy, "GetUnixUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
         get_string (proxy, "GetSessionType", &session_type);
         get_string (proxy, "GetX11Display", &x11_display);

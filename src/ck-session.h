@@ -89,7 +89,7 @@ gboolean            ck_session_set_cookie             (CkSession             *se
 gboolean            ck_session_set_seat_id            (CkSession             *session,
                                                        const char            *sid,
                                                        GError               **error);
-gboolean            ck_session_set_user               (CkSession             *session,
+gboolean            ck_session_set_unix_user          (CkSession             *session,
                                                        guint                  uid,
                                                        GError               **error);
 gboolean            ck_session_set_x11_display        (CkSession             *session,
@@ -123,7 +123,7 @@ gboolean            ck_session_is_active              (CkSession             *se
 gboolean            ck_session_is_local               (CkSession             *session,
                                                        gboolean              *local,
                                                        GError               **error);
-gboolean            ck_session_get_user               (CkSession             *session,
+gboolean            ck_session_get_unix_user          (CkSession             *session,
                                                        guint                 *uid,
                                                        GError               **error);
 gboolean            ck_session_get_x11_display        (CkSession             *session,
@@ -143,6 +143,10 @@ gboolean            ck_session_get_remote_host_name   (CkSession             *se
                                                        GError               **error);
 gboolean            ck_session_get_creation_time      (CkSession             *session,
                                                        char                 **iso8601_datetime,
+                                                       GError               **error);
+/*deprecated*/
+gboolean            ck_session_get_user               (CkSession             *session,
+                                                       guint                 *uid,
                                                        GError               **error);
 
 /* Non-authoritative properties */

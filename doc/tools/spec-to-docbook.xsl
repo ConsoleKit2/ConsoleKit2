@@ -108,6 +108,7 @@
   </variablelist>
 
   <xsl:apply-templates select="doc:doc/doc:since"/>
+  <xsl:apply-templates select="doc:doc/doc:deprecated"/>
   <xsl:apply-templates select="doc:doc/doc:permission"/>
   <xsl:apply-templates select="doc:doc/doc:seealso"/>
 </xsl:template>
@@ -145,6 +146,7 @@
   </variablelist>
 
   <xsl:apply-templates select="doc:doc/doc:since"/>
+  <xsl:apply-templates select="doc:doc/doc:deprecated"/>
   <xsl:apply-templates select="doc:doc/doc:permission"/>
   <xsl:apply-templates select="doc:doc/doc:seealso"/>
 </xsl:template>
@@ -199,6 +201,48 @@
 </para>
 </xsl:template>
 
+<xsl:template match="doc:deprecated">
+  <xsl:variable name="name" select="../../@name"/>
+  <xsl:variable name="parent">
+    <xsl:call-template name="interface-basename">
+      <xsl:with-param name="str" select="../../../@name"/>/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="type" select="name(../..)"/>
+
+  <para role="deprecated">
+  <warning><para><literal><xsl:value-of select="$name"/></literal> is deprecated since version <xsl:value-of select="@version"/> and should not be used in newly-written code. Use
+
+  <xsl:variable name="to">
+  <xsl:choose>
+    <xsl:when test="contains($type,'property')">
+      <xsl:value-of select="$parent"/>:<xsl:value-of select="@instead"/>
+    </xsl:when>
+    <xsl:when test="contains($type,'signal')">
+      <xsl:value-of select="$parent"/>::<xsl:value-of select="@instead"/>
+    </xsl:when>
+    <xsl:when test="contains($type,'method')">
+      <xsl:value-of select="$parent"/>.<xsl:value-of select="@instead"/>
+    </xsl:when>
+    <xsl:when test="contains($type,'interface')">
+      <xsl:value-of select="@instead"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="@instead"/>
+    </xsl:otherwise>
+  </xsl:choose>
+  </xsl:variable>
+
+  <xsl:call-template name="create-link">
+    <xsl:with-param name="type" select="$type"/>
+    <xsl:with-param name="to" select="$to"/>
+    <xsl:with-param name="val" select="@instead"/>
+  </xsl:call-template>
+instead.</para></warning>
+</para>
+</xsl:template>
+
 <xsl:template match="doc:permission">
 <para role="permission">
 <xsl:apply-templates />
@@ -213,21 +257,33 @@ See also:
 </para>
 </xsl:template>
 
-<xsl:template match="doc:ref">
+<xsl:template name="create-link">
+  <xsl:param name="type"/>
+  <xsl:param name="to"/>
+  <xsl:param name="val"/>
+
   <xsl:choose>
-    <xsl:when test="contains(@type,'property')">
-      <link><xsl:attribute name="linkend"><xsl:value-of select="@to"/></xsl:attribute><literal><xsl:apply-templates /></literal></link>
+    <xsl:when test="contains($type,'property')">
+      <link><xsl:attribute name="linkend"><xsl:value-of select="$to"/></xsl:attribute><literal><xsl:value-of select="$val"/></literal></link>
     </xsl:when>
-    <xsl:when test="contains(@type,'signal')">
-      <link><xsl:attribute name="linkend"><xsl:value-of select="@to"/></xsl:attribute><literal><xsl:apply-templates /></literal></link>
+    <xsl:when test="contains($type,'signal')">
+      <link><xsl:attribute name="linkend"><xsl:value-of select="$to"/></xsl:attribute><literal><xsl:value-of select="$val"/></literal></link>
     </xsl:when>
-    <xsl:when test="contains(@type,'method')">
-      <link><xsl:attribute name="linkend"><xsl:value-of select="@to"/></xsl:attribute><function><xsl:apply-templates /></function></link>
+    <xsl:when test="contains($type,'method')">
+      <link><xsl:attribute name="linkend"><xsl:value-of select="$to"/></xsl:attribute><function><xsl:value-of select="$val"/></function></link>
     </xsl:when>
-    <xsl:when test="contains(@type,'interface')">
-      <link><xsl:attribute name="linkend"><xsl:value-of select="@to"/></xsl:attribute><xsl:apply-templates /></link>
+    <xsl:when test="contains($type,'interface')">
+      <link><xsl:attribute name="linkend"><xsl:value-of select="$to"/></xsl:attribute><xsl:value-of select="$val"/></link>
     </xsl:when>
   </xsl:choose>
+</xsl:template>
+
+<xsl:template match="doc:ref">
+  <xsl:call-template name="create-link">
+    <xsl:with-param name="type" select="@type"/>
+    <xsl:with-param name="to" select="@to"/>
+    <xsl:with-param name="val" select="."/>
+  </xsl:call-template>
 </xsl:template>
 
 <xsl:template name="method-doc">
@@ -242,6 +298,7 @@ See also:
   </variablelist>
 
   <xsl:apply-templates select="doc:doc/doc:since"/>
+  <xsl:apply-templates select="doc:doc/doc:deprecated"/>
   <xsl:apply-templates select="doc:doc/doc:permission"/>
   <xsl:apply-templates select="doc:doc/doc:seealso"/>
 </xsl:template>

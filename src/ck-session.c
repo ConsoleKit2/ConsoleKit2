@@ -87,6 +87,7 @@ enum {
         PROP_ID,
         PROP_COOKIE,
         PROP_USER,
+        PROP_UNIX_USER,
         PROP_X11_DISPLAY,
         PROP_X11_DISPLAY_DEVICE,
         PROP_DISPLAY_DEVICE,
@@ -441,9 +442,9 @@ ck_session_get_seat_id (CkSession      *session,
 }
 
 gboolean
-ck_session_get_user (CkSession      *session,
-                     guint          *uid,
-                     GError        **error)
+ck_session_get_unix_user (CkSession      *session,
+                          guint          *uid,
+                          GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
@@ -452,6 +453,15 @@ ck_session_get_user (CkSession      *session,
         }
 
         return TRUE;
+}
+
+/* deprecated */
+gboolean
+ck_session_get_user (CkSession      *session,
+                     guint          *uid,
+                     GError        **error)
+{
+        return ck_session_get_unix_user (session, uid, error);
 }
 
 gboolean
@@ -606,9 +616,9 @@ ck_session_set_seat_id (CkSession      *session,
 }
 
 gboolean
-ck_session_set_user (CkSession      *session,
-                     guint           uid,
-                     GError        **error)
+ck_session_set_unix_user (CkSession      *session,
+                          guint           uid,
+                          GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
@@ -717,8 +727,11 @@ ck_session_set_property (GObject            *object,
         case PROP_DISPLAY_DEVICE:
                 ck_session_set_display_device (self, g_value_get_string (value), NULL);
                 break;
-        case PROP_USER:
-                ck_session_set_user (self, g_value_get_uint (value), NULL);
+        case PROP_UNIX_USER:
+                ck_session_set_unix_user (self, g_value_get_uint (value), NULL);
+                break;
+        case PROP_USER: /* deprecated */
+                ck_session_set_unix_user (self, g_value_get_uint (value), NULL);
                 break;
         case PROP_REMOTE_HOST_NAME:
                 ck_session_set_remote_host_name (self, g_value_get_string (value), NULL);
@@ -767,7 +780,10 @@ ck_session_get_property (GObject    *object,
         case PROP_DISPLAY_DEVICE:
                 g_value_set_string (value, self->priv->display_device);
                 break;
-        case PROP_USER:
+        case PROP_UNIX_USER:
+                g_value_set_uint (value, self->priv->uid);
+                break;
+        case PROP_USER: /* deprecated */
                 g_value_set_uint (value, self->priv->uid);
                 break;
         case PROP_REMOTE_HOST_NAME:
@@ -1014,6 +1030,16 @@ ck_session_class_init (CkSessionClass *klass)
                                                               NULL,
                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+        g_object_class_install_property (object_class,
+                                         PROP_UNIX_USER,
+                                         g_param_spec_uint ("unix-user",
+                                                            "POSIX User Id",
+                                                            "POSIX User Id",
+                                                            0,
+                                                            G_MAXINT,
+                                                            0,
+                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+        /* deprecated */
         g_object_class_install_property (object_class,
                                          PROP_USER,
                                          g_param_spec_uint ("user",

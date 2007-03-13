@@ -32,6 +32,11 @@
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="ssid" direction="out" type="o"/>
     </method>
+    <method name="GetSessionsForUnixUser">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="uid" direction="in" type="u"/>
+      <arg name="sessions" direction="out" type="ao"/>
+    </method>
     <method name="GetSessionsForUser">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="uid" direction="in" type="u"/>

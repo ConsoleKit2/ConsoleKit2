@@ -13,6 +13,9 @@
     <method name="GetUser">
       <arg name="uid" direction="out" type="i"/>
     </method>
+    <method name="GetUnixUser">
+      <arg name="uid" direction="out" type="i"/>
+    </method>
     <method name="GetX11Display">
       <arg name="display" direction="out" type="s"/>
     </method>
@@ -61,6 +64,7 @@
     </signal>
     <signal name="Lock"/>
     <signal name="Unlock"/>
+    <property name="unix-user" type="u" access="readwrite"/>
     <property name="user" type="u" access="readwrite"/>
     <property name="session-type" type="s" access="readwrite"/>
     <property name="remote-host-name" type="s" access="readwrite"/>

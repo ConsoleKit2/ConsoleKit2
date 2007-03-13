@@ -1473,14 +1473,14 @@ typedef struct {
 } GetSessionsData;
 
 static void
-get_sessions_for_user_iter (char            *id,
-                            CkSession       *session,
-                            GetSessionsData *data)
+get_sessions_for_unix_user_iter (char            *id,
+                                 CkSession       *session,
+                                 GetSessionsData *data)
 {
         guint    uid;
         gboolean res;
 
-        res = ck_session_get_user (session, &uid, NULL);
+        res = ck_session_get_unix_user (session, &uid, NULL);
 
         if (res && uid == data->uid) {
                 g_ptr_array_add (data->sessions, g_strdup (id));
@@ -1488,9 +1488,9 @@ get_sessions_for_user_iter (char            *id,
 }
 
 gboolean
-ck_manager_get_sessions_for_user (CkManager             *manager,
-                                  guint                  uid,
-                                  DBusGMethodInvocation *context)
+ck_manager_get_sessions_for_unix_user (CkManager             *manager,
+                                       guint                  uid,
+                                       DBusGMethodInvocation *context)
 {
         GetSessionsData *data;
 
@@ -1500,7 +1500,7 @@ ck_manager_get_sessions_for_user (CkManager             *manager,
         data->uid = uid;
         data->sessions = g_ptr_array_new ();
 
-        g_hash_table_foreach (manager->priv->sessions, (GHFunc)get_sessions_for_user_iter, data);
+        g_hash_table_foreach (manager->priv->sessions, (GHFunc)get_sessions_for_unix_user_iter, data);
 
         dbus_g_method_return (context, data->sessions);
 
@@ -1509,6 +1509,15 @@ ck_manager_get_sessions_for_user (CkManager             *manager,
         g_free (data);
 
         return TRUE;
+}
+
+/* This is deprecated */
+gboolean
+ck_manager_get_sessions_for_user (CkManager             *manager,
+                                  guint                  uid,
+                                  DBusGMethodInvocation *context)
+{
+        return ck_manager_get_sessions_for_unix_user (manager, uid, context);
 }
 
 static void
