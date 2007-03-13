@@ -136,7 +136,7 @@ See also:
           <para>This will cause a <link linkend="Session::Lock"><literal>Lock</literal></link>
           signal to be emitted for this session.
           </para>
-        <variablelist role="params"/><para>
+        <variablelist role="params"/><para role="permission">This method is restricted to privileged users by D-Bus policy.</para><para>
 See also:
 <link linkend="Session::Lock"><literal>Lock signal</literal></link></para><refsect2><title><anchor role="function" id="Session.Unlock"/>Unlock ()</title><indexterm><primary>Unlock</primary><secondary>Session</secondary></indexterm><programlisting>Unlock ()</programlisting></refsect2>
           <para>This will cause an <link linkend="Session::Unlock"><literal>Unlock</literal></link>
@@ -145,7 +145,7 @@ See also:
           <para>This can be used by login managers to unlock a session before it is
           re-activated during fast-user-switching.
           </para>
-        <variablelist role="params"/><para>
+        <variablelist role="params"/><para role="permission">This method is restricted to privileged users by D-Bus policy.</para><para>
 See also:
 <link linkend="Session::Unlock"><literal>Unlock signal</literal></link></para><refsect2><title><anchor role="function" id="Session.GetIdleHint"/>GetIdleHint ()</title><indexterm><primary>GetIdleHint</primary><secondary>Session</secondary></indexterm><programlisting>GetIdleHint (out 'b' idle_hint)</programlisting></refsect2>
           <para>Gets the value of the <link linkend="Session:idle-hint"><literal>idle-hint</literal></link>

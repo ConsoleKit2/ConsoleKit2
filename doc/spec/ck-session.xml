@@ -196,7 +196,7 @@
           signal to be emitted for this session.
           </doc:para>
         </doc:description>
-        <permission>This method is restricted to privileged users by D-Bus policy.</permission>
+        <doc:permission>This method is restricted to privileged users by D-Bus policy.</doc:permission>
         <doc:seealso><doc:ref type="signal" to="Session::Lock">Lock signal</doc:ref></doc:seealso>
       </doc:doc>
     </method>
@@ -211,7 +211,7 @@
           re-activated during fast-user-switching.
           </doc:para>
         </doc:description>
-        <permission>This method is restricted to privileged users by D-Bus policy.</permission>
+        <doc:permission>This method is restricted to privileged users by D-Bus policy.</doc:permission>
         <doc:seealso><doc:ref type="signal" to="Session::Unlock">Unlock signal</doc:ref></doc:seealso>
       </doc:doc>
     </method>
