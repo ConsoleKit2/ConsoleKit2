@@ -14,7 +14,7 @@ htmldocdir = $(DOCDIR)/spec
 htmldoc_DATA = ConsoleKit.html
 
 ConsoleKit.html : $(SPEC_XML_FILES)
-	$(XMLTO) html-nochunks -m config.xsl ConsoleKit.xml
+	$(XMLTO) xhtml-nochunks -m config.xsl ConsoleKit.xml
 
 endif # DOCBOOK_DOCS_ENABLED
 
