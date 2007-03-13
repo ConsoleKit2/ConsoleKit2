@@ -5,11 +5,10 @@ INCLUDES = 				\
 	$(LIBDBUS_CFLAGS)		\
 	$(NULL)
 
-slib_LTLIBRARIES = 			\
+lib_LTLIBRARIES = 			\
 	libck-connector.la		\
 	$(NULL)
 
-slibdir = /lib
 libck_connectorincludedir = $(includedir)/ConsoleKit/ck-connector
 
 libck_connectorinclude_HEADERS =	\

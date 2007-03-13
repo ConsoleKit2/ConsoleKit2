@@ -1,4 +1,4 @@
-libdir=/lib
+libdir=@libdir@
 includedir=@prefix@/include
 
 Name: ck-connector
