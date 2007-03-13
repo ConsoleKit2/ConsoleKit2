@@ -5,6 +5,11 @@ body
 h1.title
 {
 }
+.permission
+{
+  color: #ee0000;
+  text-decoration: underline;
+}
 .synopsis, .classsynopsis
 {
   background: #eeeeee;

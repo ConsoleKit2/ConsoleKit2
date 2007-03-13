@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+
+  <interface name="org.freedesktop.ConsoleKit.Seat">
+    <doc:doc>
+      <doc:description>
+        <doc:para>A seat is a collection of sessions and a set of hardware (usually at
+least a keyboard and mouse).  Only one session may be active on a
+seat at a time.</doc:para>
+      </doc:description>
+    </doc:doc>
+
+    <method name="GetId">
+      <arg name="sid" direction="out" type="o">
+        <doc:doc>
+          <doc:summary>Seat ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>Returns the ID for Seat.
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="GetSessions">
+      <arg name="sessions" direction="out" type="ao">
+        <doc:doc>
+          <doc:summary>an array of Session IDs</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This gets a list of all the <doc:ref type="interface" to="Session">Sessions</doc:ref>
+          that are currently attached to this seat.</doc:para>
+          <doc:para>Each Session ID is an D-Bus object path for the object that implements the
+          <doc:ref type="interface" to="Session">Session</doc:ref> interface.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="GetActiveSession">
+      <arg name="ssid" direction="out" type="o">
+        <doc:doc>
+          <doc:summary>Session ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Gets the Session ID that is currently active on this Seat.</doc:para>
+          <doc:para>Returns NULL if there is no active session.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="ActivateSession">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="ssid" direction="in" type="o">
+        <doc:doc>
+          <doc:summary>Session ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Attempt to activate the specified session.  In most
+          cases, if successful, this will cause the session to
+          become visible and take control of the hardware that is
+          associated with this seat.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="method" to="Session.Activate">Activate()</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
+    <signal name="ActiveSessionChanged">
+      <arg name="ssid" type="o">
+        <doc:doc>
+          <doc:summary>Session ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when the active session has changed.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+    <signal name="SessionAdded">
+      <arg name="ssid" type="o">
+        <doc:doc>
+          <doc:summary>Session ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when a session has been added to the seat.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+    <signal name="SessionRemoved">
+      <arg name="ssid" type="o">
+        <doc:doc>
+          <doc:summary>Session ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when a session has been removed from the seat.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+  </interface>
+</node>

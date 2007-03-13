@@ -2,10 +2,10 @@ NULL =
 
 SPEC_XML_FILES =			\
 	ConsoleKit.xml			\
-	ck-introduction.xml		\
-	ref-ck-manager.xml		\
-	ref-ck-seat.xml			\
-	ref-ck-session.xml		\
+	xml/ck-introduction.xml		\
+	xml/ref-ck-manager.xml		\
+	xml/ref-ck-seat.xml		\
+	xml/ref-ck-session.xml		\
 	$(NULL)
 
 if DOCBOOK_DOCS_ENABLED

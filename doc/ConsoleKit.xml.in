@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
-<!ENTITY dbus-Manager SYSTEM "./ref-ck-manager.xml">
-<!ENTITY dbus-Seat SYSTEM "./ref-ck-seat.xml">
-<!ENTITY dbus-Session SYSTEM "./ref-ck-session.xml">
+<!ENTITY dbus-Manager SYSTEM "xml/ref-ck-manager.xml">
+<!ENTITY dbus-Seat SYSTEM "xml/ref-ck-seat.xml">
+<!ENTITY dbus-Session SYSTEM "xml/ref-ck-session.xml">
+<!ENTITY Intro SYSTEM "xml/ck-introduction.xml">
 ]>
 
 <book id="index">
@@ -32,7 +33,7 @@
   <part>
     <title>Concepts</title>
 
-    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="ck-introduction.xml" />
+    &Intro;
   </part>
 
   <part>

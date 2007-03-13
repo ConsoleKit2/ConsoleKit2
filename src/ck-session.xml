@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
-
   <interface name="org.freedesktop.ConsoleKit.Session">
-
     <method name="GetId">
       <arg name="ssid" direction="out" type="o"/>
     </method>
@@ -19,7 +17,7 @@
       <arg name="display" direction="out" type="s"/>
     </method>
     <method name="GetX11DisplayDevice">
-       <arg name="x11_display_device" direction="out" type="s"/>
+      <arg name="x11_display_device" direction="out" type="s"/>
     </method>
     <method name="GetDisplayDevice">
       <arg name="display_device" direction="out" type="s"/>
@@ -36,7 +34,6 @@
     <method name="GetCreationTime">
       <arg name="iso8601_datetime" type="s" direction="out"/>
     </method>
-
     <method name="Activate">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
     </method>
@@ -46,7 +43,6 @@
     <method name="Unlock">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
     </method>
-
     <method name="GetIdleHint">
       <arg name="idle_hint" type="b" direction="out"/>
     </method>
@@ -57,7 +53,6 @@
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="idle_hint" type="b" direction="in"/>
     </method>
-
     <signal name="ActiveChanged">
       <arg name="is_active" type="b"/>
     </signal>
@@ -66,7 +61,6 @@
     </signal>
     <signal name="Lock"/>
     <signal name="Unlock"/>
-
     <property name="user" type="u" access="readwrite"/>
     <property name="session-type" type="s" access="readwrite"/>
     <property name="remote-host-name" type="s" access="readwrite"/>
@@ -76,6 +70,5 @@
     <property name="active" type="b" access="readwrite"/>
     <property name="is-local" type="b" access="readwrite"/>
     <property name="idle-hint" type="b" access="readwrite"/>
-
   </interface>
 </node>

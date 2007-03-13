@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/freedesktop/ConsoleKit/Manager">
-
   <interface name="org.freedesktop.ConsoleKit.Manager">
-
     <method name="OpenSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="out" type="s"/>
@@ -17,14 +15,8 @@
       <arg name="cookie" direction="in" type="s"/>
       <arg name="result" direction="out" type="b"/>
     </method>
-
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao"/>
-    </method>
-
-    <method name="GetCurrentSession">
-      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="ssid" direction="out" type="o"/>
     </method>
     <method name="GetSessionForCookie">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
@@ -36,19 +28,21 @@
       <arg name="pid" direction="in" type="u"/>
       <arg name="ssid" direction="out" type="o"/>
     </method>
+    <method name="GetCurrentSession">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="ssid" direction="out" type="o"/>
+    </method>
     <method name="GetSessionsForUser">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="uid" direction="in" type="u"/>
       <arg name="sessions" direction="out" type="ao"/>
     </method>
-
     <method name="GetSystemIdleHint">
       <arg name="idle_hint" type="b" direction="out"/>
     </method>
     <method name="GetSystemIdleSinceHint">
       <arg name="iso8601_datetime" type="s" direction="out"/>
     </method>
-
     <signal name="SeatAdded">
       <arg name="sid" type="o"/>
     </signal>

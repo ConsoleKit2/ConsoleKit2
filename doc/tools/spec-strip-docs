@@ -3,7 +3,7 @@
 DIST_BIN=`dirname "$0"`
 
 CMD=xsltproc
-XSL=${DIST_BIN}/docbook-dbus.xsl
+XSL=${DIST_BIN}/spec-strip-docs.xsl
 
 if test "x$1" = "x" -o  "x$1" = "x-h" -o "x$1" = "x--help"; then
     echo "usage: $0 [file] ..."
@@ -26,7 +26,7 @@ for FILE in $FILES; do
     d=`dirname ${FILE}`
     b=`basename ${FILE} .xml`
 
-    outfile="ref-${b}.xml"
+    outfile="${b}-no-docs.xml"
     echo "Creating: ${outfile}"
     ${CMD} ${XSL} ${FILE} | tail -n +2  > ${outfile}
 done
