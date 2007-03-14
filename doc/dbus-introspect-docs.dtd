@@ -10,6 +10,7 @@
 <!ATTLIST since version CDATA #REQUIRED>
 <!ELEMENT deprecated (#PCDATA|ref)>
 <!ATTLIST deprecated version CDATA #REQUIRED>
+<!ATTLIST deprecated instead CDATA #REQUIRED>
 <!ELEMENT seealso (ref+)>
 
 <!ELEMENT error (#PCDATA|para)*>
