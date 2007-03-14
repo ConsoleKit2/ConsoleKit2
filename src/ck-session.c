@@ -1038,7 +1038,7 @@ ck_session_class_init (CkSessionClass *klass)
                                                             0,
                                                             G_MAXINT,
                                                             0,
-                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+                                                            G_PARAM_READWRITE));
         /* deprecated */
         g_object_class_install_property (object_class,
                                          PROP_USER,
@@ -1048,7 +1048,7 @@ ck_session_class_init (CkSessionClass *klass)
                                                             0,
                                                             G_MAXINT,
                                                             0,
-                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+                                                            G_PARAM_READWRITE));
         g_object_class_install_property (object_class,
                                          PROP_ACTIVE,
                                          g_param_spec_boolean ("idle-hint",
