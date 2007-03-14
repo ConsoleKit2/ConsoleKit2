@@ -21,7 +21,6 @@ ConsoleKit.html : $(SPEC_XML_FILES)
 endif # DOCBOOK_DOCS_ENABLED
 
 EXTRA_DIST =				\
-	ConsoleKit.html			\
 	ConsoleKit.xml.in		\
 	config.xsl			\
 	docbook.css			\
