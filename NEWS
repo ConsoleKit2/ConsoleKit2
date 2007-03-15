@@ -1,4 +1,22 @@
 =============
+Version 0.2.0
+=============
+
+        * add PAM module and connector library (David)
+        * restrict the use of D-Bus property get/set by default
+        * add x11-display-device property
+        * add unix-user property and deprecate user property
+        * rename host-name property to remote-host-name
+        * make OpenSession asynchronously collect information for session
+        * add basic idle monitoring of text sessions
+        * add backend tools / framework
+        * add uuid to cookie
+        * rename list session tool
+        * add docbook documentation
+        * add spec framework
+        * fix some leaks
+
+=============
 Version 0.1.2
 =============
 
