@@ -12,7 +12,7 @@ TODO
 
  - Improve the ck-list-sessions interface
 
- - Write documentation (particularly for attributes)
+ - Complete the documentation
 
  - Make openssh report sessions correctly
    Not as easy as just using the PAM module.
