@@ -53,12 +53,85 @@
 
 #include <security/pam_modules.h>
 #include <security/_pam_macros.h>
+#ifdef HAVE_PAM_MODUTIL_H
 #include <security/pam_modutil.h>
+#endif
+#ifdef HAVE_PAM_EXT_H
 #include <security/pam_ext.h>
+#endif
 
 #include "ck-connector.h"
 
 static int opt_debug = FALSE;
+
+#ifndef HAVE_PAM_SYSLOG
+
+#ifndef LOG_AUTHPRIV
+#define LOG_AUTHPRIV LOG_AUTH
+#endif
+
+static void
+ck_pam_vsyslog (const pam_handle_t *pamh,
+                int                 priority,
+                const char         *fmt,
+                va_list             args)
+{
+        char        msgbuf1 [1024];
+        char        msgbuf2 [1024];
+        int         save_errno;
+        const char *service;
+        const char *mod_name;
+        const char *choice;
+        int         res;
+
+        save_errno = errno;
+        mod_name = "pam_ck_connector";
+        choice = "session";
+
+        if (pamh != NULL) {
+                res = pam_get_item (pamh, PAM_SERVICE, (void *) &service);
+                if (service == NULL || *service == '\0' || res != PAM_SUCCESS) {
+                        service = "<unknown>";
+                }
+        } else {
+                service = "<unknown>";
+        }
+
+        res = snprintf (msgbuf1,
+                        sizeof (msgbuf1),
+                        "%s(%s:%s):",
+                        mod_name,
+                        service,
+                        choice);
+	if (res < 0) {
+                return;
+	}
+
+        errno = save_errno;
+        res = vsnprintf (msgbuf2, sizeof (msgbuf2), fmt, args);
+        if (res < 0) {
+                return;
+        }
+
+        errno = save_errno;
+        syslog (LOG_AUTHPRIV|priority, "%s %s", msgbuf1, msgbuf2);
+}
+
+static void
+ck_pam_syslog (const pam_handle_t *pamh,
+               int                 priority,
+               const char         *fmt,
+               ...)
+{
+        va_list args;
+
+        va_start (args, fmt);
+        ck_pam_vsyslog (pamh, priority, fmt, args);
+        va_end (args);
+}
+#else
+#define ck_pam_syslog(pamh, priority, ...) pam_syslog(pamh, priority, __VA_ARGS__)
+#endif
 
 static void
 _parse_pam_args (const pam_handle_t *pamh,
@@ -173,23 +246,23 @@ pam_sm_open_session (pam_handle_t *pamh,
 
         /* Register with ConsoleKit as part of the session management */
         if (ckc != NULL) {
-                pam_syslog (pamh, LOG_ERR, "process already registered with ConsoleKit");
+                ck_pam_syslog (pamh, LOG_ERR, "process already registered with ConsoleKit");
                 goto out;
         }
 
         ckc = ck_connector_new ();
         if (ckc == NULL) {
-                pam_syslog (pamh, LOG_ERR, "oom creating ConsoleKit connector object");
+                ck_pam_syslog (pamh, LOG_ERR, "oom creating ConsoleKit connector object");
                 goto out;
         }
 
         if (pam_get_user (pamh, &user, NULL) != PAM_SUCCESS || user == NULL) {
-                pam_syslog (pamh, LOG_ERR, "cannot determine username");
+                ck_pam_syslog (pamh, LOG_ERR, "cannot determine username");
                 goto out;
         }
 
         if (pam_get_item (pamh, PAM_TTY, (const void **) &display_device) != PAM_SUCCESS || display_device == NULL) {
-                pam_syslog (pamh, LOG_ERR, "cannot determine display-device");
+                ck_pam_syslog (pamh, LOG_ERR, "cannot determine display-device");
                 goto out;
         }
 
@@ -205,7 +278,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         if (pam_get_item (pamh, PAM_RHOST, (const void **) &s) == PAM_SUCCESS && s != NULL) {
                 remote_host_name = s;
                 if (opt_debug) {
-                        pam_syslog (pamh, LOG_INFO, "using '%s' as remote-host-name", remote_host_name);
+                        ck_pam_syslog (pamh, LOG_INFO, "using '%s' as remote-host-name", remote_host_name);
                 }
                 is_local = FALSE;
         }
@@ -213,24 +286,24 @@ pam_sm_open_session (pam_handle_t *pamh,
         if ((s = pam_getenv (pamh, "CKCON_TTY")) != NULL) {
                 display_device = s;
                 if (opt_debug) {
-                        pam_syslog (pamh, LOG_INFO, "using '%s' as display-device (from CKCON_TTY)", display_device);
+                        ck_pam_syslog (pamh, LOG_INFO, "using '%s' as display-device (from CKCON_TTY)", display_device);
                 }
         }
 
         if ((s = pam_getenv (pamh, "CKCON_X11_DISPLAY")) != NULL) {
                 x11_display = s;
                 if (opt_debug) {
-                        pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display (from CKCON_X11_DISPLAY)", x11_display);
+                        ck_pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display (from CKCON_X11_DISPLAY)", x11_display);
                 }
         }
 
         uid = _util_name_to_uid (user, NULL);
         if (uid == (uid_t) -1) {
-                pam_syslog (pamh, LOG_ERR, "cannot determine uid for user '%s'", user);
+                ck_pam_syslog (pamh, LOG_ERR, "cannot determine uid for user '%s'", user);
                 goto out;
         } else {
                 if (opt_debug) {
-                        pam_syslog (pamh, LOG_INFO, "using %d as uid", uid);
+                        ck_pam_syslog (pamh, LOG_INFO, "using %d as uid", uid);
                 }
         }
 
@@ -244,7 +317,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                                                          "is-local", &is_local,
                                                          NULL);
         if (opt_debug) {
-                pam_syslog (pamh, LOG_INFO, "open session result: %d", res);
+                ck_pam_syslog (pamh, LOG_INFO, "open session result: %d", res);
         }
 
         if (! res) {
@@ -254,12 +327,12 @@ pam_sm_open_session (pam_handle_t *pamh,
                  */
                 if (dbus_error_is_set (&error)) {
                         if (opt_debug) {
-                                pam_syslog (pamh, LOG_DEBUG, "%s", error.message);
+                                ck_pam_syslog (pamh, LOG_DEBUG, "%s", error.message);
                         }
                         dbus_error_free (&error);
                 } else {
                         if (opt_debug) {
-                                pam_syslog (pamh, LOG_DEBUG, "insufficient privileges or D-Bus / ConsoleKit not available");
+                                ck_pam_syslog (pamh, LOG_DEBUG, "insufficient privileges or D-Bus / ConsoleKit not available");
                         }
                 }
 
@@ -270,7 +343,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         buf[sizeof (buf) - 1] = '\0';
         snprintf (buf, sizeof (buf) - 1, "XDG_SESSION_COOKIE=%s", ck_connector_get_cookie (ckc));
         if (pam_putenv (pamh, buf) != PAM_SUCCESS) {
-                pam_syslog (pamh, LOG_ERR, "unable to set XDG_SESSION_COOKIE in environment");
+                ck_pam_syslog (pamh, LOG_ERR, "unable to set XDG_SESSION_COOKIE in environment");
                 /* tear down session the hard way */
                 ck_connector_unref (ckc);
                 ckc = NULL;
@@ -279,7 +352,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         }
 
         if (opt_debug) {
-                pam_syslog (pamh, LOG_DEBUG, "registered uid=%d on tty='%s' with ConsoleKit", uid, display_device);
+                ck_pam_syslog (pamh, LOG_DEBUG, "registered uid=%d on tty='%s' with ConsoleKit", uid, display_device);
         }
 
         /* note that we're leaking our CkConnector instance ckc - this
