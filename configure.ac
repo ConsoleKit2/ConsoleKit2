@@ -176,9 +176,8 @@ fi
 AC_SUBST(HAVE_PAM)
 AC_SUBST(PAM_LIBS)
 
-AC_CHECK_HEADER(security/pam_modutil.h, [AC_DEFINE(HAVE_PAM_MODUTIL_H, [], "Have pam_modutil.h")])
-AC_CHECK_HEADER(security/pam_ext.h, [AC_DEFINE(HAVE_PAM_EXT_H, [], "Have pam_ext.h")])
-AC_CHECK_LIB(pam, pam_syslog, [AC_DEFINE(HAVE_PAM_SYSLOG, [], "Have pam_syslog")])
+AC_CHECK_HEADERS(security/pam_modutil.h security/pam_ext.h)
+AC_CHECK_LIB(pam, pam_syslog, [AC_DEFINE(HAVE_PAM_SYSLOG, [], [Define to 1 if you have the pam_syslog function])])
 
 # Check if we should build the PAM module
 msg_pam_module=no

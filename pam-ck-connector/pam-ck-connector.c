@@ -53,10 +53,10 @@
 
 #include <security/pam_modules.h>
 #include <security/_pam_macros.h>
-#ifdef HAVE_PAM_MODUTIL_H
+#ifdef HAVE_SECURITY_PAM_MODUTIL_H
 #include <security/pam_modutil.h>
 #endif
-#ifdef HAVE_PAM_EXT_H
+#ifdef HAVE_SECURITY_PAM_EXT_H
 #include <security/pam_ext.h>
 #endif
 
@@ -146,7 +146,7 @@ _parse_pam_args (const pam_handle_t *pamh,
                 if (strcmp (argv[i] , "debug") == 0) {
                         opt_debug = TRUE;
                 } else {
-                        pam_syslog (pamh, LOG_ERR, "unknown option: %s", argv[i]);
+                        ck_pam_syslog (pamh, LOG_ERR, "unknown option: %s", argv[i]);
                 }
         }
 }
