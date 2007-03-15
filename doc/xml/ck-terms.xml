@@ -4,22 +4,63 @@
   <sect1>
     <title>Session</title>
     <para>
-      ConsoleKit is a framework for keeping track of the various
-      users, sessions, and seats present on a system.  It
-      provides a mechanism for software to react to changes of any of
-      these items or of any of the metadata associated with them.
+A session is a collection of all processes that share knowledge of a
+secret.  In the typical (or ideal) case, these processes all originate
+from a single common ancestor.
+    </para>
+    <para>
+As an implementation detail, for now, this secret should be stored in
+the process environment by the session leader under the name
+XDG_SESSION_COOKIE.  When and if we are able to take advantage of a
+mechanism in the underlying system to store session registration
+information - we will.  However, such a mechanism is not known at the
+present time.
+    </para>
+    <para>
+Using an environment variable does have certain advantages.  For one,
+it is quite easy for a process to opt-out of a Session by simply
+unsetting the XDG_SESSION_COOKIE variable.
+    </para>
+    <para>
+Limitations of using an environment variable implementation include
+not being able to strictly limit visibility of the secret to a particular
+process ancestry.  So, it is not possible to enforce session boundaries
+other than on a per-user basis.  For example, we don't yet have a way
+to prevent a process from moving between sessions owned by the same
+user.
     </para>
   </sect1>
 
   <sect1>
     <title>Session leader</title>
     <para>
+The session leader is the process that requests that a new session be
+opened.  It does this by connecting to the D-Bus system bus and using
+either org.freedesktop.ConsoleKit.Manager.OpenSession() or
+org.freedesktop.ConsoleKit.Manager.OpenSessionWithParameters().  The session
+that it registers will be remain open until the connection to the system
+bus is lost or it calls org.freedesktop.ConsoleKit.Manager.CloseSession().
+    </para>
+    <para>
+The session leader is the only process for which CloseSession() will
+be allowed.
     </para>
   </sect1>
 
   <sect1>
     <title>Seat</title>
     <para>
+A seat is a collection of sessions and a set of hardware (usually at
+least a keyboard and mouse).  Only one session may be active on a
+seat at a time.
+    </para>
+    <para>
+At the present time, all Sessions that are considered "local" to
+a system will be added the the first Seat and every other Session
+will be added to its own Seat.
+    </para>
+    <para>
+True, hardware, multi-seat capabilities will be added in a later release.
     </para>
   </sect1>
 

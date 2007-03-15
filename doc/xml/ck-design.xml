@@ -1,5 +1,171 @@
 <chapter id="design">
   <title>Design</title>
 
+  <sect1>
+    <title>Session Lifecycle</title>
+    <para>
+The session leader process is responsible for asking
+ConsoleKit to open a new session.  In this respect, it is
+similar to the traditional POSIX user login accounting framework.
+In the typical case, the session leader is either an immediate descendant of
+a login manager or the login manager itself.  The leader makes a connection to the D-Bus system bus and asks ConsoleKit to open a session.  There are two methods available for opening a session: org.freedesktop.ConsoleKit.Manager.OpenSession() and org.freedesktop.ConsoleKit.Manager.OpenSessionWithParameters().
+    </para>
+    <para>
+If the operation succeeds, a secret cookie will be returned to the session leader.  The session leader should store this secret in the environment as XDG_SESSION_COOKIE so that it may be shared with its child processes.
+    </para>
+    <para>
+At this point the session will be registered with ConsoleKit and a particular
+set of information about the session will be stored along with it.
+    </para>
+    <para>
+ConsoleKit will decide, based on the information associated with the session, what Seat the session will be added to.
+    </para>
+    <para>
+It will also be determined, based on the same set of information, whether the Session will control the hardware associated with the Seat.  In other words, whether the Session will be active for the Seat it is attached to.  The exact mechanism for this determination depends on the type of Seat and the capabilities of the host system.
+    </para>
+    <para>
+The Session will remain open until the Session Leader disconnects from the D-Bus system bus or calls org.freedesktop.ConsoleKit.Manager.CloseSession().  The session will be removed from its Seat, and deregistered.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Expected Usage</title>
+    <para>Use of this service will usually follow one of the following patterns:</para>
+
+    <sect2>
+    <title>Text Login Manager</title>
+      <para>This pattern operates as the Session Leader for a new Session.  This pattern needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To open a new Session.
+        </listitem>
+        <listitem>
+        To set properties for the Session.
+        </listitem>
+        <listitem>
+        To maintain a connection to the D-Bus system bus.
+        </listitem>
+        <listitem>
+        To close the Session at logout.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+    <title>Graphical Login Manager</title>
+      <para>In addition to the requirements for the Text Graphical Login Manager, this pattern is typically use to show information about currently open sessions and therefore needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To determine which Seat it is running on.
+        </listitem>
+        <listitem>
+        A list of all sessions on the current Seat.
+        </listitem>
+        <listitem>
+        To know which session is active for the current Seat.
+        </listitem>
+        <listitem>
+        To know when the session active state changes.
+        </listitem>
+        <listitem>
+        To know when sessions are added or removed.
+        </listitem>
+        <listitem>
+        Access to the metadata for any open Session.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+    <title>System Daemon</title>
+      <para>This is generally a daemon process running outside of a user session as a special user.  This pattern needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To know if any user sessions are open.
+        </listitem>
+        <listitem>
+        To know if the system is currently being used.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+    <title>Hardware Abstraction Layer</title>
+      <para>This is a special case of System Daemon that provides catalogs and control mechanisms for hardware devices.  In addition to the requirements of System Daemon, this pattern needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To determine what hardware is associated with a Seat.
+        </listitem>
+        <listitem>
+        To determine what Session is active and inactive on a particular Seat.
+        </listitem>
+        <listitem>
+        To know when the session active state changes.
+        </listitem>
+        <listitem>
+        To determine what Session a process belongs to.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+    <title>Fast User Switching Agent</title>
+      <para>This is usually a kind of delegate for the Graphical Login Manager and provides a shortcut to the similar functionality.  It is usually in form of a tool available in the user session that allows one to quickly switch to another user session.  This pattern needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To determine which session it is running in.
+        </listitem>
+        <listitem>
+        A list of all sessions on the current Seat.
+        </listitem>
+        <listitem>
+        Which session is active for the current Seat.
+        </listitem>
+        <listitem>
+        To know when the session active state changes.
+        </listitem>
+        <listitem>
+        Access to the metadata for any open Session.
+        </listitem>
+        <listitem>
+        To know when sessions are added or removed.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+    <title>Session Daemon (aka Policy Agent)</title>
+      <para>This is typically a daemon running in a user session that acts on policy only when the session is active.  This pattern needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To determine which session it is running in.
+        </listitem>
+        <listitem>
+        To know when the session active state changes.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+    <sect2>
+    <title>Session Application</title>
+      <para>This is typically an application running in a user session that may alter its behavior when the session active state changes.  This pattern needs:
+      </para>
+      <orderedlist>
+        <listitem>
+        To determine which session it is running in.
+        </listitem>
+        <listitem>
+        To know when the session active state changes.
+        </listitem>
+      </orderedlist>
+    </sect2>
+
+  </sect1>
 
 </chapter>
