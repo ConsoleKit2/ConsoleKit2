@@ -38,7 +38,7 @@ The session leader is the process that requests that a new session be
 opened.  It does this by connecting to the D-Bus system bus and using
 either org.freedesktop.ConsoleKit.Manager.OpenSession() or
 org.freedesktop.ConsoleKit.Manager.OpenSessionWithParameters().  The session
-that it registers will be remain open until the connection to the system
+that it registers will remain open until the connection to the system
 bus is lost or it calls org.freedesktop.ConsoleKit.Manager.CloseSession().
     </para>
     <para>
