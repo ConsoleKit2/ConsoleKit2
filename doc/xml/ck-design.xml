@@ -54,7 +54,7 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
 
     <sect2>
     <title>Graphical Login Manager</title>
-      <para>In addition to the requirements for the Text Graphical Login Manager, this pattern is typically use to show information about currently open sessions and therefore needs:
+      <para>In addition to the requirements for the Text Graphical Login Manager, this pattern is typically used to show information about currently open sessions.  It needs:
       </para>
       <orderedlist>
         <listitem>
@@ -114,7 +114,7 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
 
     <sect2>
     <title>Fast User Switching Agent</title>
-      <para>This is usually a kind of delegate for the Graphical Login Manager and provides a shortcut to the similar functionality.  It is usually in form of a tool available in the user session that allows one to quickly switch to another user session.  This pattern needs:
+      <para>This is related to the Graphical Login Manager and provides a shortcut to similar functionality.  It is usually a tool available in the user session that allows one to quickly switch to another user session.  This pattern needs:
       </para>
       <orderedlist>
         <listitem>
