@@ -52,6 +52,18 @@ seat at a time.</doc:para>
       </doc:doc>
     </method>
 
+    <method name="CanActivateSessions">
+      <arg name="can_activate" direction="out" type="b">
+        <doc:doc>
+          <doc:summary>TRUE if seat supports session activation</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>Used to determine whether the seat supports session activation.
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="ActivateSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="ssid" direction="in" type="o">

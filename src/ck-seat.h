@@ -89,22 +89,22 @@ gboolean            ck_seat_set_active_session  (CkSeat                *seat,
                                                  GError               **error);
 
 /* exported methods */
-gboolean            ck_seat_get_id              (CkSeat                *seat,
-                                                 char                 **sid,
-                                                 GError               **error);
-gboolean            ck_seat_get_seat_type       (CkSeat                *seat,
-                                                 char                 **type,
-                                                 GError               **error);
-gboolean            ck_seat_get_sessions        (CkSeat                *seat,
-                                                 GPtrArray            **sessions,
-                                                 GError               **error);
-gboolean            ck_seat_get_active_session  (CkSeat                *seat,
-                                                 char                 **ssid,
-                                                 GError               **error);
+gboolean            ck_seat_get_id                (CkSeat                *seat,
+                                                   char                 **sid,
+                                                   GError               **error);
+gboolean            ck_seat_get_sessions          (CkSeat                *seat,
+                                                   GPtrArray            **sessions,
+                                                   GError               **error);
+gboolean            ck_seat_get_active_session    (CkSeat                *seat,
+                                                   char                 **ssid,
+                                                   GError               **error);
 
-gboolean            ck_seat_activate_session    (CkSeat                *seat,
-                                                 const char            *ssid,
-                                                 DBusGMethodInvocation *context);
+gboolean            ck_seat_can_activate_sessions (CkSeat                *seat,
+                                                   gboolean              *can_activate,
+                                                   GError               **error);
+gboolean            ck_seat_activate_session      (CkSeat                *seat,
+                                                   const char            *ssid,
+                                                   DBusGMethodInvocation *context);
 
 G_END_DECLS
 

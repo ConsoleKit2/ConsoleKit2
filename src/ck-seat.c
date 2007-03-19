@@ -593,6 +593,20 @@ ck_seat_add_session (CkSeat         *seat,
 }
 
 gboolean
+ck_seat_can_activate_sessions (CkSeat   *seat,
+                               gboolean *can_activate,
+                               GError  **error)
+{
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        if (can_activate != NULL) {
+                *can_activate = (seat->priv->kind == CK_SEAT_KIND_STATIC);
+        }
+
+        return TRUE;
+}
+
+gboolean
 ck_seat_get_kind (CkSeat        *seat,
                   CkSeatKind    *kind,
                   GError        **error)

@@ -8,10 +8,11 @@
   </refnamediv>
   <refsynopsisdiv role="synopsis">
     <title role="synopsis.title">Methods</title>
-    <synopsis><link linkend="Seat.GetId">GetId</link>            (out 'o'  sid)
-<link linkend="Seat.GetSessions">GetSessions</link>      (out 'ao' sessions)
-<link linkend="Seat.GetActiveSession">GetActiveSession</link> (out 'o'  ssid)
-<link linkend="Seat.ActivateSession">ActivateSession</link>  (in  'o'  ssid)
+    <synopsis><link linkend="Seat.GetId">GetId</link>               (out 'o'  sid)
+<link linkend="Seat.GetSessions">GetSessions</link>         (out 'ao' sessions)
+<link linkend="Seat.GetActiveSession">GetActiveSession</link>    (out 'o'  ssid)
+<link linkend="Seat.CanActivateSessions">CanActivateSessions</link> (out 'b'  can_activate)
+<link linkend="Seat.ActivateSession">ActivateSession</link>     (in  'o'  ssid)
 </synopsis>
   </refsynopsisdiv>
   <refsect1 role="signal_proto">
@@ -51,7 +52,8 @@ seat at a time.</para>
         <variablelist role="params"><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.GetActiveSession"/>GetActiveSession ()</title><indexterm><primary>GetActiveSession</primary><secondary>Seat</secondary></indexterm><programlisting>GetActiveSession (out 'o' ssid)</programlisting></refsect2>
           <para>Gets the Session ID that is currently active on this Seat.</para>
           <para>Returns NULL if there is no active session.</para>
-        <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>Session ID</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.ActivateSession"/>ActivateSession ()</title><indexterm><primary>ActivateSession</primary><secondary>Seat</secondary></indexterm><programlisting>ActivateSession (in  'o' ssid)</programlisting></refsect2>
+        <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>Session ID</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.CanActivateSessions"/>CanActivateSessions ()</title><indexterm><primary>CanActivateSessions</primary><secondary>Seat</secondary></indexterm><programlisting>CanActivateSessions (out 'b' can_activate)</programlisting></refsect2>Used to determine whether the seat supports session activation.
+        <variablelist role="params"><varlistentry><term><parameter>can_activate</parameter>:</term><listitem><simpara>TRUE if seat supports session activation</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.ActivateSession"/>ActivateSession ()</title><indexterm><primary>ActivateSession</primary><secondary>Seat</secondary></indexterm><programlisting>ActivateSession (in  'o' ssid)</programlisting></refsect2>
           <para>Attempt to activate the specified session.  In most
           cases, if successful, this will cause the session to
           become visible and take control of the hardware that is

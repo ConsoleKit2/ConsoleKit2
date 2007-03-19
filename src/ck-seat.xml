@@ -10,6 +10,9 @@
     <method name="GetActiveSession">
       <arg name="ssid" direction="out" type="o"/>
     </method>
+    <method name="CanActivateSessions">
+      <arg name="can_activate" direction="out" type="b"/>
+    </method>
     <method name="ActivateSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="ssid" direction="in" type="o"/>

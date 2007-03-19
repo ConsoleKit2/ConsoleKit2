@@ -45,6 +45,12 @@ seat.connect_to_signal ('SessionAdded', session_added_cb)
 seat.connect_to_signal ('SessionRemoved', session_removed_cb)
 seat.connect_to_signal ('ActiveSessionChanged', active_session_changed_cb)
 
+can_fus = seat.CanActivateSessions()
+if can_fus:
+    print "The current seat supports session switching"
+else:
+    print "The current seat does not support session switching"
+
 # Show a list of sessions on the current seat
 sessions = seat.GetSessions ()
 for ssid in sessions:
