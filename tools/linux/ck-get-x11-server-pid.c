@@ -29,15 +29,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include <gdk/gdk.h>
-#include <gdk/gdkx.h>
+#include <X11/Xlib.h>
+#include <glib.h>
 
 static void
 print_peer_pid (int fd)
 {
 #ifdef SO_PEERCRED
         struct ucred cr;
-        int cr_len = sizeof (cr);
+        socklen_t cr_len;
+
+        cr_len = sizeof (cr);
 
         if (getsockopt (fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) == 0 && cr_len == sizeof (cr)) {
                 /* paranoia check for peer running as root */
@@ -53,18 +55,41 @@ print_peer_pid (int fd)
 #endif
 }
 
+static Display *
+display_init (int *argc, char ***argv)
+{
+        const char *display_name;
+        Display    *xdisplay;
+
+        display_name = g_getenv ("DISPLAY");
+
+        if (display_name == NULL) {
+                g_warning ("DISPLAY is not set");
+                exit (1);
+        }
+
+        xdisplay = XOpenDisplay (display_name);
+        if (xdisplay == NULL) {
+                g_warning ("cannot open display: %s", display_name ? display_name : "");
+                exit (1);
+        }
+
+        return xdisplay;
+}
+
 int
 main (int    argc,
       char **argv)
 {
-        int fd;
-        int ret;
+        int      fd;
+        int      ret;
+        Display *xdisplay;
 
         ret = 1;
 
-        gdk_init (&argc, &argv);
+        xdisplay = display_init (&argc, &argv);
 
-        fd = ConnectionNumber (GDK_DISPLAY());
+        fd = ConnectionNumber (xdisplay);
 
         if (fd > 0) {
                 ret = 0;
