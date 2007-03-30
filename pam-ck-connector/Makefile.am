@@ -7,7 +7,7 @@ INCLUDES = 					\
 	-I$(top_builddir)/libck-connector	\
 	$(NULL)
 
-pamlibdir = /lib/security
+pamlibdir = $(SLIBDIR)/security
 
 pamlib_LTLIBRARIES = 				\
 	pam_ck_connector.la			\
