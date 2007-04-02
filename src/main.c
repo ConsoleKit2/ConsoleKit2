@@ -255,8 +255,7 @@ main (int    argc,
         ck_debug_init (debug, ! no_daemon);
         ck_debug ("initializing console-kit-daemon %s", VERSION);
 
-        /* Don't close stdout and stderr for now */
-        if (! no_daemon && daemon (0, 1)) {
+        if (! no_daemon && daemon (0, 0)) {
                 g_error ("Could not daemonize: %s", g_strerror (errno));
         }
 
