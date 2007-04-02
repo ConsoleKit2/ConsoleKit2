@@ -704,7 +704,7 @@ static struct {
         { "remote-host-name",   add_param_string },
         { "session-type",       add_param_string },
         { "is-local",           add_param_boolean },
-        { "user",               add_param_int },
+        { "unix-user",          add_param_int },
 };
 
 static GPtrArray *
