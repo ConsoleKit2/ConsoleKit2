@@ -9,10 +9,23 @@ initd_SCRIPTS= 		\
 	ConsoleKit	\
 	$(NULL)
 
+
+ConsoleKit: ConsoleKit.in Makefile
+	$(edit) $< >$@
+
+edit = sed \
+	-e 's|@sbindir[@]|$(sbindir)|g' \
+	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
+	-e 's|@localstatedir[@]|$(localstatedir)|g' \
+	-e 's|@CONSOLE_KIT_PID_FILE[@]|$(CONSOLE_KIT_PID_FILE)|g'
+
 EXTRA_DIST =						\
 	$(dbusconf_DATA)				\
+	$(SCRIPT_IN_FILES)				\
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
 	*~				\
 	Makefile.in
+
+CLEANFILES = ConsoleKit

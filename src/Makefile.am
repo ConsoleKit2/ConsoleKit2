@@ -17,6 +17,7 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
+	-DCONSOLE_KIT_PID_FILE=\""$(CONSOLE_KIT_PID_FILE)"\"	\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\
 	$(DBUS_CFLAGS)						\

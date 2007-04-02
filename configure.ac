@@ -1,14 +1,14 @@
 dnl -*- mode: m4 -*-
 
+AC_PREREQ(2.59)
 AC_INIT([ConsoleKit],
         [0.2.1],
-        [mccann@jhu.edu])
+        [mccann@jhu.edu],
+        [ConsoleKit])
 
-AC_CONFIG_SRCDIR(src/ck-manager.c)
+AC_CONFIG_SRCDIR([src/ck-manager.c])
 
-AM_INIT_AUTOMAKE(ConsoleKit, 0.2.1)
-
-AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE
 
 AM_MAINTAINER_MODE
 
@@ -105,11 +105,11 @@ dnl - Are we specifying a different dbus root ?
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_WITH(dbus-sys,
-              [AC_HELP_STRING([--with-dbus-sys=<dir>],
-              [where D-BUS system.d directory is])])
+	[AC_HELP_STRING([--with-dbus-sys=<dir>],
+	[where D-BUS system.d directory is])])
 AC_ARG_WITH(dbus-services,
-              [AC_HELP_STRING([--with-dbus-services=<dir>],
-              [where D-BUS services directory is])])
+	[AC_HELP_STRING([--with-dbus-services=<dir>],
+	[where D-BUS services directory is])])
 if ! test -z "$with_dbus_sys" ; then
         DBUS_SYS_DIR="$with_dbus_sys"
 else
@@ -118,31 +118,20 @@ fi
 AC_SUBST(DBUS_SYS_DIR)
 
 dnl ---------------------------------------------------------------------------
-dnl Expand vars
-dnl ---------------------------------------------------------------------------
-
-AS_AC_EXPAND(LOCALSTATEDIR, $localstatedir)
-AS_AC_EXPAND(SYSCONFDIR, $sysconfdir)
-AS_AC_EXPAND(DATADIR, $datadir)
-AS_AC_EXPAND(BINDIR, $bindir)
-AS_AC_EXPAND(SBINDIR, $sbindir)
-AS_AC_EXPAND(LIBDIR, $libdir)
-AS_AC_EXPAND(LIBEXECDIR, $libexecdir)
-
-dnl ---------------------------------------------------------------------------
 dnl - PID file
 dnl ---------------------------------------------------------------------------
 
-AC_ARG_WITH(pid-file,    [  --with-pid-file=<file>     pid file])
+AC_ARG_WITH(pid-file,    
+	[AC_HELP_STRING([--with-pid-file=<file>],
+	[pid file location])])
 
 if ! test -z "$with_pid_file"; then
    CONSOLE_KIT_PID_FILE=$with_pid_file
 else
-   CONSOLE_KIT_PID_FILE=${LOCALSTATEDIR}/run/ConsoleKit/pid
+   CONSOLE_KIT_PID_FILE=${localstatedir}/run/ConsoleKit/pid
 fi
 
 AC_SUBST(CONSOLE_KIT_PID_FILE)
-AC_DEFINE_UNQUOTED(CONSOLE_KIT_PID_FILE, "$CONSOLE_KIT_PID_FILE", [pid file])
 
 dnl ---------------------------------------------------------------------------
 dnl Figure out what tools backend to build
@@ -172,39 +161,42 @@ have_pam=no
 AC_CHECK_LIB(pam, pam_getenv, have_pam=yes)
 AM_CONDITIONAL(HAVE_PAM, test x$have_pam = xyes)
 if test "x$have_pam" = "xyes"; then
-    PAM_LIBS="${PAM_LIBS} -lpam"
+	PAM_LIBS="${PAM_LIBS} -lpam"
 fi
 AC_SUBST(HAVE_PAM)
 AC_SUBST(PAM_LIBS)
 
-AC_CHECK_HEADERS(security/pam_modutil.h security/pam_ext.h)
+AC_CHECK_HEADERS([security/pam_modutil.h security/pam_ext.h])
 AC_CHECK_LIB(pam, pam_syslog, [AC_DEFINE(HAVE_PAM_SYSLOG, [], [Define to 1 if you have the pam_syslog function])])
 
 # Check if we should build the PAM module
 msg_pam_module=no
-AC_ARG_ENABLE(pam-module, [AC_HELP_STRING([--enable-pam-module], [build PAM module])],, enable_pam_module=no)
+AC_ARG_ENABLE(pam-module, 
+	[AC_HELP_STRING([--enable-pam-module],
+	[build PAM module])],
+        , enable_pam_module=no)
 if test "x$enable_pam_module" = "xyes"; then
-  if test "x$have_pam" = "xno"; then
-    AC_MSG_ERROR([--enable-pam-module requires PAM but PAM was not found])
-  fi
-  AC_DEFINE(ENABLE_PAM_MODULE, [], [Set if we build PAM module])
-  msg_pam_module=yes
+	if test "x$have_pam" = "xno"; then
+    		AC_MSG_ERROR([--enable-pam-module requires PAM but PAM was not found])
+	fi
+	AC_DEFINE(ENABLE_PAM_MODULE, [], [Set if we build PAM module])
+	msg_pam_module=yes
 fi
 AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
 
 dnl ---------------------------------------------------------------------------
-dnl - Install directory for connector
+dnl - Install directory for PAM security module
 dnl ---------------------------------------------------------------------------
 
-AC_ARG_WITH(slibdir,
-              [AC_HELP_STRING([--with-slibdir=<dir>],
-              [directory to install system libraries])])
-if ! test -z "$with_slibdir"; then
-   SLIBDIR="$with_slibdir"
+AC_ARG_WITH(pam-module-dir,
+	[AC_HELP_STRING([--with-pam-module-dir=<dir>],
+	[directory to install PAM security module])])
+if ! test -z "$with_pam_module_dir"; then
+	PAM_MODULE_DIR="$with_pam_module_dir"
 else
-   SLIBDIR="$libdir"
+	PAM_MODULE_DIR="/lib/security"
 fi
-AC_SUBST(SLIBDIR)
+AC_SUBST(PAM_MODULE_DIR)
 
 dnl ---------------------------------------------------------------------------
 dnl - Where should we put documentation ?
@@ -224,25 +216,28 @@ dnl ---------------------------------------------------------------------------
 dnl - DocBook Documentation
 dnl ---------------------------------------------------------------------------
 
-AC_ARG_ENABLE(docbook-docs, [  --enable-docbook-docs   build documentation (requires xmlto)],enable_docbook_docs=$enableval,enable_docbook_docs=no)
+AC_ARG_ENABLE(docbook-docs,
+	[AC_HELP_STRING([--enable-docbook-docs],
+	[build documentation (requires xmlto)])],
+	enable_docbook_docs=$enableval,enable_docbook_docs=no)
 AC_PATH_PROG(XMLTO, xmlto, no)
 AC_MSG_CHECKING([whether to build DocBook documentation])
 if test x$XMLTO = xno ; then
-    have_docbook=no
+	have_docbook=no
 else
-    have_docbook=yes
+	have_docbook=yes
 fi
 if test x$enable_docbook_docs = xauto ; then
-    if test x$have_docbook = xno ; then
-        enable_docbook_docs=no
-    else
-        enable_docbook_docs=yes
-    fi
+	 if test x$have_docbook = xno ; then
+        	enable_docbook_docs=no
+	else
+		enable_docbook_docs=yes
+	fi
 fi
 if test x$enable_docbook_docs = xyes; then
-    if test x$have_docbook = xno; then
-	AC_MSG_ERROR([Building DocBook docs explicitly required, but DocBook not found])
-    fi
+	if test x$have_docbook = xno; then
+		AC_MSG_ERROR([Building DocBook docs explicitly required, but DocBook not found])
+	fi
 fi
 AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_MSG_RESULT(yes)
@@ -254,14 +249,15 @@ dnl ---------------------------------------------------------------------------
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
 AC_ARG_ENABLE(more-warnings,
-  AC_HELP_STRING([--enable-more-warnings], [Maximum compiler warnings]),
-set_more_warnings="$enableval",[
-if test -d $srcdir/.git; then
-        set_more_warnings=yes
-else
-        set_more_warnings=no
-fi
-])
+	[AC_HELP_STRING([--enable-more-warnings], 
+	[Maximum compiler warnings])],
+	set_more_warnings="$enableval",[
+        	if test -d $srcdir/.git; then
+        		set_more_warnings=yes
+              	else
+                  	set_more_warnings=no
+              	fi
+        ])
 AC_MSG_CHECKING(for more warnings)
 if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
         AC_MSG_RESULT(yes)
@@ -294,15 +290,18 @@ fi
 #
 # Enable Debug
 #
-AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug=[no/yes]], [turn on debugging])],, enable_debug=yes)
+AC_ARG_ENABLE(debug, 
+	[AC_HELP_STRING([--enable-debug],
+	[turn on debugging])],
+	, enable_debug=yes)
 if test "$enable_debug" = "yes"; then
-  DEBUG_CFLAGS="-DG_ENABLE_DEBUG"
+	DEBUG_CFLAGS="-DG_ENABLE_DEBUG"
 else
-  if test "x$enable_debug" = "xno"; then
-    DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
-  else
-    DEBUG_CFLAGS=""
-  fi
+	if test "x$enable_debug" = "xno"; then
+		DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
+  	else
+    		DEBUG_CFLAGS=""
+  	fi
 fi
 AC_SUBST(DEBUG_CFLAGS)
 
@@ -317,13 +316,12 @@ AC_SUBST(LDFLAGS)
 
 # Files
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 src/Makefile
 tools/Makefile
 tools/linux/Makefile
 data/Makefile
-data/ConsoleKit
 doc/Makefile
 doc/ConsoleKit.xml
 libck-connector/Makefile
@@ -331,19 +329,22 @@ libck-connector/ck-connector.pc
 pam-ck-connector/Makefile
 ])
 
+AC_CONFIG_HEADERS([config.h])
+
+AC_OUTPUT
+
 echo "
                     ConsoleKit $VERSION
                     ========================
 
 	prefix:                   ${prefix}
 	exec_prefix:              ${exec_prefix}
-        libdir:                   ${LIBDIR}
-        bindir:                   ${BINDIR}
-        sbindir:                  ${SBINDIR}
-        slibdir:                  ${SLIBDIR}
-        sysconfdir:               ${SYSCONFDIR}
-        localstatedir:            ${LOCALSTATEDIR}
-        datadir:                  ${DATADIR}
+        libdir:                   ${libdir}
+        bindir:                   ${bindir}
+        sbindir:                  ${sbindir}
+        sysconfdir:               ${sysconfdir}
+        localstatedir:            ${localstatedir}
+        datadir:                  ${datadir}
 	source code location:	  ${srcdir}
 	compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
@@ -352,6 +353,7 @@ echo "
 
         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
         Build backend:            ${CK_BACKEND}
+        PAM module dir:           ${PAM_MODULE_DIR}
         Build PAM module:         ${msg_pam_module}
         Build docs:               ${enable_docbook_docs}
 "

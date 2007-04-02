@@ -1,6 +1,6 @@
 prefix=@prefix@
 exec_prefix=@prefix@
-libdir=@SLIBDIR@
+libdir=@libdir@
 includedir=@prefix@/include
 
 Name: ck-connector
