@@ -265,9 +265,7 @@ link_name (guint       maj,
 pid_t
 proc_stat_get_ppid (proc_stat_t *stat)
 {
-        if (stat == NULL) {
-                return -1;
-        }
+        g_return_val_if_fail (stat != NULL, -1);
 
         return stat->ppid;
 }
@@ -275,6 +273,8 @@ proc_stat_get_ppid (proc_stat_t *stat)
 char *
 proc_stat_get_cmd (proc_stat_t *stat)
 {
+        g_return_val_if_fail (stat != NULL, NULL);
+
         return g_strdup (stat->cmd);
 }
 
@@ -287,6 +287,8 @@ proc_stat_get_tty (proc_stat_t *stat)
         guint dev_maj;
         guint dev_min;
         pid_t pid;
+
+        g_return_val_if_fail (stat != NULL, NULL);
 
         pid = stat->pid;
         dev = stat->tty;
@@ -401,6 +403,8 @@ proc_stat_new_for_pid (pid_t         pid,
         GError      *local_error;
         proc_stat_t *proc;
 
+        g_return_val_if_fail (pid > 1, FALSE);
+
         if (stat == NULL) {
                 return FALSE;
         }
@@ -446,6 +450,8 @@ proc_pid_get_env_hash (pid_t pid)
         GHashTable *hash;
         int         i;
         gboolean    last_was_null;
+
+        g_return_val_if_fail (pid > 1, NULL);
 
         contents = NULL;
         hash = NULL;
@@ -506,6 +512,8 @@ proc_pid_get_env (pid_t       pid,
         int        prefix_len;
         gboolean   last_was_null;
 
+        g_return_val_if_fail (pid > 1, NULL);
+
         val = NULL;
         contents = NULL;
         prefix = NULL;
@@ -557,6 +565,8 @@ proc_pid_get_uid (pid_t pid)
         int         uid;
         int         res;
 
+        g_return_val_if_fail (pid > 1, 0);
+
         uid = -1;
 
         path = g_strdup_printf ("/proc/%u", (guint)pid);
@@ -576,6 +586,8 @@ proc_pid_get_ppid (pid_t pid)
         int          ppid;
         gboolean     res;
         proc_stat_t *stat;
+
+        g_return_val_if_fail (pid > 1, 0);
 
         ppid = -1;
 
