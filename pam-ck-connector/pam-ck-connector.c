@@ -312,6 +312,14 @@ pam_sm_open_session (pam_handle_t *pamh,
                 }
         }
 
+        /* make sure no values are NULL */
+        if (x11_display == NULL) {
+                x11_display = "";
+        }
+        if (remote_host_name == NULL) {
+                remote_host_name = "";
+        }
+
         dbus_error_init (&error);
         res = ck_connector_open_session_with_parameters (ckc,
                                                          &error,
