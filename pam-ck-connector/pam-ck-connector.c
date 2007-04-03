@@ -237,9 +237,6 @@ pam_sm_open_session (pam_handle_t *pamh,
 
         ret = PAM_IGNORE;
 
-        display_device = "";
-        x11_display = "";
-        remote_host_name = "";
         is_local = TRUE;
 
         _parse_pam_args (pamh, flags, argc, argv);
@@ -256,16 +253,21 @@ pam_sm_open_session (pam_handle_t *pamh,
                 goto out;
         }
 
-        if (pam_get_user (pamh, &user, NULL) != PAM_SUCCESS || user == NULL) {
+        user = NULL;
+        res = pam_get_user (pamh, &user, NULL);
+        if (res != PAM_SUCCESS || user == NULL || user[0] == '\0') {
                 ck_pam_syslog (pamh, LOG_ERR, "cannot determine username");
                 goto out;
         }
 
-        if (pam_get_item (pamh, PAM_TTY, (const void **) &display_device) != PAM_SUCCESS || display_device == NULL) {
+        display_device = NULL;
+        res = pam_get_item (pamh, PAM_TTY, (const void **) &display_device);
+        if (res != PAM_SUCCESS || display_device == NULL || display_device[0] == '\0') {
                 ck_pam_syslog (pamh, LOG_ERR, "cannot determine display-device");
                 goto out;
         }
 
+        x11_display = NULL;
         /* interpret any tty with a colon as a DISPLAY */
         if (strchr (display_device, ':') != NULL) {
                 x11_display = display_device;
@@ -275,7 +277,10 @@ pam_sm_open_session (pam_handle_t *pamh,
                 display_device = ttybuf;
         }
 
-        if (pam_get_item (pamh, PAM_RHOST, (const void **) &s) == PAM_SUCCESS && s != NULL) {
+        remote_host_name = NULL;
+        s = NULL;
+        res = pam_get_item (pamh, PAM_RHOST, (const void **) &s);
+        if (res == PAM_SUCCESS && s != NULL && s[0] != '\0') {
                 remote_host_name = s;
                 if (opt_debug) {
                         ck_pam_syslog (pamh, LOG_INFO, "using '%s' as remote-host-name", remote_host_name);
