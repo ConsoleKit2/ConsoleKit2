@@ -47,7 +47,6 @@
 
 #include "ck-session.h"
 #include "ck-vt-monitor.h"
-#include "ck-debug.h"
 
 #define CK_SEAT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SEAT, CkSeatPrivate))
 
@@ -225,12 +224,12 @@ _seat_activate_session (CkSeat                *seat,
                                                    0);
 
 
-        ck_debug ("Attempting to activate VT %u", num);
+        g_debug ("Attempting to activate VT %u", num);
 
         vt_error = NULL;
         ret = ck_vt_monitor_set_active (seat->priv->vt_monitor, num, &vt_error);
         if (! ret) {
-                ck_debug ("Unable to activate session: %s", vt_error->message);
+                g_debug ("Unable to activate session: %s", vt_error->message);
                 dbus_g_method_return_error (context, vt_error);
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
                 g_error_free (vt_error);
@@ -293,7 +292,7 @@ match_session_display_device (const char *key,
         if (device != NULL
             && display_device != NULL
             && strcmp (device, display_device) == 0) {
-                ck_debug ("Matched display-device %s to %s", display_device, key);
+                g_debug ("Matched display-device %s to %s", display_device, key);
                 ret = TRUE;
         }
 out:
@@ -323,7 +322,7 @@ match_session_x11_display_device (const char *key,
         if (device != NULL
             && x11_display_device != NULL
             && strcmp (device, x11_display_device) == 0) {
-                ck_debug ("Matched x11-display-device %s to %s", x11_display_device, key);
+                g_debug ("Matched x11-display-device %s to %s", x11_display_device, key);
                 ret = TRUE;
         }
 out:
@@ -473,7 +472,7 @@ change_active_session (CkSeat    *seat,
                 ck_session_set_active (session, TRUE, NULL);
         }
 
-        ck_debug ("Active session changed: %s", ssid);
+        g_debug ("Active session changed: %s", ssid);
 
         g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED], 0, ssid);
 
@@ -489,7 +488,7 @@ update_active_vt (CkSeat *seat,
 
         device = g_strdup_printf (_PATH_TTY "%u", num);
 
-        ck_debug ("Active device: %s", device);
+        g_debug ("Active device: %s", device);
 
         session = find_session_for_display_device (seat, device);
         change_active_session (seat, session);
@@ -537,7 +536,7 @@ ck_seat_remove_session (CkSeat         *seat,
         ck_session_get_id (session, &ssid, NULL);
 
         if (g_hash_table_lookup (seat->priv->sessions, ssid) == NULL) {
-                ck_debug ("Session %s is not attached to seat %s", ssid, seat->priv->id);
+                g_debug ("Session %s is not attached to seat %s", ssid, seat->priv->id);
                 g_set_error (error,
                              CK_SEAT_ERROR,
                              CK_SEAT_ERROR_GENERAL,
@@ -547,7 +546,7 @@ ck_seat_remove_session (CkSeat         *seat,
 
         g_signal_handlers_disconnect_by_func (session, session_activate, seat);
 
-        ck_debug ("Emitting removed signal: %s", ssid);
+        g_debug ("Emitting removed signal: %s", ssid);
 
         g_signal_emit (seat, signals [SESSION_REMOVED], 0, ssid);
 
@@ -581,7 +580,7 @@ ck_seat_add_session (CkSeat         *seat,
         g_signal_connect_object (session, "activate", G_CALLBACK (session_activate), seat, 0);
         /* FIXME: attach to property notify signals? */
 
-        ck_debug ("Emitting added signal: %s", ssid);
+        g_debug ("Emitting added signal: %s", ssid);
 
         g_signal_emit (seat, signals [SESSION_ADDED], 0, ssid);
 
@@ -639,7 +638,7 @@ active_vt_changed (CkVtMonitor    *vt_monitor,
                    guint           num,
                    CkSeat         *seat)
 {
-        ck_debug ("Active vt changed: %u", num);
+        g_debug ("Active vt changed: %u", num);
 
         update_active_vt (seat, num);
 }

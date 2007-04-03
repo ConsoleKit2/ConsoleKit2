@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
@@ -38,7 +39,7 @@
 #include <dbus/dbus-glib-lowlevel.h>
 
 #include "ck-manager.h"
-#include "ck-debug.h"
+#include "ck-log.h"
 
 #define CK_DBUS_NAME         "org.freedesktop.ConsoleKit"
 
@@ -172,7 +173,7 @@ bus_reconnect (CkManager *manager)
                           G_CALLBACK (bus_proxy_destroyed_cb),
                           manager);
 
-        ck_debug ("Successfully reconnected to D-Bus");
+        g_debug ("Successfully reconnected to D-Bus");
 
         ret = FALSE;
 
@@ -184,7 +185,7 @@ static void
 bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
                         CkManager  *manager)
 {
-        ck_debug ("Disconnected from D-Bus");
+        g_debug ("Disconnected from D-Bus");
 
         g_object_unref (manager);
         manager = NULL;
@@ -196,6 +197,58 @@ static void
 delete_pid (void)
 {
         unlink (CONSOLE_KIT_PID_FILE);
+}
+
+/* copied from nautilus */
+static int debug_log_pipes[2];
+
+static gboolean
+debug_log_io_cb (GIOChannel  *io,
+                 GIOCondition condition,
+                 gpointer     data)
+{
+        char a;
+
+        while (read (debug_log_pipes[0], &a, 1) != 1)
+                ;
+
+        ck_log_toggle_debug ();
+
+        return TRUE;
+}
+
+static void
+sigusr1_handler (int sig)
+{
+        while (write (debug_log_pipes[1], "a", 1) != 1)
+                ;
+}
+
+static void
+setup_debug_log_signals (void)
+{
+        struct sigaction sa;
+        GIOChannel      *io;
+
+        if (pipe (debug_log_pipes) == -1) {
+                g_error ("Could not create pipe() for debug log");
+        }
+
+        io = g_io_channel_unix_new (debug_log_pipes[0]);
+        g_io_add_watch (io, G_IO_IN, debug_log_io_cb, NULL);
+
+        sa.sa_handler = sigusr1_handler;
+        sigemptyset (&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction (SIGUSR1, &sa, NULL);
+}
+
+static void
+setup_debug_log (gboolean debug)
+{
+        ck_log_init ();
+        ck_log_set_debug (debug);
+        setup_debug_log_signals ();
 }
 
 int
@@ -235,6 +288,8 @@ main (int    argc,
         g_option_context_parse (context, &argc, &argv, NULL);
         g_option_context_free (context);
 
+        setup_debug_log (debug);
+
         connection = get_system_bus ();
         if (connection == NULL) {
                 goto out;
@@ -251,9 +306,7 @@ main (int    argc,
                 goto out;
         }
 
-        /* debug to a file if in deamon mode */
-        ck_debug_init (debug, ! no_daemon);
-        ck_debug ("initializing console-kit-daemon %s", VERSION);
+        g_debug ("initializing console-kit-daemon %s", VERSION);
 
         if (! no_daemon && daemon (0, 0)) {
                 g_error ("Could not daemonize: %s", g_strerror (errno));
@@ -299,4 +352,3 @@ main (int    argc,
 
         return ret;
 }
-

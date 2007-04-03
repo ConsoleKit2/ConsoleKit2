@@ -39,7 +39,6 @@
 #include "ck-session.h"
 #include "ck-session-glue.h"
 #include "ck-marshal.h"
-#include "ck-debug.h"
 
 #define CK_SESSION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SESSION, CkSessionPrivate))
 
@@ -154,7 +153,7 @@ ck_session_lock (CkSession             *session,
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        ck_debug ("Emitting lock for session %s", session->priv->id);
+        g_debug ("Emitting lock for session %s", session->priv->id);
         g_signal_emit (session, signals [LOCK], 0);
 
         dbus_g_method_return (context);
@@ -168,7 +167,7 @@ ck_session_unlock (CkSession             *session,
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        ck_debug ("Emitting unlock for session %s", session->priv->id);
+        g_debug ("Emitting unlock for session %s", session->priv->id);
         g_signal_emit (session, signals [UNLOCK], 0);
 
         dbus_g_method_return (context);
@@ -214,8 +213,8 @@ get_caller_info (CkSession   *session,
 
         res = TRUE;
 
-        ck_debug ("uid = %d", *calling_uid);
-        ck_debug ("pid = %d", *calling_pid);
+        g_debug ("uid = %d", *calling_uid);
+        g_debug ("pid = %d", *calling_pid);
 
 out:
         return res;
@@ -232,7 +231,7 @@ session_set_idle_hint_internal (CkSession      *session,
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&session->priv->idle_since_hint);
 
-                ck_debug ("Emitting idle-changed for session %s", session->priv->id);
+                g_debug ("Emitting idle-changed for session %s", session->priv->id);
                 g_signal_emit (session, signals [IDLE_HINT_CHANGED], 0, idle_hint);
         }
 
@@ -371,7 +370,7 @@ ck_session_activate (CkSession             *session,
                 /* if the signal is not handled then either:
                    a) aren't attached to seat
                    b) seat doesn't support activation changes */
-                ck_debug ("Activate signal not handled");
+                g_debug ("Activate signal not handled");
 
                 error = g_error_new (CK_SESSION_ERROR,
                                      CK_SESSION_ERROR_GENERAL,
@@ -811,7 +810,7 @@ session_is_text (CkSession *session)
                 ret = TRUE;
         }
 
-        ck_debug ("Identified session '%s' as %s",
+        g_debug ("Identified session '%s' as %s",
                   session->priv->id,
                   ret ? "text" : "graphical");
 
@@ -848,7 +847,7 @@ check_tty_idle (CkSession *session)
         }
 
         if (g_stat (session->priv->display_device, &sb) < 0) {
-                ck_debug ("Unable to stat: %s: %s", session->priv->display_device, g_strerror (errno));
+                g_debug ("Unable to stat: %s: %s", session->priv->display_device, g_strerror (errno));
                 return FALSE;
         }
 
@@ -860,7 +859,7 @@ check_tty_idle (CkSession *session)
 static void
 add_idle_hint_timeout (CkSession *session)
 {
-        ck_debug ("Adding watch for text session idle");
+        g_debug ("Adding watch for text session idle");
         /* yes this sucks - we'll add file monitoring when it is in glib */
         if (session->priv->idle_timeout_id == 0) {
 #if GLIB_CHECK_VERSION(2,14,0)
@@ -1175,29 +1174,29 @@ ck_session_new_with_parameters (const char      *ssid,
                                                       1, &prop_val,
                                                       G_MAXUINT);
                         if (! res) {
-                                ck_debug ("Unable to extract parameter input");
+                                g_debug ("Unable to extract parameter input");
                                 goto cont;
                         }
 
                         if (prop_name == NULL) {
-                                ck_debug ("Skipping NULL parameter");
+                                g_debug ("Skipping NULL parameter");
                                 goto cont;
                         }
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {
-                                ck_debug ("Skipping restricted parameter: %s", prop_name);
+                                g_debug ("Skipping restricted parameter: %s", prop_name);
                                 goto cont;
                         }
 
                         pspec = g_object_class_find_property (class, prop_name);
                         if (! pspec) {
-                                ck_debug ("Skipping unknown parameter: %s", prop_name);
+                                g_debug ("Skipping unknown parameter: %s", prop_name);
                                 goto cont;
                         }
 
                         if (!(pspec->flags & G_PARAM_WRITABLE)) {
-                                ck_debug ("property '%s' is not writable", pspec->name);
+                                g_debug ("property '%s' is not writable", pspec->name);
                                 goto cont;
                         }
 
@@ -1206,7 +1205,7 @@ ck_session_new_with_parameters (const char      *ssid,
                         g_value_init (&params[n_params].value, G_PARAM_SPEC_VALUE_TYPE (pspec));
                         res = g_value_transform (prop_val, &params[n_params].value);
                         if (! res) {
-                                ck_debug ("unable to transform property value for '%s'", pspec->name);
+                                g_debug ("unable to transform property value for '%s'", pspec->name);
                                 goto cont;
                         }
 

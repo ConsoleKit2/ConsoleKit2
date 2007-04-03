@@ -65,8 +65,8 @@ console_kit_daemon_SOURCES =	\
 	ck-seat.c		\
 	ck-session.h		\
 	ck-session.c		\
-	ck-debug.h		\
-	ck-debug.c		\
+	ck-log.h		\
+	ck-log.c		\
 	getfd.c			\
 	proc.h			\
 	$(PLATFORM_SOURCES)	\

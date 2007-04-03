@@ -43,7 +43,6 @@
 #include "ck-job.h"
 #include "ck-marshal.h"
 
-#include "ck-debug.h"
 #include "proc.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
@@ -111,7 +110,7 @@ remove_pending_job (CkJob *job)
 
                 command = NULL;
                 ck_job_get_command (job, &command);
-                ck_debug ("Removing pending job: %s", command);
+                g_debug ("Removing pending job: %s", command);
                 g_free (command);
 
                 ck_job_cancel (job);
@@ -122,7 +121,7 @@ remove_pending_job (CkJob *job)
 static void
 _leader_info_free (LeaderInfo *info)
 {
-        ck_debug ("Freeing leader info: %s", info->ssid);
+        g_debug ("Freeing leader info: %s", info->ssid);
 
         g_free (info->ssid);
         info->ssid = NULL;
@@ -294,7 +293,7 @@ add_new_seat (CkManager *manager,
 
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
-        ck_debug ("Added seat: %s kind:%d", sid, kind);
+        g_debug ("Added seat: %s kind:%d", sid, kind);
 
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
 
@@ -317,7 +316,7 @@ remove_seat (CkManager *manager,
 
         g_signal_emit (manager, signals [SEAT_REMOVED], 0, sid);
 
-        ck_debug ("Removed seat: %s", sid);
+        g_debug ("Removed seat: %s", sid);
 
         g_free (sid);
 }
@@ -404,7 +403,7 @@ get_caller_info (CkManager   *manager,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_uid,
                                  G_TYPE_INVALID)) {
-                ck_debug ("GetConnectionUnixUser() failed: %s", error->message);
+                g_debug ("GetConnectionUnixUser() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -414,15 +413,15 @@ get_caller_info (CkManager   *manager,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_pid,
                                  G_TYPE_INVALID)) {
-                ck_debug ("GetConnectionUnixProcessID() failed: %s", error->message);
+                g_debug ("GetConnectionUnixProcessID() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
 
         res = TRUE;
 
-        ck_debug ("uid = %d", *calling_uid);
-        ck_debug ("pid = %d", *calling_pid);
+        g_debug ("uid = %d", *calling_uid);
+        g_debug ("pid = %d", *calling_pid);
 
 out:
         return res;
@@ -438,7 +437,7 @@ manager_set_system_idle_hint (CkManager *manager,
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&manager->priv->system_idle_since_hint);
 
-                ck_debug ("Emitting system-idle-hint-changed: %d", idle_hint);
+                g_debug ("Emitting system-idle-hint-changed: %d", idle_hint);
                 g_signal_emit (manager, signals [SYSTEM_IDLE_HINT_CHANGED], 0, idle_hint);
         }
 
@@ -565,7 +564,7 @@ open_session_for_leader_info (CkManager             *manager,
 
         if (session == NULL) {
                 GError *error;
-                ck_debug ("Unable to create new session");
+                g_debug ("Unable to create new session");
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      "Unable to create new session");
@@ -779,14 +778,14 @@ job_completed (CkJob     *job,
                int        status,
                JobData   *data)
 {
-        ck_debug ("Job status: %d", status);
+        g_debug ("Job status: %d", status);
         if (status == 0) {
                 char      *output;
                 GPtrArray *parameters;
 
                 output = NULL;
                 ck_job_get_stdout (job, &output);
-                ck_debug ("Job output: %s", output);
+                g_debug ("Job output: %s", output);
 
                 parameters = parse_output (output);
                 g_free (output);
@@ -846,7 +845,7 @@ generate_session_for_leader_info (CkManager             *manager,
                 g_error_free (error);
 
                 if (local_error != NULL) {
-                        ck_debug ("stat on pid %d failed: %s", leader_info->pid, local_error->message);
+                        g_debug ("stat on pid %d failed: %s", leader_info->pid, local_error->message);
                         g_error_free (local_error);
                 }
 
@@ -889,7 +888,7 @@ create_session_for_sender (CkManager             *manager,
         cookie = generate_session_cookie (manager);
         ssid = generate_session_id (manager);
 
-        ck_debug ("Creating new session ssid: %s", ssid);
+        g_debug ("Creating new session ssid: %s", ssid);
 
         leader_info = g_new0 (LeaderInfo, 1);
         leader_info->uid = uid;
@@ -971,7 +970,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to lookup information about calling process '%d'"),
                                      calling_pid);
                 if (local_error != NULL) {
-                        ck_debug ("stat on pid %d failed: %s", calling_pid, local_error->message);
+                        g_debug ("stat on pid %d failed: %s", calling_pid, local_error->message);
                         g_error_free (local_error);
                 }
 
@@ -1069,7 +1068,7 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
         res = proc_stat_new_for_pid (calling_pid, &stat, &error);
         if (! res) {
                 GError *error;
-                ck_debug ("stat on pid %d failed", calling_pid);
+                g_debug ("stat on pid %d failed", calling_pid);
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to lookup information about calling process '%d'"),
@@ -1179,7 +1178,7 @@ remove_session_for_cookie (CkManager  *manager,
         char       *ssid;
         char       *sid;
 
-        ck_debug ("Removing session for cookie: %s", cookie);
+        g_debug ("Removing session for cookie: %s", cookie);
 
         leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
 
@@ -1290,7 +1289,7 @@ ck_manager_close_session (CkManager             *manager,
         pid_t    calling_pid;
         GError  *error;
 
-        ck_debug ("Closing session for cookie: %s", cookie);
+        g_debug ("Closing session for cookie: %s", cookie);
 
         sender = dbus_g_method_get_sender (context);
         res = get_caller_info (manager,
@@ -1365,7 +1364,7 @@ remove_sessions_for_connection (CkManager  *manager,
         data.service_name = service_name;
         data.manager = manager;
 
-        ck_debug ("Removing sessions for service name: %s", service_name);
+        g_debug ("Removing sessions for service name: %s", service_name);
 
         n_removed = g_hash_table_foreach_remove (manager->priv->leaders,
                                                  (GHRFunc)remove_leader_for_connection,
@@ -1384,7 +1383,7 @@ bus_name_owner_changed (DBusGProxy  *bus_proxy,
                 remove_sessions_for_connection (manager, old_service_name);
         }
 
-        ck_debug ("NameOwnerChanged: service_name='%s', old_service_name='%s' new_service_name='%s'",
+        g_debug ("NameOwnerChanged: service_name='%s', old_service_name='%s' new_service_name='%s'",
                    service_name, old_service_name, new_service_name);
 }
 

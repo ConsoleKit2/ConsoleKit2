@@ -45,7 +45,6 @@
 
 #include "ck-vt-monitor.h"
 #include "ck-marshal.h"
-#include "ck-debug.h"
 
 #define ERROR -1
 
@@ -168,7 +167,7 @@ change_active_num (CkVtMonitor *vt_monitor,
 {
 
         if (vt_monitor->priv->active_num != num) {
-                ck_debug ("Changing active VT: %d", num);
+                g_debug ("Changing active VT: %d", num);
 
                 vt_monitor->priv->active_num = num;
 
@@ -177,7 +176,7 @@ change_active_num (CkVtMonitor *vt_monitor,
 
                 g_signal_emit (vt_monitor, signals[ACTIVE_CHANGED], 0, num);
         } else {
-                ck_debug ("VT activated but already active: %d", num);
+                g_debug ("VT activated but already active: %d", num);
         }
 }
 
@@ -220,7 +219,7 @@ process_queue (CkVtMonitor *vt_monitor)
 
         g_async_queue_lock (vt_monitor->priv->event_queue);
 
-        ck_debug ("Processing VT event queue");
+        g_debug ("Processing VT event queue");
 
         queue_length = g_async_queue_length_unlocked (vt_monitor->priv->event_queue);
         data = NULL;
@@ -236,7 +235,7 @@ process_queue (CkVtMonitor *vt_monitor)
                 }
 
                 if (data != NULL) {
-                        ck_debug ("Compressing queue; skipping event for VT %d", data->num);
+                        g_debug ("Compressing queue; skipping event for VT %d", data->num);
                         event_data_free (data);
                 }
 
@@ -280,10 +279,10 @@ vt_thread_start (ThreadData *data)
         num = data->num;
 
  again:
-        ck_debug ("VT_WAITACTIVE for vt %d", num);
+        g_debug ("VT_WAITACTIVE for vt %d", num);
         ret = ioctl (vt_monitor->priv->vfd, VT_WAITACTIVE, num);
 
-        ck_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
+        g_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
 
         if (ret == ERROR) {
                 const char *errmsg;
@@ -291,15 +290,11 @@ vt_thread_start (ThreadData *data)
                 errmsg = g_strerror (errno);
 
                 if (errno == EINTR) {
-                        ck_debug ("Interrupted waiting for native console %d activation: %s",
+                        g_debug ("Interrupted waiting for native console %d activation: %s",
                                   num,
                                   errmsg);
                        goto again;
                 } else {
-                        ck_debug ("Error waiting for native console %d activation: %s",
-                                   num,
-                                   errmsg);
-
                         g_warning ("Error waiting for native console %d activation: %s",
                                    num,
                                    errmsg);
@@ -312,7 +307,7 @@ vt_thread_start (ThreadData *data)
                 /* add event to queue */
                 event = g_new0 (EventData, 1);
                 event->num = num;
-                ck_debug ("Pushing activation event for VT %d onto queue", num);
+                g_debug ("Pushing activation event for VT %d onto queue", num);
 
                 g_async_queue_push (vt_monitor->priv->event_queue, event);
 
@@ -345,14 +340,14 @@ vt_add_watch_unlocked (CkVtMonitor *vt_monitor,
         data->num = num;
         data->vt_monitor = vt_monitor;
 
-        ck_debug ("Creating thread for vt %d", num);
+        g_debug ("Creating thread for vt %d", num);
 
         id = GINT_TO_POINTER (num);
 
         error = NULL;
         thread = g_thread_create_full ((GThreadFunc)vt_thread_start, data, 65536, FALSE, TRUE, G_THREAD_PRIORITY_NORMAL, &error);
         if (thread == NULL) {
-                ck_debug ("Unable to create thread: %s", error->message);
+                g_debug ("Unable to create thread: %s", error->message);
                 g_error_free (error);
         } else {
                 g_hash_table_insert (vt_monitor->priv->vt_thread_hash, id, thread);
@@ -403,12 +398,12 @@ get_active_native (CkVtMonitor *vt_monitor)
         {
                 int i;
 
-                ck_debug ("Current VT: tty%d", stat.v_active);
+                g_debug ("Current VT: tty%d", stat.v_active);
                 for (i = 1; i <= 16; i++) {
                         gboolean is_on;
                         is_on = stat.v_state & (1 << i);
 
-                        ck_debug ("VT %d:%s", i, is_on ? "on" : "off");
+                        g_debug ("VT %d:%s", i, is_on ? "on" : "off");
                 }
         }
 
@@ -450,7 +445,6 @@ ck_vt_monitor_init (CkVtMonitor *vt_monitor)
         if (fd == ERROR) {
                 const char *errmsg;
                 errmsg = g_strerror (errno);
-                ck_debug ("Unable to open a console: %s", errmsg);
                 g_warning ("Unable to open a console: %s", errmsg);
         } else {
                 vt_monitor->priv->event_queue = g_async_queue_new ();
