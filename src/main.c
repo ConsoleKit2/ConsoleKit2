@@ -288,6 +288,10 @@ main (int    argc,
         g_option_context_parse (context, &argc, &argv, NULL);
         g_option_context_free (context);
 
+        if (! no_daemon && daemon (0, 0)) {
+                g_error ("Could not daemonize: %s", g_strerror (errno));
+        }
+
         setup_debug_log (debug);
 
         connection = get_system_bus ();
@@ -307,10 +311,6 @@ main (int    argc,
         }
 
         g_debug ("initializing console-kit-daemon %s", VERSION);
-
-        if (! no_daemon && daemon (0, 0)) {
-                g_error ("Could not daemonize: %s", g_strerror (errno));
-        }
 
         /* remove old pid file */
         unlink (CONSOLE_KIT_PID_FILE);
