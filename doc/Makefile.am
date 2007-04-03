@@ -12,7 +12,7 @@ SPEC_XML_FILES =			\
 
 if DOCBOOK_DOCS_ENABLED
 
-htmldocdir = $(DOCDIR)/spec
+htmldocdir = $(docdir)/spec
 htmldoc_DATA = ConsoleKit.html
 
 ConsoleKit.html : $(SPEC_XML_FILES)

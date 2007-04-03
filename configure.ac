@@ -1,6 +1,6 @@
 dnl -*- mode: m4 -*-
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.59c)
 AC_INIT([ConsoleKit],
         [0.2.1],
         [mccann@jhu.edu],
@@ -197,20 +197,6 @@ else
 	PAM_MODULE_DIR="/lib/security"
 fi
 AC_SUBST(PAM_MODULE_DIR)
-
-dnl ---------------------------------------------------------------------------
-dnl - Where should we put documentation ?
-dnl ---------------------------------------------------------------------------
-
-AC_ARG_WITH(doc-dir,
-              [AC_HELP_STRING([--with-doc-dir=<dir>],
-              [directory to install documentation])])
-if ! test -z "$with_doc_dir"; then
-   DOCDIR="$with_doc_dir/ConsoleKit-$VERSION"
-else
-   DOCDIR="$datadir/doc/ConsoleKit-$VERSION"
-fi
-AC_SUBST(DOCDIR)
 
 dnl ---------------------------------------------------------------------------
 dnl - DocBook Documentation
