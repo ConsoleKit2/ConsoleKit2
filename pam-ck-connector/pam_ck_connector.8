@@ -15,25 +15,26 @@ pam_ck_connector \- Register sessin with ConsoleKit
 .SH "DESCRIPTION"
 .PP
 The pam_ck_connector PAM module registers a login session with
-the system-wide 
-.I ConsoleKit 
+the system-wide
+.I ConsoleKit
 daemon. This PAM module should be used with
-caution; only local login managers such as 
+caution; only local login managers such as
 .B login(1)
-should use this. Since the 
+should use this. Since the
 .I ConsoleKit
 daemon can accept both an
 .B tty
 and an X11 display the normal parameters set by PAM are not always
-useful. 
+useful.
 
 An application can therefore override these with the PAM environment
 variables
-.B CKCON_TTY
-and
+.B CKCON_TTY,
 .B CHCON_X11_DISPLAY
+and
+.B CHCON_X11_DISPLAY_DEVICE
 (the application should remember to unset these before starting the
-login session). 
+login session).
 
 Also note that the
 .I ConsoleKit
@@ -54,7 +55,7 @@ which is used to defined membership of a login session.
 
 This PAM module has the side effect that it creates a connection to
 the system message bus that is kept open until the session ends. This
-is used by the 
+is used by the
 .I ConsoleKit
 daemon to track the life-cycle of the
 session and, as such, should the login manager crash, the session will

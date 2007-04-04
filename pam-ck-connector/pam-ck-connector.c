@@ -227,6 +227,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         const char *user;
         const char *display_device;
         const char *x11_display;
+        const char *x11_display_device;
         const char *remote_host_name;
         const char *s;
         uid_t       uid;
@@ -302,6 +303,14 @@ pam_sm_open_session (pam_handle_t *pamh,
                 }
         }
 
+        x11_display_device = NULL;
+        if ((s = pam_getenv (pamh, "CKCON_X11_DISPLAY_DEVICE")) != NULL) {
+                x11_display_device = s;
+                if (opt_debug) {
+                        ck_pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display device (from CKCON_X11_DISPLAY_DEVICE)", x11_display_device);
+                }
+        }
+
         uid = _util_name_to_uid (user, NULL);
         if (uid == (uid_t) -1) {
                 ck_pam_syslog (pamh, LOG_ERR, "cannot determine uid for user '%s'", user);
@@ -316,6 +325,9 @@ pam_sm_open_session (pam_handle_t *pamh,
         if (x11_display == NULL) {
                 x11_display = "";
         }
+        if (x11_display_device == NULL) {
+                x11_display_device = "";
+        }
         if (remote_host_name == NULL) {
                 remote_host_name = "";
         }
@@ -326,6 +338,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                                                          "user", &uid,
                                                          "display-device", &display_device,
                                                          "x11-display", &x11_display,
+                                                         "x11-display-device", &x11_display_device,
                                                          "remote-host-name", &remote_host_name,
                                                          "is-local", &is_local,
                                                          NULL);
