@@ -6,6 +6,7 @@
 Makefile
 Makefile.in
 console-kit-daemon
+test-tty-idle-monitor
 ck-marshal.c
 ck-marshal.h
 ck-manager-glue.h

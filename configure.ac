@@ -41,7 +41,6 @@ AC_CHECK_HEADERS(paths.h)
 
 AC_TYPE_UID_T
 
-AC_CHECK_FUNCS([setresuid setenv unsetenv clearenv])
 PKG_CHECK_MODULES(CONSOLE_KIT,
         dbus-glib-1 >= $DBUS_REQUIRED_VERSION
         gobject-2.0 >= $GLIB_REQUIRED_VERSION
@@ -121,7 +120,7 @@ dnl ---------------------------------------------------------------------------
 dnl - PID file
 dnl ---------------------------------------------------------------------------
 
-AC_ARG_WITH(pid-file,    
+AC_ARG_WITH(pid-file,
 	[AC_HELP_STRING([--with-pid-file=<file>],
 	[pid file location])])
 
@@ -171,7 +170,7 @@ AC_CHECK_LIB(pam, pam_syslog, [AC_DEFINE(HAVE_PAM_SYSLOG, [], [Define to 1 if yo
 
 # Check if we should build the PAM module
 msg_pam_module=no
-AC_ARG_ENABLE(pam-module, 
+AC_ARG_ENABLE(pam-module,
 	[AC_HELP_STRING([--enable-pam-module],
 	[build PAM module])],
         , enable_pam_module=no)
@@ -229,13 +228,30 @@ AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_MSG_RESULT(yes)
 
 dnl ---------------------------------------------------------------------------
+dnl check for inotify
+dnl ---------------------------------------------------------------------------
+
+enable_inotify=no
+AC_CHECK_FUNC(inotify_init,
+	[AC_CHECK_HEADER([sys/inotify.h],
+		[enable_inotify=yes],
+		[])],
+                [])
+
+AM_CONDITIONAL(ENABLE_INOTIFY, test "x$enable_inotify" = "xyes")
+
+if test "x$enable_inotify" = "xyes" ; then
+	AC_DEFINE(ENABLE_INOTIFY, [], [Define if we have inotify])
+fi
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
 AC_ARG_ENABLE(more-warnings,
-	[AC_HELP_STRING([--enable-more-warnings], 
+	[AC_HELP_STRING([--enable-more-warnings],
 	[Maximum compiler warnings])],
 	set_more_warnings="$enableval",[
         	if test -d $srcdir/.git; then
@@ -276,7 +292,7 @@ fi
 #
 # Enable Debug
 #
-AC_ARG_ENABLE(debug, 
+AC_ARG_ENABLE(debug,
 	[AC_HELP_STRING([--enable-debug],
 	[turn on debugging])],
 	, enable_debug=yes)

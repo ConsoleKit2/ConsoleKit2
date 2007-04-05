@@ -36,6 +36,7 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
+#include "ck-tty-idle-monitor.h"
 #include "ck-session.h"
 #include "ck-session-glue.h"
 #include "ck-marshal.h"
@@ -44,6 +45,8 @@
 
 #define CK_DBUS_PATH "/org/freedesktop/ConsoleKit"
 #define CK_DBUS_NAME "org.freedesktop.ConsoleKit"
+
+#define IDLE_TIME_SECS 60
 
 struct CkSessionPrivate
 {
@@ -63,10 +66,10 @@ struct CkSessionPrivate
 
         GTimeVal         creation_time;
 
+        CkTtyIdleMonitor *idle_monitor;
+
         gboolean         idle_hint;
         GTimeVal         idle_since_hint;
-
-        guint            idle_timeout_id;
 
         DBusGConnection *connection;
         DBusGProxy      *bus_proxy;
@@ -140,7 +143,6 @@ register_session (CkSession *session)
 
         return TRUE;
 }
-
 
 /*
   lock and unlock are separate functions because:
@@ -818,68 +820,37 @@ session_is_text (CkSession *session)
 }
 
 static void
-maybe_update_idle_hint_from_access_time (CkSession *session,
-                                         time_t     last_access)
+tty_idle_changed_cb (CkTtyIdleMonitor *monitor,
+                     gboolean          idle_hint,
+                     CkSession        *session)
 {
-        time_t   now;
-        time_t   idletime;
-        gboolean is_idle;
-
-        time (&now);
-        if (last_access > now) {
-                last_access = now;
-        }
-
-        idletime = now - last_access;
-
-        is_idle = (idletime > 60);
-
-        session_set_idle_hint_internal (session, is_idle);
-}
-
-static gboolean
-check_tty_idle (CkSession *session)
-{
-        struct stat sb;
-
-        if (session->priv->display_device == NULL) {
-                return FALSE;
-        }
-
-        if (g_stat (session->priv->display_device, &sb) < 0) {
-                g_debug ("Unable to stat: %s: %s", session->priv->display_device, g_strerror (errno));
-                return FALSE;
-        }
-
-        maybe_update_idle_hint_from_access_time (session, sb.st_atime);
-
-        return TRUE;
+        session_set_idle_hint_internal (session, idle_hint);
 }
 
 static void
-add_idle_hint_timeout (CkSession *session)
+session_add_activity_watch (CkSession *session)
 {
-        g_debug ("Adding watch for text session idle");
-        /* yes this sucks - we'll add file monitoring when it is in glib */
-        if (session->priv->idle_timeout_id == 0) {
-#if GLIB_CHECK_VERSION(2,14,0)
-                session->priv->idle_timeout_id = g_timeout_add_seconds (30,
-                                                                        (GSourceFunc)check_tty_idle,
-                                                                        session);
-#else
-                session->priv->idle_timeout_id = g_timeout_add (30000,
-                                                                (GSourceFunc)check_tty_idle,
-                                                                session);
-#endif
+        if (session->priv->idle_monitor == NULL) {
+                session->priv->idle_monitor = ck_tty_idle_monitor_new (session->priv->display_device);
+                g_signal_connect (session->priv->idle_monitor,
+                                  "idle-hint-changed",
+                                  G_CALLBACK (tty_idle_changed_cb),
+                                  session);
+
         }
+        ck_tty_idle_monitor_start (session->priv->idle_monitor);
 }
 
 static void
-remove_idle_hint_timeout (CkSession *session)
+session_remove_activity_watch (CkSession *session)
 {
-        if (session->priv->idle_timeout_id > 0) {
-                g_source_remove (session->priv->idle_timeout_id);
+        if (session->priv->idle_monitor == NULL) {
+                return;
         }
+
+        ck_tty_idle_monitor_stop (session->priv->idle_monitor);
+        g_object_unref (session->priv->idle_monitor);
+        session->priv->idle_monitor = NULL;
 }
 
 static GObject *
@@ -896,8 +867,7 @@ ck_session_constructor (GType                  type,
                                                                                      n_construct_properties,
                                                                                      construct_properties));
         if (session_is_text (session)) {
-                /* FIXME: use file monitoring once it is in glib */
-                add_idle_hint_timeout (session);
+                session_add_activity_watch (session);
         }
 
         return G_OBJECT (session);
@@ -1082,7 +1052,7 @@ ck_session_finalize (GObject *object)
 
         g_return_if_fail (session->priv != NULL);
 
-        remove_idle_hint_timeout (session);
+        session_remove_activity_watch (session);
 
         g_free (session->priv->id);
         g_free (session->priv->cookie);

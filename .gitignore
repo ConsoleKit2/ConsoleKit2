@@ -27,7 +27,8 @@ version.h
 intl
 macros
 INSTALL
-console-kit-*.tar.gz
+ChangeLog
+ConsoleKit-*.tar.gz
 xml-i18n-extract.in
 xml-i18n-extract
 xml-i18n-merge.in

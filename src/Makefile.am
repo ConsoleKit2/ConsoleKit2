@@ -59,6 +59,9 @@ console_kit_daemon_SOURCES =	\
 	ck-manager.c		\
 	ck-vt-monitor.h		\
 	ck-vt-monitor.c		\
+	ck-tty-idle-monitor.h	\
+	ck-tty-idle-monitor.c	\
+	ck-file-monitor.h	\
 	ck-job.h		\
 	ck-job.c		\
 	ck-seat.h		\
@@ -73,8 +76,37 @@ console_kit_daemon_SOURCES =	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
+if ENABLE_INOTIFY
+FILE_MONITOR_BACKEND = ck-file-monitor-inotify.c
+else
+FILE_MONITOR_BACKEND = ck-file-monitor-dummy.c
+endif
+
+console_kit_daemon_SOURCES += $(FILE_MONITOR_BACKEND)
+
+EXTRA_console_kit_daemon_SOURCES = 	\
+	ck-file-monitor-inotify.c	\
+	ck-file-monitor-dummy.c		\
+	$(NULL)
+
 console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
+	$(NULL)
+
+noinst_PROGRAMS = 			\
+	test-tty-idle-monitor		\
+	$(NULL)
+
+test_tty_idle_monitor_SOURCES = 	\
+	ck-tty-idle-monitor.h		\
+	ck-tty-idle-monitor.c		\
+	ck-file-monitor.h		\
+	$(FILE_MONITOR_BACKEND)		\
+	test-tty-idle-monitor.c 	\
+	$(NULL)
+
+test_tty_idle_monitor_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
 	$(NULL)
 
 EXTRA_DIST =			\
