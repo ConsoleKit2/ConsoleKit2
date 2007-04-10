@@ -1,4 +1,19 @@
 =============
+Version 0.2.1
+=============
+
+        * disable static libs
+        * use inotify to detect activity on tty when possible
+        * add support for CKCON_X11_DISPLAY_DEVICE environment variable
+        * daemonize earlier
+        * daemonize quietly (David Zeuthen)
+        * add syslog support
+        * properly detect unix-user for OpenSession
+        * use xlib directly for tools
+        * add CanActivateSessions to Seat interface
+        * install fixes (Doug Goldstein)
+
+=============
 Version 0.2.0
 =============
 
