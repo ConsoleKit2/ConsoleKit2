@@ -30,7 +30,8 @@ is_a_console (int fd)
     char arg;
 
     arg = 0;
-    return (ioctl (fd, KDGKBTYPE, &arg) == 0
+    return (isatty (fd)
+            && ioctl (fd, KDGKBTYPE, &arg) == 0
 	    && ((arg == KB_101) || (arg == KB_84)));
 }
 
@@ -39,11 +40,18 @@ open_a_console (char *fnam)
 {
     int fd;
 
-    fd = open (fnam, O_RDONLY);
+    fd = open (fnam, O_RDONLY | O_NOCTTY);
     if (fd < 0 && errno == EACCES)
-      fd = open(fnam, O_WRONLY);
-    if (fd < 0 || ! is_a_console (fd))
+      fd = open (fnam, O_WRONLY | O_NOCTTY);
+
+    if (fd < 0)
       return -1;
+
+    if (! is_a_console (fd)) {
+      close (fd);
+      fd = -1;
+    }
+
     return fd;
 }
 
