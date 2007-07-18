@@ -26,6 +26,7 @@ INCLUDES =							\
 libexec_PROGRAMS = 			\
 	ck-collect-session-info		\
 	ck-get-x11-server-pid		\
+	ck-get-x11-display-device	\
 	$(NULL)
 
 ck_collect_session_info_SOURCES =	\
@@ -43,6 +44,16 @@ ck_get_x11_server_pid_SOURCES =		\
 	$(NULL)
 
 ck_get_x11_server_pid_LDADD =		\
+	$(TOOLS_LIBS)			\
+	$(NULL)
+
+ck_get_x11_display_device_SOURCES =		\
+	$(top_srcdir)/src/proc.h	\
+	$(top_srcdir)/src/proc-linux.c	\
+	ck-get-x11-display-device.c		\
+	$(NULL)
+
+ck_get_x11_display_device_LDADD =		\
 	$(TOOLS_LIBS)			\
 	$(NULL)
 
