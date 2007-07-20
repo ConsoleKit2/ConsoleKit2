@@ -7,6 +7,9 @@
     <method name="GetSessions">
       <arg name="sessions" direction="out" type="ao"/>
     </method>
+    <method name="GetDevices">
+      <arg name="devices" direction="out" type="a(ss)"/>
+    </method>
     <method name="GetActiveSession">
       <arg name="ssid" direction="out" type="o"/>
     </method>
@@ -25,6 +28,12 @@
     </signal>
     <signal name="SessionRemoved">
       <arg name="ssid" type="o"/>
+    </signal>
+    <signal name="DeviceAdded">
+      <arg name="device" type="(ss)"/>
+    </signal>
+    <signal name="DeviceRemoved">
+      <arg name="device" type="(ss)"/>
     </signal>
   </interface>
 </node>

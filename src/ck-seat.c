@@ -53,11 +53,13 @@
 #define CK_DBUS_PATH "/org/freedesktop/ConsoleKit"
 #define CK_DBUS_NAME "org.freedesktop.ConsoleKit"
 
+
 struct CkSeatPrivate
 {
         char            *id;
         CkSeatKind       kind;
         GHashTable      *sessions;
+        GPtrArray       *devices;
 
         CkSession       *active_session;
 
@@ -70,6 +72,8 @@ enum {
         ACTIVE_SESSION_CHANGED,
         SESSION_ADDED,
         SESSION_REMOVED,
+        DEVICE_ADDED,
+        DEVICE_REMOVED,
         LAST_SIGNAL
 };
 
@@ -605,6 +609,60 @@ ck_seat_can_activate_sessions (CkSeat   *seat,
         return TRUE;
 }
 
+static gboolean
+ck_seat_has_device (CkSeat      *seat,
+                    GValueArray *device,
+                    gboolean    *result,
+                    GError      *error)
+{
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        return TRUE;
+}
+
+gboolean
+ck_seat_add_device (CkSeat         *seat,
+                    GValueArray    *device,
+                    GError        **error)
+{
+        gboolean present;
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        /* FIXME: check if already present */
+        present = FALSE;
+        ck_seat_has_device (seat, device, &present, NULL);
+        if (present) {
+                g_set_error (error, CK_SEAT_ERROR, CK_SEAT_ERROR_GENERAL, "%s", "Device already present");
+                return FALSE;
+        }
+
+        g_ptr_array_add (seat->priv->devices, g_boxed_copy (CK_TYPE_DEVICE, device));
+
+        g_debug ("Emitting device added signal");
+
+        g_signal_emit (seat, signals [DEVICE_ADDED], 0, device);
+
+        return TRUE;
+}
+
+gboolean
+ck_seat_remove_device (CkSeat         *seat,
+                       GValueArray    *device,
+                       GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        /* FIXME: check if already present */
+        if (0) {
+                g_debug ("Emitting device removed signal");
+
+                g_signal_emit (seat, signals [DEVICE_REMOVED], 0, device);
+        }
+
+        return TRUE;
+}
+
 gboolean
 ck_seat_get_kind (CkSeat        *seat,
                   CkSeatKind    *kind,
@@ -684,6 +742,38 @@ ck_seat_get_sessions (CkSeat         *seat,
 
         *sessions = g_ptr_array_new ();
         g_hash_table_foreach (seat->priv->sessions, (GHFunc)listify_session_ids, sessions);
+
+        return TRUE;
+}
+
+static void
+copy_devices (gpointer    data,
+              GPtrArray **array)
+{
+        g_ptr_array_add (*array, data);
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Seat1 \
+  org.freedesktop.ConsoleKit.Seat.GetDevices
+*/
+
+gboolean
+ck_seat_get_devices (CkSeat         *seat,
+                     GPtrArray     **devices,
+                     GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        if (devices == NULL) {
+                return FALSE;
+        }
+
+        *devices = g_ptr_array_sized_new (seat->priv->devices->len);
+        g_ptr_array_foreach (seat->priv->devices, (GFunc)copy_devices, devices);
 
         return TRUE;
 }
@@ -809,6 +899,25 @@ ck_seat_class_init (CkSeatClass *klass)
                                                   G_TYPE_NONE,
                                                   1, G_TYPE_STRING);
 
+        signals [DEVICE_ADDED] = g_signal_new ("device-added",
+                                               G_TYPE_FROM_CLASS (object_class),
+                                               G_SIGNAL_RUN_LAST,
+                                               G_STRUCT_OFFSET (CkSeatClass, device_added),
+                                               NULL,
+                                               NULL,
+                                               g_cclosure_marshal_VOID__BOXED,
+                                               G_TYPE_NONE,
+                                               1, CK_TYPE_DEVICE);
+        signals [DEVICE_REMOVED] = g_signal_new ("device-removed",
+                                                 G_TYPE_FROM_CLASS (object_class),
+                                                 G_SIGNAL_RUN_LAST,
+                                                 G_STRUCT_OFFSET (CkSeatClass, device_removed),
+                                                 NULL,
+                                                 NULL,
+                                                 g_cclosure_marshal_VOID__BOXED,
+                                                 G_TYPE_NONE,
+                                                 1, CK_TYPE_DEVICE);
+
         g_object_class_install_property (object_class,
                                          PROP_ID,
                                          g_param_spec_string ("id",
@@ -839,6 +948,7 @@ ck_seat_init (CkSeat *seat)
                                                       g_str_equal,
                                                       g_free,
                                                       (GDestroyNotify) g_object_unref);
+        seat->priv->devices = g_ptr_array_new ();
 }
 
 static void
@@ -861,6 +971,7 @@ ck_seat_finalize (GObject *object)
                 g_object_unref (seat->priv->active_session);
         }
 
+        g_ptr_array_free (seat->priv->devices, TRUE);
         g_hash_table_destroy (seat->priv->sessions);
         g_free (seat->priv->id);
 
@@ -886,4 +997,112 @@ ck_seat_new (const char *sid,
         }
 
         return CK_SEAT (object);
+}
+
+CkSeat *
+ck_seat_new_with_devices (const char *sid,
+                          CkSeatKind  kind,
+                          GPtrArray  *devices)
+{
+        GObject *object;
+        gboolean res;
+        int      i;
+
+        object = g_object_new (CK_TYPE_SEAT,
+                               "id", sid,
+                               "kind", kind,
+                               NULL);
+
+        if (devices != NULL) {
+                for (i = 0; i < devices->len; i++) {
+                        ck_seat_add_device (CK_SEAT (object), g_ptr_array_index (devices, i), NULL);
+                }
+        }
+
+        res = register_seat (CK_SEAT (object));
+        if (! res) {
+                g_object_unref (object);
+                return NULL;
+        }
+
+        return CK_SEAT (object);
+}
+
+CkSeat *
+ck_seat_new_from_file (const char *sid,
+                       const char *path)
+{
+        GKeyFile  *key_file;
+        gboolean   res;
+        GError    *error;
+        char      *group;
+        CkSeat    *seat;
+        gboolean   hidden;
+        GPtrArray *devices;
+        char     **device_list;
+        gsize      ndevices;
+        gsize      i;
+
+        key_file = g_key_file_new ();
+        error = NULL;
+        res = g_key_file_load_from_file (key_file,
+                                         path,
+                                         G_KEY_FILE_NONE,
+                                         &error);
+        if (! res) {
+                g_warning ("Unable to load seats from file %s: %s", path, error->message);
+                g_error_free (error);
+                return NULL;
+        }
+
+        group = g_key_file_get_start_group (key_file);
+        if (group == NULL || strcmp (group, "Seat Entry") != 0) {
+                g_warning ("Not a seat file: %s", path);
+                return NULL;
+        }
+
+        hidden = g_key_file_get_boolean (key_file, group, "Hidden", NULL);
+        if (hidden) {
+                g_debug ("Seat is hidden");
+                return NULL;
+        }
+
+        device_list = g_key_file_get_string_list (key_file, group, "Devices", &ndevices, NULL);
+
+        g_debug ("Creating seat %s with %d devices", sid, ndevices);
+
+        devices = g_ptr_array_sized_new (ndevices);
+
+        for (i = 0; i < ndevices; i++) {
+                char **split;
+                GValue device_val = { 0, };
+
+                split = g_strsplit (device_list[i], ":", 2);
+
+                if (split == NULL) {
+                        continue;
+                }
+
+                g_debug ("Adding device: %s %s", split[0], split[1]);
+
+                g_value_init (&device_val, CK_TYPE_DEVICE);
+                g_value_take_boxed (&device_val,
+                                    dbus_g_type_specialized_construct (CK_TYPE_DEVICE));
+                dbus_g_type_struct_set (&device_val,
+                                        0, split[0],
+                                        1, split[1],
+                                        G_MAXUINT);
+
+                g_ptr_array_add (devices, g_value_get_boxed (&device_val));
+
+                g_strfreev (split);
+        }
+
+        g_free (group);
+
+        seat = ck_seat_new_with_devices (sid, CK_SEAT_KIND_STATIC, devices);
+
+        g_ptr_array_free (devices, TRUE);
+
+        return seat;
 }

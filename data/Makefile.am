@@ -3,6 +3,9 @@ NULL =
 dbusconfdir = $(DBUS_SYS_DIR)
 dbusconf_DATA = ConsoleKit.conf
 
+seatdir = $(sysconfdir)/ConsoleKit/seats.d
+seat_DATA = 00-primary.seat
+
 SCRIPT_IN_FILES = ConsoleKit.in
 initddir=$(sysconfdir)/rc.d/init.d
 initd_SCRIPTS= 		\
@@ -21,6 +24,7 @@ edit = sed \
 
 EXTRA_DIST =						\
 	$(dbusconf_DATA)				\
+	$(seat_DATA)					\
 	$(SCRIPT_IN_FILES)				\
 	$(NULL)
 

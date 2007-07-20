@@ -47,6 +47,8 @@
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
 
+#define CK_SEAT_DIR SYSCONFDIR "/ConsoleKit/seats.d"
+
 #define CK_DBUS_PATH         "/org/freedesktop/ConsoleKit"
 #define CK_MANAGER_DBUS_PATH CK_DBUS_PATH "/Manager"
 #define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"
@@ -1545,11 +1547,59 @@ ck_manager_get_seats (CkManager  *manager,
 }
 
 static void
-create_seats (CkManager *manager)
+add_seat_for_file (CkManager  *manager,
+                   const char *filename)
 {
+        char   *sid;
         CkSeat *seat;
 
-        seat = add_new_seat (manager, CK_SEAT_KIND_STATIC);
+        sid = generate_seat_id (manager);
+
+        seat = ck_seat_new_from_file (sid, filename);
+        if (seat == NULL) {
+                /* returns null if connection to bus fails */
+                g_free (sid);
+                return;
+        }
+
+        g_hash_table_insert (manager->priv->seats, sid, seat);
+
+        g_debug ("Added seat: %s", sid);
+
+        g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
+}
+
+static gboolean
+load_seats_from_dir (CkManager *manager)
+{
+        GDir   *d;
+        GError *error;
+        char   *file;
+
+        error = NULL;
+        d = g_dir_open (CK_SEAT_DIR,
+                        0,
+                        &error);
+        if (d == NULL) {
+                g_warning ("Couldn't open seat dir: %s", error->message);
+                g_error_free (error);
+                return FALSE;
+        }
+
+        while ((file = g_dir_read_name (d)) != NULL) {
+                char *path;
+                path = g_build_filename (CK_SEAT_DIR, file, NULL);
+                add_seat_for_file (manager, path);
+                g_free (path);
+        }
+
+        g_dir_close (d);
+}
+
+static void
+create_seats (CkManager *manager)
+{
+        load_seats_from_dir (manager);
 }
 
 static void
