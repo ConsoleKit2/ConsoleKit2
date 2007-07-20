@@ -84,12 +84,13 @@ get_peer_pid (int fd)
 }
 
 static Display *
-display_init (int *argc, char ***argv)
+display_init (char *display_name)
 {
-        const char *display_name;
         Display    *xdisplay;
 
-        display_name = g_getenv ("DISPLAY");
+        if (display_name == NULL) {
+                display_name = g_getenv ("DISPLAY");
+        }
 
         if (display_name == NULL) {
                 g_warning ("DISPLAY is not set");
@@ -112,10 +113,23 @@ main (int    argc,
         int      fd;
         int      ret;
         Display *xdisplay;
+        static char *display = NULL;
+        GError             *error;
+        GOptionContext     *context;
+        static GOptionEntry entries [] = {
+                { "display", 0, 0, G_OPTION_ARG_STRING, &display, "display name", NULL },
+                { NULL }
+        };
 
         ret = 1;
 
-        xdisplay = display_init (&argc, &argv);
+        context = g_option_context_new (NULL);
+        g_option_context_add_main_entries (context, entries, NULL);
+        error = NULL;
+        ret = g_option_context_parse (context, &argc, &argv, &error);
+        g_option_context_free (context);
+
+        xdisplay = display_init (display);
 
         fd = ConnectionNumber (xdisplay);
 
