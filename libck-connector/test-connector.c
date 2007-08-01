@@ -58,7 +58,7 @@ main (int argc, char *argv[])
         dbus_error_init (&error);
         res = ck_connector_open_session_with_parameters (connector,
                                                          &error,
-                                                         "user", &user,
+                                                         "unix-user", &user,
                                                          "display-device", &display_device,
                                                          "x11-display", &x11_display,
                                                          "remote-host-name", &remote_host_name,
