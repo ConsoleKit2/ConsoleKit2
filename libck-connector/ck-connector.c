@@ -79,7 +79,7 @@ static struct {
         { "remote-host-name",   DBUS_TYPE_STRING },
         { "session-type",       DBUS_TYPE_STRING },
         { "is-local",           DBUS_TYPE_BOOLEAN },
-        { "user",               DBUS_TYPE_INT32 },
+        { "unix-user",          DBUS_TYPE_INT32 },
 };
 
 static int
@@ -500,7 +500,7 @@ out:
  * dbus_error_init (&error);
  * ck_connector_open_session_with_parameters (connector,
  *                                            &error,
- *                                            "user", &v_INT32,
+ *                                            "unix-user", &v_INT32,
  *                                            "display-device", &v_STRING,
  *                                            NULL);
  * @endcode
@@ -566,7 +566,7 @@ ck_connector_open_session_for_user (CkConnector *connector,
                                                          error,
                                                          "display-device", &display_device,
                                                          "x11-display", &x11_display,
-                                                         "user", &user,
+                                                         "unix-user", &user,
                                                          NULL);
         return ret;
 }
