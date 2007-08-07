@@ -178,12 +178,18 @@ void
 ck_log_init (void)
 {
         const char *prg_name;
+        int         options;
 
         g_log_set_default_handler (ck_log_default_handler, NULL);
 
         prg_name = g_get_prgname ();
 
-        openlog (prg_name, LOG_PERROR|LOG_PID, LOG_DAEMON);
+        options = LOG_PID;
+#ifdef LOG_PERROR
+        options |= LOG_PERROR;
+#endif
+
+        openlog (prg_name, options, LOG_DAEMON);
 
         initialized = TRUE;
 }
