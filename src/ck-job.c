@@ -44,8 +44,8 @@ struct CkJobPrivate
         guint       out_watch_id;
 
         char       *command;
-        GString    *stdout;
-        GString    *stderr;
+        GString    *std_out;
+        GString    *std_err;
         GPid        child_pid;
 
 };
@@ -138,7 +138,7 @@ error_watch (GIOChannel   *source,
                 switch (status) {
                 case G_IO_STATUS_NORMAL:
                         g_debug ("command error output: %s", line);
-                        g_string_append (job->priv->stderr, line);
+                        g_string_append (job->priv->std_err, line);
                         break;
                 case G_IO_STATUS_EOF:
                         finished = TRUE;
@@ -183,7 +183,7 @@ out_watch (GIOChannel   *source,
                 switch (status) {
                 case G_IO_STATUS_NORMAL:
                         g_debug ("command output: %s", line);
-                        g_string_append (job->priv->stdout, line);
+                        g_string_append (job->priv->std_out, line);
                         break;
                 case G_IO_STATUS_EOF:
                         finished = TRUE;
@@ -281,10 +281,10 @@ ck_job_execute (CkJob   *job,
 
 gboolean
 ck_job_get_stdout (CkJob *job,
-                   char **stdout)
+                   char **std_outp)
 {
-        if (stdout != NULL) {
-                *stdout = g_strdup (job->priv->stdout->str);
+        if (std_outp != NULL) {
+                *std_outp = g_strdup (job->priv->std_out->str);
         }
         return TRUE;
 }
@@ -335,8 +335,8 @@ ck_job_init (CkJob *job)
 {
         job->priv = CK_JOB_GET_PRIVATE (job);
 
-        job->priv->stderr = g_string_new (NULL);
-        job->priv->stdout = g_string_new (NULL);
+        job->priv->std_err = g_string_new (NULL);
+        job->priv->std_out = g_string_new (NULL);
 }
 
 gboolean
@@ -374,8 +374,8 @@ ck_job_finalize (GObject *object)
                 g_source_remove (job->priv->err_watch_id);
         }
         g_free (job->priv->command);
-        g_string_free (job->priv->stdout, TRUE);
-        g_string_free (job->priv->stderr, TRUE);
+        g_string_free (job->priv->std_out, TRUE);
+        g_string_free (job->priv->std_err, TRUE);
 
         G_OBJECT_CLASS (ck_job_parent_class)->finalize (object);
 }
