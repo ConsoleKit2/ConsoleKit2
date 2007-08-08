@@ -352,6 +352,7 @@ echo "
 	compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
         Base libs:                ${CONSOLE_KIT_LIBS}
+        Tools libs:               ${TOOLS_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
 
         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
