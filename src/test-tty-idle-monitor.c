@@ -23,10 +23,18 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
+
+#ifdef __linux__
+#include <linux/kd.h>
+#endif
 
 #include <locale.h>
 
@@ -40,6 +48,35 @@ idle_changed_cb (CkTtyIdleMonitor *monitor,
                  gpointer          data)
 {
         g_message ("idle hint changed: %s", idle_hint ? "idle" : "not idle");
+}
+
+static gboolean
+is_console (const char *device)
+{
+        int      fd;
+        gboolean ret;
+        int      kb_ok;
+        char     arg;
+
+        ret = FALSE;
+        fd = open (device, O_RDONLY | O_NOCTTY);
+        if (fd < 0) {
+                goto out;
+        }
+
+#ifdef __linux__
+        kb_ok = (ioctl (fd, KDGKBTYPE, &arg) == 0
+                 && ((arg == KB_101) || (arg == KB_84)));
+#else
+        kb_ok = 1;
+#endif
+
+        ret = (isatty (fd) && kb_ok);
+
+        close (fd);
+
+ out:
+        return ret;
 }
 
 int
@@ -59,6 +96,13 @@ main (int argc, char **argv)
         } else {
                 device = g_strdup (argv[1]);
         }
+
+        if (! is_console (device)) {
+                g_warning ("Device is not a console");
+                exit (1);
+        }
+
+        g_message ("Testing the TTY idle monitor.\n1. Wait for idleness to be detected.\n2. Hit keys on the keyboard to see if activity is noticed.");
 
         monitor = ck_tty_idle_monitor_new (device);
 
