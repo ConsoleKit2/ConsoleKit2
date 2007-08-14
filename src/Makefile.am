@@ -23,6 +23,30 @@ INCLUDES =							\
 	$(DBUS_CFLAGS)						\
 	$(NULL)
 
+noinst_LTLIBRARIES =            \
+        libckproc.la         	\
+        $(NULL)
+
+libckproc_la_SOURCES =		\
+	proc.h			\
+	$(NULL)
+
+if CK_COMPILE_LINUX
+libckproc_la_SOURCES +=		\
+	proc-linux.c		\
+	$(NULL)
+endif
+if CK_COMPILE_SOLARIS
+libckproc_la_SOURCES +=		\
+	proc-solaris.c		\
+	$(NULL)
+endif
+
+EXTRA_libckproc_la_SOURCES =		\
+	proc-linux.c			\
+	proc-solaris.c			\
+	$(NULL)
+
 sbin_PROGRAMS = 		\
 	console-kit-daemon	\
 	$(NULL)
@@ -49,17 +73,6 @@ ck-marshal.c: ck-marshal.list
 ck-marshal.h: ck-marshal.list
 	@GLIB_GENMARSHAL@ $< --prefix=ck_marshal --header > $@
 
-if CK_COMPILE_LINUX
-PLATFORM_SOURCES =		\
-	proc-linux.c		\
-	$(NULL)
-endif
-if CK_COMPILE_SOLARIS
-PLATFORM_SOURCES =		\
-	proc-solaris.c		\
-	$(NULL)
-endif
-
 console_kit_daemon_SOURCES =	\
 	main.c			\
 	ck-manager.h		\
@@ -79,7 +92,6 @@ console_kit_daemon_SOURCES =	\
 	ck-log.c		\
 	getfd.c			\
 	proc.h			\
-	$(PLATFORM_SOURCES)	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -94,12 +106,11 @@ console_kit_daemon_SOURCES += $(FILE_MONITOR_BACKEND)
 EXTRA_console_kit_daemon_SOURCES = 	\
 	ck-file-monitor-inotify.c	\
 	ck-file-monitor-dummy.c		\
-	proc-linux.c			\
-	proc-solaris.c			\
 	$(NULL)
 
 console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
+	libckproc.la		\
 	$(NULL)
 
 noinst_PROGRAMS = 			\

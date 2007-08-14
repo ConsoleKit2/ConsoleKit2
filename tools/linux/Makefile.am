@@ -30,13 +30,12 @@ libexec_PROGRAMS = 			\
 	$(NULL)
 
 ck_collect_session_info_SOURCES =	\
-	$(top_srcdir)/src/proc.h	\
-	$(top_srcdir)/src/proc-linux.c	\
 	ck-collect-session-info.c	\
 	$(NULL)
 
 ck_collect_session_info_LDADD =		\
 	$(TOOLS_LIBS)			\
+	$(top_builddir)/src/libckproc.la\
 	$(NULL)
 
 ck_get_x11_server_pid_SOURCES =		\
@@ -45,16 +44,16 @@ ck_get_x11_server_pid_SOURCES =		\
 
 ck_get_x11_server_pid_LDADD =		\
 	$(TOOLS_LIBS)			\
+	$(top_builddir)/src/libckproc.la\
 	$(NULL)
 
 ck_get_x11_display_device_SOURCES =		\
-	$(top_srcdir)/src/proc.h	\
-	$(top_srcdir)/src/proc-linux.c	\
 	ck-get-x11-display-device.c		\
 	$(NULL)
 
 ck_get_x11_display_device_LDADD =		\
 	$(TOOLS_LIBS)			\
+	$(top_builddir)/src/libckproc.la\
 	$(NULL)
 
 EXTRA_DIST =				\
