@@ -2,4 +2,4 @@
 Version=1.0
 Name=Primary seat
 Hidden=false
-Devices=linux-sysfs:/sys/devices/pci0000:00/0000:00:01.0;
+Devices=
