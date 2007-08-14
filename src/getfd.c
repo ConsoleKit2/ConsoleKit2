@@ -9,7 +9,10 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
+#ifdef __linux__
 #include <linux/kd.h>
+#endif
 #include <sys/ioctl.h>
 
 #ifdef HAVE_PATHS_H
@@ -28,11 +31,18 @@ static int
 is_a_console (int fd)
 {
     char arg;
+    int  kb_ok;
 
     arg = 0;
-    return (isatty (fd)
-            && ioctl (fd, KDGKBTYPE, &arg) == 0
-	    && ((arg == KB_101) || (arg == KB_84)));
+
+#ifdef __linux__
+    kb_ok = (ioctl (fd, KDGKBTYPE, &arg) == 0
+             && ((arg == KB_101) || (arg == KB_84)));
+#else
+    kb_ok = 1;
+#endif
+
+    return (isatty (fd) && kb_ok);
 }
 
 static int
@@ -59,17 +69,21 @@ int getfd (void)
 {
     int fd;
 
+#ifdef _PATH_TTY
     fd = open_a_console (_PATH_TTY);
     if (fd >= 0)
       return fd;
+#endif
 
     fd = open_a_console ("/dev/tty");
     if (fd >= 0)
       return fd;
 
+#ifdef _PATH_CONSOLE
     fd = open_a_console (_PATH_CONSOLE);
     if (fd >= 0)
       return fd;
+#endif
 
     fd = open_a_console ("/dev/console");
     if (fd >= 0)

@@ -140,11 +140,13 @@ dnl ---------------------------------------------------------------------------
 CK_BACKEND=""
 case "$host" in
         *-*-freebsd*)
+        CK_BACKEND="freebsd"
         ;;
         *-*-linux*)
         CK_BACKEND="linux"
         ;;
         *-*-solaris*)
+        CK_BACKEND="solaris"
         ;;
 esac
 

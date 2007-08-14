@@ -49,9 +49,16 @@ ck-marshal.c: ck-marshal.list
 ck-marshal.h: ck-marshal.list
 	@GLIB_GENMARSHAL@ $< --prefix=ck_marshal --header > $@
 
+if CK_COMPILE_LINUX
 PLATFORM_SOURCES =		\
 	proc-linux.c		\
 	$(NULL)
+endif
+if CK_COMPILE_SOLARIS
+PLATFORM_SOURCES =		\
+	proc-solaris.c		\
+	$(NULL)
+endif
 
 console_kit_daemon_SOURCES =	\
 	main.c			\
@@ -87,6 +94,8 @@ console_kit_daemon_SOURCES += $(FILE_MONITOR_BACKEND)
 EXTRA_console_kit_daemon_SOURCES = 	\
 	ck-file-monitor-inotify.c	\
 	ck-file-monitor-dummy.c		\
+	proc-linux.c			\
+	proc-solaris.c			\
 	$(NULL)
 
 console_kit_daemon_LDADD =	\
