@@ -54,8 +54,7 @@ main (int argc, char **argv)
         if (argc < 2) {
                 device = g_file_read_link ("/proc/self/fd/0", NULL);
                 if (device == NULL) {
-                        g_warning ("%s not a link", "/proc/self/fd/0");
-                        exit (1);
+                        device = g_strdup ("/proc/self/fd/0");
                 }
         } else {
                 device = g_strdup (argv[1]);
