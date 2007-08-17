@@ -56,7 +56,7 @@ ck_collect_session_info_SOURCES =	\
 
 ck_collect_session_info_LDADD =		\
 	$(TOOLS_LIBS)			\
-	$(top_builddir)/src/libckproc.la\
+	$(top_builddir)/src/libck.la	\
 	$(NULL)
 
 ck_get_x11_server_pid_SOURCES =		\
@@ -65,7 +65,7 @@ ck_get_x11_server_pid_SOURCES =		\
 
 ck_get_x11_server_pid_LDADD =		\
 	$(TOOLS_LIBS)			\
-	$(top_builddir)/src/libckproc.la\
+	$(top_builddir)/src/libck.la	\
 	$(NULL)
 
 ck_get_x11_display_device_SOURCES =	\
@@ -74,7 +74,7 @@ ck_get_x11_display_device_SOURCES =	\
 
 ck_get_x11_display_device_LDADD =	\
 	$(TOOLS_LIBS)			\
-	$(top_builddir)/src/libckproc.la\
+	$(top_builddir)/src/libck.la	\
 	$(NULL)
 
 

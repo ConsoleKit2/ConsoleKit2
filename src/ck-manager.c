@@ -43,7 +43,7 @@
 #include "ck-job.h"
 #include "ck-marshal.h"
 
-#include "proc.h"
+#include "ck-sysdeps.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
 
@@ -933,15 +933,15 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                    const char            *cookie,
                                    DBusGMethodInvocation *context)
 {
-        gboolean     res;
-        char        *sender;
-        uid_t        calling_uid;
-        pid_t        calling_pid;
-        proc_stat_t *stat;
-        char        *ssid;
-        CkSession   *session;
-        LeaderInfo  *leader_info;
-        GError      *local_error;
+        gboolean       res;
+        char          *sender;
+        uid_t          calling_uid;
+        pid_t          calling_pid;
+        CkProcessStat *stat;
+        char          *ssid;
+        CkSession     *session;
+        LeaderInfo    *leader_info;
+        GError        *local_error;
 
         ssid = NULL;
 
@@ -964,7 +964,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
         }
 
         local_error = NULL;
-        res = proc_stat_new_for_pid (calling_pid, &stat, &local_error);
+        res = ck_process_stat_new_for_unix_pid (calling_pid, &stat, &local_error);
         if (! res) {
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
@@ -982,7 +982,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
         }
 
         /* FIXME: should we restrict this by uid? */
-        proc_stat_free (stat);
+        ck_process_stat_free (stat);
 
         leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
         if (leader_info == NULL) {
@@ -1023,7 +1023,7 @@ get_cookie_for_pid (CkManager *manager,
 
         /* FIXME: need a better way to get the cookie */
 
-        cookie = proc_pid_get_env (pid, "XDG_SESSION_COOKIE");
+        cookie = ck_unix_pid_get_env (pid, "XDG_SESSION_COOKIE");
 
         return cookie;
 }
@@ -1040,13 +1040,13 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                                          guint                  pid,
                                          DBusGMethodInvocation *context)
 {
-        gboolean     res;
-        char        *sender;
-        uid_t        calling_uid;
-        pid_t        calling_pid;
-        proc_stat_t *stat;
-        char        *cookie;
-        GError      *error;
+        gboolean       res;
+        char          *sender;
+        uid_t          calling_uid;
+        pid_t          calling_pid;
+        CkProcessStat *stat;
+        char          *cookie;
+        GError        *error;
 
         sender = dbus_g_method_get_sender (context);
 
@@ -1067,7 +1067,7 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
         }
 
         error = NULL;
-        res = proc_stat_new_for_pid (calling_pid, &stat, &error);
+        res = ck_process_stat_new_for_unix_pid (calling_pid, &stat, &error);
         if (! res) {
                 GError *error;
                 g_debug ("stat on pid %d failed", calling_pid);
@@ -1082,7 +1082,7 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
 
         /* FIXME: check stuff? */
 
-        proc_stat_free (stat);
+        ck_process_stat_free (stat);
 
         cookie = get_cookie_for_pid (manager, pid);
         if (cookie == NULL) {
@@ -1572,9 +1572,9 @@ add_seat_for_file (CkManager  *manager,
 static gboolean
 load_seats_from_dir (CkManager *manager)
 {
-        GDir   *d;
-        GError *error;
-        char   *file;
+        GDir       *d;
+        GError     *error;
+        const char *file;
 
         error = NULL;
         d = g_dir_open (CK_SEAT_DIR,
@@ -1594,6 +1594,8 @@ load_seats_from_dir (CkManager *manager)
         }
 
         g_dir_close (d);
+
+        return TRUE;
 }
 
 static void

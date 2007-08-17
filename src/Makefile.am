@@ -24,27 +24,27 @@ INCLUDES =							\
 	$(NULL)
 
 noinst_LTLIBRARIES =            \
-        libckproc.la         	\
+        libck.la         	\
         $(NULL)
 
-libckproc_la_SOURCES =		\
-	proc.h			\
+libck_la_SOURCES =		\
+	ck-sysdeps.h		\
 	$(NULL)
 
 if CK_COMPILE_LINUX
-libckproc_la_SOURCES +=		\
-	proc-linux.c		\
+libck_la_SOURCES +=		\
+	ck-sysdeps-linux.c	\
 	$(NULL)
 endif
 if CK_COMPILE_SOLARIS
-libckproc_la_SOURCES +=		\
-	proc-solaris.c		\
+libck_la_SOURCES +=		\
+	ck-sysdeps-solaris.c	\
 	$(NULL)
 endif
 
-EXTRA_libckproc_la_SOURCES =		\
-	proc-linux.c			\
-	proc-solaris.c			\
+EXTRA_libck_la_SOURCES =		\
+	ck-sysdeps-linux.c		\
+	ck-sysdeps-solaris.c		\
 	$(NULL)
 
 sbin_PROGRAMS = 		\
@@ -91,7 +91,6 @@ console_kit_daemon_SOURCES =	\
 	ck-log.h		\
 	ck-log.c		\
 	getfd.c			\
-	proc.h			\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -110,7 +109,7 @@ EXTRA_console_kit_daemon_SOURCES = 	\
 
 console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
-	libckproc.la		\
+	libck.la		\
 	$(NULL)
 
 noinst_PROGRAMS = 			\

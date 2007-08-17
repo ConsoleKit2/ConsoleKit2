@@ -38,10 +38,10 @@
 #include <sys/procfs.h>
 #define NO_TTY_VALUE DEV_ENCODE(-1,-1)
 
-#include "proc.h"
+#include "ck-sysdeps.h"
 
 /* adapted from procps */
-struct _proc_stat_t
+struct _CkProcessStat
 {
         int pid;
         int ppid;                       /* stat,status     pid of parent process */
@@ -84,7 +84,7 @@ struct _proc_stat_t
 };
 
 pid_t
-proc_stat_get_ppid (proc_stat_t *stat)
+ck_process_stat_get_ppid (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, -1);
 
@@ -92,7 +92,7 @@ proc_stat_get_ppid (proc_stat_t *stat)
 }
 
 char *
-proc_stat_get_cmd (proc_stat_t *stat)
+ck_process_stat_get_cmd (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, NULL);
 
@@ -101,7 +101,7 @@ proc_stat_get_cmd (proc_stat_t *stat)
 
 /* adapted from procps */
 char *
-proc_stat_get_tty (proc_stat_t *stat)
+ck_process_stat_get_tty (CkProcessStat *stat)
 {
         guint dev;
         char *tty;
@@ -117,7 +117,7 @@ proc_stat_get_tty (proc_stat_t *stat)
 /* return 1 if it works, or 0 for failure */
 static gboolean
 stat2proc (pid_t        pid,
-           proc_stat_t *P)
+           CkProcessStat *P)
 {
         struct psinfo p;
         char          buf[32];
@@ -187,16 +187,16 @@ stat2proc (pid_t        pid,
 }
 
 gboolean
-proc_stat_new_for_pid (pid_t         pid,
-                       proc_stat_t **stat,
-                       GError      **error)
+ck_process_stat_new_for_unix_pid (pid_t           pid,
+                                  CkProcessStat **stat,
+                                  GError        **error)
 {
         char        *path;
         char        *contents;
         gsize        length;
         gboolean     res;
         GError      *local_error;
-        proc_stat_t *proc;
+        CkProcessStat *proc;
 
         g_return_val_if_fail (pid > 1, FALSE);
 
@@ -204,7 +204,7 @@ proc_stat_new_for_pid (pid_t         pid,
                 return FALSE;
         }
 
-        proc = g_new0 (proc_stat_t, 1);
+        proc = g_new0 (CkProcessStat, 1);
         proc->pid = pid;
         res = stat2proc (pid, proc);
         if (res) {
@@ -218,7 +218,7 @@ proc_stat_new_for_pid (pid_t         pid,
 }
 
 void
-proc_stat_free (proc_stat_t *stat)
+ck_process_stat_free (CkProcessStat *stat)
 {
         g_free (stat);
 }
@@ -228,13 +228,13 @@ proc_pid_get_env_hash (pid_t pid)
 {
         GHashTable  *hash;
         gboolean     res;
-        proc_stat_t *stat;
+        CkProcessStat *stat;
         char        *env[400];
         char         buf[BUFSIZ];
         int          fd;
         int          i;
 
-        res = proc_stat_new_for_pid (pid, &stat, NULL);
+        res = ck_process_stat_new_for_unix_pid (pid, &stat, NULL);
         if (! res) {
                 goto out;
         }
@@ -302,22 +302,22 @@ proc_pid_get_uid (pid_t pid)
 pid_t
 proc_pid_get_ppid (pid_t pid)
 {
-        int          ppid;
-        gboolean     res;
-        proc_stat_t *stat;
+        int            ppid;
+        gboolean       res;
+        CkProcessStat *stat;
 
         g_return_val_if_fail (pid > 1, 0);
 
         ppid = -1;
 
-        res = proc_stat_new_for_pid (pid, &stat, NULL);
+        res = ck_process_stat_new_for_unix_pid (pid, &stat, NULL);
         if (! res) {
                 goto out;
         }
 
-        ppid = proc_stat_get_ppid (stat);
+        ppid = ck_process_stat_get_ppid (stat);
 
-        proc_stat_free (stat);
+        ck_process_stat_free (stat);
 
  out:
         return ppid;

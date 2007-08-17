@@ -32,7 +32,7 @@
 
 #include <glib.h>
 
-#include "proc.h"
+#include "ck-sysdeps.h"
 
 typedef struct {
         uid_t    uid;
@@ -108,7 +108,7 @@ get_filtered_environment (pid_t pid)
 
         g_ptr_array_add (env, g_strdup ("PATH=/bin:/usr/bin"));
 
-        hash = proc_pid_get_env_hash (pid);
+        hash = ck_unix_pid_get_env_hash (pid);
 
         for (i = 0; i < G_N_ELEMENTS (allowed_env_vars); i++) {
                 const char *var;
@@ -221,14 +221,14 @@ get_x11_server_pid (SessionInfo *si,
 static void
 fill_x11_info (SessionInfo *si)
 {
-        guint        xorg_pid;
-        gboolean     can_connect;
-        gboolean     res;
-        proc_stat_t *xorg_stat;
-        GError      *error;
+        guint          xorg_pid;
+        gboolean       can_connect;
+        gboolean       res;
+        CkProcessStat *xorg_stat;
+        GError        *error;
 
         /* assume this is true then check it */
-        si->x11_display = proc_pid_get_env (si->pid, "DISPLAY");
+        si->x11_display = ck_unix_pid_get_env (si->pid, "DISPLAY");
 
         if (si->x11_display == NULL) {
                 /* no point continuing */
@@ -261,7 +261,7 @@ fill_x11_info (SessionInfo *si)
         }
 
         error = NULL;
-        res = proc_stat_new_for_pid (xorg_pid, &xorg_stat, &error);
+        res = ck_process_stat_new_for_unix_pid (xorg_pid, &xorg_stat, &error);
         if (! res) {
                 if (error != NULL) {
                         g_warning ("stat on pid %d failed: %s", xorg_pid, error->message);
@@ -271,8 +271,8 @@ fill_x11_info (SessionInfo *si)
                 return;
         }
 
-        si->x11_display_device = proc_stat_get_tty (xorg_stat);
-        proc_stat_free (xorg_stat);
+        si->x11_display_device = ck_process_stat_get_tty (xorg_stat);
+        ck_process_stat_free (xorg_stat);
 
         si->is_local = TRUE;
         si->is_local_is_set = TRUE;
@@ -284,12 +284,12 @@ fill_x11_info (SessionInfo *si)
 static gboolean
 fill_session_info (SessionInfo *si)
 {
-        proc_stat_t *stat;
-        GError      *error;
-        gboolean     res;
+        CkProcessStat *stat;
+        GError        *error;
+        gboolean       res;
 
         error = NULL;
-        res = proc_stat_new_for_pid (si->pid, &stat, &error);
+        res = ck_process_stat_new_for_unix_pid (si->pid, &stat, &error);
         if (! res) {
                 if (error != NULL) {
                         g_warning ("stat on pid %d failed: %s", si->pid, error->message);
@@ -299,9 +299,9 @@ fill_session_info (SessionInfo *si)
                 return FALSE;
         }
 
-        si->display_device = proc_stat_get_tty (stat);
-        si->session_type = proc_stat_get_cmd (stat);
-        proc_stat_free (stat);
+        si->display_device = ck_process_stat_get_tty (stat);
+        si->session_type = ck_process_stat_get_cmd (stat);
+        ck_process_stat_free (stat);
 
         fill_x11_info (si);
 

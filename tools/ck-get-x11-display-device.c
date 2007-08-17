@@ -32,18 +32,18 @@
 #include <X11/Xlib.h>
 #include <glib.h>
 
-#include "proc.h"
+#include "ck-sysdeps.h"
 
 static char *
 get_tty_for_pid (int pid)
 {
-        GError *error;
-        char   *device;
-        gboolean res;
-        proc_stat_t *xorg_stat;
+        GError        *error;
+        char          *device;
+        gboolean       res;
+        CkProcessStat *xorg_stat;
 
         error = NULL;
-        res = proc_stat_new_for_pid (pid, &xorg_stat, &error);
+        res = ck_process_stat_new_for_unix_pid (pid, &xorg_stat, &error);
         if (! res) {
                 if (error != NULL) {
                         g_warning ("stat on pid %d failed: %s", pid, error->message);
@@ -53,8 +53,8 @@ get_tty_for_pid (int pid)
                 return NULL;
         }
 
-        device = proc_stat_get_tty (xorg_stat);
-        proc_stat_free (xorg_stat);
+        device = ck_process_stat_get_tty (xorg_stat);
+        ck_process_stat_free (xorg_stat);
         return device;
 }
 
@@ -84,7 +84,7 @@ get_peer_pid (int fd)
 }
 
 static Display *
-display_init (char *display_name)
+display_init (const char *display_name)
 {
         Display    *xdisplay;
 

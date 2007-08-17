@@ -32,10 +32,10 @@
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
 
-#include "proc.h"
+#include "ck-sysdeps.h"
 
 /* adapted from procps */
-struct _proc_stat_t
+struct _CkProcessStat
 {
         int pid;
         int ppid;                       /* stat,status     pid of parent process */
@@ -111,7 +111,7 @@ load_drivers (void)
 
         buf[bytes] = '\0';
         p = buf;
-        while ((p = strstr (p, " " _PATH_DEV))){
+        while ((p = strstr (p, " " _PATH_DEV))) {
                 tty_map_node *tmn;
                 int len;
                 char *end;
@@ -263,7 +263,7 @@ link_name (guint       maj,
 }
 
 pid_t
-proc_stat_get_ppid (proc_stat_t *stat)
+ck_process_stat_get_ppid (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, -1);
 
@@ -271,7 +271,7 @@ proc_stat_get_ppid (proc_stat_t *stat)
 }
 
 char *
-proc_stat_get_cmd (proc_stat_t *stat)
+ck_process_stat_get_cmd (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, NULL);
 
@@ -280,7 +280,7 @@ proc_stat_get_cmd (proc_stat_t *stat)
 
 /* adapted from procps */
 char *
-proc_stat_get_tty (proc_stat_t *stat)
+ck_process_stat_get_tty (CkProcessStat *stat)
 {
         guint dev;
         char *tty;
@@ -328,8 +328,8 @@ proc_stat_get_tty (proc_stat_t *stat)
 #define KLF "l"
 /* adapted from procps */
 static void
-stat2proc (const char  *S,
-           proc_stat_t *P)
+stat2proc (const char    *S,
+           CkProcessStat *P)
 {
         unsigned num;
         char   * tmp;
@@ -392,16 +392,16 @@ stat2proc (const char  *S,
 }
 
 gboolean
-proc_stat_new_for_pid (pid_t         pid,
-                       proc_stat_t **stat,
-                       GError      **error)
+ck_process_stat_new_for_unix_pid (pid_t           pid,
+                                  CkProcessStat **stat,
+                                  GError        **error)
 {
-        char        *path;
-        char        *contents;
-        gsize        length;
-        gboolean     res;
-        GError      *local_error;
-        proc_stat_t *proc;
+        char          *path;
+        char          *contents;
+        gsize          length;
+        gboolean       res;
+        GError        *local_error;
+        CkProcessStat *proc;
 
         g_return_val_if_fail (pid > 1, FALSE);
 
@@ -418,7 +418,7 @@ proc_stat_new_for_pid (pid_t         pid,
                                    &length,
                                    &local_error);
         if (res) {
-                proc = g_new0 (proc_stat_t, 1);
+                proc = g_new0 (CkProcessStat, 1);
                 proc->pid = pid;
                 stat2proc (contents, proc);
                 *stat = proc;
@@ -434,13 +434,13 @@ proc_stat_new_for_pid (pid_t         pid,
 }
 
 void
-proc_stat_free (proc_stat_t *stat)
+ck_process_stat_free (CkProcessStat *stat)
 {
         g_free (stat);
 }
 
 GHashTable *
-proc_pid_get_env_hash (pid_t pid)
+ck_unix_pid_get_env_hash (pid_t pid)
 {
         char       *path;
         gboolean    res;
@@ -498,8 +498,8 @@ proc_pid_get_env_hash (pid_t pid)
 }
 
 char *
-proc_pid_get_env (pid_t       pid,
-                  const char *var)
+ck_unix_pid_get_env (pid_t       pid,
+                     const char *var)
 {
         char      *path;
         gboolean   res;
@@ -558,7 +558,7 @@ proc_pid_get_env (pid_t       pid,
 }
 
 uid_t
-proc_pid_get_uid (pid_t pid)
+ck_unix_pid_get_uid (pid_t pid)
 {
         struct stat st;
         char       *path;
@@ -581,24 +581,24 @@ proc_pid_get_uid (pid_t pid)
 }
 
 pid_t
-proc_pid_get_ppid (pid_t pid)
+ck_unix_pid_get_ppid (pid_t pid)
 {
-        int          ppid;
-        gboolean     res;
-        proc_stat_t *stat;
+        int            ppid;
+        gboolean       res;
+        CkProcessStat *stat;
 
         g_return_val_if_fail (pid > 1, 0);
 
         ppid = -1;
 
-        res = proc_stat_new_for_pid (pid, &stat, NULL);
+        res = ck_process_stat_new_for_unix_pid (pid, &stat, NULL);
         if (! res) {
                 goto out;
         }
 
-        ppid = proc_stat_get_ppid (stat);
+        ppid = ck_process_stat_get_ppid (stat);
 
-        proc_stat_free (stat);
+        ck_process_stat_free (stat);
 
  out:
         return ppid;
