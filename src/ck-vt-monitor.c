@@ -44,6 +44,7 @@
 #include <dbus/dbus-glib-lowlevel.h>
 
 #include "ck-vt-monitor.h"
+#include "ck-sysdeps.h"
 #include "ck-marshal.h"
 
 #define ERROR -1
@@ -430,8 +431,6 @@ ck_vt_monitor_class_init (CkVtMonitorClass *klass)
         g_type_class_add_private (klass, sizeof (CkVtMonitorPrivate));
 }
 
-extern int getfd (void);
-
 static void
 ck_vt_monitor_init (CkVtMonitor *vt_monitor)
 {
@@ -439,7 +438,7 @@ ck_vt_monitor_init (CkVtMonitor *vt_monitor)
 
         vt_monitor->priv = CK_VT_MONITOR_GET_PRIVATE (vt_monitor);
 
-        fd = getfd ();
+        fd = ck_get_a_console_fd ();
         vt_monitor->priv->vfd = fd;
 
         if (fd == ERROR) {

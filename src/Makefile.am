@@ -91,7 +91,6 @@ console_kit_daemon_SOURCES =	\
 	ck-session.c		\
 	ck-log.h		\
 	ck-log.c		\
-	getfd.c			\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -115,6 +114,18 @@ console_kit_daemon_LDADD =	\
 
 noinst_PROGRAMS = 			\
 	test-tty-idle-monitor		\
+	test-vt-monitor			\
+	$(NULL)
+
+test_vt_monitor_SOURCES = 		\
+	ck-vt-monitor.h			\
+	ck-vt-monitor.c			\
+	test-vt-monitor.c 		\
+	$(NULL)
+
+test_vt_monitor_LDADD =			\
+	$(CONSOLE_KIT_LIBS)		\
+	libck.la			\
 	$(NULL)
 
 test_tty_idle_monitor_SOURCES = 	\
@@ -127,6 +138,7 @@ test_tty_idle_monitor_SOURCES = 	\
 
 test_tty_idle_monitor_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
+	libck.la			\
 	$(NULL)
 
 EXTRA_DIST =			\

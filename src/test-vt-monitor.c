@@ -32,78 +32,44 @@
 #include <string.h>
 #include <errno.h>
 
-#ifdef __linux__
-#include <linux/kd.h>
-#endif
-
 #include <locale.h>
 
 #include <glib.h>
 
-#include "ck-tty-idle-monitor.h"
-#include "ck-sysdeps.h"
+#include "ck-vt-monitor.h"
 
 static void
-idle_changed_cb (CkTtyIdleMonitor *monitor,
-                 gboolean          idle_hint,
-                 gpointer          data)
+activated_cb (CkVtMonitor *monitor,
+              guint        num,
+              gpointer     data)
 {
-        g_message ("idle hint changed: %s", idle_hint ? "idle" : "not idle");
-}
-
-static gboolean
-is_console (const char *device)
-{
-        int      fd;
-        gboolean ret;
-
-        ret = FALSE;
-        fd = open (device, O_RDONLY | O_NOCTTY);
-        if (fd < 0) {
-                goto out;
-        }
-
-        ret = ck_fd_is_a_console (fd);
-
-        close (fd);
-
- out:
-        return ret;
+        g_message ("VT %u activated", num);
 }
 
 int
 main (int argc, char **argv)
 {
         GMainLoop        *loop;
-        CkTtyIdleMonitor *monitor;
-        char             *device;
+        CkVtMonitor      *monitor;
 
+        if (! g_thread_supported ()) {
+                g_thread_init (NULL);
+        }
         g_type_init ();
 
-        if (argc < 2) {
-                device = g_file_read_link ("/proc/self/fd/0", NULL);
-                if (device == NULL) {
-                        device = g_strdup ("/proc/self/fd/0");
-                }
-        } else {
-                device = g_strdup (argv[1]);
-        }
-
-        if (! is_console (device)) {
-                g_warning ("Device is not a console");
+        if (! ck_is_root_user ()) {
+                g_warning ("Must be run as root");
                 exit (1);
         }
 
-        g_message ("Testing the TTY idle monitor.\n1. Wait for idleness to be detected.\n2. Hit keys on the keyboard to see if activity is noticed.");
+        g_message ("Testing the VT monitor.\n  Should print messages when VT is switched.");
 
-        monitor = ck_tty_idle_monitor_new (device);
+        monitor = ck_vt_monitor_new ();
 
         g_signal_connect (monitor,
-                          "idle-hint-changed",
-                          G_CALLBACK (idle_changed_cb),
+                          "active-changed",
+                          G_CALLBACK (activated_cb),
                           NULL);
-        ck_tty_idle_monitor_set_threshold (monitor, 5);
-        ck_tty_idle_monitor_start (monitor);
 
         loop = g_main_loop_new (NULL, FALSE);
 

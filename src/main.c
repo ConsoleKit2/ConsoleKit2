@@ -38,6 +38,7 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
+#include "ck-sysdeps.h"
 #include "ck-manager.h"
 #include "ck-log.h"
 
@@ -282,6 +283,11 @@ main (int    argc,
         }
         dbus_g_thread_init ();
         g_type_init ();
+
+        if (! ck_is_root_user ()) {
+                g_warning ("Must be run as root");
+                exit (1);
+        }
 
         context = g_option_context_new (_("Console kit daemon"));
         g_option_context_add_main_entries (context, entries, NULL);

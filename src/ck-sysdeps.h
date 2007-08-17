@@ -21,7 +21,13 @@
 #ifndef __CK_SYSDEPS_H
 #define __CK_SYSDEPS_H
 
+#include "config.h"
+
 #include <glib.h>
+
+#ifdef HAVE_PATHS_H
+#include <paths.h>
+#endif /* HAVE_PATHS_H */
 
 G_BEGIN_DECLS
 
@@ -50,6 +56,11 @@ gboolean     ck_get_socket_peer_credentials   (int             socket_fd,
                                                uid_t          *uid,
                                                GError        **error);
 
+int          ck_get_a_console_fd              (void);
+
+gboolean     ck_fd_is_a_console               (int             fd);
+
+gboolean     ck_is_root_user                  (void);
 
 G_END_DECLS
 
