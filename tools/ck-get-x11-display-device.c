@@ -25,9 +25,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 
 #include <X11/Xlib.h>
 #include <glib.h>
@@ -116,10 +113,12 @@ main (int    argc,
                 ret = 0;
                 res = ck_get_socket_peer_credentials (fd, &pid, NULL, NULL);
                 if (res) {
-                        device = get_tty_for_pid (pid);
-                        if (device != NULL) {
-                                printf ("%s\n", device);
-                                g_free (device);
+                        if (pid > 0) {
+                                device = get_tty_for_pid (pid);
+                                if (device != NULL) {
+                                        printf ("%s\n", device);
+                                        g_free (device);
+                                }
                         }
                 }
         }

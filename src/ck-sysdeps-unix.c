@@ -27,12 +27,16 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <errno.h>
+
 #ifdef HAVE_GETPEERUCRED
 #include <ucred.h>
 #endif
 
 #include "ck-sysdeps.h"
 
+/* Adapted from dbus-sysdeps-unix.c:_dbus_read_credentials_socket() */
 gboolean
 ck_get_socket_peer_credentials   (int      socket_fd,
                                   pid_t   *pid,
@@ -43,17 +47,17 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         uid_t    uid_read;
         pid_t    pid_read;
 
-        uid_read = 0;
-        pid_read = 0;
+        pid_read = -1;
+        uid_read = -1;
         ret = FALSE;
 
 #ifdef SO_PEERCRED
         struct ucred cr;
-        socklen_t cr_len;
+        socklen_t    cr_len;
 
         cr_len = sizeof (cr);
 
-        if (getsockopt (fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) == 0 && cr_len == sizeof (cr)) {
+        if (getsockopt (socket_fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) == 0 && cr_len == sizeof (cr)) {
                 pid_read = cr.pid;
                 uid_read = cr.uid;
                 ret = TRUE;
@@ -64,8 +68,10 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                            g_strerror (errno));
         }
 #elif defined(HAVE_GETPEERUCRED)
-        ucred_t * ucred = NULL;
-        if (getpeerucred (client_fd, &ucred) == 0) {
+        ucred_t *ucred;
+
+        ucred = NULL;
+        if (getpeerucred (socket_fd, &ucred) == 0) {
                 pid_read = ucred_getpid (ucred);
                 uid_read = ucred_geteuid (ucred);
                 ret = TRUE;
@@ -79,6 +85,14 @@ ck_get_socket_peer_credentials   (int      socket_fd,
 #else /* !SO_PEERCRED && !HAVE_GETPEERUCRED */
         g_warning ("Socket credentials not supported on this OS\n");
 #endif
+
+        if (pid != NULL) {
+                *pid = pid_read;
+        }
+
+        if (uid != NULL) {
+                *uid = uid_read;
+        }
 
         return ret;
 }

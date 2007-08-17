@@ -77,7 +77,9 @@ main (int    argc,
                 ret = 0;
                 res = ck_get_socket_peer_credentials (fd, &pid, NULL, NULL);
                 if (res) {
-                        printf ("%u\n", pid);
+                        if (pid > 0) {
+                                printf ("%d\n", pid);
+                        }
                 }
         }
 
