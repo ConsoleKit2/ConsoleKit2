@@ -8,18 +8,21 @@
   </refnamediv>
   <refsynopsisdiv role="synopsis">
     <title role="synopsis.title">Methods</title>
-    <synopsis><link linkend="Seat.GetId">GetId</link>               (out 'o'  sid)
-<link linkend="Seat.GetSessions">GetSessions</link>         (out 'ao' sessions)
-<link linkend="Seat.GetActiveSession">GetActiveSession</link>    (out 'o'  ssid)
-<link linkend="Seat.CanActivateSessions">CanActivateSessions</link> (out 'b'  can_activate)
-<link linkend="Seat.ActivateSession">ActivateSession</link>     (in  'o'  ssid)
+    <synopsis><link linkend="Seat.GetId">GetId</link>               (out 'o'     sid)
+<link linkend="Seat.GetSessions">GetSessions</link>         (out 'ao'    sessions)
+<link linkend="Seat.GetDevices">GetDevices</link>          (out 'a(ss)' devices)
+<link linkend="Seat.GetActiveSession">GetActiveSession</link>    (out 'o'     ssid)
+<link linkend="Seat.CanActivateSessions">CanActivateSessions</link> (out 'b'     can_activate)
+<link linkend="Seat.ActivateSession">ActivateSession</link>     (in  'o'     ssid)
 </synopsis>
   </refsynopsisdiv>
   <refsect1 role="signal_proto">
     <title role="signal_proto.title">Signals</title>
-    <synopsis><link linkend="Seat::ActiveSessionChanged">ActiveSessionChanged</link> ('o' ssid)
-<link linkend="Seat::SessionAdded">SessionAdded</link>         ('o' ssid)
-<link linkend="Seat::SessionRemoved">SessionRemoved</link>       ('o' ssid)
+    <synopsis><link linkend="Seat::ActiveSessionChanged">ActiveSessionChanged</link> ('o'    ssid)
+<link linkend="Seat::SessionAdded">SessionAdded</link>         ('o'    ssid)
+<link linkend="Seat::SessionRemoved">SessionRemoved</link>       ('o'    ssid)
+<link linkend="Seat::DeviceAdded">DeviceAdded</link>          ('(ss)' device)
+<link linkend="Seat::DeviceRemoved">DeviceRemoved</link>        ('(ss)' device)
 </synopsis>
   </refsect1>
   <refsect1 role="impl_interfaces">
@@ -49,7 +52,13 @@ seat at a time.</para>
           that are currently attached to this seat.</para>
           <para>Each Session ID is an D-Bus object path for the object that implements the
           <link linkend="Session">Session</link> interface.</para>
-        <variablelist role="params"><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.GetActiveSession"/>GetActiveSession ()</title><indexterm><primary>GetActiveSession</primary><secondary>Seat</secondary></indexterm><programlisting>GetActiveSession (out 'o' ssid)</programlisting></refsect2>
+        <variablelist role="params"><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.GetDevices"/>GetDevices ()</title><indexterm><primary>GetDevices</primary><secondary>Seat</secondary></indexterm><programlisting>GetDevices (out 'a(ss)' devices)</programlisting></refsect2>
+          <para>This gets a list of all the devices
+          that are currently associated with this seat.</para>
+          <para>Each device is an D-Bus structure that represents
+          the device type and the device id.
+          </para>
+        <variablelist role="params"><varlistentry><term><parameter>devices</parameter>:</term><listitem><simpara>an array of devices</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.GetActiveSession"/>GetActiveSession ()</title><indexterm><primary>GetActiveSession</primary><secondary>Seat</secondary></indexterm><programlisting>GetActiveSession (out 'o' ssid)</programlisting></refsect2>
           <para>Gets the Session ID that is currently active on this Seat.</para>
           <para>Returns NULL if there is no active session.</para>
         <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>Session ID</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat.CanActivateSessions"/>CanActivateSessions ()</title><indexterm><primary>CanActivateSessions</primary><secondary>Seat</secondary></indexterm><programlisting>CanActivateSessions (out 'b' can_activate)</programlisting></refsect2>Used to determine whether the seat supports session activation.
@@ -67,7 +76,11 @@ See also:
           <para>Emitted when a session has been added to the seat.</para>
         <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>Session ID</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat::SessionRemoved"/>The SessionRemoved signal</title><indexterm><primary>SessionRemoved</primary><secondary>Seat</secondary></indexterm><programlisting>SessionRemoved ('o' ssid)</programlisting></refsect2>
           <para>Emitted when a session has been removed from the seat.</para>
-        <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>Session ID</simpara></listitem></varlistentry></variablelist></refsect1>
+        <variablelist role="params"><varlistentry><term><parameter>ssid</parameter>:</term><listitem><simpara>Session ID</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat::DeviceAdded"/>The DeviceAdded signal</title><indexterm><primary>DeviceAdded</primary><secondary>Seat</secondary></indexterm><programlisting>DeviceAdded ('(ss)' device)</programlisting></refsect2>
+          <para>Emitted when a device has been associated with the seat.</para>
+        <variablelist role="params"><varlistentry><term><parameter>device</parameter>:</term><listitem><simpara>Device structure</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Seat::DeviceRemoved"/>The DeviceRemoved signal</title><indexterm><primary>DeviceRemoved</primary><secondary>Seat</secondary></indexterm><programlisting>DeviceRemoved ('(ss)' device)</programlisting></refsect2>
+          <para>Emitted when a device has been dissociated from the seat.</para>
+        <variablelist role="params"><varlistentry><term><parameter>device</parameter>:</term><listitem><simpara>Device structure</simpara></listitem></varlistentry></variablelist></refsect1>
   <refsect1 role="property_details">
     <title role="property_details.title">Property Details</title>
   </refsect1>
