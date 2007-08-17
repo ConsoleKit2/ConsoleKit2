@@ -32,28 +32,7 @@
 #include <X11/Xlib.h>
 #include <glib.h>
 
-static void
-print_peer_pid (int fd)
-{
-#ifdef SO_PEERCRED
-        struct ucred cr;
-        socklen_t cr_len;
-
-        cr_len = sizeof (cr);
-
-        if (getsockopt (fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) == 0 && cr_len == sizeof (cr)) {
-                /* paranoia check for peer running as root */
-                if (cr.uid == 0) {
-                        printf ("%u\n", cr.pid);
-                }
-        } else {
-                g_warning ("Failed to getsockopt() credentials, returned len %d/%d: %s\n",
-                           cr_len,
-                           (int) sizeof (cr),
-                           g_strerror (errno));
-        }
-#endif
-}
+#include "ck-sysdeps.h"
 
 static Display *
 display_init (int *argc, char ***argv)
@@ -92,8 +71,14 @@ main (int    argc,
         fd = ConnectionNumber (xdisplay);
 
         if (fd > 0) {
+                int      pid;
+                gboolean res;
+
                 ret = 0;
-                print_peer_pid (fd);
+                res = ck_get_socket_peer_credentials (fd, &pid, NULL, NULL);
+                if (res) {
+                        printf ("%u\n", pid);
+                }
         }
 
 	return ret;

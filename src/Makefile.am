@@ -29,6 +29,7 @@ noinst_LTLIBRARIES =            \
 
 libck_la_SOURCES =		\
 	ck-sysdeps.h		\
+	ck-sysdeps-unix.c	\
 	$(NULL)
 
 if CK_COMPILE_LINUX

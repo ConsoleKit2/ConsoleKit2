@@ -58,31 +58,6 @@ get_tty_for_pid (int pid)
         return device;
 }
 
-static int
-get_peer_pid (int fd)
-{
-        int pid = -1;
-#ifdef SO_PEERCRED
-        struct ucred cr;
-        socklen_t cr_len;
-
-        cr_len = sizeof (cr);
-
-        if (getsockopt (fd, SOL_SOCKET, SO_PEERCRED, &cr, &cr_len) == 0 && cr_len == sizeof (cr)) {
-                /* paranoia check for peer running as root */
-                if (cr.uid == 0) {
-                        pid = cr.pid;
-                }
-        } else {
-                g_warning ("Failed to getsockopt() credentials, returned len %d/%d: %s\n",
-                           cr_len,
-                           (int) sizeof (cr),
-                           g_strerror (errno));
-        }
-#endif
-        return pid;
-}
-
 static Display *
 display_init (const char *display_name)
 {
@@ -134,12 +109,13 @@ main (int    argc,
         fd = ConnectionNumber (xdisplay);
 
         if (fd > 0) {
-                int pid;
-                char *device;
+                int      pid;
+                char    *device;
+                gboolean res;
 
                 ret = 0;
-                pid = get_peer_pid (fd);
-                if (pid != -1) {
+                res = ck_get_socket_peer_credentials (fd, &pid, NULL, NULL);
+                if (res) {
                         device = get_tty_for_pid (pid);
                         if (device != NULL) {
                                 printf ("%s\n", device);

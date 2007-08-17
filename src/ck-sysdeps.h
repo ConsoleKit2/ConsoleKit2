@@ -44,6 +44,13 @@ GHashTable  *ck_unix_pid_get_env_hash         (pid_t           pid);
 pid_t        ck_unix_pid_get_ppid             (pid_t           pid);
 uid_t        ck_unix_pid_get_uid              (pid_t           pid);
 
+
+gboolean     ck_get_socket_peer_credentials   (int             socket_fd,
+                                               pid_t          *pid,
+                                               uid_t          *uid,
+                                               GError        **error);
+
+
 G_END_DECLS
 
 #endif /* __CK_SYSDEPS_H */
