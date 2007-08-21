@@ -62,6 +62,8 @@ gboolean     ck_fd_is_a_console               (int             fd);
 
 gboolean     ck_is_root_user                  (void);
 
+gboolean     ck_get_max_num_consoles          (guint          *num);
+
 G_END_DECLS
 
 #endif /* __CK_SYSDEPS_H */

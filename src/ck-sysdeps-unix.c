@@ -154,33 +154,51 @@ ck_get_a_console_fd (void)
 {
         int fd;
 
+        fd = -1;
+
+#ifdef __sun
+	/* On Solaris, first try Sun VT device. */
+        fd = open_a_console ("/dev/vt/active");
+        if (fd >= 0) {
+                goto done;
+        }
+        fd = open_a_console ("/dev/vt/0");
+        if (fd >= 0) {
+                goto done;
+        }
+#endif
+
 #ifdef _PATH_TTY
         fd = open_a_console (_PATH_TTY);
-        if (fd >= 0)
-                return fd;
+        if (fd >= 0) {
+                goto done;
+        }
 #endif
 
         fd = open_a_console ("/dev/tty");
-        if (fd >= 0)
-                return fd;
+        if (fd >= 0) {
+                goto done;
+        }
 
 #ifdef _PATH_CONSOLE
         fd = open_a_console (_PATH_CONSOLE);
-        if (fd >= 0)
-                return fd;
+        if (fd >= 0) {
+                goto done;
+        }
 #endif
 
         fd = open_a_console ("/dev/console");
-        if (fd >= 0)
-                return fd;
+        if (fd >= 0) {
+                goto done;
+        }
 
         for (fd = 0; fd < 3; fd++) {
                 if (ck_fd_is_a_console (fd)) {
-                        return fd;
+                        goto done;
                 }
         }
-
-        return -1;
+ done:
+        return fd;
 }
 
 gboolean

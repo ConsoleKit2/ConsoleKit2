@@ -28,6 +28,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <sys/vt.h>
+#include <linux/tty.h>
+#include <linux/kd.h>
+
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
@@ -602,4 +606,14 @@ ck_unix_pid_get_ppid (pid_t pid)
 
  out:
         return ppid;
+}
+
+gboolean
+ck_get_max_num_consoles (guint *num)
+{
+        if (num != NULL) {
+                *num = MAX_NR_CONSOLES;
+        }
+
+        return TRUE;
 }

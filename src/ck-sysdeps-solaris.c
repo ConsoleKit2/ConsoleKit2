@@ -224,38 +224,37 @@ ck_process_stat_free (CkProcessStat *stat)
 }
 
 GHashTable *
-proc_pid_get_env_hash (pid_t pid)
+ck_unix_pid_get_env_hash (pid_t pid)
 {
-        GHashTable  *hash;
-        gboolean     res;
-        CkProcessStat *stat;
-        char        *env[400];
-        char         buf[BUFSIZ];
-        int          fd;
-        int          i;
+        GHashTable *hash;
+        char       *cmd;
+        char        buf[BUFSIZ];
+        FILE       *fp;
+        int         i;
 
-        res = ck_process_stat_new_for_unix_pid (pid, &stat, NULL);
-        if (! res) {
-                goto out;
-        }
-
-        hash = NULL;
         hash = g_hash_table_new_full (g_str_hash,
                                       g_str_equal,
                                       g_free,
                                       g_free);
 
-        pread (fd, env, 400, stat->penv);
+        cmd = g_strdup_printf ("pargs -e %d", pid);
+        fp = popen (cmd, "r");
+        g_free (cmd);
 
-        i = 0;
-        while (env[i] != NULL && i < 400) {
-                char **vals;
+        while (fgets (buf, BUFSIZ, fp) != NULL) {
+                g_strchomp (buf);
+                if (g_str_has_prefix (buf, "envp[")) {
+                        char *skip_prefix;
 
-                pread (fd, buf, BUFSIZ, env[i++]);
+                        skip_prefix = strstr (buf, " ");
 
-                vals = g_strsplit (buf, "=", 2);
-                if (vals != NULL) {
-                        g_hash_table_insert (hash, vals[0], vals[1]);
+                        if (skip_prefix != NULL) {
+                                char **vals;
+                                vals = g_strsplit (buf, "=", 2);
+                                if (vals != NULL) {
+                                        g_hash_table_insert (hash, vals[0], vals[1]);
+                                }
+                        }
                 }
         }
 
@@ -264,14 +263,20 @@ proc_pid_get_env_hash (pid_t pid)
 }
 
 char *
-proc_pid_get_env (pid_t       pid,
-                  const char *var)
+ck_unix_pid_get_env (pid_t       pid,
+                     const char *var)
 {
         GHashTable *hash;
         char       *val;
 
-        hash = proc_pid_get_env_hash (pid);
-        val  = g_hash_table_lookup (hash, var);
+	/*
+	 * Would probably be more efficient to just loop through the
+	 * environment and return the value, avoiding building the hash
+	 * table, but this works for now.
+	 */
+        hash = ck_unix_pid_get_env_hash (pid);
+        val  = g_strdup (g_hash_table_lookup (hash, var));
+        g_hash_table_destroy (hash);
 
         return val;
 }
@@ -321,4 +326,56 @@ proc_pid_get_ppid (pid_t pid)
 
  out:
         return ppid;
+}
+
+gboolean
+ck_get_max_num_consoles (guint *num)
+{
+        GError  *error;
+        char    *svcprop_stdout;
+        int      status;
+        gboolean res;
+        gboolean ret;
+
+        ret = FALSE;
+
+        /*
+         * On Solaris, the default number of VT's is determined by
+         * resources and is stored in the vtdaemon SVC property
+         * options/vtnodecount.  If the svcprop command fails, then it can
+         * be safely assumed that VT is not supported on this release of
+         * Solaris.
+         */
+
+        error = NULL;
+        svcprop_stdout = NULL;
+        status = 0;
+        res = g_spawn_command_line_sync ("/usr/bin/svcprop -p options/vtnodecount vtdaemon",
+                                         &svcprop_stdout,
+                                         NULL,
+                                         &status,
+                                         &error);
+
+        if (res) {
+                if (error == NULL && svcprop_stdout != NULL) {
+                        char *end;
+
+                        end = NULL;
+                        errno = 0;
+                        max_consoles = strtol (svcprop_stdout, &end, 0);
+                        if (end == NULL || end == svcprop_stdout || errno != 0) {
+                                max_consoles = 0;
+                        } else {
+                                ret = TRUE;
+                        }
+                }
+        }
+
+        if (num != NULL) {
+                *num = max_consoles;
+        }
+
+        g_free (svcprop_stdout);
+
+        return ret;
 }

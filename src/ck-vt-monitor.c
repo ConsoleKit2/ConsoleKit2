@@ -29,11 +29,6 @@
 #include <sys/ioctl.h>
 #include <sys/vt.h>
 
-#if defined (__linux__)
-#include <linux/tty.h>
-#include <linux/kd.h>
-#endif /* linux */
-
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -358,6 +353,7 @@ vt_add_watch_unlocked (CkVtMonitor *vt_monitor,
 static void
 vt_add_watches (CkVtMonitor *vt_monitor)
 {
+        guint  max_consoles;
         int    i;
         gint32 current_num;
 
@@ -365,7 +361,13 @@ vt_add_watches (CkVtMonitor *vt_monitor)
 
         current_num = vt_monitor->priv->active_num;
 
-        for (i = 1; i < MAX_NR_CONSOLES; i++) {
+        max_consoles = 1;
+
+        if (! ck_get_max_num_consoles (&max_consoles)) {
+                /* FIXME: this can fail on solaris */
+        }
+
+        for (i = 1; i < max_consoles; i++) {
                 gpointer id;
 
                 /* don't wait on the active vc */
