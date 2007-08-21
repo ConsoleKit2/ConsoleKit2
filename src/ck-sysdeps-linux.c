@@ -617,3 +617,38 @@ ck_get_max_num_consoles (guint *num)
 
         return TRUE;
 }
+
+char *
+ck_get_console_device_for_num (guint num)
+{
+        char *device;
+
+        device = g_strdup_printf (_PATH_TTY "%u", num);
+
+        return device;
+}
+
+gboolean
+ck_get_console_num_from_device (const char *device,
+                                guint      *num)
+{
+        guint    n;
+        gboolean ret;
+
+        n = 0;
+        ret = FALSE;
+
+        if (device == NULL) {
+                return FALSE;
+        }
+
+        if (sscanf (device, _PATH_TTY "%u", &n) == 1) {
+                ret = TRUE;
+        }
+
+        if (num != NULL) {
+                *num = n;
+        }
+
+        return ret;
+}

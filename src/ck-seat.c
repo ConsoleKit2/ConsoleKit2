@@ -25,13 +25,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#ifdef HAVE_PATHS_H
-#include <paths.h>
-#endif /* HAVE_PATHS_H */
-
-#ifndef _PATH_TTY
-#define _PATH_TTY "/dev/tty"
-#endif
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -40,6 +33,8 @@
 #define DBUS_API_SUBJECT_TO_CHANGE
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
+
+#include "ck-sysdeps.h"
 
 #include "ck-seat.h"
 #include "ck-seat-glue.h"
@@ -173,6 +168,7 @@ _seat_activate_session (CkSeat                *seat,
                         CkSession             *session,
                         DBusGMethodInvocation *context)
 {
+        gboolean      res;
         gboolean      ret;
         guint         num;
         char         *device;
@@ -206,7 +202,8 @@ _seat_activate_session (CkSeat                *seat,
 
         ck_session_get_display_device (session, &device, NULL);
 
-        if (device == NULL || (sscanf (device, _PATH_TTY "%u", &num) != 1)) {
+        res = ck_get_console_num_from_device (device, &num);
+        if (! res) {
                 GError *error;
                 error = g_error_new (CK_SEAT_ERROR,
                                      CK_SEAT_ERROR_GENERAL,
@@ -490,7 +487,7 @@ update_active_vt (CkSeat *seat,
         CkSession *session;
         char      *device;
 
-        device = g_strdup_printf (_PATH_TTY "%u", num);
+        device = ck_get_console_device_for_num (num);
 
         g_debug ("Active device: %s", device);
 

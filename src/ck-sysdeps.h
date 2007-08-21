@@ -25,10 +25,6 @@
 
 #include <glib.h>
 
-#ifdef HAVE_PATHS_H
-#include <paths.h>
-#endif /* HAVE_PATHS_H */
-
 G_BEGIN_DECLS
 
 typedef struct _CkProcessStat CkProcessStat;
@@ -63,6 +59,10 @@ gboolean     ck_fd_is_a_console               (int             fd);
 gboolean     ck_is_root_user                  (void);
 
 gboolean     ck_get_max_num_consoles          (guint          *num);
+
+char *       ck_get_console_device_for_num    (guint           num);
+gboolean     ck_get_console_num_from_device   (const char     *device,
+                                               guint          *num);
 
 G_END_DECLS
 
