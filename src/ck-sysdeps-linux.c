@@ -488,7 +488,10 @@ ck_unix_pid_get_env_hash (pid_t pid)
                         char **vals;
                         vals = g_strsplit (contents + i, "=", 2);
                         if (vals != NULL) {
-                                g_hash_table_insert (hash, vals[0], vals[1]);
+                                g_hash_table_insert (hash,
+                                                     g_strdup (vals[0]),
+                                                     g_strdup (vals[1]));
+                                g_strfreev (vals);
                         }
                 }
                 last_was_null = FALSE;

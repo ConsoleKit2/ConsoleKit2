@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -111,7 +112,7 @@ ck_process_stat_get_tty (CkProcessStat *stat)
 
         g_return_val_if_fail (stat != NULL, NULL);
 
-        return stat->tty_text;
+        return g_strdup (stat->tty_text);
 }
 
 /* return 1 if it works, or 0 for failure */
@@ -252,7 +253,10 @@ ck_unix_pid_get_env_hash (pid_t pid)
                                 char **vals;
                                 vals = g_strsplit (buf, "=", 2);
                                 if (vals != NULL) {
-                                        g_hash_table_insert (hash, vals[0], vals[1]);
+                                        g_hash_table_insert (hash,
+                                                             g_strdup (vals[0]),
+                                                             g_strdup (vals[1]));
+					g_strfreev (vals);
                                 }
                         }
                 }
@@ -334,6 +338,7 @@ ck_get_max_num_consoles (guint *num)
         GError  *error;
         char    *svcprop_stdout;
         int      status;
+        int      max_consoles;
         gboolean res;
         gboolean ret;
 
