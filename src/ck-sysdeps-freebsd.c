@@ -1,5 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
+ * Copyright (C) 2006 William Jon McCann <mccann@jhu.edu>
  * Copyright (C) 2007 Joe Marcus Clarke <marcus@FreeBSD.org>
  *
  * This program is free software; you can redistribute it and/or modify
