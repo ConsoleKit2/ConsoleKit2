@@ -46,6 +46,7 @@ if CK_COMPILE_FREEBSD
 libck_la_SOURCES +=		\
 	ck-sysdeps-freebsd.c	\
 	$(NULL)
+libck_la_LIBADD = $(KVM_LIBS)
 endif
 
 EXTRA_libck_la_SOURCES =		\

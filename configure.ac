@@ -140,9 +140,15 @@ dnl Figure out what tools backend to build
 dnl ---------------------------------------------------------------------------
 
 CK_BACKEND=""
+KVM_LIBS=""
 case "$host" in
         *-*-freebsd*)
         CK_BACKEND="freebsd"
+        AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
+                AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD]))
+        if test "x$have_kvm" = "xyes"; then
+                KVM_LIBS="-lkvm"
+        fi
         ;;
         *-*-linux*)
         CK_BACKEND="linux"
@@ -151,6 +157,8 @@ case "$host" in
         CK_BACKEND="solaris"
         ;;
 esac
+
+AC_SUBST(KVM_LIBS)
 
 AM_CONDITIONAL(CK_COMPILE_LINUX, test x$CK_BACKEND = xlinux, [Compiling for Linux])
 AM_CONDITIONAL(CK_COMPILE_FREEBSD, test x$CK_BACKEND = xfreebsd, [Compiling for FreeBSD])

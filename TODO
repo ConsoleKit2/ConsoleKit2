@@ -20,5 +20,3 @@ TODO
  - Figure out how to register activation handlers
 
  - Use a configuration file for defining how to add sessions to seats
-
- - Write native FreeBSD ck-sysdeps-freebsd.c.
