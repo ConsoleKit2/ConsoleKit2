@@ -35,6 +35,10 @@
 #include <linux/kd.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/consio.h>
+#endif
+
 #ifdef HAVE_GETPEERUCRED
 #include <ucred.h>
 #endif
@@ -114,14 +118,18 @@ ck_get_socket_peer_credentials   (int      socket_fd,
 gboolean
 ck_fd_is_a_console (int fd)
 {
-        char arg;
+#ifdef __linux__
+        char arg = 0;
+#elif defined(__FreeBSD__)
+	int vers;
+#endif
         int  kb_ok;
-
-        arg = 0;
 
 #ifdef __linux__
         kb_ok = (ioctl (fd, KDGKBTYPE, &arg) == 0
                  && ((arg == KB_101) || (arg == KB_84)));
+#elif defined(__FreeBSD__)
+	kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
 #else
         kb_ok = 1;
 #endif

@@ -27,10 +27,10 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#if defined(__linux__)
-#include <sys/vt.h>
-#elif defined(__FreeBSD__)
+#if defined(__FreeBSD__)
 #include <sys/consio.h>
+#else
+#include <sys/vt.h>
 #endif
 
 #include <glib.h>
@@ -368,7 +368,7 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         max_consoles = 1;
 
         if (! ck_get_max_num_consoles (&max_consoles)) {
-                /* FIXME: this can fail on solaris */
+                /* FIXME: this can fail on solaris and freebsd */
         }
 
         for (i = 1; i < max_consoles; i++) {
@@ -394,25 +394,34 @@ static guint
 get_active_native (CkVtMonitor *vt_monitor)
 {
         int            ret;
-        int            active;
-#if defined(__linux__)
+#if defined(__FreeBSD__)
+	int            active;
+#else
         struct vt_stat stat;
+#endif
 
+#if defined(__FreeBSD__)
+	ret = ioctl (vt_monitor->priv->vfd, VT_GETACTIVE, &active);
+#else
         ret = ioctl (vt_monitor->priv->vfd, VT_GETSTATE, &stat);
-#elif defined(__FreeBSD__)
-        ret = ioctl (vt_monitor->priv->vfd, VT_GETACTIVE, &active);
 #endif
         if (ret == ERROR) {
+#if defined(__FreeBSD__)
+		perror ("ioctl VT_GETACTIVE");
+#else
                 perror ("ioctl VT_GETSTATE");
+#endif
                 return -1;
         }
 
-	g_debug ("Current VT: tty%d", active);
-
-#if defined(__linux__)
+#if defined(__FreeBSD__)
+	g_debug ("Active VT is: ttyv%d", active);
+	return active;
+#else
         {
                 int i;
 
+                g_debug ("Current VT: tty%d", stat.v_active);
                 for (i = 1; i <= 16; i++) {
                         gboolean is_on;
                         is_on = stat.v_state & (1 << i);
@@ -420,9 +429,9 @@ get_active_native (CkVtMonitor *vt_monitor)
                         g_debug ("VT %d:%s", i, is_on ? "on" : "off");
                 }
         }
-#endif
 
-        return active;
+        return stat.v_active;
+#endif
 }
 
 static void
