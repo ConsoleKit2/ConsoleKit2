@@ -27,7 +27,11 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#if defined(__linux__)
 #include <sys/vt.h>
+#elif defined(__FreeBSD__)
+#include <sys/consio.h>
+#endif
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -390,18 +394,25 @@ static guint
 get_active_native (CkVtMonitor *vt_monitor)
 {
         int            ret;
+        int            active;
+#if defined(__linux__)
         struct vt_stat stat;
 
         ret = ioctl (vt_monitor->priv->vfd, VT_GETSTATE, &stat);
+#elif defined(__FreeBSD__)
+        ret = ioctl (vt_monitor->priv->vfd, VT_GETACTIVE, &active);
+#endif
         if (ret == ERROR) {
                 perror ("ioctl VT_GETSTATE");
                 return -1;
         }
 
+	g_debug ("Current VT: tty%d", active);
+
+#if defined(__linux__)
         {
                 int i;
 
-                g_debug ("Current VT: tty%d", stat.v_active);
                 for (i = 1; i <= 16; i++) {
                         gboolean is_on;
                         is_on = stat.v_state & (1 << i);
@@ -409,8 +420,9 @@ get_active_native (CkVtMonitor *vt_monitor)
                         g_debug ("VT %d:%s", i, is_on ? "on" : "off");
                 }
         }
+#endif
 
-        return stat.v_active;
+        return active;
 }
 
 static void

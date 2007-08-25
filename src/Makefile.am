@@ -42,6 +42,11 @@ libck_la_SOURCES +=		\
 	ck-sysdeps-solaris.c	\
 	$(NULL)
 endif
+if CK_COMPILE_FREEBSD
+libck_la_SOURCES +=		\
+	ck-sysdeps-freebsd.c	\
+	$(NULL)
+endif
 
 EXTRA_libck_la_SOURCES =		\
 	ck-sysdeps-linux.c		\

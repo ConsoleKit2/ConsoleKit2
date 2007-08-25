@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
