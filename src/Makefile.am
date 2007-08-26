@@ -52,6 +52,7 @@ endif
 EXTRA_libck_la_SOURCES =		\
 	ck-sysdeps-linux.c		\
 	ck-sysdeps-solaris.c		\
+	ck-sysdeps-freebsd.c		\
 	$(NULL)
 
 sbin_PROGRAMS = 		\
