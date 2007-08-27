@@ -26,12 +26,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/ioctl.h>
-#if defined(__FreeBSD__)
-#include <sys/consio.h>
-#else
-#include <sys/vt.h>
-#endif
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -46,7 +40,9 @@
 #include "ck-sysdeps.h"
 #include "ck-marshal.h"
 
+#ifndef ERROR
 #define ERROR -1
+#endif
 
 #define CK_VT_MONITOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_VT_MONITOR, CkVtMonitorPrivate))
 
@@ -121,8 +117,8 @@ ck_vt_monitor_set_active (CkVtMonitor    *vt_monitor,
                 return FALSE;
         }
 
-        res = ioctl (vt_monitor->priv->vfd, VT_ACTIVATE, num);
-        if (res == 0) {
+        res = ck_activate_console_num (vt_monitor->priv->vfd, num);
+        if (res) {
                 ret = TRUE;
         } else {
                 g_set_error (error,
@@ -272,35 +268,16 @@ static void *
 vt_thread_start (ThreadData *data)
 {
         CkVtMonitor *vt_monitor;
+        gboolean     res;
         int          ret;
         gint32       num;
 
         vt_monitor = data->vt_monitor;
         num = data->num;
 
- again:
-        g_debug ("VT_WAITACTIVE for vt %d", num);
-        ret = ioctl (vt_monitor->priv->vfd, VT_WAITACTIVE, num);
-
-        g_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
-
-        if (ret == ERROR) {
-                const char *errmsg;
-
-                errmsg = g_strerror (errno);
-
-                if (errno == EINTR) {
-                        g_debug ("Interrupted waiting for native console %d activation: %s",
-                                  num,
-                                  errmsg);
-                       goto again;
-                } else {
-                        g_warning ("Error waiting for native console %d activation: %s",
-                                   num,
-                                   errmsg);
-                }
-
-                g_free (data);
+        res = ck_wait_for_active_console_num (vt_monitor->priv->vfd, num);
+        if (! res) {
+                /* FIXME: what do we do if it fails? */
         } else {
                 EventData *event;
 
@@ -390,50 +367,6 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         G_UNLOCK (hash_lock);
 }
 
-static guint
-get_active_native (CkVtMonitor *vt_monitor)
-{
-        int            ret;
-#if defined(__FreeBSD__)
-	int            active;
-#else
-        struct vt_stat stat;
-#endif
-
-#if defined(__FreeBSD__)
-	ret = ioctl (vt_monitor->priv->vfd, VT_GETACTIVE, &active);
-#else
-        ret = ioctl (vt_monitor->priv->vfd, VT_GETSTATE, &stat);
-#endif
-        if (ret == ERROR) {
-#if defined(__FreeBSD__)
-		perror ("ioctl VT_GETACTIVE");
-#else
-                perror ("ioctl VT_GETSTATE");
-#endif
-                return -1;
-        }
-
-#if defined(__FreeBSD__)
-	g_debug ("Active VT is: ttyv%d", active);
-	return active;
-#else
-        {
-                int i;
-
-                g_debug ("Current VT: tty%d", stat.v_active);
-                for (i = 1; i <= 16; i++) {
-                        gboolean is_on;
-                        is_on = stat.v_state & (1 << i);
-
-                        g_debug ("VT %d:%s", i, is_on ? "on" : "off");
-                }
-        }
-
-        return stat.v_active;
-#endif
-}
-
 static void
 ck_vt_monitor_class_init (CkVtMonitorClass *klass)
 {
@@ -469,10 +402,19 @@ ck_vt_monitor_init (CkVtMonitor *vt_monitor)
                 errmsg = g_strerror (errno);
                 g_warning ("Unable to open a console: %s", errmsg);
         } else {
+                gboolean res;
+                guint    active;
+
+                res = ck_get_active_console_num (fd, &active);
+                if (! res) {
+                        /* FIXME: handle failure */
+                        g_warning ("Could not determine active console");
+                        active = 0;
+                }
+
+                vt_monitor->priv->active_num = active;
                 vt_monitor->priv->event_queue = g_async_queue_new ();
                 vt_monitor->priv->vt_thread_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
-
-                vt_monitor->priv->active_num = get_active_native (vt_monitor);
 
                 vt_add_watches (vt_monitor);
         }

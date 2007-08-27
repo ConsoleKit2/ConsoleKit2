@@ -63,6 +63,12 @@ gboolean     ck_get_max_num_consoles          (guint          *num);
 char *       ck_get_console_device_for_num    (guint           num);
 gboolean     ck_get_console_num_from_device   (const char     *device,
                                                guint          *num);
+gboolean     ck_get_active_console_num        (int             console_fd,
+                                               guint          *num);
+gboolean     ck_activate_console_num          (int             console_fd,
+                                               guint           num);
+gboolean     ck_wait_for_active_console_num   (int             console_fd,
+                                               guint           num);
 
 G_END_DECLS
 

@@ -33,6 +33,7 @@
 
 #ifdef __linux__
 #include <linux/kd.h>
+#include <sys/vt.h>
 #endif
 
 #ifdef __FreeBSD__
@@ -44,6 +45,10 @@
 #endif
 
 #include "ck-sysdeps.h"
+
+#ifndef ERROR
+#define ERROR -1
+#endif
 
 /* Adapted from dbus-sysdeps-unix.c:_dbus_read_credentials_socket() */
 gboolean
@@ -233,4 +238,68 @@ ck_is_root_user (void)
 
 #endif
         return FALSE;
+}
+
+gboolean
+ck_wait_for_active_console_num (int   console_fd,
+                                guint num)
+{
+        gboolean ret;
+        int      res;
+
+        g_assert (console_fd != -1);
+
+ again:
+        ret = FALSE;
+
+        g_debug ("VT_WAITACTIVE for vt %d", num);
+        errno = 0;
+        res = ioctl (console_fd, VT_WAITACTIVE, num);
+
+        g_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
+
+        if (res == ERROR) {
+                const char *errmsg;
+
+                errmsg = g_strerror (errno);
+
+                if (errno == EINTR) {
+                        g_debug ("Interrupted waiting for native console %d activation: %s",
+                                  num,
+                                  errmsg);
+                       goto again;
+                } else {
+                        g_warning ("Error waiting for native console %d activation: %s",
+                                   num,
+                                   errmsg);
+                }
+                goto out;
+        }
+
+        ret = TRUE;
+
+ out:
+        return ret;
+}
+
+gboolean
+ck_activate_console_num (int   console_fd,
+                         guint num)
+{
+        gboolean ret;
+        int      res;
+
+        g_assert (console_fd != -1);
+
+        ret = FALSE;
+
+        errno = 0;
+        res = ioctl (console_fd, VT_ACTIVATE, num);
+        if (res == 0) {
+                ret = TRUE;
+        } else {
+                g_warning ("Unable to activate console: %s", g_strerror (errno));
+        }
+
+        return ret;
 }

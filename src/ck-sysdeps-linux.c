@@ -25,8 +25,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 
 #include <sys/vt.h>
 #include <linux/tty.h>
@@ -37,6 +39,10 @@
 #endif /* HAVE_PATHS_H */
 
 #include "ck-sysdeps.h"
+
+#ifndef ERROR
+#define ERROR -1
+#endif
 
 /* adapted from procps */
 struct _CkProcessStat
@@ -651,6 +657,49 @@ ck_get_console_num_from_device (const char *device,
 
         if (num != NULL) {
                 *num = n;
+        }
+
+        return ret;
+}
+
+gboolean
+ck_get_active_console_num (int    console_fd,
+                           guint *num)
+{
+        gboolean       ret;
+        int            res;
+        guint          active;
+        struct vt_stat stat;
+
+        g_assert (console_fd != -1);
+
+        active = 0;
+        ret = FALSE;
+
+        res = ioctl (console_fd, VT_GETSTATE, &stat);
+        if (res == ERROR) {
+                perror ("ioctl VT_GETSTATE");
+                goto out;
+        }
+
+        {
+                int i;
+
+                g_debug ("Current VT: tty%d", stat.v_active);
+                for (i = 1; i <= 16; i++) {
+                        gboolean is_on;
+                        is_on = stat.v_state & (1 << i);
+
+                        g_debug ("VT %d:%s", i, is_on ? "on" : "off");
+                }
+        }
+
+        active = stat.v_active;
+        ret = TRUE;
+
+ out:
+        if (num != NULL) {
+                *num = active;
         }
 
         return ret;

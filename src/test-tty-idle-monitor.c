@@ -31,11 +31,6 @@
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
-
-#ifdef __linux__
-#include <linux/kd.h>
-#endif
-
 #include <locale.h>
 
 #include <glib.h>
@@ -81,14 +76,7 @@ main (int argc, char **argv)
         g_type_init ();
 
         if (argc < 2) {
-#if defined(__FreeBSD__)
-		device = ttyname (0);
-#else
-                device = g_file_read_link ("/proc/self/fd/0", NULL);
-                if (device == NULL) {
-                        device = g_strdup ("/proc/self/fd/0");
-                }
-#endif
+                device = ttyname (0);
         } else {
                 device = g_strdup (argv[1]);
         }

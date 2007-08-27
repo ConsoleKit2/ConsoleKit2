@@ -35,12 +35,19 @@
 #include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/user.h>
+#include <sys/ioctl.h>
+
+#include <sys/consio.h>
 
 #define DEV_ENCODE(M,m) ( \
   ( (M&0xfff) << 8) | ( (m&0xfff00) << 12) | (m&0xff) \
 )
 
 #include "ck-sysdeps.h"
+
+#ifndef ERROR
+#define ERROR -1
+#endif
 
 /* adapted from procps */
 struct _CkProcessStat
@@ -408,6 +415,36 @@ ck_get_console_num_from_device (const char *device,
 
         if (num != NULL) {
                 *num = n;
+        }
+
+        return ret;
+}
+
+gboolean
+ck_get_active_console_num (int    console_fd,
+                           guint *num)
+{
+        gboolean ret;
+        int      res;
+        int      active;
+
+        g_assert (console_fd != -1);
+
+        active = 0;
+        ret = FALSE;
+
+        res = ioctl (console_fd, VT_GETACTIVE, &active);
+        if (res == ERROR) {
+                perror ("ioctl VT_GETACTIVE");
+                goto out;
+        }
+
+        g_debug ("Active VT is: ttyv%d", active);
+        ret = TRUE;
+
+ out:
+        if (num != NULL) {
+                *num = active;
         }
 
         return ret;
