@@ -8,10 +8,9 @@ seat_DATA = 00-primary.seat
 
 SCRIPT_IN_FILES = ConsoleKit.in
 
-initddir=$(sysconfdir)/rc.d/init.d
-
 # I guess it's Linux-only but that will do for the moment.
 if ! CK_COMPILE_FREEBSD
+initddir=$(sysconfdir)/rc.d/init.d
 initd_SCRIPTS= 		\
 	ConsoleKit	\
 	$(NULL)
