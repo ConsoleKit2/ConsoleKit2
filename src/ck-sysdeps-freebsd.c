@@ -108,16 +108,9 @@ ck_process_stat_get_cmd (CkProcessStat *stat)
         return g_strdup (stat->cmd);
 }
 
-/* adapted from procps */
 char *
 ck_process_stat_get_tty (CkProcessStat *stat)
 {
-        guint dev;
-        char *tty;
-        guint dev_maj;
-        guint dev_min;
-        pid_t pid;
-
         g_return_val_if_fail (stat != NULL, NULL);
 
         return g_strdup (stat->tty_text);
@@ -125,22 +118,22 @@ ck_process_stat_get_tty (CkProcessStat *stat)
 
 static gboolean
 get_kinfo_proc (pid_t pid,
-		struct kinfo_proc *p)
+                struct kinfo_proc *p)
 {
-	int    mib[4];
-	size_t len;
+        int    mib[4];
+        size_t len;
 
-	len = 4;
-	sysctlnametomib ("kern.proc.pid", mib, &len);
+        len = 4;
+        sysctlnametomib ("kern.proc.pid", mib, &len);
 
-	len = sizeof(struct kinfo_proc);
-	mib[3] = pid;
+        len = sizeof(struct kinfo_proc);
+        mib[3] = pid;
 
-	if (sysctl (mib, 4, p, &len, NULL, 0) == -1) {
-		return FALSE;
-	}
+        if (sysctl (mib, 4, p, &len, NULL, 0) == -1) {
+                return FALSE;
+        }
 
-	return TRUE;
+        return TRUE;
 }
 
 /* return 1 if it works, or 0 for failure */
@@ -154,9 +147,9 @@ stat2proc (pid_t        pid,
         int               tty_maj;
         int               tty_min;
 
-	if (! get_kinfo_proc (pid, &p)) {
-		return FALSE;
-	}
+        if (! get_kinfo_proc (pid, &p)) {
+                return FALSE;
+        }
 
         num = OCOMMLEN;
         if (num >= sizeof P->cmd) {
@@ -173,13 +166,13 @@ stat2proc (pid_t        pid,
         P->rss        = p.ki_rssize;
         P->vsize      = p.ki_size;
         P->start_time = p.ki_start.tv_sec;
-        P->wchan      = p.ki_wchan;
+        P->wchan      = (unsigned long) p.ki_wchan;
         P->state      = p.ki_stat;
         P->nice       = p.ki_nice;
-	P->flags      = p.ki_sflag;
-	P->tpgid      = p.ki_tpgid;
-	P->processor  = p.ki_oncpu;
-	P->nlwp       = p.ki_numthreads;
+        P->flags      = p.ki_sflag;
+        P->tpgid      = p.ki_tpgid;
+        P->processor  = p.ki_oncpu;
+        P->nlwp       = p.ki_numthreads;
 
         /* we like it Linux-encoded :-) */
         tty_maj = major (p.ki_tdev);
@@ -189,7 +182,7 @@ stat2proc (pid_t        pid,
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
         if (p.ki_tdev != NODEV && (ttname = devname (p.ki_tdev, S_IFCHR)) != NULL) {
-		memcpy (P->tty_text, ttname, 8);
+                memcpy (P->tty_text, ttname, 8);
         }
 
         if (p.ki_tdev == NODEV) {
@@ -208,11 +201,8 @@ ck_process_stat_new_for_unix_pid (pid_t           pid,
                                   CkProcessStat **stat,
                                   GError        **error)
 {
-        char        *path;
-        char        *contents;
-        gsize        length;
-        gboolean     res;
-        GError      *local_error;
+        gboolean       res;
+        GError        *local_error;
         CkProcessStat *proc;
 
         g_return_val_if_fail (pid > 1, FALSE);
@@ -244,43 +234,43 @@ GHashTable *
 ck_unix_pid_get_env_hash (pid_t pid)
 {
         GHashTable       *hash;
-	char            **penv;
-	kvm_t            *kd;
-	struct kinfo_proc p;
+        char            **penv;
+        kvm_t            *kd;
+        struct kinfo_proc p;
         int               i;
 
-	kd = kvm_openfiles (_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, NULL);
-	if (kd == NULL) {
-		return NULL;
-	}
+        kd = kvm_openfiles (_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, NULL);
+        if (kd == NULL) {
+                return NULL;
+        }
 
-	if (! get_kinfo_proc (pid, &p)) {
-		return NULL;
-	}
+        if (! get_kinfo_proc (pid, &p)) {
+                return NULL;
+        }
 
-	penv = kvm_getenvv (kd, &p, 0);
-	if (penv == NULL) {
-		return NULL;
-	}
+        penv = kvm_getenvv (kd, &p, 0);
+        if (penv == NULL) {
+                return NULL;
+        }
 
         hash = g_hash_table_new_full (g_str_hash,
                                       g_str_equal,
                                       g_free,
                                       g_free);
 
-	for (i = 0; penv[i] != NULL; i++) {
-		char **vals;
+        for (i = 0; penv[i] != NULL; i++) {
+                char **vals;
 
-		vals = g_strsplit (penv[i], "=", 2);
-		if (vals != NULL) {
-			g_hash_table_insert (hash,
-					     g_strdup (vals[0]),
-					     g_strdup (vals[1]));
-			g_strfreev (vals);
-		}
+                vals = g_strsplit (penv[i], "=", 2);
+                if (vals != NULL) {
+                        g_hash_table_insert (hash,
+                                             g_strdup (vals[0]),
+                                             g_strdup (vals[1]));
+                        g_strfreev (vals);
+                }
         }
 
-	kvm_close (kd);
+        kvm_close (kd);
 
         return hash;
 }
@@ -292,11 +282,11 @@ ck_unix_pid_get_env (pid_t       pid,
         GHashTable *hash;
         char       *val;
 
-	/*
-	 * Would probably be more efficient to just loop through the
-	 * environment and return the value, avoiding building the hash
-	 * table, but this works for now.
-	 */
+        /*
+         * Would probably be more efficient to just loop through the
+         * environment and return the value, avoiding building the hash
+         * table, but this works for now.
+         */
         hash = ck_unix_pid_get_env_hash (pid);
         val  = g_strdup (g_hash_table_lookup (hash, var));
         g_hash_table_destroy (hash);
@@ -305,84 +295,60 @@ ck_unix_pid_get_env (pid_t       pid,
 }
 
 uid_t
-proc_pid_get_uid (pid_t pid)
+ck_unix_pid_get_uid (pid_t pid)
 {
         uid_t             uid;
-	gboolean          res;
-	struct kinfo_proc p;
+        gboolean          res;
+        struct kinfo_proc p;
 
         g_return_val_if_fail (pid > 1, 0);
 
         uid = -1;
 
-	res = get_kinfo_proc (pid, &p);
+        res = get_kinfo_proc (pid, &p);
 
         if (res) {
-		uid = p.ki_uid;
+                uid = p.ki_uid;
         }
 
         return uid;
-}
-
-pid_t
-proc_pid_get_ppid (pid_t pid)
-{
-        int            ppid;
-        gboolean       res;
-        CkProcessStat *stat;
-
-        g_return_val_if_fail (pid > 1, 0);
-
-        ppid = -1;
-
-        res = ck_process_stat_new_for_unix_pid (pid, &stat, NULL);
-        if (! res) {
-                goto out;
-        }
-
-        ppid = ck_process_stat_get_ppid (stat);
-
-        ck_process_stat_free (stat);
-
- out:
-        return ppid;
 }
 
 gboolean
 ck_get_max_num_consoles (guint *num)
 {
         int      max_consoles;
-	int      res;
+        int      res;
         gboolean ret;
         struct ttyent *t;
 
-	ret = FALSE;
-	max_consoles = 0;
+        ret = FALSE;
+        max_consoles = 0;
 
-	res = setttyent ();
-	if (res == 0) {
-		goto done;
-	}
+        res = setttyent ();
+        if (res == 0) {
+                goto done;
+        }
 
-	while ((t = getttyent ()) != NULL) {
-		if (t->ty_status & TTY_ON && strncmp (t->ty_name, "ttyv", 4) == 0)
-			max_consoles++;
-	}
+        while ((t = getttyent ()) != NULL) {
+                if (t->ty_status & TTY_ON && strncmp (t->ty_name, "ttyv", 4) == 0)
+                        max_consoles++;
+        }
 
-	if (errno == 0) {
-		ret = TRUE;
-	} else {
-		max_consoles = 0;
-	}
+        if (errno == 0) {
+                ret = TRUE;
+        } else {
+                max_consoles = 0;
+        }
 
-	endttyent ();
+        endttyent ();
 
 done:
-	if (num != NULL) {
-		*num = max_consoles;
-	}
+        if (num != NULL) {
+                *num = max_consoles;
+        }
 
-	return ret;
+        return ret;
 }
 
 char *

@@ -261,7 +261,7 @@ ck_unix_pid_get_env_hash (pid_t pid)
                                         g_hash_table_insert (hash,
                                                              g_strdup (vals[0]),
                                                              g_strdup (vals[1]));
-					g_strfreev (vals);
+                                        g_strfreev (vals);
                                 }
                         }
                 }
@@ -278,7 +278,7 @@ ck_unix_pid_get_env (pid_t       pid,
         GHashTable *hash;
         char       *val;
 
-	/*
+        /*
 	 * Would probably be more efficient to just loop through the
 	 * environment and return the value, avoiding building the hash
 	 * table, but this works for now.
@@ -291,7 +291,7 @@ ck_unix_pid_get_env (pid_t       pid,
 }
 
 uid_t
-proc_pid_get_uid (pid_t pid)
+ck_unix_pid_get_uid (pid_t pid)
 {
         struct stat st;
         char       *path;
@@ -314,7 +314,7 @@ proc_pid_get_uid (pid_t pid)
 }
 
 pid_t
-proc_pid_get_ppid (pid_t pid)
+ck_unix_pid_get_ppid (pid_t pid)
 {
         int            ppid;
         gboolean       res;
