@@ -321,13 +321,13 @@ _g_time_val_to_iso8601 (GTimeVal *time_)
 
   g_return_val_if_fail (time_->tv_usec >= 0 && time_->tv_usec < G_USEC_PER_SEC, NULL);
 
-#define ISO_8601_LEN 	21
+#define ISO_8601_LEN    21
 #define ISO_8601_FORMAT "%Y-%m-%dT%H:%M:%SZ"
   retval = g_new0 (gchar, ISO_8601_LEN + 1);
 
   strftime (retval, ISO_8601_LEN,
-	    ISO_8601_FORMAT,
-	    gmtime (&(time_->tv_sec)));
+            ISO_8601_FORMAT,
+            gmtime (&(time_->tv_sec)));
 
   return retval;
 }
@@ -1103,7 +1103,7 @@ ck_session_new_with_parameters (const char      *ssid,
         guint         n_allocated_params;
         guint         n_params;
         GObjectClass *class;
-        GType	      object_type;
+        GType         object_type;
 
         object_type = CK_TYPE_SESSION;
         class = g_type_class_ref (object_type);

@@ -407,7 +407,7 @@ handle_inotify_event (CkFileMonitor        *monitor,
 
 static gboolean
 inotify_data_pending (GIOChannel    *source,
-		      GIOCondition   condition,
+                      GIOCondition   condition,
                       CkFileMonitor *monitor)
 {
         int len;

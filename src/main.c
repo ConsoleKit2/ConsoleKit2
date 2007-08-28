@@ -50,8 +50,8 @@ static void bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
 static gboolean
 timed_exit_cb (GMainLoop *loop)
 {
-	g_main_loop_quit (loop);
-	return FALSE;
+        g_main_loop_quit (loop);
+        return FALSE;
 }
 
 static DBusGProxy *
@@ -59,7 +59,7 @@ get_bus_proxy (DBusGConnection *connection)
 {
         DBusGProxy *bus_proxy;
 
-	bus_proxy = dbus_g_proxy_new_for_name (connection,
+        bus_proxy = dbus_g_proxy_new_for_name (connection,
                                                DBUS_SERVICE_DBUS,
                                                DBUS_PATH_DBUS,
                                                DBUS_INTERFACE_DBUS);
@@ -81,7 +81,7 @@ acquire_name_on_proxy (DBusGProxy *bus_proxy)
         }
 
         error = NULL;
-	res = dbus_g_proxy_call (bus_proxy,
+        res = dbus_g_proxy_call (bus_proxy,
                                  "RequestName",
                                  &error,
                                  G_TYPE_STRING, CK_DBUS_NAME,
@@ -97,9 +97,9 @@ acquire_name_on_proxy (DBusGProxy *bus_proxy)
                         g_warning ("Failed to acquire %s", CK_DBUS_NAME);
                 }
                 goto out;
-	}
+        }
 
- 	if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+        if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
                 if (error != NULL) {
                         g_warning ("Failed to acquire %s: %s", CK_DBUS_NAME, error->message);
                         g_error_free (error);

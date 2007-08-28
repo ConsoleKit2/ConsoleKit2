@@ -126,7 +126,7 @@ ck_fd_is_a_console (int fd)
 #ifdef __linux__
         char arg = 0;
 #elif defined(__FreeBSD__)
-	int vers;
+        int vers;
 #endif
         int  kb_ok;
 
@@ -134,7 +134,7 @@ ck_fd_is_a_console (int fd)
         kb_ok = (ioctl (fd, KDGKBTYPE, &arg) == 0
                  && ((arg == KB_101) || (arg == KB_84)));
 #elif defined(__FreeBSD__)
-	kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
+        kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
 #else
         kb_ok = 1;
 #endif
@@ -170,7 +170,7 @@ ck_get_a_console_fd (void)
         fd = -1;
 
 #ifdef __sun
-	/* On Solaris, first try Sun VT device. */
+        /* On Solaris, first try Sun VT device. */
         fd = open_a_console ("/dev/vt/active");
         if (fd >= 0) {
                 goto done;

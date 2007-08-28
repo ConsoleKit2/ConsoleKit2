@@ -54,11 +54,11 @@
 #define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"
 
 #define CK_TYPE_PARAMETER_STRUCT (dbus_g_type_get_struct ("GValueArray", \
-							  G_TYPE_STRING, \
-							  G_TYPE_VALUE, \
-							  G_TYPE_INVALID))
+                                                          G_TYPE_STRING, \
+                                                          G_TYPE_VALUE, \
+                                                          G_TYPE_INVALID))
 #define CK_TYPE_PARAMETER_LIST (dbus_g_type_get_collection ("GPtrArray", \
-							    CK_TYPE_PARAMETER_STRUCT))
+                                                            CK_TYPE_PARAMETER_STRUCT))
 struct CkManagerPrivate
 {
         GHashTable      *seats;
@@ -516,13 +516,13 @@ _g_time_val_to_iso8601 (GTimeVal *time_)
 
   g_return_val_if_fail (time_->tv_usec >= 0 && time_->tv_usec < G_USEC_PER_SEC, NULL);
 
-#define ISO_8601_LEN 	21
+#define ISO_8601_LEN    21
 #define ISO_8601_FORMAT "%Y-%m-%dT%H:%M:%SZ"
   retval = g_new0 (gchar, ISO_8601_LEN + 1);
 
   strftime (retval, ISO_8601_LEN,
-	    ISO_8601_FORMAT,
-	    gmtime (&(time_->tv_sec)));
+            ISO_8601_FORMAT,
+            gmtime (&(time_->tv_sec)));
 
   return retval;
 }
@@ -696,7 +696,7 @@ typedef void (* CkAddParamFunc) (GPtrArray  *arr,
                                  const char *value);
 
 static struct {
-	char          *key;
+        char          *key;
         CkAddParamFunc func;
 } parse_ops[] = {
         { "display-device",     add_param_string },
