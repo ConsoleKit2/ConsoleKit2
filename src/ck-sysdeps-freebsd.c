@@ -182,11 +182,11 @@ stat2proc (pid_t        pid,
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
         if (p.ki_tdev != NODEV && (ttname = devname (p.ki_tdev, S_IFCHR)) != NULL) {
-                memcpy (P->tty_text, ttname, 8);
+                memcpy (P->tty_text, ttname, sizeof P->tty_text);
         }
 
         if (p.ki_tdev == NODEV) {
-                memcpy (P->tty_text, "   ?   ", 8);
+                memcpy (P->tty_text, "   ?   ", sizeof P->tty_text);
         }
 
         if (P->pid != pid) {
@@ -335,11 +335,12 @@ ck_get_max_num_consoles (guint *num)
                         max_consoles++;
         }
 
-        if (errno == 0) {
-                ret = TRUE;
-        } else {
-                max_consoles = 0;
-        }
+        /* Increment one more so that all consoles are properly counted
+         * this is arguable a bug in vt_add_watches().
+         */
+        max_consoles++;
+
+        ret = TRUE;
 
         endttyent ();
 
@@ -355,6 +356,9 @@ char *
 ck_get_console_device_for_num (guint num)
 {
         char *device;
+
+        /* The device number is always one less than the VT number. */
+        num--;
 
         device = g_strdup_printf ("/dev/ttyv%u", num);
 
@@ -376,6 +380,8 @@ ck_get_console_num_from_device (const char *device,
         }
 
         if (sscanf (device, "/dev/ttyv%u", &n) == 1) {
+                /* The VT number is always one more than the device number. */
+                n++;
                 ret = TRUE;
         }
 
@@ -405,7 +411,7 @@ ck_get_active_console_num (int    console_fd,
                 goto out;
         }
 
-        g_debug ("Active VT is: ttyv%d", active);
+        g_debug ("Active VT is: %d (ttyv%d)", active, active - 1);
         ret = TRUE;
 
  out:
