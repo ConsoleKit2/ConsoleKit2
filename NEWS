@@ -1,4 +1,10 @@
 =============
+Version 0.2.3
+=============
+
+        * Use unix-user instead of user so that PAM module works
+
+=============
 Version 0.2.2
 =============
 
