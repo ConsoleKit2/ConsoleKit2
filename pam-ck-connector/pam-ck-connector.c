@@ -335,7 +335,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         dbus_error_init (&error);
         res = ck_connector_open_session_with_parameters (ckc,
                                                          &error,
-                                                         "user", &uid,
+                                                         "unix-user", &uid,
                                                          "display-device", &display_device,
                                                          "x11-display", &x11_display,
                                                          "x11-display-device", &x11_display_device,
