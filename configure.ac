@@ -2,7 +2,7 @@ dnl -*- mode: m4 -*-
 
 AC_PREREQ(2.59c)
 AC_INIT([ConsoleKit],
-        [0.2.3],
+        [0.2.4],
         [mccann@jhu.edu],
         [ConsoleKit])
 
