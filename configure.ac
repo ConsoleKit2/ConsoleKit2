@@ -39,6 +39,8 @@ X11_REQUIRED_VERSION=1.0.0
 
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(paths.h)
+AC_CHECK_HEADERS(sys/vt.h)
+AC_CHECK_HEADERS(sys/consio.h)
 
 AC_CHECK_FUNCS(getpeerucred getpeereid)
 

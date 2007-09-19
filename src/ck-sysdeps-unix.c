@@ -33,10 +33,13 @@
 
 #ifdef __linux__
 #include <linux/kd.h>
+#endif
+
+#ifdef HAVE_SYS_VT_H
 #include <sys/vt.h>
 #endif
 
-#ifdef __FreeBSD__
+#if HAVE_SYS_CONSIO_H
 #include <sys/consio.h>
 #endif
 
@@ -252,11 +255,15 @@ ck_wait_for_active_console_num (int   console_fd,
  again:
         ret = FALSE;
 
-        g_debug ("VT_WAITACTIVE for vt %d", num);
         errno = 0;
+#ifdef VT_WAITACTIVE
+        g_debug ("VT_WAITACTIVE for vt %d", num);
         res = ioctl (console_fd, VT_WAITACTIVE, num);
-
         g_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
+#else
+        res = ERROR;
+        errno = ENOTSUP;
+#endif
 
         if (res == ERROR) {
                 const char *errmsg;
@@ -268,6 +275,8 @@ ck_wait_for_active_console_num (int   console_fd,
                                   num,
                                   errmsg);
                        goto again;
+                } else if (errno == ENOTSUP) {
+                        g_debug ("Console activation not supported on this system");
                 } else {
                         g_warning ("Error waiting for native console %d activation: %s",
                                    num,
@@ -294,11 +303,21 @@ ck_activate_console_num (int   console_fd,
         ret = FALSE;
 
         errno = 0;
+#ifdef VT_ACTIVATE
         res = ioctl (console_fd, VT_ACTIVATE, num);
+#else
+        res = ERROR;
+        errno = ENOTSUP;
+#endif
+
         if (res == 0) {
                 ret = TRUE;
         } else {
-                g_warning ("Unable to activate console: %s", g_strerror (errno));
+                if (errno == ENOTSUP) {
+                        g_debug ("Console activation not supported on this system");
+                } else {
+                        g_warning ("Unable to activate console: %s", g_strerror (errno));
+                }
         }
 
         return ret;
