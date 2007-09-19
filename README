@@ -19,8 +19,10 @@ common ancestor and retain knowledge of a secret.  As an implementation
 detail, this secret may be stored in the process environment by the
 login manager under the name XDG_SESSION_COOKIE.
 
-Discussion
-==========
+More Information
+================
+
+http://www.freedesktop.org/wiki/Software/ConsoleKit
 
 Discussion takes place on the HAL list.
 http://lists.freedesktop.org/mailman/listinfo/hal
