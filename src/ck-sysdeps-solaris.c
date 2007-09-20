@@ -30,6 +30,10 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
+#ifdef HAVE_SYS_VT_H
+#include <sys/vt.h>
+#endif
+
 #define DEV_ENCODE(M,m) ( \
   ( (M&0xfff) << 8)   |   ( (m&0xfff00) << 12)   |   (m&0xff)   \
 )
@@ -432,6 +436,8 @@ ck_get_active_console_num (int    console_fd,
         gboolean       ret;
         int            res;
         guint          active;
+
+#ifdef VT_GETSTATE
         struct vt_stat stat;
 
         g_assert (console_fd != -1);
@@ -464,6 +470,10 @@ ck_get_active_console_num (int    console_fd,
         if (num != NULL) {
                 *num = active;
         }
+#else
+        res = ERROR;
+        errno = ENOTSUP;
+#endif
 
         return ret;
 }
