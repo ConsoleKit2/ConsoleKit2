@@ -98,6 +98,8 @@ console_kit_daemon_SOURCES =	\
 	ck-session.c		\
 	ck-log.h		\
 	ck-log.c		\
+	ck-run-programs.c	\
+	ck-run-programs.h	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -163,3 +165,7 @@ CLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES =			\
 	*~				\
 	Makefile.in
+
+install-data-local:
+	-mkdir -p $(DESTDIR)$(sysconfdir)/ConsoleKit/run-session.d
+	-mkdir -p $(DESTDIR)$(libdir)/ConsoleKit/run-session.d

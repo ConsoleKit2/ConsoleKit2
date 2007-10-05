@@ -42,6 +42,7 @@
 
 #include "ck-session.h"
 #include "ck-vt-monitor.h"
+#include "ck-run-programs.h"
 
 #define CK_SEAT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SEAT, CkSeatPrivate))
 
@@ -547,6 +548,8 @@ ck_seat_remove_session (CkSeat         *seat,
 
         g_signal_handlers_disconnect_by_func (session, session_activate, seat);
 
+        ck_session_run_programs (session, "session_removed");
+
         g_debug ("Emitting removed signal: %s", ssid);
 
         g_signal_emit (seat, signals [SESSION_REMOVED], 0, ssid);
@@ -580,6 +583,8 @@ ck_seat_add_session (CkSeat         *seat,
 
         g_signal_connect_object (session, "activate", G_CALLBACK (session_activate), seat, 0);
         /* FIXME: attach to property notify signals? */
+
+        ck_session_run_programs (session, "session_added");
 
         g_debug ("Emitting added signal: %s", ssid);
 

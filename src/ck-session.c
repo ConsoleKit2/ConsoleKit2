@@ -40,6 +40,7 @@
 #include "ck-session.h"
 #include "ck-session-glue.h"
 #include "ck-marshal.h"
+#include "ck-run-programs.h"
 
 #define CK_SESSION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SESSION, CkSessionPrivate))
 
@@ -394,6 +395,7 @@ ck_session_set_active (CkSession      *session,
 
         if (session->priv->active != active) {
                 session->priv->active = active;
+                ck_session_run_programs (session, "session_active_changed");
                 g_signal_emit (session, signals [ACTIVE_CHANGED], 0, active);
         }
 
@@ -1205,4 +1207,41 @@ ck_session_new_with_parameters (const char      *ssid,
         }
 
         return CK_SESSION (object);
+}
+
+void
+ck_session_run_programs (CkSession  *session,
+                         const char *action)
+{
+        int   n;
+        char *extra_env[11]; /* be sure to adjust this as needed */
+
+        n = 0;
+
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_ID=%s", session->priv->id);
+        if (session->priv->session_type != NULL) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_TYPE=%s", session->priv->session_type);
+        }
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_SEAT_ID=%s", session->priv->seat_id);
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_USER_UID=%d", session->priv->uid);
+        if (session->priv->display_device != NULL && strlen (session->priv->display_device) > 0) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_DISPLAY_DEVICE=%s", session->priv->display_device);
+        }
+        if (session->priv->x11_display_device != NULL && strlen (session->priv->x11_display_device) > 0) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY_DEVICE=%s", session->priv->x11_display_device);
+        }
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY=%s", session->priv->x11_display);
+        if (session->priv->remote_host_name != NULL && strlen (session->priv->remote_host_name) > 0) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_REMOTE_HOST_NAME=%s", session->priv->remote_host_name);
+        }
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_ACTIVE=%s", session->priv->active ? "true" : "false");
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_LOCAL=%s", session->priv->is_local ? "true" : "false");
+        extra_env[n++] = NULL;
+
+        ck_run_programs (SYSCONFDIR "/ConsoleKit/run-session.d", action, extra_env);
+        ck_run_programs (LIBDIR "/ConsoleKit/run-session.d", action, extra_env);
+
+        for (n = 0; extra_env[n] != NULL; n++) {
+                g_free (extra_env[n]);
+        }
 }
