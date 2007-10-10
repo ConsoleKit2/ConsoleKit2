@@ -28,9 +28,11 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <errno.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <glib/gstdio.h>
 #include <glib-object.h>
 #define DBUS_API_SUBJECT_TO_CHANGE
 #include <dbus/dbus-glib.h>
@@ -103,6 +105,115 @@ static void     ck_manager_finalize    (GObject        *object);
 static gpointer manager_object = NULL;
 
 G_DEFINE_TYPE (CkManager, ck_manager, G_TYPE_OBJECT)
+
+static void
+dump_state_seat_iter (char     *id,
+                      CkSeat   *seat,
+                      GKeyFile *key_file)
+{
+        ck_seat_dump (seat, key_file);
+}
+
+static void
+dump_state_session_iter (char      *id,
+                         CkSession *session,
+                         GKeyFile  *key_file)
+{
+        ck_session_dump (session, key_file);
+}
+
+static gboolean
+do_dump (CkManager *manager,
+         int        fd)
+{
+        char     *str;
+        gsize     str_len;
+        GKeyFile *key_file;
+        GError   *error;
+        gboolean  ret;
+
+        str = NULL;
+        error = NULL;
+        ret = FALSE;
+
+        key_file = g_key_file_new ();
+
+        g_hash_table_foreach (manager->priv->seats, (GHFunc) dump_state_seat_iter, key_file);
+        g_hash_table_foreach (manager->priv->sessions, (GHFunc) dump_state_session_iter, key_file);
+
+        str = g_key_file_to_data (key_file, &str_len, &error);
+        g_key_file_free (key_file);
+        if (str != NULL) {
+                ssize_t written;
+
+                written = 0;
+                while (written < str_len) {
+                        ssize_t ret;
+                        ret = write (fd, str + written, str_len - written);
+                        if (ret < 0) {
+                                if (errno == EAGAIN || errno == EINTR) {
+                                        continue;
+                                } else {
+                                        g_warning ("Error writing state file: %s", strerror (errno));
+                                        goto out;
+                                }
+                        }
+                        written += ret;
+                }
+        } else {
+                g_warning ("Couldn't construct state file: %s", error->message);
+                g_error_free (error);
+        }
+
+        ret = TRUE;
+
+out:
+        g_free (str);
+        return ret;
+}
+
+static void
+ck_manager_dump (CkManager *manager)
+{
+        const char *filename = LOCALSTATEDIR "/run/ConsoleKit/database";
+        const char *filename_tmp = LOCALSTATEDIR "/run/ConsoleKit/database~";
+        if (manager != NULL) {
+                int fd;
+
+                fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0600);
+                if (fd == -1) {
+                        g_warning ("Cannot create file %s: %s", filename_tmp, g_strerror (errno));
+                        goto error;
+                }
+
+                if (! do_dump (manager, fd)) {
+                        g_warning ("Cannot write to file %s", filename_tmp);
+                        close (fd);
+                        goto error;
+                }
+        again:
+                if (close (fd) != 0) {
+                        if (errno == EINTR)
+                                goto again;
+                        else {
+                                g_warning ("Cannot close fd for %s: %s", filename_tmp, g_strerror (errno));
+                                goto error;
+                        }
+                }
+
+                if (g_rename (filename_tmp, filename) != 0) {
+                        g_warning ("Cannot rename %s to %s: %s", filename_tmp, filename, g_strerror (errno));
+                        goto error;
+                }
+        }
+
+        return;
+error:
+        /* For security reasons; unlink the existing file since it contains outdated information */
+        if (g_unlink (filename) != 0) {
+                g_warning ("Cannot unlink %s: %s", filename, g_strerror (errno));
+        }
+}
 
 static void
 remove_pending_job (CkJob *job)
@@ -277,6 +388,68 @@ generate_seat_id (CkManager *manager)
         return id;
 }
 
+static void
+on_seat_active_session_changed (CkSeat     *seat,
+                                const char *ssid,
+                                CkManager  *manager)
+{
+        ck_manager_dump (manager);
+}
+
+static void
+on_seat_session_added (CkSeat     *seat,
+                       const char *ssid,
+                       CkManager  *manager)
+{
+        ck_manager_dump (manager);
+}
+
+static void
+on_seat_session_removed (CkSeat     *seat,
+                         const char *ssid,
+                         CkManager  *manager)
+{
+        ck_manager_dump (manager);
+}
+
+static void
+on_seat_device_added (CkSeat      *seat,
+                      GValueArray *device,
+                      CkManager   *manager)
+{
+        ck_manager_dump (manager);
+}
+
+static void
+on_seat_device_removed (CkSeat      *seat,
+                        GValueArray *device,
+                        CkManager   *manager)
+{
+        ck_manager_dump (manager);
+}
+
+static void
+connect_seat_signals (CkManager *manager,
+                      CkSeat    *seat)
+{
+        g_signal_connect (seat, "active-session-changed", G_CALLBACK (on_seat_active_session_changed), manager);
+        g_signal_connect (seat, "session-added", G_CALLBACK (on_seat_session_added), manager);
+        g_signal_connect (seat, "session-removed", G_CALLBACK (on_seat_session_removed), manager);
+        g_signal_connect (seat, "device-added", G_CALLBACK (on_seat_device_added), manager);
+        g_signal_connect (seat, "device-removed", G_CALLBACK (on_seat_device_removed), manager);
+}
+
+static void
+disconnect_seat_signals (CkManager *manager,
+                         CkSeat    *seat)
+{
+        g_signal_handlers_disconnect_by_func (seat, on_seat_active_session_changed, manager);
+        g_signal_handlers_disconnect_by_func (seat, on_seat_session_added, manager);
+        g_signal_handlers_disconnect_by_func (seat, on_seat_session_removed, manager);
+        g_signal_handlers_disconnect_by_func (seat, on_seat_device_added, manager);
+        g_signal_handlers_disconnect_by_func (seat, on_seat_device_removed, manager);
+}
+
 static CkSeat *
 add_new_seat (CkManager *manager,
               CkSeatKind kind)
@@ -293,9 +466,13 @@ add_new_seat (CkManager *manager,
                 goto out;
         }
 
+        connect_seat_signals (manager, seat);
+
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
         g_debug ("Added seat: %s kind:%d", sid, kind);
+
+        ck_manager_dump (manager);
 
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
 
@@ -329,9 +506,13 @@ remove_seat (CkManager *manager,
          * unref until the signal is emitted */
         g_hash_table_steal (manager->priv->seats, sid);
 
+        disconnect_seat_signals (manager, orig_seat);
+
         if (sid != NULL) {
                 g_hash_table_remove (manager->priv->seats, sid);
         }
+
+        ck_manager_dump (manager);
 
         g_debug ("Emitting seat-removed: %s", sid);
         g_signal_emit (manager, signals [SEAT_REMOVED], 0, sid);
@@ -1204,6 +1385,11 @@ remove_session_for_cookie (CkManager  *manager,
         LeaderInfo *leader_info;
         char       *sid;
         gboolean    res;
+        gboolean    ret;
+
+        ret = FALSE;
+        orig_ssid = NULL;
+        orig_session = NULL;
 
         g_debug ("Removing session for cookie: %s", cookie);
 
@@ -1214,7 +1400,7 @@ remove_session_for_cookie (CkManager  *manager,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
                              "Unable to find session for cookie");
-                return FALSE;
+                goto out;
         }
 
         /* Need to get the original key/value */
@@ -1227,7 +1413,7 @@ remove_session_for_cookie (CkManager  *manager,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
                              "Unable to find session for cookie");
-                return FALSE;
+                goto out;
         }
 
         /* Remove the session from the list but don't call
@@ -1255,14 +1441,18 @@ remove_session_for_cookie (CkManager  *manager,
         }
         g_free (sid);
 
+        ck_manager_dump (manager);
+
+        manager_update_system_idle_hint (manager);
+
+        ret = TRUE;
+ out:
         if (orig_session != NULL) {
                 g_object_unref (orig_session);
         }
         g_free (orig_ssid);
 
-        manager_update_system_idle_hint (manager);
-
-        return TRUE;
+        return ret;
 }
 
 static gboolean
@@ -1595,9 +1785,13 @@ add_seat_for_file (CkManager  *manager,
                 return;
         }
 
+        connect_seat_signals (manager, seat);
+
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
         g_debug ("Added seat: %s", sid);
+
+        ck_manager_dump (manager);
 
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
 }

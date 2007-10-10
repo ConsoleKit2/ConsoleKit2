@@ -90,6 +90,10 @@ CkSeat            * ck_seat_new_from_file       (const char            *sid,
 CkSeat            * ck_seat_new_with_devices    (const char            *sid,
                                                  CkSeatKind             kind,
                                                  GPtrArray             *devices);
+
+void                ck_seat_dump                (CkSeat                *seat,
+                                                 GKeyFile              *key_file);
+
 gboolean            ck_seat_get_kind            (CkSeat                *seat,
                                                  CkSeatKind            *kind,
                                                  GError               **error);

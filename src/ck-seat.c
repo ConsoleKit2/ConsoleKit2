@@ -656,7 +656,6 @@ ck_seat_add_device (CkSeat         *seat,
         g_ptr_array_add (seat->priv->devices, g_boxed_copy (CK_TYPE_DEVICE, device));
 
         g_debug ("Emitting device added signal");
-
         g_signal_emit (seat, signals [DEVICE_ADDED], 0, device);
 
         return TRUE;
@@ -672,7 +671,6 @@ ck_seat_remove_device (CkSeat         *seat,
         /* FIXME: check if already present */
         if (0) {
                 g_debug ("Emitting device removed signal");
-
                 g_signal_emit (seat, signals [DEVICE_REMOVED], 0, device);
         }
 
@@ -1122,3 +1120,87 @@ ck_seat_new_from_file (const char *sid,
 
         return seat;
 }
+
+static void
+dump_seat_session_iter (char      *id,
+                        CkSession *session,
+                        GString   *str)
+{
+        char   *session_id;
+        GError *error;
+
+        error = NULL;
+        if (! ck_session_get_id (session, &session_id, &error)) {
+                g_warning ("Cannot get session id from seat: %s", error->message);
+                g_error_free (error);
+        } else {
+                if (str->len > 0) {
+                        g_string_append_c (str, ' ');
+                }
+                g_string_append (str, session_id);
+                g_free (session_id);
+        }
+}
+
+void
+ck_seat_dump (CkSeat   *seat,
+              GKeyFile *key_file)
+{
+        char    *group_name;
+        GString *str;
+        char    *s;
+        int      n;
+
+        group_name = g_strdup_printf ("Seat %s", seat->priv->id);
+
+        g_key_file_set_integer (key_file, group_name, "kind", seat->priv->kind);
+
+        str = g_string_new (NULL);
+        g_hash_table_foreach (seat->priv->sessions, (GHFunc) dump_seat_session_iter, str);
+        s = g_string_free (str, FALSE);
+        g_key_file_set_string (key_file, group_name, "sessions", s);
+        g_free (s);
+
+        str = g_string_new (NULL);
+        if (seat->priv->devices != NULL) {
+                for (n = 0; n < seat->priv->devices->len; n++) {
+                        int          m;
+                        GValueArray *va;
+
+                        va = seat->priv->devices->pdata[n];
+
+                        if (str->len > 0)
+                                g_string_append_c (str, ' ');
+                        for (m = 0; m < va->n_values; m++) {
+                                if (m > 0)
+                                        g_string_append_c (str, ':');
+                                g_string_append (str, g_value_get_string ((const GValue *) &((va->values)[m])));
+                        }
+
+                        g_debug ("foo %d", va->n_values);
+                }
+        }
+        s = g_string_free (str, FALSE);
+        g_key_file_set_string (key_file, group_name, "devices", s);
+        g_free (s);
+
+
+        if (seat->priv->active_session != NULL) {
+                char   *session_id;
+                GError *error;
+
+                error = NULL;
+                if (! ck_session_get_id (seat->priv->active_session, &session_id, &error)) {
+                        g_warning ("Cannot get session id for active session on seat %s: %s",
+                                   seat->priv->id,
+                                   error->message);
+                        g_error_free (error);
+                } else {
+                        g_key_file_set_string (key_file, group_name, "active_session", session_id);
+                        g_free (session_id);
+                }
+        }
+
+        g_free (group_name);
+}
+

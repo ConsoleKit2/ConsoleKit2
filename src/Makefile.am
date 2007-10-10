@@ -17,6 +17,7 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
+	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
 	-DCONSOLE_KIT_PID_FILE=\""$(CONSOLE_KIT_PID_FILE)"\"	\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\
@@ -169,3 +170,4 @@ MAINTAINERCLEANFILES =			\
 install-data-local:
 	-mkdir -p $(DESTDIR)$(sysconfdir)/ConsoleKit/run-session.d
 	-mkdir -p $(DESTDIR)$(libdir)/ConsoleKit/run-session.d
+	-mkdir -p $(DESTDIR)$(localstatedir)/run/ConsoleKit

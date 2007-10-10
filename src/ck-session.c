@@ -1245,3 +1245,41 @@ ck_session_run_programs (CkSession  *session,
                 g_free (extra_env[n]);
         }
 }
+
+void
+ck_session_dump (CkSession *session,
+                 GKeyFile  *key_file)
+{
+        char *s;
+        char *group_name;
+
+        group_name = g_strdup_printf ("Session %s", session->priv->id);
+        g_key_file_set_integer (key_file, group_name, "uid", session->priv->uid);
+        g_key_file_set_string (key_file, group_name, "seat", session->priv->seat_id);
+        g_key_file_set_string (key_file, group_name, "cookie", session->priv->cookie);
+        if (session->priv->session_type != NULL) {
+                g_key_file_set_string (key_file, group_name, "type", session->priv->session_type);
+        }
+        if (session->priv->display_device != NULL && strlen (session->priv->display_device) > 0) {
+                g_key_file_set_string (key_file, group_name, "display_device", session->priv->display_device);
+        }
+        if (session->priv->x11_display_device != NULL && strlen (session->priv->x11_display_device) > 0) {
+                g_key_file_set_string (key_file, group_name, "x11_display_device", session->priv->x11_display_device);
+        }
+        if (session->priv->x11_display != NULL && strlen (session->priv->x11_display) > 0) {
+                g_key_file_set_string (key_file, group_name, "x11_display", session->priv->x11_display);
+        }
+        if (session->priv->remote_host_name != NULL && strlen (session->priv->remote_host_name) > 0) {
+                g_key_file_set_string (key_file, group_name, "remote_host_name", session->priv->remote_host_name);
+        }
+        g_key_file_set_string (key_file, group_name, "remote_host_name", session->priv->remote_host_name);
+        g_key_file_set_boolean (key_file, group_name, "is_active", session->priv->active);
+        g_key_file_set_boolean (key_file, group_name, "is_local", session->priv->is_local);
+
+        s = g_time_val_to_iso8601 (&(session->priv->creation_time));
+        g_key_file_set_string (key_file, group_name, "creation_time", s);
+        g_free (s);
+
+        g_free (group_name);
+}
+
