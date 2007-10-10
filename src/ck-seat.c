@@ -528,8 +528,11 @@ ck_seat_remove_session (CkSeat         *seat,
                         CkSession      *session,
                         GError        **error)
 {
-        char    *ssid;
-        gboolean ret;
+        char       *ssid;
+        char      *orig_ssid;
+        CkSession *orig_session;
+        gboolean   res;
+        gboolean   ret;
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
@@ -537,7 +540,12 @@ ck_seat_remove_session (CkSeat         *seat,
         ssid = NULL;
         ck_session_get_id (session, &ssid, NULL);
 
-        if (g_hash_table_lookup (seat->priv->sessions, ssid) == NULL) {
+        /* Need to get the original key/value */
+        res = g_hash_table_lookup_extended (seat->priv->sessions,
+                                            ssid,
+                                            (gpointer *)&orig_ssid,
+                                            (gpointer *)&orig_session);
+        if (! res) {
                 g_debug ("Session %s is not attached to seat %s", ssid, seat->priv->id);
                 g_set_error (error,
                              CK_SEAT_ERROR,
@@ -548,16 +556,22 @@ ck_seat_remove_session (CkSeat         *seat,
 
         g_signal_handlers_disconnect_by_func (session, session_activate, seat);
 
+        /* Remove the session from the list but don't call
+         * unref until the signal is emitted */
+        g_hash_table_steal (seat->priv->sessions, ssid);
+
         ck_session_run_programs (session, "session_removed");
 
-        g_debug ("Emitting removed signal: %s", ssid);
-
+        g_debug ("Emitting session-removed: %s", ssid);
         g_signal_emit (seat, signals [SESSION_REMOVED], 0, ssid);
-
-        g_hash_table_remove (seat->priv->sessions, ssid);
 
         /* try to change the active session */
         maybe_update_active_session (seat);
+
+        if (orig_session != NULL) {
+                g_object_unref (orig_session);
+        }
+        g_free (orig_ssid);
 
         ret = TRUE;
  out:

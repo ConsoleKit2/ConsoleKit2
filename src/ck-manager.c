@@ -307,19 +307,43 @@ static void
 remove_seat (CkManager *manager,
              CkSeat    *seat)
 {
-        char *sid;
+        char    *sid;
+        char    *orig_sid;
+        CkSeat  *orig_seat;
+        gboolean res;
 
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
+
+        /* Need to get the original key/value */
+        res = g_hash_table_lookup_extended (manager->priv->seats,
+                                            sid,
+                                            (gpointer *)&orig_sid,
+                                            (gpointer *)&orig_seat);
+        if (! res) {
+                g_debug ("Seat %s is not attached", sid);
+                goto out;
+        }
+
+        /* Remove the seat from the list but don't call
+         * unref until the signal is emitted */
+        g_hash_table_steal (manager->priv->seats, sid);
 
         if (sid != NULL) {
                 g_hash_table_remove (manager->priv->seats, sid);
         }
 
+        g_debug ("Emitting seat-removed: %s", sid);
         g_signal_emit (manager, signals [SEAT_REMOVED], 0, sid);
 
         g_debug ("Removed seat: %s", sid);
 
+        if (orig_seat != NULL) {
+                g_object_unref (orig_seat);
+        }
+        g_free (orig_sid);
+
+ out:
         g_free (sid);
 }
 
@@ -1175,10 +1199,11 @@ remove_session_for_cookie (CkManager  *manager,
                            const char *cookie,
                            GError    **error)
 {
-        CkSession  *session;
+        CkSession  *orig_session;
+        char       *orig_ssid;
         LeaderInfo *leader_info;
-        char       *ssid;
         char       *sid;
+        gboolean    res;
 
         g_debug ("Removing session for cookie: %s", cookie);
 
@@ -1192,8 +1217,12 @@ remove_session_for_cookie (CkManager  *manager,
                 return FALSE;
         }
 
-        session = g_hash_table_lookup (manager->priv->sessions, leader_info->ssid);
-        if (session == NULL) {
+        /* Need to get the original key/value */
+        res = g_hash_table_lookup_extended (manager->priv->sessions,
+                                            leader_info->ssid,
+                                            (gpointer *)&orig_ssid,
+                                            (gpointer *)&orig_session);
+        if (! res) {
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
@@ -1201,17 +1230,20 @@ remove_session_for_cookie (CkManager  *manager,
                 return FALSE;
         }
 
-        ssid = g_strdup (leader_info->ssid);
+        /* Remove the session from the list but don't call
+         * unref until the removed from seats */
+        g_hash_table_steal (manager->priv->sessions, leader_info->ssid);
 
         /* remove from seat */
-        ck_session_get_seat_id (session, &sid, NULL);
+        sid = NULL;
+        ck_session_get_seat_id (orig_session, &sid, NULL);
         if (sid != NULL) {
                 CkSeat *seat;
                 seat = g_hash_table_lookup (manager->priv->seats, sid);
                 if (seat != NULL) {
                         CkSeatKind kind;
 
-                        ck_seat_remove_session (seat, session, NULL);
+                        ck_seat_remove_session (seat, orig_session, NULL);
 
                         kind = CK_SEAT_KIND_STATIC;
                         /* if dynamic seat has no sessions then remove it */
@@ -1221,11 +1253,12 @@ remove_session_for_cookie (CkManager  *manager,
                         }
                 }
         }
-
-        g_hash_table_remove (manager->priv->sessions, ssid);
-
         g_free (sid);
-        g_free (ssid);
+
+        if (orig_session != NULL) {
+                g_object_unref (orig_session);
+        }
+        g_free (orig_ssid);
 
         manager_update_system_idle_hint (manager);
 
