@@ -44,13 +44,14 @@
 #include "ck-session.h"
 #include "ck-job.h"
 #include "ck-marshal.h"
+#include "ck-event-logger.h"
 
 #include "ck-sysdeps.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
 
-#define CK_SEAT_DIR SYSCONFDIR "/ConsoleKit/seats.d"
-
+#define CK_SEAT_DIR          SYSCONFDIR "/ConsoleKit/seats.d"
+#define LOG_FILE             LOCALSTATEDIR "/run/ConsoleKit/history"
 #define CK_DBUS_PATH         "/org/freedesktop/ConsoleKit"
 #define CK_MANAGER_DBUS_PATH CK_DBUS_PATH "/Manager"
 #define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"
@@ -69,6 +70,7 @@ struct CkManagerPrivate
 
         DBusGProxy      *bus_proxy;
         DBusGConnection *connection;
+        CkEventLogger   *logger;
 
         guint32          session_serial;
         guint32          seat_serial;
@@ -389,11 +391,312 @@ generate_seat_id (CkManager *manager)
 }
 
 static void
+log_seat_added_event (CkManager  *manager,
+                      CkSeat     *seat)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+        CkSeatKind         seat_kind;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_ADDED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        ck_seat_get_id (seat, &sid, NULL);
+        ck_seat_get_kind (seat, &seat_kind, NULL);
+
+        event.event.seat_added.seat_id = sid;
+        event.event.seat_added.seat_kind = (int)seat_kind;
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+}
+
+static void
+log_seat_removed_event (CkManager  *manager,
+                        CkSeat     *seat)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+        CkSeatKind         seat_kind;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_REMOVED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        ck_seat_get_id (seat, &sid, NULL);
+        ck_seat_get_kind (seat, &seat_kind, NULL);
+
+        event.event.seat_removed.seat_id = sid;
+        event.event.seat_removed.seat_kind = (int)seat_kind;
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+}
+
+static void
+log_seat_session_added_event (CkManager  *manager,
+                              CkSeat     *seat,
+                              const char *ssid)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+        CkSession         *session;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        ck_seat_get_id (seat, &sid, NULL);
+
+        event.event.seat_session_added.seat_id = sid;
+        event.event.seat_session_added.session_id = (char *)ssid;
+
+        session = g_hash_table_lookup (manager->priv->sessions, ssid);
+        if (session != NULL) {
+                g_object_get (session,
+                              "session-type", &event.event.seat_session_added.session_type,
+                              "x11-display", &event.event.seat_session_added.session_x11_display,
+                              "x11-display-device", &event.event.seat_session_added.session_x11_display_device,
+                              "display-device", &event.event.seat_session_added.session_display_device,
+                              "remote-host-name", &event.event.seat_session_added.session_remote_host_name,
+                              "is-local", &event.event.seat_session_added.session_is_local,
+                              "unix-user", &event.event.seat_session_added.session_unix_user,
+                              NULL);
+                ck_session_get_creation_time (session, &event.event.seat_session_added.session_creation_time, NULL);
+                g_debug ("Got uid: %u", event.event.seat_session_added.session_unix_user);
+        } else {
+        }
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+
+        g_free (event.event.seat_session_added.session_type);
+        g_free (event.event.seat_session_added.session_x11_display);
+        g_free (event.event.seat_session_added.session_x11_display_device);
+        g_free (event.event.seat_session_added.session_display_device);
+        g_free (event.event.seat_session_added.session_remote_host_name);
+        g_free (event.event.seat_session_added.session_creation_time);
+}
+
+static void
+log_seat_session_removed_event (CkManager  *manager,
+                                CkSeat     *seat,
+                                const char *ssid)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+        CkSession         *session;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_SESSION_REMOVED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        ck_seat_get_id (seat, &sid, NULL);
+
+        event.event.seat_session_removed.seat_id = sid;
+        event.event.seat_session_removed.session_id = (char *)ssid;
+
+        session = g_hash_table_lookup (manager->priv->sessions, ssid);
+        if (session != NULL) {
+                g_object_get (session,
+                              "session-type", &event.event.seat_session_removed.session_type,
+                              "x11-display", &event.event.seat_session_removed.session_x11_display,
+                              "x11-display-device", &event.event.seat_session_removed.session_x11_display_device,
+                              "display-device", &event.event.seat_session_removed.session_display_device,
+                              "remote-host-name", &event.event.seat_session_removed.session_remote_host_name,
+                              "is-local", &event.event.seat_session_removed.session_is_local,
+                              "unix-user", &event.event.seat_session_removed.session_unix_user,
+                              NULL);
+                ck_session_get_creation_time (session, &event.event.seat_session_removed.session_creation_time, NULL);
+                g_debug ("Got uid: %u", event.event.seat_session_removed.session_unix_user);
+        }
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+
+        g_free (event.event.seat_session_removed.session_type);
+        g_free (event.event.seat_session_removed.session_x11_display);
+        g_free (event.event.seat_session_removed.session_x11_display_device);
+        g_free (event.event.seat_session_removed.session_display_device);
+        g_free (event.event.seat_session_removed.session_remote_host_name);
+        g_free (event.event.seat_session_removed.session_creation_time);
+}
+
+static void
+log_seat_active_session_changed_event (CkManager  *manager,
+                                       CkSeat     *seat,
+                                       const char *ssid)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_ACTIVE_SESSION_CHANGED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        ck_seat_get_id (seat, &sid, NULL);
+
+        event.event.seat_active_session_changed.seat_id = sid;
+        event.event.seat_active_session_changed.session_id = (char *)ssid;
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+}
+
+static void
+log_seat_device_added_event (CkManager   *manager,
+                             CkSeat      *seat,
+                             GValueArray *device)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+        GValue             val_struct = { 0, };
+        char              *device_id;
+        char              *device_type;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_ADDED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        device_type = NULL;
+        device_id = NULL;
+
+        ck_seat_get_id (seat, &sid, NULL);
+
+        g_value_init (&val_struct, CK_TYPE_DEVICE);
+        g_value_set_static_boxed (&val_struct, device);
+        res = dbus_g_type_struct_get (&val_struct,
+                                      0, &device_type,
+                                      1, &device_id,
+                                      G_MAXUINT);
+
+        event.event.seat_device_added.seat_id = sid;
+
+        event.event.seat_device_added.device_id = device_id;
+        event.event.seat_device_added.device_type = device_type;
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+        g_free (device_type);
+        g_free (device_id);
+}
+
+static void
+log_seat_device_removed_event (CkManager   *manager,
+                               CkSeat      *seat,
+                               GValueArray *device)
+{
+        CkEventLoggerEvent event;
+        gboolean           res;
+        GError            *error;
+        char              *sid;
+        GValue             val_struct = { 0, };
+        char              *device_id;
+        char              *device_type;
+
+        memset (&event, 0, sizeof (CkEventLoggerEvent));
+
+        event.type = CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_REMOVED;
+        g_get_current_time (&event.timestamp);
+
+        sid = NULL;
+        device_type = NULL;
+        device_id = NULL;
+
+        ck_seat_get_id (seat, &sid, NULL);
+
+        g_value_init (&val_struct, CK_TYPE_DEVICE);
+        g_value_set_static_boxed (&val_struct, device);
+        res = dbus_g_type_struct_get (&val_struct,
+                                      0, &device_type,
+                                      1, &device_id,
+                                      G_MAXUINT);
+
+        event.event.seat_device_removed.seat_id = sid;
+
+        event.event.seat_device_removed.device_id = device_id;
+        event.event.seat_device_removed.device_type = device_type;
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        g_free (sid);
+        g_free (device_type);
+        g_free (device_id);
+}
+
+static void
 on_seat_active_session_changed (CkSeat     *seat,
                                 const char *ssid,
                                 CkManager  *manager)
 {
         ck_manager_dump (manager);
+        log_seat_active_session_changed_event (manager, seat, ssid);
 }
 
 static void
@@ -402,6 +705,7 @@ on_seat_session_added (CkSeat     *seat,
                        CkManager  *manager)
 {
         ck_manager_dump (manager);
+        log_seat_session_added_event (manager, seat, ssid);
 }
 
 static void
@@ -410,6 +714,7 @@ on_seat_session_removed (CkSeat     *seat,
                          CkManager  *manager)
 {
         ck_manager_dump (manager);
+        log_seat_session_removed_event (manager, seat, ssid);
 }
 
 static void
@@ -418,6 +723,7 @@ on_seat_device_added (CkSeat      *seat,
                       CkManager   *manager)
 {
         ck_manager_dump (manager);
+        log_seat_device_added_event (manager, seat, device);
 }
 
 static void
@@ -426,6 +732,7 @@ on_seat_device_removed (CkSeat      *seat,
                         CkManager   *manager)
 {
         ck_manager_dump (manager);
+        log_seat_device_removed_event (manager, seat, device);
 }
 
 static void
@@ -476,6 +783,8 @@ add_new_seat (CkManager *manager,
 
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
 
+        log_seat_added_event (manager, seat);
+
  out:
         return seat;
 }
@@ -516,6 +825,8 @@ remove_seat (CkManager *manager,
 
         g_debug ("Emitting seat-removed: %s", sid);
         g_signal_emit (manager, signals [SEAT_REMOVED], 0, sid);
+
+        log_seat_removed_event (manager, orig_seat);
 
         g_debug ("Removed seat: %s", sid);
 
@@ -1416,9 +1727,12 @@ remove_session_for_cookie (CkManager  *manager,
                 goto out;
         }
 
-        /* Remove the session from the list but don't call
-         * unref until the removed from seats */
-        g_hash_table_steal (manager->priv->sessions, leader_info->ssid);
+        /* Must keep a reference to the session in the manager until
+         * all events for seats are cleared.  So don't remove
+         * or steal the session from the master list until
+         * it is removed from all seats.  Otherwise, event logging
+         * for seat removals doesn't work.
+         */
 
         /* remove from seat */
         sid = NULL;
@@ -1440,6 +1754,10 @@ remove_session_for_cookie (CkManager  *manager,
                 }
         }
         g_free (sid);
+
+        /* Remove the session from the list but don't call
+         * unref until we are done with it */
+        g_hash_table_steal (manager->priv->sessions, leader_info->ssid);
 
         ck_manager_dump (manager);
 
@@ -1794,6 +2112,8 @@ add_seat_for_file (CkManager  *manager,
         ck_manager_dump (manager);
 
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
+
+        log_seat_added_event (manager, seat);
 }
 
 static gboolean
@@ -1856,6 +2176,8 @@ ck_manager_init (CkManager *manager)
                                                         g_free,
                                                         (GDestroyNotify) leader_info_unref);
 
+        manager->priv->logger = ck_event_logger_new (LOG_FILE);
+
         create_seats (manager);
 }
 
@@ -1874,7 +2196,13 @@ ck_manager_finalize (GObject *object)
         g_hash_table_destroy (manager->priv->seats);
         g_hash_table_destroy (manager->priv->sessions);
         g_hash_table_destroy (manager->priv->leaders);
-        g_object_unref (manager->priv->bus_proxy);
+        if (manager->priv->bus_proxy != NULL) {
+                g_object_unref (manager->priv->bus_proxy);
+        }
+
+        if (manager->priv->logger != NULL) {
+                g_object_unref (manager->priv->logger);
+        }
 
         G_OBJECT_CLASS (ck_manager_parent_class)->finalize (object);
 }

@@ -101,6 +101,8 @@ console_kit_daemon_SOURCES =	\
 	ck-log.c		\
 	ck-run-programs.c	\
 	ck-run-programs.h	\
+	ck-event-logger.c	\
+	ck-event-logger.h	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -123,8 +125,19 @@ console_kit_daemon_LDADD =	\
 	$(NULL)
 
 noinst_PROGRAMS = 			\
+	test-event-logger		\
 	test-tty-idle-monitor		\
 	test-vt-monitor			\
+	$(NULL)
+
+test_event_logger_SOURCES = 		\
+	ck-event-logger.h		\
+	ck-event-logger.c		\
+	test-event-logger.c 		\
+	$(NULL)
+
+test_event_logger_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
 	$(NULL)
 
 test_vt_monitor_SOURCES = 		\
