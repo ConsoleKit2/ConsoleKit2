@@ -25,8 +25,14 @@ INCLUDES =							\
 	$(NULL)
 
 noinst_LTLIBRARIES =            \
-        libck.la         	\
+        libck.la		\
+        libck-event-log.la	\
         $(NULL)
+
+libck_event_log_la_SOURCES =	\
+	ck-log-event.h		\
+	ck-log-event.c		\
+	$(NULL)
 
 libck_la_SOURCES =		\
 	ck-sysdeps.h		\
@@ -122,6 +128,7 @@ EXTRA_console_kit_daemon_SOURCES = 	\
 console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
 	libck.la		\
+	libck-event-log.la	\
 	$(NULL)
 
 noinst_PROGRAMS = 			\
@@ -138,6 +145,7 @@ test_event_logger_SOURCES = 		\
 
 test_event_logger_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
+	libck-event-log.la		\
 	$(NULL)
 
 test_vt_monitor_SOURCES = 		\

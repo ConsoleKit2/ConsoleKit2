@@ -55,10 +55,10 @@ get_int (DBusGProxy *proxy,
         gboolean res;
 
         error = NULL;
-	res = dbus_g_proxy_call (proxy,
-				 method,
-				 &error,
-				 G_TYPE_INVALID,
+        res = dbus_g_proxy_call (proxy,
+                                 method,
+                                 &error,
+                                 G_TYPE_INVALID,
                                  G_TYPE_INT, val,
                                  G_TYPE_INVALID);
         if (! res) {
@@ -78,10 +78,10 @@ get_path (DBusGProxy *proxy,
         gboolean res;
 
         error = NULL;
-	res = dbus_g_proxy_call (proxy,
-				 method,
-				 &error,
-				 G_TYPE_INVALID,
+        res = dbus_g_proxy_call (proxy,
+                                 method,
+                                 &error,
+                                 G_TYPE_INVALID,
                                  DBUS_TYPE_G_OBJECT_PATH, str,
                                  G_TYPE_INVALID);
         if (! res) {
@@ -101,10 +101,10 @@ get_string (DBusGProxy *proxy,
         gboolean res;
 
         error = NULL;
-	res = dbus_g_proxy_call (proxy,
-				 method,
-				 &error,
-				 G_TYPE_INVALID,
+        res = dbus_g_proxy_call (proxy,
+                                 method,
+                                 &error,
+                                 G_TYPE_INVALID,
                                  G_TYPE_STRING, str,
                                  G_TYPE_INVALID);
         if (! res) {
@@ -124,10 +124,10 @@ get_boolean (DBusGProxy *proxy,
         gboolean res;
 
         error = NULL;
-	res = dbus_g_proxy_call (proxy,
-				 method,
-				 &error,
-				 G_TYPE_INVALID,
+        res = dbus_g_proxy_call (proxy,
+                                 method,
+                                 &error,
+                                 G_TYPE_INVALID,
                                  G_TYPE_BOOLEAN, value,
                                  G_TYPE_INVALID);
         if (! res) {
@@ -175,7 +175,7 @@ list_session (DBusGConnection *connection,
         char       *short_sid;
         const char *short_ssid;
 
-	proxy = dbus_g_proxy_new_for_name (connection,
+        proxy = dbus_g_proxy_new_for_name (connection,
                                            CK_NAME,
                                            ssid,
                                            CK_SESSION_INTERFACE);
@@ -256,7 +256,7 @@ list_sessions (DBusGConnection *connection,
         GPtrArray  *sessions;
         int         i;
 
-	proxy = dbus_g_proxy_new_for_name (connection,
+        proxy = dbus_g_proxy_new_for_name (connection,
                                            CK_NAME,
                                            sid,
                                            CK_SEAT_INTERFACE);
@@ -267,13 +267,13 @@ list_sessions (DBusGConnection *connection,
         sessions = NULL;
 
         error = NULL;
-	res = dbus_g_proxy_call (proxy,
-				 "GetSessions",
-				 &error,
-				 G_TYPE_INVALID,
+        res = dbus_g_proxy_call (proxy,
+                                 "GetSessions",
+                                 &error,
+                                 G_TYPE_INVALID,
                                  dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_G_OBJECT_PATH),
                                  &sessions,
-				 G_TYPE_INVALID);
+                                 G_TYPE_INVALID);
         if (! res) {
                 g_warning ("Failed to get list of sessions for %s: %s", sid, error->message);
                 g_error_free (error);
@@ -315,13 +315,13 @@ list_seats (DBusGConnection *connection)
         seats = NULL;
 
         error = NULL;
-	res = dbus_g_proxy_call (proxy,
-				 "GetSeats",
-				 &error,
-				 G_TYPE_INVALID,
+        res = dbus_g_proxy_call (proxy,
+                                 "GetSeats",
+                                 &error,
+                                 G_TYPE_INVALID,
                                  dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_G_OBJECT_PATH),
                                  &seats,
-				 G_TYPE_INVALID);
+                                 G_TYPE_INVALID);
         if (! res) {
                 g_warning ("Failed to get list of seats: %s", error->message);
                 g_error_free (error);
@@ -387,5 +387,5 @@ main (int    argc,
 
         list_seats (connection);
 
-	return 0;
+        return 0;
 }

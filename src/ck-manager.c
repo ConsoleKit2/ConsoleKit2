@@ -394,15 +394,15 @@ static void
 log_seat_added_event (CkManager  *manager,
                       CkSeat     *seat)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
         CkSeatKind         seat_kind;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_ADDED;
+        event.type = CK_LOG_EVENT_SEAT_ADDED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;
@@ -426,15 +426,15 @@ static void
 log_seat_removed_event (CkManager  *manager,
                         CkSeat     *seat)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
         CkSeatKind         seat_kind;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_REMOVED;
+        event.type = CK_LOG_EVENT_SEAT_REMOVED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;
@@ -459,15 +459,15 @@ log_seat_session_added_event (CkManager  *manager,
                               CkSeat     *seat,
                               const char *ssid)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
         CkSession         *session;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED;
+        event.type = CK_LOG_EVENT_SEAT_SESSION_ADDED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;
@@ -514,15 +514,15 @@ log_seat_session_removed_event (CkManager  *manager,
                                 CkSeat     *seat,
                                 const char *ssid)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
         CkSession         *session;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_SESSION_REMOVED;
+        event.type = CK_LOG_EVENT_SEAT_SESSION_REMOVED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;
@@ -568,14 +568,14 @@ log_seat_active_session_changed_event (CkManager  *manager,
                                        CkSeat     *seat,
                                        const char *ssid)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_ACTIVE_SESSION_CHANGED;
+        event.type = CK_LOG_EVENT_SEAT_ACTIVE_SESSION_CHANGED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;
@@ -599,7 +599,7 @@ log_seat_device_added_event (CkManager   *manager,
                              CkSeat      *seat,
                              GValueArray *device)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
@@ -607,9 +607,9 @@ log_seat_device_added_event (CkManager   *manager,
         char              *device_id;
         char              *device_type;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_ADDED;
+        event.type = CK_LOG_EVENT_SEAT_DEVICE_ADDED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;
@@ -647,7 +647,7 @@ log_seat_device_removed_event (CkManager   *manager,
                                CkSeat      *seat,
                                GValueArray *device)
 {
-        CkEventLoggerEvent event;
+        CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
@@ -655,9 +655,9 @@ log_seat_device_removed_event (CkManager   *manager,
         char              *device_id;
         char              *device_type;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_REMOVED;
+        event.type = CK_LOG_EVENT_SEAT_DEVICE_REMOVED;
         g_get_current_time (&event.timestamp);
 
         sid = NULL;

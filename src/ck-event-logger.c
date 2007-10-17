@@ -37,6 +37,7 @@
 #include <glib-object.h>
 
 #include "ck-event-logger.h"
+#include "ck-log-event.h"
 
 #define CK_EVENT_LOGGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_EVENT_LOGGER, CkEventLoggerPrivate))
 
@@ -73,301 +74,18 @@ ck_event_logger_error_quark (void)
         return ret;
 }
 
-static void
-event_seat_added_free (CkEventLoggerSeatAddedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-}
-
-static void
-event_seat_removed_free (CkEventLoggerSeatRemovedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-}
-
-static void
-event_seat_session_added_free (CkEventLoggerSeatSessionAddedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-
-        g_free (event->session_id);
-        event->session_id = NULL;
-        g_free (event->session_type);
-        event->session_type = NULL;
-        g_free (event->session_x11_display);
-        event->session_x11_display = NULL;
-        g_free (event->session_x11_display_device);
-        event->session_x11_display_device = NULL;
-        g_free (event->session_display_device);
-        event->session_display_device = NULL;
-        g_free (event->session_remote_host_name);
-        event->session_remote_host_name = NULL;
-        g_free (event->session_creation_time);
-        event->session_creation_time = NULL;
-}
-
-static void
-event_seat_session_removed_free (CkEventLoggerSeatSessionRemovedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-
-        g_free (event->session_id);
-        event->session_id = NULL;
-        g_free (event->session_type);
-        event->session_type = NULL;
-        g_free (event->session_x11_display);
-        event->session_x11_display = NULL;
-        g_free (event->session_x11_display_device);
-        event->session_x11_display_device = NULL;
-        g_free (event->session_display_device);
-        event->session_display_device = NULL;
-        g_free (event->session_remote_host_name);
-        event->session_remote_host_name = NULL;
-        g_free (event->session_creation_time);
-        event->session_creation_time = NULL;
-}
-
-static void
-event_seat_active_session_changed_free (CkEventLoggerSeatActiveSessionChangedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-
-        g_free (event->session_id);
-        event->session_id = NULL;
-}
-
-static void
-event_seat_device_added_free (CkEventLoggerSeatDeviceAddedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-        g_free (event->device_id);
-        event->device_id = NULL;
-        g_free (event->device_type);
-        event->device_type = NULL;
-}
-
-static void
-event_seat_device_removed_free (CkEventLoggerSeatDeviceRemovedEvent *event)
-{
-        g_assert (event != NULL);
-
-        g_free (event->seat_id);
-        event->seat_id = NULL;
-        g_free (event->device_id);
-        event->device_id = NULL;
-        g_free (event->device_type);
-        event->device_type = NULL;
-}
-
-static void
-event_seat_added_copy (CkEventLoggerSeatAddedEvent *event,
-                       CkEventLoggerSeatAddedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->seat_kind = event->seat_kind;
-}
-
-static void
-event_seat_removed_copy (CkEventLoggerSeatRemovedEvent *event,
-                         CkEventLoggerSeatRemovedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->seat_kind = event->seat_kind;
-}
-
-static void
-event_seat_session_added_copy (CkEventLoggerSeatSessionAddedEvent *event,
-                               CkEventLoggerSeatSessionAddedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->session_id = g_strdup (event->session_id);
-        event_copy->session_type = g_strdup (event->session_type);
-        event_copy->session_x11_display = g_strdup (event->session_x11_display);
-        event_copy->session_x11_display_device = g_strdup (event->session_x11_display_device);
-        event_copy->session_display_device = g_strdup (event->session_display_device);
-        event_copy->session_remote_host_name = g_strdup (event->session_remote_host_name);
-        event_copy->session_is_local = event->session_is_local;
-        event_copy->session_unix_user = event->session_unix_user;
-        event_copy->session_creation_time = g_strdup (event->session_creation_time);
-}
-
-static void
-event_seat_session_removed_copy (CkEventLoggerSeatSessionRemovedEvent *event,
-                                 CkEventLoggerSeatSessionRemovedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->session_id = g_strdup (event->session_id);
-        event_copy->session_type = g_strdup (event->session_type);
-        event_copy->session_x11_display = g_strdup (event->session_x11_display);
-        event_copy->session_x11_display_device = g_strdup (event->session_x11_display_device);
-        event_copy->session_display_device = g_strdup (event->session_display_device);
-        event_copy->session_remote_host_name = g_strdup (event->session_remote_host_name);
-        event_copy->session_is_local = event->session_is_local;
-        event_copy->session_unix_user = event->session_unix_user;
-        event_copy->session_creation_time = g_strdup (event->session_creation_time);
-}
-
-static void
-event_seat_active_session_changed_copy (CkEventLoggerSeatActiveSessionChangedEvent *event,
-                                        CkEventLoggerSeatActiveSessionChangedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->session_id = g_strdup (event->session_id);
-}
-
-static void
-event_seat_device_added_copy (CkEventLoggerSeatDeviceAddedEvent *event,
-                              CkEventLoggerSeatDeviceAddedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->device_id = g_strdup (event->device_id);
-        event_copy->device_type = g_strdup (event->device_type);
-}
-
-static void
-event_seat_device_removed_copy (CkEventLoggerSeatDeviceRemovedEvent *event,
-                                CkEventLoggerSeatDeviceRemovedEvent *event_copy)
-{
-        g_assert (event != NULL);
-        g_assert (event_copy != NULL);
-
-        event_copy->seat_id = g_strdup (event->seat_id);
-        event_copy->device_id = g_strdup (event->device_id);
-        event_copy->device_type = g_strdup (event->device_type);
-}
-
-CkEventLoggerEvent *
-ck_event_logger_event_copy (CkEventLoggerEvent *event)
-{
-        CkEventLoggerEvent *event_copy;
-
-        if (event == NULL) {
-                return NULL;
-        }
-
-        event_copy = g_new0 (CkEventLoggerEvent, 1);
-
-        event_copy->type = event->type;
-        event_copy->timestamp = event->timestamp;
-
-        switch (event->type) {
-        case CK_EVENT_LOGGER_EVENT_SEAT_ADDED:
-                event_seat_added_copy ((CkEventLoggerSeatAddedEvent *) event,
-                                       (CkEventLoggerSeatAddedEvent *) event_copy);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_REMOVED:
-                event_seat_removed_copy ((CkEventLoggerSeatRemovedEvent *) event,
-                                         (CkEventLoggerSeatRemovedEvent *) event_copy);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED:
-                event_seat_session_added_copy ((CkEventLoggerSeatSessionAddedEvent *) event,
-                                               (CkEventLoggerSeatSessionAddedEvent *) event_copy);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_REMOVED:
-                event_seat_session_removed_copy ((CkEventLoggerSeatSessionRemovedEvent *) event,
-                                                 (CkEventLoggerSeatSessionRemovedEvent *) event_copy);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_ADDED:
-                event_seat_device_added_copy ((CkEventLoggerSeatDeviceAddedEvent *) event,
-                                              (CkEventLoggerSeatDeviceAddedEvent *) event_copy);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_REMOVED:
-                event_seat_device_removed_copy ((CkEventLoggerSeatDeviceRemovedEvent *) event,
-                                                (CkEventLoggerSeatDeviceRemovedEvent *) event_copy);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_ACTIVE_SESSION_CHANGED:
-                event_seat_active_session_changed_copy ((CkEventLoggerSeatActiveSessionChangedEvent *) event,
-                                                        (CkEventLoggerSeatActiveSessionChangedEvent *) event_copy);
-                break;
-        default:
-                g_assert_not_reached ();
-                break;
-        }
-
-        return event_copy;
-}
-
-void
-ck_event_logger_event_free (CkEventLoggerEvent *event)
-{
-        switch (event->type) {
-        case CK_EVENT_LOGGER_EVENT_SEAT_ADDED:
-                event_seat_added_free ((CkEventLoggerSeatAddedEvent *) event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_REMOVED:
-                event_seat_removed_free ((CkEventLoggerSeatRemovedEvent *) event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED:
-                event_seat_session_added_free ((CkEventLoggerSeatSessionAddedEvent *) event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_REMOVED:
-                event_seat_session_removed_free ((CkEventLoggerSeatSessionRemovedEvent *) event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_ADDED:
-                event_seat_device_added_free ((CkEventLoggerSeatDeviceAddedEvent *) event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_REMOVED:
-                event_seat_device_removed_free ((CkEventLoggerSeatDeviceRemovedEvent *) event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_ACTIVE_SESSION_CHANGED:
-                event_seat_active_session_changed_free ((CkEventLoggerSeatActiveSessionChangedEvent *) event);
-                break;
-        default:
-                g_assert_not_reached ();
-                break;
-        }
-
-        g_free (event);
-}
-
 gboolean
 ck_event_logger_queue_event (CkEventLogger      *event_logger,
-                             CkEventLoggerEvent *event,
+                             CkLogEvent         *event,
                              GError            **error)
 {
-        CkEventLoggerEvent *event_copy;
-        gboolean            ret;
+        CkLogEvent *event_copy;
+        gboolean    ret;
 
         g_return_val_if_fail (CK_IS_EVENT_LOGGER (event_logger), FALSE);
         g_return_val_if_fail (event != NULL, FALSE);
 
-        event_copy = ck_event_logger_event_copy (event);
+        event_copy = ck_log_event_copy (event);
 
         g_async_queue_push (event_logger->priv->event_queue,
                             event_copy);
@@ -446,199 +164,15 @@ retry:
         return TRUE;
 }
 
-static void
-add_log_for_seat_added (GString            *str,
-                        CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatAddedEvent *e;
-
-        e = (CkEventLoggerSeatAddedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id=%s seat-kind=%d",
-                                e->seat_id,
-                                e->seat_kind);
-}
-
-static void
-add_log_for_seat_removed (GString            *str,
-                          CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatRemovedEvent *e;
-
-        e = (CkEventLoggerSeatRemovedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id=%s seat-kind=%d",
-                                e->seat_id,
-                                e->seat_kind);
-}
-
-static void
-add_log_for_seat_session_added (GString            *str,
-                                CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatSessionAddedEvent *e;
-
-        e = (CkEventLoggerSeatSessionAddedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id='%s' session-id='%s' session-type='%s' session-x11-display='%s' session-x11-display-device='%s' session-display-device='%s' session-remote-host-name='%s' session-is-local=%s session-unix-user=%u session-creation-time='%s'",
-                                e->seat_id ? e->seat_id : "",
-                                e->session_id ? e->session_id : "",
-                                e->session_type ? e->session_type : "",
-                                e->session_x11_display ? e->session_x11_display : "",
-                                e->session_x11_display_device ? e->session_x11_display_device : "",
-                                e->session_display_device ? e->session_display_device : "",
-                                e->session_remote_host_name ? e->session_remote_host_name : "",
-                                e->session_is_local ? "TRUE" : "FALSE",
-                                e->session_unix_user,
-                                e->session_creation_time ? e->session_creation_time : "");
-}
-
-static void
-add_log_for_seat_session_removed (GString            *str,
-                                  CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatSessionRemovedEvent *e;
-
-        e = (CkEventLoggerSeatSessionRemovedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id='%s' session-id='%s' session-type='%s' session-x11-display='%s' session-x11-display-device='%s' session-display-device='%s' session-remote-host-name='%s' session-is-local=%s session-unix-user=%u session-creation-time='%s'",
-                                e->seat_id ? e->seat_id : "",
-                                e->session_id ? e->session_id : "",
-                                e->session_type ? e->session_type : "",
-                                e->session_x11_display ? e->session_x11_display : "",
-                                e->session_x11_display_device ? e->session_x11_display_device : "",
-                                e->session_display_device ? e->session_display_device : "",
-                                e->session_remote_host_name ? e->session_remote_host_name : "",
-                                e->session_is_local ? "TRUE" : "FALSE",
-                                e->session_unix_user,
-                                e->session_creation_time ? e->session_creation_time : "");
-}
-
-static void
-add_log_for_seat_active_session_changed (GString            *str,
-                                         CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatActiveSessionChangedEvent *e;
-
-        e = (CkEventLoggerSeatActiveSessionChangedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id='%s' session-id='%s'",
-                                e->seat_id ? e->seat_id : "",
-                                e->session_id ? e->session_id : "");
-}
-
-static void
-add_log_for_seat_device_added (GString            *str,
-                               CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatDeviceAddedEvent *e;
-
-        e = (CkEventLoggerSeatDeviceAddedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id='%s' device-id='%s' device-type='%s'",
-                                e->seat_id ? e->seat_id : "",
-                                e->device_id ? e->device_id : "",
-                                e->device_type ? e->device_type : "");
-}
-
-static void
-add_log_for_seat_device_removed (GString            *str,
-                                 CkEventLoggerEvent *event)
-{
-        CkEventLoggerSeatDeviceRemovedEvent *e;
-
-        e = (CkEventLoggerSeatDeviceRemovedEvent *)event;
-        g_string_append_printf (str,
-                                " seat-id='%s' device-id='%s' device-type='%s'",
-                                e->seat_id ? e->seat_id : "",
-                                e->device_id ? e->device_id : "",
-                                e->device_type ? e->device_type : "");
-}
-
-static const char *
-event_type_to_name (int event_type)
-{
-        const char *str;
-        switch (event_type) {
-        case CK_EVENT_LOGGER_EVENT_SEAT_ADDED:
-                str = "SEAT_ADDED";
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_REMOVED:
-                str = "SEAT_REMOVED";
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED:
-                str = "SEAT_SESSION_ADDED";
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_REMOVED:
-                str = "SEAT_SESSION_REMOVED";
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_ADDED:
-                str = "SEAT_DEVICE_ADDED";
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_REMOVED:
-                str = "SEAT_DEVICE_REMOVED";
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_ACTIVE_SESSION_CHANGED:
-                str = "SEAT_ACTIVE_SESSION_CHANGED";
-                break;
-        default:
-                str = "UNKNOWN";
-                break;
-        }
-        return str;
-}
-
-static void
-add_log_for_any (GString            *str,
-                 CkEventLoggerEvent *event)
-{
-        char *tstr;
-
-        tstr = g_time_val_to_iso8601 (&event->timestamp);
-
-        g_string_append_printf (str,
-                                "%s type=%s",
-                                tstr,
-                                event_type_to_name (event->type));
-        g_free (tstr);
-}
-
 static gboolean
-write_log_for_event (CkEventLogger      *event_logger,
-                     CkEventLoggerEvent *event)
+write_log_for_event (CkEventLogger *event_logger,
+                     CkLogEvent    *event)
 {
         GString *str;
 
         str = g_string_new (NULL);
 
-        add_log_for_any (str, event);
-
-        switch (event->type) {
-        case CK_EVENT_LOGGER_EVENT_SEAT_ADDED:
-                add_log_for_seat_added (str, event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_REMOVED:
-                add_log_for_seat_removed (str, event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED:
-                add_log_for_seat_session_added (str, event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_SESSION_REMOVED:
-                add_log_for_seat_session_removed (str, event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_ADDED:
-                add_log_for_seat_device_added (str, event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_DEVICE_REMOVED:
-                add_log_for_seat_device_removed (str, event);
-                break;
-        case CK_EVENT_LOGGER_EVENT_SEAT_ACTIVE_SESSION_CHANGED:
-                add_log_for_seat_active_session_changed (str, event);
-                break;
-        default:
-                g_assert_not_reached ();
-                break;
-        }
+        ck_log_event_to_string (event, str);
 
         g_debug ("Writing log for event: %s", str->str);
 
@@ -660,11 +194,11 @@ write_log_for_event (CkEventLogger      *event_logger,
 static void *
 writer_thread_start (CkEventLogger *event_logger)
 {
-        CkEventLoggerEvent *event;
+        CkLogEvent *event;
 
         while ((event = g_async_queue_pop (event_logger->priv->event_queue)) != NULL) {
                 write_log_for_event (event_logger, event);
-                ck_event_logger_event_free (event);
+                ck_log_event_free (event);
         }
 
         g_thread_exit (NULL);

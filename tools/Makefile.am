@@ -26,6 +26,7 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
+	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\
 	$(DBUS_CFLAGS)						\
@@ -33,6 +34,7 @@ INCLUDES =							\
 
 bin_PROGRAMS = \
 	ck-list-sessions		\
+	ck-history			\
 	$(NULL)
 
 ck_list_sessions_SOURCES =		\
@@ -43,6 +45,14 @@ ck_list_sessions_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
 	$(NULL)
 
+ck_history_SOURCES =			\
+	ck-history.c			\
+	$(NULL)
+
+ck_history_LDADD =				\
+	$(CONSOLE_KIT_LIBS)			\
+	$(top_builddir)/src/libck-event-log.la	\
+	$(NULL)
 
 libexec_PROGRAMS = 			\
 	ck-collect-session-info		\

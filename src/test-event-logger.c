@@ -41,13 +41,13 @@
 static gboolean
 write_to_log (CkEventLogger    *logger)
 {
-        CkEventLoggerEvent event;
-        GError            *error;
-        gboolean           res;
+        CkLogEvent event;
+        GError    *error;
+        gboolean   res;
 
-        memset (&event, 0, sizeof (CkEventLoggerEvent));
+        memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_EVENT_LOGGER_EVENT_SEAT_SESSION_ADDED;
+        event.type = CK_LOG_EVENT_SEAT_SESSION_ADDED;
         g_get_current_time (&event.timestamp);
 
         event.event.seat_session_added.session_id = "Session1";
