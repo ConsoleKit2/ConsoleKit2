@@ -20,8 +20,6 @@
 
 #include "config.h"
 
-#define _GNU_SOURCE             /* For O_NOFOLLOW */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
