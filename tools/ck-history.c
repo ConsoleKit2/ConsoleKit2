@@ -146,6 +146,22 @@ get_user_name_for_uid (uid_t uid)
         return name;
 }
 
+static char *
+get_utline_for_event (CkLogSeatSessionAddedEvent *e)
+{
+        char *utline;
+
+        if (e->session_x11_display != NULL && e->session_x11_display[0] != '\0') {
+                utline = g_strdup (e->session_x11_display);
+        } else {
+                if (g_str_has_prefix (e->session_display_device, "/dev/")) {
+                        utline = g_strdup (e->session_display_device + 5);
+                }
+        }
+
+        return utline;
+}
+
 static void
 generate_report_last_compat (void)
 {
@@ -153,10 +169,13 @@ generate_report_last_compat (void)
         CkLogEvent *oldest_event;
         GList      *l;
 
-        for (l = all_events; l != NULL; l = l->next) {
+        /* print events in reverse time order */
+
+        for (l = g_list_last (all_events); l != NULL; l = l->prev) {
                 CkLogEvent                 *event;
                 GString                    *str;
                 char                       *username;
+                char                       *utline;
                 char                       *addedtime;
                 char                       *removedtime;
                 char                       *duration;
@@ -174,16 +193,18 @@ generate_report_last_compat (void)
                 str = g_string_new (NULL);
 
                 username = get_user_name_for_uid (e->session_unix_user);
+                utline = get_utline_for_event (e);
 
                 addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
                 g_string_printf (str,
                                  "%-8.8s %-12.12s %-16.16s %-16.16s",
                                  username,
-                                 e->session_x11_display ? e->session_x11_display: e->session_display_device,
+                                 utline,
                                  e->session_remote_host_name ? e->session_remote_host_name : "",
                                  addedtime);
                 g_free (username);
                 g_free (addedtime);
+                g_free (utline);
 
                 remove_event = find_first_matching_remove_event (l, e);
                 if (remove_event != NULL) {
@@ -204,7 +225,7 @@ generate_report_last_compat (void)
                                 duration = g_strdup_printf (" (%02d:%02d)", hours, mins);
                         }
                 } else {
-                        removedtime = g_strdup ("   still");
+                        removedtime = g_strdup ("  still");
                         duration = g_strdup ("logged in");
                 }
 
@@ -221,7 +242,7 @@ generate_report_last_compat (void)
 
         oldest = g_list_first (all_events);
         oldest_event = oldest->data;
-        g_print ("Log begins %s\n", ctime (&oldest_event->timestamp.tv_sec));
+        g_print ("\nLog begins %s", ctime (&oldest_event->timestamp.tv_sec));
 }
 
 static void
