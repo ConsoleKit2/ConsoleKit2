@@ -241,8 +241,10 @@ generate_report_last_compat (void)
         }
 
         oldest = g_list_first (all_events);
-        oldest_event = oldest->data;
-        g_print ("\nLog begins %s", ctime (&oldest_event->timestamp.tv_sec));
+        if (oldest != NULL) {
+                oldest_event = oldest->data;
+                g_print ("\nLog begins %s", ctime (&oldest_event->timestamp.tv_sec));
+        }
 }
 
 static void
