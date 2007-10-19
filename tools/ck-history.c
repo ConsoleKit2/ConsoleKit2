@@ -299,11 +299,11 @@ main (int    argc,
         GError             *error = NULL;
         int                 report_type;
         static gboolean     do_version = FALSE;
-        static gboolean     report_last = FALSE;
+        static gboolean     report_last_compat = FALSE;
         static gboolean     report_log = FALSE;
         static GOptionEntry entries [] = {
                 { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
-                { "last", 'l', 0, G_OPTION_ARG_NONE, &report_last, N_("Show listing of last logged in users"), NULL },
+                { "last-compat", 'l', 0, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
                 { "log", 'a', 0, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
                 { NULL }
         };
@@ -325,7 +325,7 @@ main (int    argc,
                 exit (1);
         }
 
-        if (report_last) {
+        if (report_last_compat) {
                 report_type = REPORT_TYPE_LAST_COMPAT;
         } else if (report_log) {
                 report_type = REPORT_TYPE_LOG;
