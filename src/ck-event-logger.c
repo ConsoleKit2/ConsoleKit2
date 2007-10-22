@@ -146,20 +146,61 @@ retry:
 
         fchown (fd, 0, 0);
 
-        event_logger->priv->fd = fd;
         event_logger->priv->file = fdopen (fd, "a");
-
         if (event_logger->priv->file == NULL) {
                 g_warning ("Error setting up log descriptor (%s)",
                            g_strerror (errno));
                 close (fd);
                 return FALSE;
         }
+        event_logger->priv->fd = fd;
 
         /* Set it to line buffering */
         setlinebuf (event_logger->priv->file);
 
         return TRUE;
+}
+
+static void
+reopen_file_stream (CkEventLogger *event_logger)
+{
+        close (event_logger->priv->fd);
+        fclose (event_logger->priv->file);
+
+        /* FIXME: retries */
+        open_log_file (event_logger);
+}
+
+static void
+check_file_stream (CkEventLogger *event_logger)
+{
+        int         old_fd;
+        struct stat old_stats;
+        int         new_fd;
+        struct stat new_stats;
+
+        old_fd = event_logger->priv->fd;
+        if (fstat (old_fd, &old_stats) != 0) {
+                g_warning ("Unable to stat file: %s",
+                           g_strerror (errno));
+                reopen_file_stream (event_logger);
+                return;
+        }
+
+        new_fd = g_open (event_logger->priv->log_filename, O_RDONLY | O_NONBLOCK, 0600);
+        if (new_fd == -1 || fstat (new_fd, &new_stats) < 0) {
+                close (new_fd);
+                g_debug ("Unable to open or stat %s - will try to reopen", event_logger->priv->log_filename);
+                reopen_file_stream (event_logger);
+                return;
+        }
+        close (new_fd);
+
+        if (old_stats.st_ino != new_stats.st_ino || old_stats.st_dev != new_stats.st_dev) {
+                g_debug ("File %s has been replaced; writing to end of new file", event_logger->priv->log_filename);
+                reopen_file_stream (event_logger);
+                return;
+        }
 }
 
 static gboolean
@@ -173,14 +214,10 @@ write_log_for_event (CkEventLogger *event_logger,
         ck_log_event_to_string (event, str);
 
         g_debug ("Writing log for event: %s", str->str);
+        check_file_stream (event_logger);
 
         if (event_logger->priv->file != NULL) {
-                int rc;
-
-                g_debug ("fd:%d err:%d tell:%ld",
-                         fileno (event_logger->priv->file),
-                         ferror (event_logger->priv->file),
-                         ftell (event_logger->priv->file));
+                int         rc;
 
                 rc = fprintf (event_logger->priv->file, "%s\n", str->str);
                 if (rc <= 0) {
