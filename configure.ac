@@ -2,7 +2,7 @@
 AC_PREREQ(2.59c)
 AC_INIT([ConsoleKit],
         [0.2.4],
-        [mccann@jhu.edu],
+        [https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],
         [ConsoleKit])
 
 AC_CONFIG_SRCDIR([src/ck-manager.c])
