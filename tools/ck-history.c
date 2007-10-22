@@ -38,6 +38,7 @@
 
 typedef enum {
         REPORT_TYPE_SUMMARY = 0,
+        REPORT_TYPE_LAST,
         REPORT_TYPE_LAST_COMPAT,
         REPORT_TYPE_LOG,
 } ReportType;
@@ -97,7 +98,8 @@ process_log_file (const char *filename)
 }
 
 static void
-generate_report_summary (void)
+generate_report_summary (int         uid,
+                         const char *seat)
 {
 }
 
@@ -130,7 +132,7 @@ find_first_matching_remove_event (GList                      *events,
 }
 
 static char *
-get_user_name_for_uid (uid_t uid)
+get_user_name_for_uid (int  uid)
 {
         struct passwd *pwent;
         char          *name;
@@ -146,16 +148,38 @@ get_user_name_for_uid (uid_t uid)
         return name;
 }
 
+static int
+get_uid_for_username (const char *username)
+{
+        struct passwd *pwent;
+        int            uid;
+
+        g_assert (username != NULL);
+
+        uid = -1;
+
+        pwent = getpwnam (username);
+        if (pwent != NULL) {
+                uid = pwent->pw_uid;
+        }
+
+        return uid;
+}
+
 static char *
 get_utline_for_event (CkLogSeatSessionAddedEvent *e)
 {
         char *utline;
+
+        utline = NULL;
 
         if (e->session_x11_display != NULL && e->session_x11_display[0] != '\0') {
                 utline = g_strdup (e->session_x11_display);
         } else {
                 if (g_str_has_prefix (e->session_display_device, "/dev/")) {
                         utline = g_strdup (e->session_display_device + 5);
+                } else {
+                        utline = g_strdup (e->session_display_device);
                 }
         }
 
@@ -163,7 +187,8 @@ get_utline_for_event (CkLogSeatSessionAddedEvent *e)
 }
 
 static void
-generate_report_last_compat (void)
+generate_report_last (int         uid,
+                      const char *seat)
 {
         GList      *oldest;
         CkLogEvent *oldest_event;
@@ -189,6 +214,111 @@ generate_report_last_compat (void)
                 }
 
                 e = (CkLogSeatSessionAddedEvent *)event;
+
+
+                if (uid >= 0 && e->session_unix_user != uid) {
+                        continue;
+                }
+
+                if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        continue;
+                }
+
+                str = g_string_new (NULL);
+
+                username = get_user_name_for_uid (e->session_unix_user);
+                utline = get_utline_for_event (e);
+
+                addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
+                g_string_printf (str,
+                                 "%-8.8s %-10.10s %-7.7s %-12.12s %-16.16s %-16.16s",
+                                 username,
+                                 e->session_id,
+                                 e->seat_id,
+                                 utline,
+                                 e->session_remote_host_name ? e->session_remote_host_name : "",
+                                 addedtime);
+                g_free (username);
+                g_free (addedtime);
+                g_free (utline);
+
+                remove_event = find_first_matching_remove_event (l, e);
+                if (remove_event != NULL) {
+                        time_t secs;
+                        int    mins;
+                        int    hours;
+                        int    days;
+
+                        removedtime = g_strdup_printf ("- %s", ctime (&remove_event->timestamp.tv_sec) + 11);
+                        removedtime[7] = 0;
+                        secs = remove_event->timestamp.tv_sec - event->timestamp.tv_sec;
+                        mins  = (secs / 60) % 60;
+                        hours = (secs / 3600) % 24;
+                        days  = secs / 86400;
+                        if (days > 0) {
+                                duration = g_strdup_printf ("(%d+%02d:%02d)", days, hours, mins);
+                        } else {
+                                duration = g_strdup_printf (" (%02d:%02d)", hours, mins);
+                        }
+                } else {
+                        removedtime = g_strdup ("  still");
+                        duration = g_strdup ("logged in");
+                }
+
+                g_string_append_printf (str,
+                                        " %-7.7s %-12.12s",
+                                        removedtime,
+                                        duration);
+
+                g_print ("%s\n", str->str);
+                g_string_free (str, TRUE);
+                g_free (removedtime);
+                g_free (duration);
+        }
+
+        oldest = g_list_first (all_events);
+        if (oldest != NULL) {
+                oldest_event = oldest->data;
+                g_print ("\nLog begins %s", ctime (&oldest_event->timestamp.tv_sec));
+        }
+}
+
+static void
+generate_report_last_compat (int         uid,
+                             const char *seat)
+{
+        GList      *oldest;
+        CkLogEvent *oldest_event;
+        GList      *l;
+
+        /* print events in reverse time order */
+
+        for (l = g_list_last (all_events); l != NULL; l = l->prev) {
+                CkLogEvent                 *event;
+                GString                    *str;
+                char                       *username;
+                char                       *utline;
+                char                       *addedtime;
+                char                       *removedtime;
+                char                       *duration;
+                CkLogSeatSessionAddedEvent *e;
+                CkLogEvent                 *remove_event;
+
+                event = l->data;
+
+                if (event->type != CK_LOG_EVENT_SEAT_SESSION_ADDED) {
+                        continue;
+                }
+
+                e = (CkLogSeatSessionAddedEvent *)event;
+
+                if (uid >= 0 && e->session_unix_user != uid) {
+                        continue;
+                }
+
+                if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        continue;
+                }
 
                 str = g_string_new (NULL);
 
@@ -248,7 +378,8 @@ generate_report_last_compat (void)
 }
 
 static void
-generate_report_log (void)
+generate_report_log (int         uid,
+                     const char *seat)
 {
         GList *l;
 
@@ -265,20 +396,25 @@ generate_report_log (void)
 }
 
 static void
-generate_report (int report_type)
+generate_report (int         report_type,
+                 int         uid,
+                 const char *seat)
 {
 
         all_events = g_list_reverse (all_events);
 
         switch (report_type) {
         case REPORT_TYPE_SUMMARY:
-                generate_report_summary ();
+                generate_report_summary (uid, seat);
+                break;
+        case REPORT_TYPE_LAST:
+                generate_report_last (uid, seat);
                 break;
         case REPORT_TYPE_LAST_COMPAT:
-                generate_report_last_compat ();
+                generate_report_last_compat (uid, seat);
                 break;
         case REPORT_TYPE_LOG:
-                generate_report_log ();
+                generate_report_log (uid, seat);
                 break;
         default:
                 g_assert_not_reached ();
@@ -300,13 +436,20 @@ main (int    argc,
         gboolean            retval;
         GError             *error = NULL;
         int                 report_type;
+        int                 uid;
         static gboolean     do_version = FALSE;
         static gboolean     report_last_compat = FALSE;
+        static gboolean     report_last = FALSE;
         static gboolean     report_log = FALSE;
+        static char        *username = NULL;
+        static char        *seat = NULL;
         static GOptionEntry entries [] = {
                 { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
-                { "last-compat", 'l', 0, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
-                { "log", 'a', 0, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
+                { "last", 0, 0, G_OPTION_ARG_NONE, &report_last, N_("Show listing of last logged in users"), NULL },
+                { "last-compat", 0, 0, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
+                { "log", 0, 0, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
+                { "seat", 's', 0, G_OPTION_ARG_STRING, &seat, N_("Show entries for the specified seat"), N_("SEAT") },
+                { "user", 'u', 0, G_OPTION_ARG_STRING, &username, N_("Show entries for the specified user"), N_("NAME") },
                 { NULL }
         };
 
@@ -329,14 +472,26 @@ main (int    argc,
 
         if (report_last_compat) {
                 report_type = REPORT_TYPE_LAST_COMPAT;
+        } else if (report_last) {
+                report_type = REPORT_TYPE_LAST;
         } else if (report_log) {
                 report_type = REPORT_TYPE_LOG;
         } else {
                 report_type = REPORT_TYPE_SUMMARY;
         }
 
+        if (username != NULL) {
+                uid = get_uid_for_username (username);
+                if (uid == -1) {
+                        g_warning ("Unknown username: %s", username);
+                        exit (1);
+                }
+        } else {
+                uid = -1;
+        }
+
         process_log_file (DEFAULT_LOG_FILENAME);
-        generate_report (report_type);
+        generate_report (report_type, uid, seat);
         free_events ();
 
         return 0;

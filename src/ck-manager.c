@@ -390,6 +390,20 @@ generate_seat_id (CkManager *manager)
         return id;
 }
 
+static const char *
+get_object_id_basename (const char *id)
+{
+        const char *base;
+
+        if (id != NULL && g_str_has_prefix (id, CK_DBUS_PATH "/")) {
+                base = id + strlen (CK_DBUS_PATH "/");
+        } else {
+                base = id;
+        }
+
+        return base;
+}
+
 static void
 log_seat_added_event (CkManager  *manager,
                       CkSeat     *seat)
@@ -409,7 +423,7 @@ log_seat_added_event (CkManager  *manager,
         ck_seat_get_id (seat, &sid, NULL);
         ck_seat_get_kind (seat, &seat_kind, NULL);
 
-        event.event.seat_added.seat_id = sid;
+        event.event.seat_added.seat_id = (char *)get_object_id_basename (sid);
         event.event.seat_added.seat_kind = (int)seat_kind;
 
         error = NULL;
@@ -441,7 +455,7 @@ log_seat_removed_event (CkManager  *manager,
         ck_seat_get_id (seat, &sid, NULL);
         ck_seat_get_kind (seat, &seat_kind, NULL);
 
-        event.event.seat_removed.seat_id = sid;
+        event.event.seat_removed.seat_id = (char *)get_object_id_basename (sid);
         event.event.seat_removed.seat_kind = (int)seat_kind;
 
         error = NULL;
@@ -473,8 +487,8 @@ log_seat_session_added_event (CkManager  *manager,
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
 
-        event.event.seat_session_added.seat_id = sid;
-        event.event.seat_session_added.session_id = (char *)ssid;
+        event.event.seat_session_added.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_session_added.session_id = (char *)get_object_id_basename (ssid);
 
         session = g_hash_table_lookup (manager->priv->sessions, ssid);
         if (session != NULL) {
@@ -528,8 +542,8 @@ log_seat_session_removed_event (CkManager  *manager,
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
 
-        event.event.seat_session_removed.seat_id = sid;
-        event.event.seat_session_removed.session_id = (char *)ssid;
+        event.event.seat_session_removed.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_session_removed.session_id = (char *)get_object_id_basename (ssid);
 
         session = g_hash_table_lookup (manager->priv->sessions, ssid);
         if (session != NULL) {
@@ -581,8 +595,8 @@ log_seat_active_session_changed_event (CkManager  *manager,
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
 
-        event.event.seat_active_session_changed.seat_id = sid;
-        event.event.seat_active_session_changed.session_id = (char *)ssid;
+        event.event.seat_active_session_changed.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_active_session_changed.session_id = (char *)get_object_id_basename (ssid);
 
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
@@ -625,7 +639,7 @@ log_seat_device_added_event (CkManager   *manager,
                                       1, &device_id,
                                       G_MAXUINT);
 
-        event.event.seat_device_added.seat_id = sid;
+        event.event.seat_device_added.seat_id = (char *)get_object_id_basename (sid);
 
         event.event.seat_device_added.device_id = device_id;
         event.event.seat_device_added.device_type = device_type;
@@ -673,7 +687,7 @@ log_seat_device_removed_event (CkManager   *manager,
                                       1, &device_id,
                                       G_MAXUINT);
 
-        event.event.seat_device_removed.seat_id = sid;
+        event.event.seat_device_removed.seat_id = (char *)get_object_id_basename (sid);
 
         event.event.seat_device_removed.device_id = device_id;
         event.event.seat_device_removed.device_type = device_type;
