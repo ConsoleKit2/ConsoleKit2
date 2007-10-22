@@ -40,6 +40,7 @@ typedef enum {
         REPORT_TYPE_SUMMARY = 0,
         REPORT_TYPE_LAST,
         REPORT_TYPE_LAST_COMPAT,
+        REPORT_TYPE_FREQUENT,
         REPORT_TYPE_LOG,
 } ReportType;
 
@@ -377,6 +378,107 @@ generate_report_last_compat (int         uid,
         }
 }
 
+typedef struct {
+        int   uid;
+        guint count;
+} CountData;
+
+static void
+listify_counts (gpointer key,
+                gpointer val,
+                GList **list)
+{
+        CountData *count_data;
+        count_data = g_new0 (CountData, 1);
+        count_data->uid = GPOINTER_TO_INT (key);
+        count_data->count = GPOINTER_TO_UINT (val);
+        *list = g_list_prepend (*list, count_data);
+}
+
+static int
+counts_compare (CountData *a,
+                CountData *b)
+{
+        if (a->count < b->count) {
+                return 1;
+        } else if (a->count > b->count) {
+                return -1;
+        } else {
+                return 0;
+        }
+}
+
+static void
+generate_report_frequent (int         uid,
+                          const char *seat)
+{
+        GHashTable *counts;
+        GList      *l;
+        GList      *user_counts;
+
+        /* FIXME: we can probably do this more efficiently */
+
+        counts = g_hash_table_new (NULL, NULL);
+
+        for (l = g_list_first (all_events); l != NULL; l = l->next) {
+                CkLogEvent                 *event;
+                CkLogSeatSessionAddedEvent *e;
+                guint       count;
+                gpointer    val;
+
+                event = l->data;
+
+                if (event->type != CK_LOG_EVENT_SEAT_SESSION_ADDED) {
+                        continue;
+                }
+
+                e = (CkLogSeatSessionAddedEvent *)event;
+
+                if (uid >= 0 && e->session_unix_user != uid) {
+                        continue;
+                }
+
+                if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        continue;
+                }
+
+                val = g_hash_table_lookup (counts, GINT_TO_POINTER (e->session_unix_user));
+                if (val != NULL) {
+                        count = GPOINTER_TO_INT (val);
+                } else {
+                        count = 0;
+                }
+
+                g_hash_table_insert (counts,
+                                     GINT_TO_POINTER (e->session_unix_user),
+                                     GUINT_TO_POINTER (count + 1));
+        }
+
+        user_counts = NULL;
+        g_hash_table_foreach (counts, (GHFunc)listify_counts, &user_counts);
+        g_hash_table_destroy (counts);
+
+        if (user_counts == NULL) {
+                return;
+        }
+
+        user_counts = g_list_sort (user_counts, (GCompareFunc)counts_compare);
+        while (user_counts != NULL) {
+                CountData *data;
+                char      *username;
+
+                data = user_counts->data;
+
+                username = get_user_name_for_uid (data->uid);
+                g_print ("%-8.8s %u\n", username, data->count);
+                g_free (data);
+                user_counts = g_list_delete_link (user_counts, user_counts);
+                g_free (username);
+        }
+
+        g_list_free (user_counts);
+}
+
 static void
 generate_report_log (int         uid,
                      const char *seat)
@@ -413,6 +515,9 @@ generate_report (int         report_type,
         case REPORT_TYPE_LAST_COMPAT:
                 generate_report_last_compat (uid, seat);
                 break;
+        case REPORT_TYPE_FREQUENT:
+                generate_report_frequent (uid, seat);
+                break;
         case REPORT_TYPE_LOG:
                 generate_report_log (uid, seat);
                 break;
@@ -440,11 +545,13 @@ main (int    argc,
         static gboolean     do_version = FALSE;
         static gboolean     report_last_compat = FALSE;
         static gboolean     report_last = FALSE;
+        static gboolean     report_frequent = FALSE;
         static gboolean     report_log = FALSE;
         static char        *username = NULL;
         static char        *seat = NULL;
         static GOptionEntry entries [] = {
                 { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
+                { "frequent", 0, 0, G_OPTION_ARG_NONE, &report_frequent, N_("Show listing of frequent users"), NULL },
                 { "last", 0, 0, G_OPTION_ARG_NONE, &report_last, N_("Show listing of last logged in users"), NULL },
                 { "last-compat", 0, 0, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
                 { "log", 0, 0, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
@@ -474,6 +581,8 @@ main (int    argc,
                 report_type = REPORT_TYPE_LAST_COMPAT;
         } else if (report_last) {
                 report_type = REPORT_TYPE_LAST;
+        } else if (report_frequent) {
+                report_type = REPORT_TYPE_FREQUENT;
         } else if (report_log) {
                 report_type = REPORT_TYPE_LOG;
         } else {
