@@ -23,12 +23,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
 
 #include <locale.h>
+#include <zlib.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -67,6 +69,22 @@ process_event_line (const char *line)
 }
 
 static gboolean
+process_log_gzstream (gzFile *fstream)
+{
+        char line[MAX_LINE_LEN];
+
+        while (gzgets (fstream, line, sizeof (line)) != Z_NULL) {
+                if (strlen (line) == sizeof (line) - 1) {
+                        g_warning ("Log line truncated");
+                }
+
+                process_event_line (line);
+        }
+
+        return TRUE;
+}
+
+static gboolean
 process_log_stream (FILE *fstream)
 {
         char line[MAX_LINE_LEN];
@@ -85,17 +103,107 @@ process_log_stream (FILE *fstream)
 static gboolean
 process_log_file (const char *filename)
 {
-        FILE *f;
+        gboolean ret;
 
-        f = g_fopen (filename, "r");
-        if (f == NULL) {
-                g_warning ("Error opening %s (%s)\n",
-                           filename,
-                           g_strerror (errno));
-                return FALSE;
+        g_debug ("Processing %s...", filename);
+
+        if (g_str_has_suffix (filename, ".gz")) {
+                gzFile *f;
+                f = gzopen (filename, "r");
+                if (f == NULL) {
+                        int         errnum;
+                        const char *errmsg;
+                        errmsg = gzerror (f, &errnum);
+                        if (errnum == Z_ERRNO) {
+                                errmsg = g_strerror (errno);
+                        }
+                        g_warning ("Error opening %s (%s)\n",
+                                   filename,
+                                   errmsg);
+                        return FALSE;
+                }
+                ret = process_log_gzstream (f);
+                gzclose (f);
+        } else {
+                FILE    *f;
+
+                f = g_fopen (filename, "r");
+                if (f == NULL) {
+                        g_warning ("Error opening %s (%s)\n",
+                                   filename,
+                                   g_strerror (errno));
+                        return FALSE;
+                }
+                ret = process_log_stream (f);
+                fclose (f);
         }
 
-        return process_log_stream (f);
+        return ret;
+}
+
+static GList *
+get_log_file_list (void)
+{
+        int      num;
+        GList   *files;
+
+        /* always try the primary file */
+        files = NULL;
+        files = g_list_prepend (files, g_strdup (DEFAULT_LOG_FILENAME));
+        num = 1;
+        while (1) {
+                char *filename;
+                filename = g_strdup_printf ("%s.%d", DEFAULT_LOG_FILENAME, num);
+                if (g_access (filename, R_OK) != 0) {
+                        char *filename_gz;
+
+                        /* check for .gz */
+                        filename_gz = g_strdup_printf ("%s.gz", filename);
+                        g_free (filename);
+
+                        if (g_access (filename_gz, R_OK) != 0) {
+                                g_free (filename_gz);
+                                break;
+                        }
+                        filename = filename_gz;
+                }
+                num++;
+                files = g_list_prepend (files, filename);
+        };
+
+        return files;
+}
+
+static gboolean
+process_logs (void)
+{
+        gboolean ret;
+        GList   *files;
+        GList   *l;
+
+        ret = FALSE;
+
+        files = get_log_file_list ();
+
+        for (l = files; l != NULL; l = l->next) {
+                gboolean res;
+                char    *filename;
+
+                filename = l->data;
+
+                res = process_log_file (filename);
+                if (! res) {
+                        goto out;
+                }
+        }
+
+        ret = TRUE;
+
+ out:
+        g_list_foreach (files, (GFunc)g_free, NULL);
+        g_list_free (files);
+
+        return ret;
 }
 
 static void
@@ -599,7 +707,7 @@ main (int    argc,
                 uid = -1;
         }
 
-        process_log_file (DEFAULT_LOG_FILENAME);
+        process_logs ();
         generate_report (report_type, uid, seat);
         free_events ();
 

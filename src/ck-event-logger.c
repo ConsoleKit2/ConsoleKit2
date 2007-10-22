@@ -177,11 +177,18 @@ write_log_for_event (CkEventLogger *event_logger,
         if (event_logger->priv->file != NULL) {
                 int rc;
 
+                g_debug ("fd:%d err:%d tell:%ld",
+                         fileno (event_logger->priv->file),
+                         ferror (event_logger->priv->file),
+                         ftell (event_logger->priv->file));
+
                 rc = fprintf (event_logger->priv->file, "%s\n", str->str);
-                if (rc < 0) {
+                if (rc <= 0) {
                         g_warning ("Record was not written to disk (%s)",
                                    g_strerror (errno));
                 }
+        } else {
+                g_warning ("Log file not open for writing");
         }
 
         g_string_free (str, TRUE);

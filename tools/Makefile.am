@@ -27,6 +27,7 @@ INCLUDES =							\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
 	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
+	$(HISTORY_CFLAGS)					\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\
 	$(DBUS_CFLAGS)						\
@@ -49,8 +50,9 @@ ck_history_SOURCES =			\
 	ck-history.c			\
 	$(NULL)
 
-ck_history_LDADD =				\
-	$(CONSOLE_KIT_LIBS)			\
+ck_history_LDADD =			\
+	$(HISTORY_LIBS)			\
+	$(Z_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
 

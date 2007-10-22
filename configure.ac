@@ -49,16 +49,20 @@ AC_CHECK_FUNCS(getpeerucred getpeereid)
 AC_TYPE_UID_T
 
 PKG_CHECK_MODULES(CONSOLE_KIT,
-        dbus-glib-1 >= $DBUS_REQUIRED_VERSION
-        gobject-2.0 >= $GLIB_REQUIRED_VERSION
-        gthread-2.0 >= $GLIB_REQUIRED_VERSION
+  dbus-glib-1 >= $DBUS_REQUIRED_VERSION
+  gobject-2.0 >= $GLIB_REQUIRED_VERSION
+  gthread-2.0 >= $GLIB_REQUIRED_VERSION
 )
 PKG_CHECK_MODULES(LIBDBUS,
-	dbus-1 >= $DBUS_REQUIRED_VERSION
+  dbus-1 >= $DBUS_REQUIRED_VERSION
 )
 PKG_CHECK_MODULES(TOOLS,
-        x11 >= $X11_REQUIRED_VERSION
-        glib-2.0 >= $GLIB_REQUIRED_VERSION
+  x11 >= $X11_REQUIRED_VERSION
+  glib-2.0 >= $GLIB_REQUIRED_VERSION
+)
+
+PKG_CHECK_MODULES(HISTORY,
+  glib-2.0 >= $GLIB_REQUIRED_VERSION
 )
 
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
@@ -122,6 +126,20 @@ else
         DBUS_SYS_DIR="$sysconfdir/dbus-1/system.d"
 fi
 AC_SUBST(DBUS_SYS_DIR)
+
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for libz
+dnl ---------------------------------------------------------------------------
+
+have_libz=no
+AC_CHECK_LIB(z, compress,
+  [AC_CHECK_HEADER(zlib.h, [have_libz=yes], [])], [])
+if test "x$have_libz" != "xyes"; then
+  AC_MSG_ERROR([Unable to find libz])
+fi
+Z_LIBS="${Z_LIBS} -lz"
+AC_SUBST(Z_LIBS)
 
 dnl ---------------------------------------------------------------------------
 dnl - PID file
