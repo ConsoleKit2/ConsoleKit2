@@ -261,11 +261,12 @@ main (int    argc,
         GOptionContext  *context;
         DBusGProxy      *bus_proxy;
         DBusGConnection *connection;
+        GError          *error;
         int              ret;
         int              pf;
         ssize_t          written;
         char             pid[9];
-
+        gboolean         res;
         static gboolean     debug            = FALSE;
         static gboolean     no_daemon        = FALSE;
         static gboolean     do_timed_exit    = FALSE;
@@ -291,8 +292,14 @@ main (int    argc,
 
         context = g_option_context_new (_("Console kit daemon"));
         g_option_context_add_main_entries (context, entries, NULL);
-        g_option_context_parse (context, &argc, &argv, NULL);
+        error = NULL;
+        res = g_option_context_parse (context, &argc, &argv, &error);
         g_option_context_free (context);
+        if (! res) {
+                g_warning (error->message);
+                g_error_free (error);
+                goto out;
+        }
 
         if (! no_daemon && daemon (0, 0)) {
                 g_error ("Could not daemonize: %s", g_strerror (errno));
