@@ -50,14 +50,14 @@
 
 struct CkSessionLeaderPrivate
 {
-        gboolean    cancelled;
-
+        char       *id;
         uid_t       uid;
         pid_t       pid;
         char       *service_name;
         char       *session_id;
         char       *cookie;
         GList      *pending_jobs;
+        gboolean    cancelled;
 };
 
 enum {
@@ -554,5 +554,14 @@ void
 ck_session_leader_dump (CkSessionLeader *session_leader,
                         GKeyFile        *key_file)
 {
-}
+        char *group_name;
 
+        group_name = g_strdup_printf ("SessionLeader %s", session_leader->priv->session_id);
+        g_key_file_set_string (key_file, group_name, "session", session_leader->priv->session_id);
+        g_key_file_set_integer (key_file, group_name, "uid", session_leader->priv->uid);
+        g_key_file_set_integer (key_file, group_name, "pid", session_leader->priv->pid);
+        g_key_file_set_string (key_file, group_name, "cookie", session_leader->priv->cookie);
+        g_key_file_set_string (key_file, group_name, "service_name", session_leader->priv->service_name);
+
+        g_free (group_name);
+}

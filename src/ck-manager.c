@@ -106,6 +106,14 @@ dump_state_session_iter (char      *id,
         ck_session_dump (session, key_file);
 }
 
+static void
+dump_state_leader_iter (char            *id,
+                        CkSessionLeader *leader,
+                        GKeyFile        *key_file)
+{
+        ck_session_leader_dump (leader, key_file);
+}
+
 static gboolean
 do_dump (CkManager *manager,
          int        fd)
@@ -124,6 +132,7 @@ do_dump (CkManager *manager,
 
         g_hash_table_foreach (manager->priv->seats, (GHFunc) dump_state_seat_iter, key_file);
         g_hash_table_foreach (manager->priv->sessions, (GHFunc) dump_state_session_iter, key_file);
+        g_hash_table_foreach (manager->priv->leaders, (GHFunc) dump_state_leader_iter, key_file);
 
         str = g_key_file_to_data (key_file, &str_len, &error);
         g_key_file_free (key_file);
