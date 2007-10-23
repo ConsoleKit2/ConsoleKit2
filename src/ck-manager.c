@@ -41,8 +41,8 @@
 #include "ck-manager.h"
 #include "ck-manager-glue.h"
 #include "ck-seat.h"
+#include "ck-session-leader.h"
 #include "ck-session.h"
-#include "ck-job.h"
 #include "ck-marshal.h"
 #include "ck-event-logger.h"
 
@@ -56,12 +56,6 @@
 #define CK_MANAGER_DBUS_PATH CK_DBUS_PATH "/Manager"
 #define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"
 
-#define CK_TYPE_PARAMETER_STRUCT (dbus_g_type_get_struct ("GValueArray", \
-                                                          G_TYPE_STRING, \
-                                                          G_TYPE_VALUE, \
-                                                          G_TYPE_INVALID))
-#define CK_TYPE_PARAMETER_LIST (dbus_g_type_get_collection ("GPtrArray", \
-                                                            CK_TYPE_PARAMETER_STRUCT))
 struct CkManagerPrivate
 {
         GHashTable      *seats;
@@ -78,18 +72,6 @@ struct CkManagerPrivate
         gboolean         system_idle_hint;
         GTimeVal         system_idle_since_hint;
 };
-
-
-typedef struct {
-        int         refcount;
-        gboolean    cancelled;
-        uid_t       uid;
-        pid_t       pid;
-        char       *service_name;
-        char       *ssid;
-        char       *cookie;
-        GList      *pending_jobs;
-} LeaderInfo;
 
 enum {
         SEAT_ADDED,
@@ -215,67 +197,6 @@ error:
         if (g_unlink (filename) != 0) {
                 g_warning ("Cannot unlink %s: %s", filename, g_strerror (errno));
         }
-}
-
-static void
-remove_pending_job (CkJob *job)
-{
-        if (job != NULL) {
-                char *command;
-
-                command = NULL;
-                ck_job_get_command (job, &command);
-                g_debug ("Removing pending job: %s", command);
-                g_free (command);
-
-                ck_job_cancel (job);
-                g_object_unref (job);
-        }
-}
-
-static void
-_leader_info_free (LeaderInfo *info)
-{
-        g_debug ("Freeing leader info: %s", info->ssid);
-
-        g_free (info->ssid);
-        info->ssid = NULL;
-        g_free (info->cookie);
-        info->cookie = NULL;
-        g_free (info->service_name);
-        info->service_name = NULL;
-
-        g_free (info);
-}
-
-static void
-leader_info_cancel (LeaderInfo *info)
-{
-        if (info->pending_jobs != NULL) {
-                g_list_foreach (info->pending_jobs, (GFunc)remove_pending_job, NULL);
-                g_list_free (info->pending_jobs);
-                info->pending_jobs = NULL;
-        }
-
-        info->cancelled = TRUE;
-}
-
-static void
-leader_info_unref (LeaderInfo *info)
-{
-        /* Probably should use some kind of atomic op here */
-        info->refcount -= 1;
-        if (info->refcount == 0) {
-                _leader_info_free (info);
-        }
-}
-
-static LeaderInfo *
-leader_info_ref (LeaderInfo *info)
-{
-        info->refcount += 1;
-
-        return info;
 }
 
 GQuark
@@ -1082,16 +1003,21 @@ ck_manager_get_system_idle_since_hint (CkManager *manager,
 }
 
 static void
-open_session_for_leader_info (CkManager             *manager,
-                              LeaderInfo            *leader_info,
-                              const GPtrArray       *parameters,
-                              DBusGMethodInvocation *context)
+open_session_for_leader (CkManager             *manager,
+                         CkSessionLeader       *leader,
+                         const GPtrArray       *parameters,
+                         DBusGMethodInvocation *context)
 {
         CkSession   *session;
         CkSeat      *seat;
+        const char  *ssid;
+        const char  *cookie;
 
-        session = ck_session_new_with_parameters (leader_info->ssid,
-                                                  leader_info->cookie,
+        ssid = ck_session_leader_peek_session_id (leader);
+        cookie = ck_session_leader_peek_cookie (leader);
+
+        session = ck_session_new_with_parameters (ssid,
+                                                  cookie,
                                                   parameters);
 
         if (session == NULL) {
@@ -1106,7 +1032,9 @@ open_session_for_leader_info (CkManager             *manager,
                 return;
         }
 
-        g_hash_table_insert (manager->priv->sessions, g_strdup (leader_info->ssid), g_object_ref (session));
+        g_hash_table_insert (manager->priv->sessions,
+                             g_strdup (ssid),
+                             g_object_ref (session));
 
         /* Add to seat */
         seat = find_seat_for_session (manager, session);
@@ -1127,247 +1055,55 @@ open_session_for_leader_info (CkManager             *manager,
 
         g_object_unref (session);
 
-        dbus_g_method_return (context, leader_info->cookie);
+        dbus_g_method_return (context, cookie);
 }
 
 static void
-verify_and_open_session_for_leader_info (CkManager             *manager,
-                                         LeaderInfo            *leader_info,
-                                         const GPtrArray       *parameters,
-                                         DBusGMethodInvocation *context)
+verify_and_open_session_for_leader (CkManager             *manager,
+                                    CkSessionLeader       *leader,
+                                    const GPtrArray       *parameters,
+                                    DBusGMethodInvocation *context)
 {
         /* for now don't bother verifying since we protect OpenSessionWithParameters */
-        open_session_for_leader_info (manager,
-                                      leader_info,
-                                      parameters,
-                                      context);
+        open_session_for_leader (manager,
+                                 leader,
+                                 parameters,
+                                 context);
 }
 
 static void
-add_param_int (GPtrArray  *parameters,
-               const char *key,
-               const char *value)
+collect_parameters_cb (CkSessionLeader       *leader,
+                       GPtrArray             *parameters,
+                       DBusGMethodInvocation *context,
+                       CkManager             *manager)
 {
-        GValue val = { 0, };
-        GValue param_val = { 0, };
-        int    num;
-
-        num = atoi (value);
-
-        g_value_init (&val, G_TYPE_INT);
-        g_value_set_int (&val, num);
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
-}
-
-static void
-add_param_boolean (GPtrArray  *parameters,
-                   const char *key,
-                   const char *value)
-{
-        GValue   val = { 0, };
-        GValue   param_val = { 0, };
-        gboolean b;
-
-        if (value != NULL && strcmp (value, "true") == 0) {
-                b = TRUE;
-        } else {
-                b = FALSE;
+        if (parameters == NULL) {
+                GError *error;
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_GENERAL,
+                                     "Unable to get information about the calling process");
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+                return;
         }
 
-        g_value_init (&val, G_TYPE_BOOLEAN);
-        g_value_set_boolean (&val, b);
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
+        verify_and_open_session_for_leader (manager,
+                                            leader,
+                                            parameters,
+                                            context);
 }
 
 static void
-add_param_string (GPtrArray  *parameters,
-                  const char *key,
-                  const char *value)
+generate_session_for_leader (CkManager             *manager,
+                             CkSessionLeader       *leader,
+                             DBusGMethodInvocation *context)
 {
-        GValue val = { 0, };
-        GValue param_val = { 0, };
+        gboolean res;
 
-        g_value_init (&val, G_TYPE_STRING);
-        g_value_set_string (&val, value);
-
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
-}
-
-typedef void (* CkAddParamFunc) (GPtrArray  *arr,
-                                 const char *key,
-                                 const char *value);
-
-static struct {
-        char          *key;
-        CkAddParamFunc func;
-} parse_ops[] = {
-        { "display-device",     add_param_string },
-        { "x11-display-device", add_param_string },
-        { "x11-display",        add_param_string },
-        { "remote-host-name",   add_param_string },
-        { "session-type",       add_param_string },
-        { "is-local",           add_param_boolean },
-        { "unix-user",          add_param_int },
-};
-
-static GPtrArray *
-parse_output (const char *output)
-{
-        GPtrArray *parameters;
-        char     **lines;
-        int        i;
-        int        j;
-
-        lines = g_strsplit (output, "\n", -1);
-        if (lines == NULL) {
-                return NULL;
-        }
-
-        parameters = g_ptr_array_sized_new (10);
-
-        for (i = 0; lines[i] != NULL; i++) {
-                char **vals;
-
-                vals = g_strsplit (lines[i], " = ", 2);
-                if (vals == NULL || vals[0] == NULL) {
-                        g_strfreev (vals);
-                        continue;
-                }
-
-                for (j = 0; j < G_N_ELEMENTS (parse_ops); j++) {
-                        if (strcmp (vals[0], parse_ops[j].key) == 0) {
-                                parse_ops[j].func (parameters, vals[0], vals[1]);
-                                break;
-                        }
-                }
-                g_strfreev (vals);
-        }
-
-        g_strfreev (lines);
-
-        return parameters;
-}
-
-typedef struct {
-        CkManager             *manager;
-        LeaderInfo            *leader_info;
-        DBusGMethodInvocation *context;
-} JobData;
-
-static void
-job_data_free (JobData *data)
-{
-        leader_info_unref (data->leader_info);
-        g_free (data);
-}
-
-static void
-parameters_free (GPtrArray *parameters)
-{
-        int i;
-
-        for (i = 0; i < parameters->len; i++) {
-                gpointer data;
-                data = g_ptr_array_index (parameters, i);
-                if (data != NULL) {
-                        g_boxed_free (CK_TYPE_PARAMETER_STRUCT, data);
-                }
-        }
-
-        g_ptr_array_free (parameters, TRUE);
-}
-
-static void
-job_completed (CkJob     *job,
-               int        status,
-               JobData   *data)
-{
-        g_debug ("Job status: %d", status);
-        if (status == 0) {
-                char      *output;
-                GPtrArray *parameters;
-
-                output = NULL;
-                ck_job_get_stdout (job, &output);
-                g_debug ("Job output: %s", output);
-
-                parameters = parse_output (output);
-                g_free (output);
-
-                verify_and_open_session_for_leader_info (data->manager,
-                                                         data->leader_info,
-                                                         parameters,
-                                                         data->context);
-                parameters_free (parameters);
-        }
-
-        /* remove job from queue */
-        data->leader_info->pending_jobs = g_list_remove (data->leader_info->pending_jobs, job);
-
-        g_signal_handlers_disconnect_by_func (job, job_completed, data);
-        g_object_unref (job);
-}
-
-static void
-generate_session_for_leader_info (CkManager             *manager,
-                                  LeaderInfo            *leader_info,
-                                  DBusGMethodInvocation *context)
-{
-        GError      *local_error;
-        char        *command;
-        gboolean     res;
-        CkJob       *job;
-        JobData     *data;
-
-        command = g_strdup_printf ("%s --uid %u --pid %u",
-                                   LIBEXECDIR "/ck-collect-session-info",
-                                   leader_info->uid,
-                                   leader_info->pid);
-        job = ck_job_new ();
-        ck_job_set_command (job, command);
-        g_free (command);
-
-        data = g_new0 (JobData, 1);
-        data->manager = manager;
-        data->leader_info = leader_info_ref (leader_info);
-        data->context = context;
-        g_signal_connect_data (job,
-                               "completed",
-                               G_CALLBACK (job_completed),
-                               data,
-                               (GClosureNotify)job_data_free,
-                               0);
-
-        local_error = NULL;
-        res = ck_job_execute (job, &local_error);
+        res = ck_session_leader_collect_parameters (leader,
+                                                    context,
+                                                    (CkSessionLeaderDoneFunc)collect_parameters_cb,
+                                                    manager);
         if (! res) {
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
@@ -1375,19 +1111,7 @@ generate_session_for_leader_info (CkManager             *manager,
                                      "Unable to get information about the calling process");
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
-
-                if (local_error != NULL) {
-                        g_debug ("stat on pid %d failed: %s", leader_info->pid, local_error->message);
-                        g_error_free (local_error);
-                }
-
-                g_object_unref (job);
-
-                return;
         }
-
-        /* Add job to queue */
-        leader_info->pending_jobs = g_list_prepend (leader_info->pending_jobs, job);
 }
 
 static gboolean
@@ -1396,12 +1120,12 @@ create_session_for_sender (CkManager             *manager,
                            const GPtrArray       *parameters,
                            DBusGMethodInvocation *context)
 {
-        pid_t        pid;
-        uid_t        uid;
-        gboolean     res;
-        char        *cookie;
-        char        *ssid;
-        LeaderInfo  *leader_info;
+        pid_t           pid;
+        uid_t           uid;
+        gboolean        res;
+        char            *cookie;
+        char            *ssid;
+        CkSessionLeader *leader;
 
         res = get_caller_info (manager,
                                sender,
@@ -1422,27 +1146,27 @@ create_session_for_sender (CkManager             *manager,
 
         g_debug ("Creating new session ssid: %s", ssid);
 
-        leader_info = g_new0 (LeaderInfo, 1);
-        leader_info->uid = uid;
-        leader_info->pid = pid;
-        leader_info->service_name = g_strdup (sender);
-        leader_info->ssid = g_strdup (ssid);
-        leader_info->cookie = g_strdup (cookie);
+        leader = ck_session_leader_new ();
+        ck_session_leader_set_uid (leader, uid);
+        ck_session_leader_set_pid (leader, pid);
+        ck_session_leader_set_service_name (leader, sender);
+        ck_session_leader_set_session_id (leader, ssid);
+        ck_session_leader_set_cookie (leader, cookie);
 
         /* need to store the leader info first so the pending request can be revoked */
         g_hash_table_insert (manager->priv->leaders,
-                             g_strdup (leader_info->cookie),
-                             leader_info_ref (leader_info));
+                             g_strdup (cookie),
+                             g_object_ref (leader));
 
         if (parameters == NULL) {
-                generate_session_for_leader_info (manager,
-                                                  leader_info,
-                                                  context);
+                generate_session_for_leader (manager,
+                                             leader,
+                                             context);
         } else {
-                verify_and_open_session_for_leader_info (manager,
-                                                         leader_info,
-                                                         parameters,
-                                                         context);
+                verify_and_open_session_for_leader (manager,
+                                                    leader,
+                                                    parameters,
+                                                    context);
         }
 
         g_free (cookie);
@@ -1463,15 +1187,15 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                    const char            *cookie,
                                    DBusGMethodInvocation *context)
 {
-        gboolean       res;
-        char          *sender;
-        uid_t          calling_uid;
-        pid_t          calling_pid;
-        CkProcessStat *stat;
-        char          *ssid;
-        CkSession     *session;
-        LeaderInfo    *leader_info;
-        GError        *local_error;
+        gboolean         res;
+        char            *sender;
+        uid_t            calling_uid;
+        pid_t            calling_pid;
+        CkProcessStat   *stat;
+        char            *ssid;
+        CkSession       *session;
+        CkSessionLeader *leader;
+        GError          *local_error;
 
         ssid = NULL;
 
@@ -1514,8 +1238,8 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
         /* FIXME: should we restrict this by uid? */
         ck_process_stat_free (stat);
 
-        leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
-        if (leader_info == NULL) {
+        leader = g_hash_table_lookup (manager->priv->leaders, cookie);
+        if (leader == NULL) {
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
@@ -1525,7 +1249,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                 return FALSE;
         }
 
-        session = g_hash_table_lookup (manager->priv->sessions, leader_info->ssid);
+        session = g_hash_table_lookup (manager->priv->sessions, ck_session_leader_peek_session_id (leader));
         if (session == NULL) {
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
@@ -1705,12 +1429,12 @@ remove_session_for_cookie (CkManager  *manager,
                            const char *cookie,
                            GError    **error)
 {
-        CkSession  *orig_session;
-        char       *orig_ssid;
-        LeaderInfo *leader_info;
-        char       *sid;
-        gboolean    res;
-        gboolean    ret;
+        CkSession       *orig_session;
+        char            *orig_ssid;
+        CkSessionLeader *leader;
+        char            *sid;
+        gboolean         res;
+        gboolean         ret;
 
         ret = FALSE;
         orig_ssid = NULL;
@@ -1718,9 +1442,9 @@ remove_session_for_cookie (CkManager  *manager,
 
         g_debug ("Removing session for cookie: %s", cookie);
 
-        leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
+        leader = g_hash_table_lookup (manager->priv->leaders, cookie);
 
-        if (leader_info == NULL) {
+        if (leader == NULL) {
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
@@ -1730,7 +1454,7 @@ remove_session_for_cookie (CkManager  *manager,
 
         /* Need to get the original key/value */
         res = g_hash_table_lookup_extended (manager->priv->sessions,
-                                            leader_info->ssid,
+                                            ck_session_leader_peek_session_id (leader),
                                             (gpointer *)&orig_ssid,
                                             (gpointer *)&orig_session);
         if (! res) {
@@ -1771,7 +1495,8 @@ remove_session_for_cookie (CkManager  *manager,
 
         /* Remove the session from the list but don't call
          * unref until we are done with it */
-        g_hash_table_steal (manager->priv->sessions, leader_info->ssid);
+        g_hash_table_steal (manager->priv->sessions,
+                            ck_session_leader_peek_session_id (leader));
 
         ck_manager_dump (manager);
 
@@ -1794,7 +1519,7 @@ paranoia_check_is_cookie_owner (CkManager  *manager,
                                 pid_t       calling_pid,
                                 GError    **error)
 {
-        LeaderInfo *leader_info;
+        CkSessionLeader *leader;
 
         if (cookie == NULL) {
                 g_set_error (error,
@@ -1804,8 +1529,8 @@ paranoia_check_is_cookie_owner (CkManager  *manager,
                 return FALSE;
         }
 
-        leader_info = g_hash_table_lookup (manager->priv->leaders, cookie);
-        if (leader_info == NULL) {
+        leader = g_hash_table_lookup (manager->priv->leaders, cookie);
+        if (leader == NULL) {
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
@@ -1813,7 +1538,7 @@ paranoia_check_is_cookie_owner (CkManager  *manager,
                 return FALSE;
         }
 
-        if (leader_info->uid != calling_uid) {
+        if (ck_session_leader_get_uid (leader) != calling_uid) {
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
@@ -1823,7 +1548,7 @@ paranoia_check_is_cookie_owner (CkManager  *manager,
         }
 
         /* do we want to restrict to the same process? */
-        if (leader_info->pid != calling_pid) {
+        if (ck_session_leader_get_pid (leader) != calling_pid) {
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
@@ -1896,15 +1621,18 @@ typedef struct {
 
 static gboolean
 remove_leader_for_connection (const char       *cookie,
-                              LeaderInfo       *info,
+                              CkSessionLeader  *leader,
                               RemoveLeaderData *data)
 {
-        g_assert (info != NULL);
+        const char *name;
+
+        g_assert (leader != NULL);
         g_assert (data->service_name != NULL);
 
-        if (strcmp (info->service_name, data->service_name) == 0) {
+        name = ck_session_leader_peek_service_name (leader);
+        if (strcmp (name, data->service_name) == 0) {
                 remove_session_for_cookie (data->manager, cookie, NULL);
-                leader_info_cancel (info);
+                ck_session_leader_cancel (leader);
                 return TRUE;
         }
 
@@ -2188,7 +1916,7 @@ ck_manager_init (CkManager *manager)
         manager->priv->leaders = g_hash_table_new_full (g_str_hash,
                                                         g_str_equal,
                                                         g_free,
-                                                        (GDestroyNotify) leader_info_unref);
+                                                        (GDestroyNotify) g_object_unref);
 
         manager->priv->logger = ck_event_logger_new (LOG_FILE);
 

@@ -101,6 +101,8 @@ console_kit_daemon_SOURCES =	\
 	ck-job.c		\
 	ck-seat.h		\
 	ck-seat.c		\
+	ck-session-leader.h	\
+	ck-session-leader.c	\
 	ck-session.h		\
 	ck-session.c		\
 	ck-log.h		\
