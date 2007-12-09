@@ -6,24 +6,12 @@ dbusconf_DATA = ConsoleKit.conf
 seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
-SCRIPT_IN_FILES = ConsoleKit.in
-
-# I guess it's Linux-only but that will do for the moment.
-if ! CK_COMPILE_FREEBSD
-initddir=$(sysconfdir)/rc.d/init.d
-initd_SCRIPTS= 		\
-	ConsoleKit	\
-	$(NULL)
-endif
 
 servicedir = $(datadir)/dbus-1/system-services
 service_in_files = org.freedesktop.ConsoleKit.service.in
 service_DATA = $(service_in_files:.service.in=.service)
 
 $(service_DATA): $(service_in_files) Makefile
-	$(edit) $< >$@
-
-ConsoleKit: ConsoleKit.in Makefile
 	$(edit) $< >$@
 
 edit = sed \
@@ -35,7 +23,6 @@ edit = sed \
 EXTRA_DIST =						\
 	$(dbusconf_DATA)				\
 	$(seat_DATA)					\
-	$(SCRIPT_IN_FILES)				\
 	$(service_in_files)				\
 	$(NULL)
 
@@ -43,4 +30,4 @@ MAINTAINERCLEANFILES =			\
 	*~				\
 	Makefile.in
 
-CLEANFILES = ConsoleKit $(service_DATA)
+CLEANFILES = $(service_DATA)
