@@ -16,6 +16,12 @@ initd_SCRIPTS= 		\
 	$(NULL)
 endif
 
+servicedir = $(datadir)/dbus-1/system-services
+service_in_files = org.freedesktop.ConsoleKit.service.in
+service_DATA = $(service_in_files:.service.in=.service)
+
+$(service_DATA): $(service_in_files) Makefile
+	$(edit) $< >$@
 
 ConsoleKit: ConsoleKit.in Makefile
 	$(edit) $< >$@
@@ -30,10 +36,11 @@ EXTRA_DIST =						\
 	$(dbusconf_DATA)				\
 	$(seat_DATA)					\
 	$(SCRIPT_IN_FILES)				\
+	$(service_in_files)				\
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
 	*~				\
 	Makefile.in
 
-CLEANFILES = ConsoleKit
+CLEANFILES = ConsoleKit $(service_DATA)
