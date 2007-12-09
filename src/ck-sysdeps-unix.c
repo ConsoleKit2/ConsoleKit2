@@ -127,15 +127,15 @@ gboolean
 ck_fd_is_a_console (int fd)
 {
 #ifdef __linux__
-        char arg = 0;
+        struct vt_stat vts;
 #elif defined(__FreeBSD__)
         int vers;
 #endif
         int  kb_ok;
 
+        errno = 0;
 #ifdef __linux__
-        kb_ok = (ioctl (fd, KDGKBTYPE, &arg) == 0
-                 && ((arg == KB_101) || (arg == KB_84)));
+        kb_ok = (ioctl (fd, VT_GETSTATE, &vts) == 0);
 #elif defined(__FreeBSD__)
         kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
 #else
@@ -195,6 +195,11 @@ ck_get_a_console_fd (void)
         if (fd >= 0) {
                 goto done;
         }
+
+	fd = open_a_console ("/dev/tty0");
+	if (fd >= 0) {
+		goto done;
+	}
 
 #ifdef _PATH_CONSOLE
         fd = open_a_console (_PATH_CONSOLE);
@@ -259,7 +264,7 @@ ck_wait_for_active_console_num (int   console_fd,
 #ifdef VT_WAITACTIVE
         g_debug ("VT_WAITACTIVE for vt %d", num);
         res = ioctl (console_fd, VT_WAITACTIVE, num);
-        g_debug ("VT_WAITACTIVE for vt %d returned %d", num, ret);
+        g_debug ("VT_WAITACTIVE for vt %d returned %d", num, res);
 #else
         res = ERROR;
         errno = ENOTSUP;
