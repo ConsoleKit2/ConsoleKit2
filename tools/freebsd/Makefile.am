@@ -8,7 +8,7 @@ SUBDIRS = \
 
 scriptdir = $(libdir)/ConsoleKit/scripts
 script_SCRIPTS =			\
-	ck-system-stop	\
+	ck-system-stop			\
 	ck-system-restart		\
 	$(NULL)
 

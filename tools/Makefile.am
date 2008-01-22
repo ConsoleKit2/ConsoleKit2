@@ -10,8 +10,18 @@ if CK_COMPILE_LINUX
 SUBDIRS += linux
 endif
 
+if CK_COMPILE_FREEBSD
+SUBDIRS += freebsd
+endif
+
+if CK_COMPILE_SOLARIS
+SUBDIRS += solaris
+endif
+
 DIST_SUBDIRS = 		\
 	linux		\
+	freebsd		\
+	solaris		\
 	$(NULL)
 
 INCLUDES =							\

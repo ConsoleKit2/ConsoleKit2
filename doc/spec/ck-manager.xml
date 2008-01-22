@@ -4,6 +4,24 @@
 >
 
   <interface name="org.freedesktop.ConsoleKit.Manager">
+    <method name="Restart">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to restart (ie. reboot) the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="Stop">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to stop (ie. shutdown) the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="OpenSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="out" type="s">

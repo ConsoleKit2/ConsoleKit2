@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#Try for common tools
+if [ -x "/sbin/shutdown" ] ; then
+	/sbin/shutdown -h now
+	exit $?
+elif [ -x "/usr/sbin/shutdown" ] ; then
+	/usr/sbin/shutdown -h now
+	exit $?
+else
+	exit 1
+fi

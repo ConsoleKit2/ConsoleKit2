@@ -8,7 +8,9 @@
   </refnamediv>
   <refsynopsisdiv role="synopsis">
     <title role="synopsis.title">Methods</title>
-    <synopsis><link linkend="Manager.OpenSession">OpenSession</link>               (out 's'     cookie)
+    <synopsis><link linkend="Manager.Restart">Restart</link>                   ()
+<link linkend="Manager.Stop">Stop</link>                      ()
+<link linkend="Manager.OpenSession">OpenSession</link>               (out 's'     cookie)
 <link linkend="Manager.OpenSessionWithParameters">OpenSessionWithParameters</link> (in  'a(sv)' parameters,
                            out 's'     cookie)
 <link linkend="Manager.CloseSession">CloseSession</link>              (in  's'     cookie,
@@ -49,7 +51,11 @@
     <title role="desc.title">Description</title>
     <para/>
   </refsect1>
-  <refsect1 role="details"><title role="details.title">Details</title><refsect2><title><anchor role="function" id="Manager.OpenSession"/>OpenSession ()</title><indexterm><primary>OpenSession</primary><secondary>Manager</secondary></indexterm><programlisting>OpenSession (out 's' cookie)</programlisting></refsect2>
+  <refsect1 role="details"><title role="details.title">Details</title><refsect2><title><anchor role="function" id="Manager.Restart"/>Restart ()</title><indexterm><primary>Restart</primary><secondary>Manager</secondary></indexterm><programlisting>Restart ()</programlisting></refsect2>
+          <para>This method initiates a request to restart (ie. reboot) the computer system.</para>
+        <variablelist role="params"/><refsect2><title><anchor role="function" id="Manager.Stop"/>Stop ()</title><indexterm><primary>Stop</primary><secondary>Manager</secondary></indexterm><programlisting>Stop ()</programlisting></refsect2>
+          <para>This method initiates a request to stop (ie. shutdown) the computer system.</para>
+        <variablelist role="params"/><refsect2><title><anchor role="function" id="Manager.OpenSession"/>OpenSession ()</title><indexterm><primary>OpenSession</primary><secondary>Manager</secondary></indexterm><programlisting>OpenSession (out 's' cookie)</programlisting></refsect2>
           <para>This method requests that a new <link linkend="Session">Session</link>
           be created for the calling process.  The properties of this new Session are set automatically
           from information collected about the calling process.

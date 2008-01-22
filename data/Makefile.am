@@ -6,6 +6,10 @@ dbusconf_DATA = ConsoleKit.conf
 seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
+polkit_policydir = $(datadir)/PolicyKit/policy
+dist_polkit_policy_DATA =	\
+	ConsoleKit.policy	\
+	$(NULL)
 
 servicedir = $(datadir)/dbus-1/system-services
 service_in_files = org.freedesktop.ConsoleKit.service.in
