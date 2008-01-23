@@ -53,7 +53,7 @@
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
 
 #define CK_SEAT_DIR          SYSCONFDIR "/ConsoleKit/seats.d"
-#define LOG_FILE             LOCALSTATEDIR "/run/ConsoleKit/history"
+#define LOG_FILE             LOCALSTATEDIR "/log/ConsoleKit/history"
 #define CK_DBUS_PATH         "/org/freedesktop/ConsoleKit"
 #define CK_MANAGER_DBUS_PATH CK_DBUS_PATH "/Manager"
 #define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"

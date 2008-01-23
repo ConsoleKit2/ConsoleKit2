@@ -46,7 +46,7 @@ typedef enum {
         REPORT_TYPE_LOG,
 } ReportType;
 
-#define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/run/ConsoleKit/history"
+#define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/log/ConsoleKit/history"
 #define MAX_LINE_LEN 2048
 
 static GList *all_events = NULL;

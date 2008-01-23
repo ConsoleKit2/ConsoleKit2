@@ -39,7 +39,7 @@
 
 #define CK_EVENT_LOGGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_EVENT_LOGGER, CkEventLoggerPrivate))
 
-#define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/run/ConsoleKit/history"
+#define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/log/ConsoleKit/history"
 
 struct CkEventLoggerPrivate
 {
