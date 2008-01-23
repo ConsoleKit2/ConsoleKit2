@@ -223,6 +223,28 @@ ck_manager_error_quark (void)
         return ret;
 }
 
+#define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
+
+GType
+ck_manager_error_get_type (void)
+{
+        static GType etype = 0;
+
+        if (etype == 0) {
+                static const GEnumValue values[] = {
+                        ENUM_ENTRY (CK_MANAGER_ERROR_GENERAL, "GeneralError"),
+                        ENUM_ENTRY (CK_MANAGER_ERROR_NOT_PRIVILEGED, "NotPrivileged"),
+                        { 0, 0, 0 }
+                };
+
+                g_assert (CK_MANAGER_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
+
+                etype = g_enum_register_static ("CkManagerError", values);
+        }
+
+        return etype;
+}
+
 static guint32
 get_next_session_serial (CkManager *manager)
 {

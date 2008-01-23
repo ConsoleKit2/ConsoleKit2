@@ -59,10 +59,14 @@ typedef struct
 typedef enum
 {
         CK_MANAGER_ERROR_GENERAL,
-        CK_MANAGER_ERROR_NOT_PRIVILEGED
+        CK_MANAGER_ERROR_NOT_PRIVILEGED,
+        CK_MANAGER_NUM_ERRORS
 } CkManagerError;
 
 #define CK_MANAGER_ERROR ck_manager_error_quark ()
+
+GType               ck_manager_error_get_type                 (void);
+#define CK_MANAGER_TYPE_ERROR (ck_manager_error_get_type ())
 
 GQuark              ck_manager_error_quark                    (void);
 GType               ck_manager_get_type                       (void);
