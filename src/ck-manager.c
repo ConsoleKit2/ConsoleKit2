@@ -2329,6 +2329,7 @@ ck_manager_class_init (CkManagerClass *klass)
                               1, G_TYPE_BOOLEAN);
 
         dbus_g_object_type_install_info (CK_TYPE_MANAGER, &dbus_glib_ck_manager_object_info);
+        dbus_g_error_domain_register (CK_MANAGER_ERROR, NULL, CK_MANAGER_TYPE_ERROR);
 
         g_type_class_add_private (klass, sizeof (CkManagerPrivate));
 }
