@@ -1,4 +1,10 @@
 =============
+Version 0.2.5
+=============
+
+        * use /var/log/ instead of /var/run for log file
+
+=============
 Version 0.2.4
 =============
 
