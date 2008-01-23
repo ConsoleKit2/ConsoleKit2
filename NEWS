@@ -1,4 +1,40 @@
 =============
+Version 0.2.4
+=============
+
+        * actually register the error type with dbus (William Jon McCann)
+        * add GetSessions method to Manager interface (William Jon McCann)
+        * add error type to manager (William Jon McCann)
+        * initial stop/restart support (William Jon McCann)
+        * use VT_GETSTATE and tty0 to identify a console_ioctl on linux (Peter Jones)
+        * remove obsolete sysv init script (Michael Biebl)
+        * start CK service on-demand using D-Bus system activation (Michael Biebl)
+        * dump session leader info (William Jon McCann)
+        * error out if unknown options are passed on command line (William Jon McCann)
+        * move session leader stuff into a separate class (William Jon McCann)
+        * try to handle log rotation (William Jon McCann)
+        * add support for reporting from logrotated files (William Jon McCann)
+        * add a basic --frequent report (William Jon McCann)
+        * Merge branch 'master' of git+ssh://git.freedesktop.org/git/ConsoleKit (William Jon McCann)
+        * add last mode, filtering by user/seat; shorten logged ids (William Jon McCann)
+        * add bugzilla url (William Jon McCann)
+        * check for oldest being null (William Jon McCann)
+        * rename --last to --last-compat (William Jon McCann)
+        * a few fixes for last patch (William Jon McCann)
+        * add a last compatible outout format to ck-history (William Jon McCann)
+        * use AC_GNU_SOURCE instead of #define (William Jon McCann)
+        * add a basic ck-history command (William Jon McCann)
+        * add event logging capability (William Jon McCann)
+        * remove emacs modeline (William Jon McCann)
+        * maintain a file with the dump of the local database (David Zeuthen)
+        * remove session/seat from list before signaling (William Jon McCann)
+        * add a way to synchronously run programs on session add/remove/activity_change (David Zeuthen)
+        * don't use VT_GETSTATE when VT is unavailable (Brian Cameron)
+        * try to make things work for systems that don't support VT_ACTIVATE etc (William Jon McCann)
+        * add wiki to readme (William Jon McCann)
+        * post release version bump (William Jon McCann)
+
+=============
 Version 0.2.3
 =============
 

@@ -360,6 +360,8 @@ Makefile
 src/Makefile
 tools/Makefile
 tools/linux/Makefile
+tools/freebsd/Makefile
+tools/solaris/Makefile
 data/Makefile
 doc/Makefile
 doc/ConsoleKit.xml
