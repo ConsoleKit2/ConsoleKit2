@@ -2412,6 +2412,31 @@ ck_manager_get_seats (CkManager  *manager,
 }
 
 static void
+listify_session_ids (char       *id,
+                     CkSession  *session,
+                     GPtrArray **array)
+{
+        g_ptr_array_add (*array, g_strdup (id));
+}
+
+gboolean
+ck_manager_get_sessions (CkManager  *manager,
+                         GPtrArray **sessions,
+                         GError    **error)
+{
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        if (sessions == NULL) {
+                return FALSE;
+        }
+
+        *sessions = g_ptr_array_new ();
+        g_hash_table_foreach (manager->priv->sessions, (GHFunc)listify_session_ids, sessions);
+
+        return TRUE;
+}
+
+static void
 add_seat_for_file (CkManager  *manager,
                    const char *filename)
 {

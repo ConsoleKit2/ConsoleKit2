@@ -24,6 +24,9 @@
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao"/>
     </method>
+    <method name="GetSessions">
+      <arg name="sessions" direction="out" type="ao"/>
+    </method>
     <method name="GetSessionForCookie">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="in" type="s"/>

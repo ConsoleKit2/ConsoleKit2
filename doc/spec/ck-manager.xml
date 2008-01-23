@@ -150,6 +150,23 @@
       </doc:doc>
     </method>
 
+    <method name="GetSessions">
+      <arg name="sessions" direction="out" type="ao">
+        <doc:doc>
+          <doc:summary>an array of Session IDs</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This gets a list of all the <doc:ref type="interface" to="Sessions">Sessions</doc:ref>
+          that are currently present on the system.</doc:para>
+          <doc:para>Each Session ID is an D-Bus object path for the object that implements the
+          <doc:ref type="interface" to="Session">Session</doc:ref> interface.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="interface" to="Session">org.freedesktop.ConsoleKit.Session</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
     <method name="GetSessionForCookie">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="in" type="s">

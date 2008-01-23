@@ -85,6 +85,9 @@ gboolean            ck_manager_restart                        (CkManager        
 /* Authoritative properties */
 gboolean            ck_manager_open_session                   (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_get_sessions                   (CkManager             *manager,
+                                                               GPtrArray            **sessions,
+                                                               GError               **error);
 gboolean            ck_manager_get_seats                      (CkManager             *manager,
                                                                GPtrArray            **seats,
                                                                GError               **error);

@@ -16,6 +16,7 @@
 <link linkend="Manager.CloseSession">CloseSession</link>              (in  's'     cookie,
                            out 'b'     result)
 <link linkend="Manager.GetSeats">GetSeats</link>                  (out 'ao'    seats)
+<link linkend="Manager.GetSessions">GetSessions</link>               (out 'ao'    sessions)
 <link linkend="Manager.GetSessionForCookie">GetSessionForCookie</link>       (in  's'     cookie,
                            out 'o'     ssid)
 <link linkend="Manager.GetSessionForUnixProcess">GetSessionForUnixProcess</link>  (in  'u'     pid,
@@ -132,7 +133,14 @@ See also:
           <link linkend="Seat">Seat</link> interface.</para>
         <variablelist role="params"><varlistentry><term><parameter>seats</parameter>:</term><listitem><simpara>an array of Seat IDs</simpara></listitem></varlistentry></variablelist><para>
 See also:
-<link linkend="Seat">org.freedesktop.ConsoleKit.Seat</link></para><refsect2><title><anchor role="function" id="Manager.GetSessionForCookie"/>GetSessionForCookie ()</title><indexterm><primary>GetSessionForCookie</primary><secondary>Manager</secondary></indexterm><programlisting>GetSessionForCookie (in  's' cookie,
+<link linkend="Seat">org.freedesktop.ConsoleKit.Seat</link></para><refsect2><title><anchor role="function" id="Manager.GetSessions"/>GetSessions ()</title><indexterm><primary>GetSessions</primary><secondary>Manager</secondary></indexterm><programlisting>GetSessions (out 'ao' sessions)</programlisting></refsect2>
+          <para>This gets a list of all the <link linkend="Sessions">Sessions</link>
+          that are currently present on the system.</para>
+          <para>Each Session ID is an D-Bus object path for the object that implements the
+          <link linkend="Session">Session</link> interface.</para>
+        <variablelist role="params"><varlistentry><term><parameter>sessions</parameter>:</term><listitem><simpara>an array of Session IDs</simpara></listitem></varlistentry></variablelist><para>
+See also:
+<link linkend="Session">org.freedesktop.ConsoleKit.Session</link></para><refsect2><title><anchor role="function" id="Manager.GetSessionForCookie"/>GetSessionForCookie ()</title><indexterm><primary>GetSessionForCookie</primary><secondary>Manager</secondary></indexterm><programlisting>GetSessionForCookie (in  's' cookie,
                      out 'o' ssid)</programlisting></refsect2>
           <para>Returns the session ID that is associated with the specified cookie.
           </para>
