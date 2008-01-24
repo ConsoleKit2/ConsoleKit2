@@ -1,4 +1,11 @@
 =============
+Version 0.2.6
+=============
+
+        * be a little smarter about how we compute the number of users (William Jon McCann)
+        * fix policy action name (William Jon McCann)
+
+=============
 Version 0.2.5
 =============
 
