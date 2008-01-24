@@ -18,7 +18,7 @@ Policy definitions for ConsoleKit
     </defaults>
   </action>
 
-  <action id="org.freedesktop.consolekit.system.stop-multiple-sessions">
+  <action id="org.freedesktop.consolekit.system.stop-multiple-users">
     <description>Stop the system when multiple users are logged in</description>
     <message>System policy prevents stopping the when other users are logged in</message>
     <defaults>
@@ -36,7 +36,7 @@ Policy definitions for ConsoleKit
     </defaults>
   </action>
 
-  <action id="org.freedesktop.consolekit.system.restart-multiple-sessions">
+  <action id="org.freedesktop.consolekit.system.restart-multiple-users">
     <description>Restart the system when multiple users are logged in</description>
     <message>System policy prevents restarting the system when other users are logged in</message>
     <defaults>
