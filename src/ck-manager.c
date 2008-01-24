@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <pwd.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -1109,6 +1110,97 @@ out:
         return res;
 }
 
+static char *
+get_user_name (uid_t uid)
+{
+        struct passwd *pwent;
+        char          *name;
+
+        name = NULL;
+
+        pwent = getpwuid (uid);
+
+        if (pwent != NULL) {
+                name = g_strdup (pwent->pw_name);
+        }
+
+        return name;
+}
+
+static gboolean
+session_is_real_user (CkSession *session,
+                      char     **userp)
+{
+        int         uid;
+        char       *username;
+        char       *session_type;
+        gboolean    ret;
+
+        ret = FALSE;
+        session_type = NULL;
+        username = NULL;
+
+        session_type = NULL;
+
+        g_object_get (session,
+                      "unix-user", &uid,
+                      "session-type", session_type,
+                      NULL);
+
+        username = get_user_name (uid);
+
+        /* filter out GDM user */
+        if (username != NULL && strcmp (username, "gdm") == 0) {
+                ret = FALSE;
+                goto out;
+        }
+
+        if (userp != NULL) {
+                *userp = g_strdup (username);
+        }
+
+        ret = TRUE;
+
+ out:
+        g_free (username);
+        g_free (session_type);
+
+        return ret;
+}
+
+static void
+collect_users (const char *ssid,
+               CkSession  *session,
+               GHashTable *hash)
+{
+        char *username;
+
+        if (session_is_real_user (session, &username)) {
+                if (username != NULL) {
+                        g_hash_table_insert (hash, username, NULL);
+                }
+        }
+}
+
+static guint
+get_system_num_users (CkManager *manager)
+{
+        guint            num_users;
+        GHashTable      *hash;
+
+        hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+        g_hash_table_foreach (manager->priv->sessions, (GHFunc)collect_users, hash);
+
+        num_users = g_hash_table_size (hash);
+
+        g_hash_table_destroy (hash);
+
+        g_debug ("found %u unique users", num_users);
+
+        return num_users;
+}
+
 /*
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
@@ -1127,7 +1219,7 @@ ck_manager_restart (CkManager             *manager,
 
         ret = FALSE;
 
-        if (g_hash_table_size (manager->priv->sessions) > 1) {
+        if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.restart-multiple-users";
         } else {
                 action = "org.freedesktop.consolekit.system.restart";
@@ -1179,7 +1271,7 @@ ck_manager_stop (CkManager             *manager,
 
         ret = TRUE;
 
-        if (g_hash_table_size (manager->priv->sessions) > 1) {
+        if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.stop-multiple-users";
         } else {
                 action = "org.freedesktop.consolekit.system.stop";
