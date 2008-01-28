@@ -260,7 +260,7 @@ ck_unix_pid_get_env_hash (pid_t pid)
 
                         if (skip_prefix != NULL) {
                                 char **vals;
-                                vals = g_strsplit (buf, "=", 2);
+                                vals = g_strsplit (skip_prefix + 1, "=", 2);
                                 if (vals != NULL) {
                                         g_hash_table_insert (hash,
                                                              g_strdup (vals[0]),

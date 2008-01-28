@@ -1230,7 +1230,8 @@ ck_session_run_programs (CkSession  *session,
         if (session->priv->x11_display_device != NULL && strlen (session->priv->x11_display_device) > 0) {
                 extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY_DEVICE=%s", session->priv->x11_display_device);
         }
-        extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY=%s", session->priv->x11_display);
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY=%s",
+                session->priv->x11_display ? session->priv->x11_display : "");
         if (session->priv->remote_host_name != NULL && strlen (session->priv->remote_host_name) > 0) {
                 extra_env[n++] = g_strdup_printf ("CK_SESSION_REMOTE_HOST_NAME=%s", session->priv->remote_host_name);
         }
