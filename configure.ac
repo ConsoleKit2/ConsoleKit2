@@ -53,8 +53,18 @@ PKG_CHECK_MODULES(CONSOLE_KIT,
   dbus-glib-1 >= $DBUS_REQUIRED_VERSION
   gobject-2.0 >= $GLIB_REQUIRED_VERSION
   gthread-2.0 >= $GLIB_REQUIRED_VERSION
-  polkit >= $POLKIT_REQUIRED_VERSION
 )
+
+PKG_CHECK_MODULES(POLKIT,
+  polkit >= $POLKIT_REQUIRED_VERSION,
+  have_polkit=yes,
+  have_polkit=no)
+if test "x$have_polkit" = "xyes" ; then
+       AC_DEFINE(HAVE_POLKIT, [], [Define if we have polkit])
+fi
+AM_CONDITIONAL(HAVE_POLKIT, test x$have_polkit = xyes)
+AC_SUBST(HAVE_POLKIT)
+
 PKG_CHECK_MODULES(LIBDBUS,
   dbus-1 >= $DBUS_REQUIRED_VERSION
 )
@@ -282,6 +292,23 @@ if test "x$enable_inotify" = "xyes" ; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl check for RBAC
+dnl ---------------------------------------------------------------------------
+
+msg_rbac_shutdown=no
+AC_ARG_ENABLE(rbac-shutdown,
+	[AC_HELP_STRING([--enable-rbac-shutdown=<key>],
+	[Build with RBAC support specifying shutdown/reboot RBAC authentication key])],
+	enable_rbac_shutdown=$enableval,enable_rbac_shutdown=no)
+if test "x$enable_rbac_shutdown" != "xno"; then
+	RBAC_LIBS="-lsecdb -lsocket -lnsl"
+	AC_DEFINE(ENABLE_RBAC_SHUTDOWN, [], [Set if we build with RBAC support])
+	AC_DEFINE_UNQUOTED(RBAC_SHUTDOWN_KEY, "$enable_rbac_shutdown", [Set if we build with RBAC support])
+	msg_rbac_shutdown="yes, using key $enable_rbac_shutdown"
+fi
+AC_SUBST(RBAC_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
@@ -398,4 +425,5 @@ echo "
         PAM module dir:           ${PAM_MODULE_DIR}
         Build PAM module:         ${msg_pam_module}
         Build docs:               ${enable_docbook_docs}
+        Build with RBAC:          ${msg_rbac_shutdown}
 "

@@ -10,6 +10,7 @@ INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
 	$(CONSOLE_KIT_CFLAGS)					\
+	$(POLKIT_CFLAGS)					\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
@@ -129,6 +130,8 @@ EXTRA_console_kit_daemon_SOURCES = 	\
 
 console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
+	$(POLKIT_LIBS)		\
+	$(RBAC_LIBS)		\
 	libck.la		\
 	libck-event-log.la	\
 	$(NULL)
@@ -147,6 +150,8 @@ test_event_logger_SOURCES = 		\
 
 test_event_logger_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	$(RBAC_LIBS)			\
 	libck-event-log.la		\
 	$(NULL)
 
@@ -158,6 +163,7 @@ test_vt_monitor_SOURCES = 		\
 
 test_vt_monitor_LDADD =			\
 	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
 	libck.la			\
 	$(NULL)
 
@@ -171,6 +177,7 @@ test_tty_idle_monitor_SOURCES = 	\
 
 test_tty_idle_monitor_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
 	libck.la			\
 	$(NULL)
 

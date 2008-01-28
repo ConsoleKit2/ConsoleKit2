@@ -39,7 +39,14 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
+#ifdef HAVE_POLKIT
 #include <polkit/polkit.h>
+#endif
+
+#ifdef ENABLE_RBAC_SHUTDOWN
+#include <auth_attr.h>
+#include <secdb.h>
+#endif
 
 #include "ck-manager.h"
 #include "ck-manager-glue.h"
@@ -61,7 +68,9 @@
 
 struct CkManagerPrivate
 {
+#ifdef HAVE_POLKIT
         PolKitContext   *pol_ctx;
+#endif
 
         GHashTable      *seats;
         GHashTable      *sessions;
@@ -703,6 +712,7 @@ get_session_for_unix_process (CkManager *manager,
         return session;
 }
 
+#ifdef HAVE_POLKIT
 static PolKitSession *
 new_polkit_session_from_session (CkManager *manager,
                                  CkSession *ck_session)
@@ -1064,6 +1074,7 @@ _check_polkit_for_action (CkManager             *manager,
 
         return TRUE;
 }
+#endif
 
 /* adapted from PolicyKit */
 static gboolean
@@ -1201,6 +1212,47 @@ get_system_num_users (CkManager *manager)
         return num_users;
 }
 
+#ifdef ENABLE_RBAC_SHUTDOWN
+static gboolean
+check_rbac_permissions (CkManager *manager,
+                        DBusGMethodInvocation *context)
+{
+        const char *sender;
+        char       *username;
+        gboolean    res;
+        uid_t       uid;
+        pid_t       pid;
+
+        username = NULL;
+        sender   = dbus_g_method_get_sender (context);
+        res      = get_caller_info (manager,
+                                    sender,
+                                    &uid,
+                                    &pid);
+        if (!res) {
+                goto out;
+        }
+
+        username = get_user_name (uid);
+
+        if (username == NULL ||
+            !chkauthattr (RBAC_SHUTDOWN_KEY, username)) {
+                res = FALSE;
+                goto out;
+        }
+
+out:
+
+        if (res == TRUE)
+                g_debug ("User %s has RBAC permission to stop/restart", username);
+        else
+                g_debug ("User %s does not have RBAC permission to stop/restart", username);
+
+        g_free (username);
+        return res;
+}
+#endif
+
 /*
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
@@ -1227,11 +1279,17 @@ ck_manager_restart (CkManager             *manager,
 
         g_debug ("ConsoleKit Restart: %s", action);
 
+#ifdef HAVE_POLKIT
         res = _check_polkit_for_action (manager, context, action);
-
         if (! res) {
                 goto out;
         }
+#endif
+
+#ifdef ENABLE_RBAC_SHUTDOWN
+        if (!check_rbac_permissions (manager, context))
+                goto out;
+#endif
 
         g_debug ("ConsoleKit preforming Restart: %s", action);
 
@@ -1277,10 +1335,17 @@ ck_manager_stop (CkManager             *manager,
                 action = "org.freedesktop.consolekit.system.stop";
         }
 
+#ifdef HAVE_POLKIT
         res = _check_polkit_for_action (manager, context, action);
         if (! res) {
                 goto out;
         }
+#endif
+
+#ifdef ENABLE_RBAC_SHUTDOWN
+        if (!check_rbac_permissions (manager, context))
+                goto out;
+#endif
 
         g_debug ("Stopping system");
         error = NULL;
@@ -2296,6 +2361,7 @@ bus_name_owner_changed (DBusGProxy  *bus_proxy,
                    service_name, old_service_name, new_service_name);
 }
 
+#ifdef HAVE_POLKIT
 static gboolean
 pk_io_watch_have_data (GIOChannel  *channel,
                        GIOCondition condition,
@@ -2338,18 +2404,21 @@ pk_io_remove_watch (PolKitContext *pk_context,
 {
         g_source_remove (watch_id);
 }
+#endif
 
 static gboolean
 register_manager (CkManager *manager)
 {
         GError *error = NULL;
 
+#ifdef HAVE_POLKIT
         manager->priv->pol_ctx = polkit_context_new ();
         polkit_context_set_io_watch_functions (manager->priv->pol_ctx, pk_io_add_watch, pk_io_remove_watch);
         if (! polkit_context_init (manager->priv->pol_ctx, NULL)) {
                 g_critical ("cannot initialize libpolkit");
                 return FALSE;
         }
+#endif
 
         error = NULL;
         manager->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
