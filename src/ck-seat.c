@@ -201,8 +201,11 @@ _seat_activate_session (CkSeat                *seat,
                 goto out;
         }
 
-        ck_session_get_display_device (session, &device, NULL);
-
+        device = NULL;
+        ck_session_get_x11_display_device (session, &device, NULL);
+        if (device == NULL) {
+                ck_session_get_display_device (session, &device, NULL);
+        }
         res = ck_get_console_num_from_device (device, &num);
         if (! res) {
                 GError *error;
