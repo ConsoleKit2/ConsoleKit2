@@ -105,8 +105,6 @@ process_log_file (const char *filename)
 {
         gboolean ret;
 
-        g_debug ("Processing %s...", filename);
-
         if (g_str_has_suffix (filename, ".gz")) {
                 gzFile *f;
                 f = gzopen (filename, "r");
@@ -518,7 +516,8 @@ counts_compare (CountData *a,
 
 static void
 generate_report_frequent (int         uid,
-                          const char *seat)
+                          const char *seat,
+                          const char *session_type)
 {
         GHashTable *counts;
         GList      *l;
@@ -531,8 +530,8 @@ generate_report_frequent (int         uid,
         for (l = g_list_first (all_events); l != NULL; l = l->next) {
                 CkLogEvent                 *event;
                 CkLogSeatSessionAddedEvent *e;
-                guint       count;
-                gpointer    val;
+                guint                       count;
+                gpointer                    val;
 
                 event = l->data;
 
@@ -547,6 +546,10 @@ generate_report_frequent (int         uid,
                 }
 
                 if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        continue;
+                }
+
+                if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
                         continue;
                 }
 
@@ -608,7 +611,8 @@ generate_report_log (int         uid,
 static void
 generate_report (int         report_type,
                  int         uid,
-                 const char *seat)
+                 const char *seat,
+                 const char *session_type)
 {
 
         all_events = g_list_reverse (all_events);
@@ -624,7 +628,7 @@ generate_report (int         report_type,
                 generate_report_last_compat (uid, seat);
                 break;
         case REPORT_TYPE_FREQUENT:
-                generate_report_frequent (uid, seat);
+                generate_report_frequent (uid, seat, session_type);
                 break;
         case REPORT_TYPE_LOG:
                 generate_report_log (uid, seat);
@@ -657,6 +661,7 @@ main (int    argc,
         static gboolean     report_log = FALSE;
         static char        *username = NULL;
         static char        *seat = NULL;
+        static char        *session_type = NULL;
         static GOptionEntry entries [] = {
                 { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
                 { "frequent", 0, 0, G_OPTION_ARG_NONE, &report_frequent, N_("Show listing of frequent users"), NULL },
@@ -664,6 +669,7 @@ main (int    argc,
                 { "last-compat", 0, 0, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
                 { "log", 0, 0, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
                 { "seat", 's', 0, G_OPTION_ARG_STRING, &seat, N_("Show entries for the specified seat"), N_("SEAT") },
+                { "session-type", 't', 0, G_OPTION_ARG_STRING, &session_type, N_("Show entries for the specified session type"), N_("TYPE") },
                 { "user", 'u', 0, G_OPTION_ARG_STRING, &username, N_("Show entries for the specified user"), N_("NAME") },
                 { NULL }
         };
@@ -708,7 +714,7 @@ main (int    argc,
         }
 
         process_logs ();
-        generate_report (report_type, uid, seat);
+        generate_report (report_type, uid, seat, session_type);
         free_events ();
 
         return 0;

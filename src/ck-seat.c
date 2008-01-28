@@ -268,6 +268,8 @@ ck_seat_activate_session (CkSeat                *seat,
 
         session = NULL;
 
+        g_debug ("Trying to activate session: %s", ssid);
+
         if (ssid != NULL) {
                 session = g_hash_table_lookup (seat->priv->sessions, ssid);
         }
