@@ -30,7 +30,7 @@ test_connector_SOURCES = 		\
 
 
 test_connector_LDADD =			\
-	$(top_builddir)/libck-connector/libck-connector.la	\
+	libck-connector.la	\
 	$(LIBDBUS_LIBS)			\
 	$(NULL)
 
