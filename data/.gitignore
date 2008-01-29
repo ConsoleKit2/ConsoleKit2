@@ -1,3 +1,4 @@
 Makefile
 Makefile.in
 ConsoleKit
+org.freedesktop.ConsoleKit.service

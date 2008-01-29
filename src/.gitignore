@@ -6,6 +6,7 @@
 Makefile
 Makefile.in
 console-kit-daemon
+test-event-logger
 test-tty-idle-monitor
 test-vt-monitor
 ck-marshal.c
