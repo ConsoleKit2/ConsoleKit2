@@ -48,6 +48,10 @@ bin_PROGRAMS = \
 	ck-history			\
 	$(NULL)
 
+sbin_PROGRAMS = \
+	ck-log-system-start		\
+	$(NULL)
+
 ck_list_sessions_SOURCES =		\
 	list-sessions.c			\
 	$(NULL)
@@ -63,6 +67,15 @@ ck_history_SOURCES =			\
 ck_history_LDADD =			\
 	$(HISTORY_LIBS)			\
 	$(Z_LIBS)			\
+	$(top_builddir)/src/libck-event-log.la	\
+	$(NULL)
+
+ck_log_system_start_SOURCES =		\
+	ck-log-system-start.c		\
+	$(NULL)
+
+ck_log_system_start_LDADD =		\
+	$(HISTORY_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
 

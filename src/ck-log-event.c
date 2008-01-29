@@ -465,7 +465,7 @@ add_log_for_system_restart (GString    *str,
 
 static void
 add_log_for_system_start (GString    *str,
-                            CkLogEvent *event)
+                          CkLogEvent *event)
 {
         CkLogSystemStartEvent *e;
 
