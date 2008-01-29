@@ -206,7 +206,8 @@ process_logs (void)
 
 static void
 generate_report_summary (int         uid,
-                         const char *seat)
+                         const char *seat,
+                         const char *session_type)
 {
 }
 
@@ -295,7 +296,8 @@ get_utline_for_event (CkLogSeatSessionAddedEvent *e)
 
 static void
 generate_report_last (int         uid,
-                      const char *seat)
+                      const char *seat,
+                      const char *session_type)
 {
         GList      *oldest;
         CkLogEvent *oldest_event;
@@ -331,6 +333,10 @@ generate_report_last (int         uid,
                         continue;
                 }
 
+                if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
+                        continue;
+                }
+
                 str = g_string_new (NULL);
 
                 username = get_user_name_for_uid (e->session_unix_user);
@@ -338,8 +344,9 @@ generate_report_last (int         uid,
 
                 addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
                 g_string_printf (str,
-                                 "%-8.8s %-10.10s %-7.7s %-12.12s %-16.16s %-16.16s",
+                                 "%-8.8s %12s %-10.10s %-7.7s %-12.12s %-16.16s %-16.16s",
                                  username,
+                                 e->session_type,
                                  e->session_id,
                                  e->seat_id,
                                  utline,
@@ -392,7 +399,8 @@ generate_report_last (int         uid,
 
 static void
 generate_report_last_compat (int         uid,
-                             const char *seat)
+                             const char *seat,
+                             const char *session_type)
 {
         GList      *oldest;
         CkLogEvent *oldest_event;
@@ -424,6 +432,10 @@ generate_report_last_compat (int         uid,
                 }
 
                 if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        continue;
+                }
+
+                if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
                         continue;
                 }
 
@@ -592,7 +604,8 @@ generate_report_frequent (int         uid,
 
 static void
 generate_report_log (int         uid,
-                     const char *seat)
+                     const char *seat,
+                     const char *session_type)
 {
         GList *l;
 
@@ -619,19 +632,19 @@ generate_report (int         report_type,
 
         switch (report_type) {
         case REPORT_TYPE_SUMMARY:
-                generate_report_summary (uid, seat);
+                generate_report_summary (uid, seat, session_type);
                 break;
         case REPORT_TYPE_LAST:
-                generate_report_last (uid, seat);
+                generate_report_last (uid, seat, session_type);
                 break;
         case REPORT_TYPE_LAST_COMPAT:
-                generate_report_last_compat (uid, seat);
+                generate_report_last_compat (uid, seat, session_type);
                 break;
         case REPORT_TYPE_FREQUENT:
                 generate_report_frequent (uid, seat, session_type);
                 break;
         case REPORT_TYPE_LOG:
-                generate_report_log (uid, seat);
+                generate_report_log (uid, seat, session_type);
                 break;
         default:
                 g_assert_not_reached ();
