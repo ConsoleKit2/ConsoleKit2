@@ -29,7 +29,9 @@ typedef enum
 {
         CK_LOG_EVENT_START = 0,
         CK_LOG_EVENT_STOP,
-        CK_LOG_EVENT_SYSTEM_SHUTDOWN,
+        CK_LOG_EVENT_SYSTEM_START,
+        CK_LOG_EVENT_SYSTEM_STOP,
+        CK_LOG_EVENT_SYSTEM_RESTART,
         CK_LOG_EVENT_SYSTEM_RUNLEVEL_CHANGED,
         CK_LOG_EVENT_SEAT_ADDED,
         CK_LOG_EVENT_SEAT_REMOVED,
@@ -39,6 +41,18 @@ typedef enum
         CK_LOG_EVENT_SEAT_DEVICE_REMOVED,
         CK_LOG_EVENT_SEAT_ACTIVE_SESSION_CHANGED,
 } CkLogEventType;
+
+typedef struct
+{
+} CkLogSystemStopEvent;
+
+typedef struct
+{
+} CkLogSystemRestartEvent;
+
+typedef struct
+{
+} CkLogSystemStartEvent;
 
 typedef struct
 {
@@ -103,6 +117,9 @@ typedef struct
 typedef struct
 {
         union {
+                CkLogSystemRestartEvent system_start;
+                CkLogSystemStopEvent system_stop;
+                CkLogSystemRestartEvent system_restart;
                 CkLogSeatAddedEvent seat_added;
                 CkLogSeatRemovedEvent seat_removed;
                 CkLogSeatSessionAddedEvent seat_session_added;

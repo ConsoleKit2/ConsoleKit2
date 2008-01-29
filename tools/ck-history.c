@@ -46,6 +46,17 @@ typedef enum {
         REPORT_TYPE_LOG,
 } ReportType;
 
+/* same record types as sysvinit last */
+typedef enum {
+        RECORD_STATUS_CRASH = 1,  /* No logout record, system boot in between */
+        RECORD_STATUS_DOWN,       /* System brought down in decent way */
+        RECORD_STATUS_NORMAL,     /* Normal */
+        RECORD_STATUS_NOW,        /* Still logged in */
+        RECORD_STATUS_REBOOT,     /* Reboot record. */
+        RECORD_STATUS_PHANTOM,    /* No logout record but session is stale. */
+        RECORD_STATUS_TIMECHANGE, /* NEW_TIME or OLD_TIME */
+} RecordStatus;
+
 #define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/log/ConsoleKit/history"
 #define MAX_LINE_LEN 2048
 
@@ -221,16 +232,28 @@ find_first_matching_remove_event (GList                      *events,
         revent = NULL;
 
         for (l = events; l != NULL; l = l->next) {
-                CkLogSeatSessionRemovedEvent *e;
+                CkLogEventType etype;
 
-                if (((CkLogEvent *)l->data)->type != CK_LOG_EVENT_SEAT_SESSION_REMOVED) {
+                etype = ((CkLogEvent *)l->data)->type;
+                /* skip all non removal events */
+                if (etype != CK_LOG_EVENT_SEAT_SESSION_REMOVED
+                    || etype == CK_LOG_EVENT_SYSTEM_START
+                    || etype == CK_LOG_EVENT_SYSTEM_STOP
+                    || etype == CK_LOG_EVENT_SYSTEM_RESTART) {
                         continue;
                 }
-                e = l->data;
 
-                if (e->session_id != NULL
-                    && event->session_id != NULL
-                    && strcmp (e->session_id, event->session_id) == 0) {
+                if (etype == CK_LOG_EVENT_SEAT_SESSION_REMOVED) {
+                        CkLogSeatSessionRemovedEvent *e;
+                        e = l->data;
+
+                        if (e->session_id != NULL
+                            && event->session_id != NULL
+                            && strcmp (e->session_id, event->session_id) == 0) {
+                                revent = (CkLogEvent *)l->data;
+                                break;
+                        }
+                } else {
                         revent = (CkLogEvent *)l->data;
                         break;
                 }
@@ -275,23 +298,248 @@ get_uid_for_username (const char *username)
 }
 
 static char *
-get_utline_for_event (CkLogSeatSessionAddedEvent *e)
+get_utline_for_event (CkLogEvent *event)
 {
         char *utline;
 
         utline = NULL;
 
-        if (e->session_x11_display != NULL && e->session_x11_display[0] != '\0') {
-                utline = g_strdup (e->session_x11_display);
-        } else {
-                if (g_str_has_prefix (e->session_display_device, "/dev/")) {
-                        utline = g_strdup (e->session_display_device + 5);
-                } else {
-                        utline = g_strdup (e->session_display_device);
+        switch (event->type) {
+        case CK_LOG_EVENT_SEAT_SESSION_ADDED:
+                {
+                        CkLogSeatSessionAddedEvent *e;
+                        e = (CkLogSeatSessionAddedEvent *)event;
+                        if (e->session_x11_display != NULL && e->session_x11_display[0] != '\0') {
+                                utline = g_strdup (e->session_x11_display);
+                        } else {
+                                if (g_str_has_prefix (e->session_display_device, "/dev/")) {
+                                        utline = g_strdup (e->session_display_device + 5);
+                                } else {
+                                        utline = g_strdup (e->session_display_device);
+                                }
+                        }
                 }
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                utline = g_strdup ("system boot");
+                break;
+        default:
+                g_assert_not_reached ();
         }
 
         return utline;
+}
+
+static char *
+get_user_name_for_event (CkLogEvent *event)
+{
+        char *username;
+
+        username = NULL;
+
+        switch (event->type) {
+        case CK_LOG_EVENT_SEAT_SESSION_ADDED:
+                username = get_user_name_for_uid (((CkLogSeatSessionAddedEvent *)event)->session_unix_user);
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                username = g_strdup ("reboot");
+                break;
+        default:
+                g_assert_not_reached ();
+        }
+
+        return username;
+}
+
+static char *
+get_host_for_event (CkLogEvent *event)
+{
+        char *username;
+
+        username = NULL;
+
+        switch (event->type) {
+        case CK_LOG_EVENT_SEAT_SESSION_ADDED:
+                username = g_strdup (((CkLogSeatSessionAddedEvent *)event)->session_remote_host_name);
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                /* FIXME: get kernel version */
+                username = g_strdup ("");
+                break;
+        default:
+                g_assert_not_reached ();
+        }
+
+        return username;
+}
+
+static RecordStatus
+get_event_record_status (CkLogEvent *remove_event)
+{
+        RecordStatus status;
+
+        status = RECORD_STATUS_NOW;
+
+        if (remove_event == NULL) {
+                goto out;
+        }
+
+        if (remove_event->type == CK_LOG_EVENT_SEAT_SESSION_REMOVED) {
+                status = RECORD_STATUS_NORMAL;
+        } else if (remove_event->type == CK_LOG_EVENT_SYSTEM_START) {
+                status = RECORD_STATUS_CRASH;
+        } else if (remove_event->type == CK_LOG_EVENT_SYSTEM_STOP) {
+                status = RECORD_STATUS_DOWN;
+        } else if (remove_event->type == CK_LOG_EVENT_SYSTEM_RESTART) {
+                status = RECORD_STATUS_DOWN;
+        }
+
+ out:
+        return status;
+}
+
+static char *
+get_duration (CkLogEvent *event,
+              CkLogEvent *remove_event)
+{
+        time_t secs;
+        int    mins;
+        int    hours;
+        int    days;
+        char  *duration;
+
+        secs = remove_event->timestamp.tv_sec - event->timestamp.tv_sec;
+        mins  = (secs / 60) % 60;
+        hours = (secs / 3600) % 24;
+        days  = secs / 86400;
+        if (days > 0) {
+                duration = g_strdup_printf ("(%d+%02d:%02d)", days, hours, mins);
+        } else {
+                duration = g_strdup_printf (" (%02d:%02d)", hours, mins);
+        }
+        return duration;
+}
+
+static void
+print_last_report_record (GList      *list,
+                          CkLogEvent *event,
+                          gboolean    legacy_compat)
+{
+        GString                    *str;
+        char                       *username;
+        char                       *utline;
+        char                       *host;
+        char                       *addedtime;
+        char                       *removedtime;
+        char                       *duration;
+        char                       *session_type;
+        char                       *session_id;
+        char                       *seat_id;
+        CkLogSeatSessionAddedEvent *e;
+        CkLogEvent                 *remove_event;
+        RecordStatus                status;
+
+        if (event->type != CK_LOG_EVENT_SEAT_SESSION_ADDED
+            && event->type != CK_LOG_EVENT_SYSTEM_START) {
+                return;
+        }
+
+        remove_event = NULL;
+
+        if (event->type == CK_LOG_EVENT_SEAT_SESSION_ADDED) {
+                e = (CkLogSeatSessionAddedEvent *)event;
+
+                remove_event = find_first_matching_remove_event (list, e);
+                status = get_event_record_status (remove_event);
+
+                session_type = e->session_type;
+                session_id = e->session_id;
+                seat_id = e->seat_id;
+        } else {
+                status = RECORD_STATUS_REBOOT;
+
+                session_type = "";
+                session_id = "";
+                seat_id = "";
+        }
+
+        str = g_string_new (NULL);
+
+        username = get_user_name_for_event (event);
+        utline = get_utline_for_event (event);
+        host = get_host_for_event (event);
+
+        addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
+
+        if (legacy_compat) {
+                g_string_printf (str,
+                                 "%-8.8s %-12.12s %-16.16s %-16.16s",
+                                 username,
+                                 utline != NULL ? utline : "",
+                                 host != NULL ? host : "",
+                                 addedtime);
+        } else {
+                g_string_printf (str,
+                                 "%-8.8s %12s %-10.10s %-7.7s %-12.12s %-16.16s %-16.16s",
+                                 username,
+                                 session_type,
+                                 session_id,
+                                 seat_id,
+                                 utline,
+                                 host != NULL ? host : "",
+                                 addedtime);
+        }
+
+        g_free (username);
+        g_free (addedtime);
+        g_free (utline);
+        g_free (host);
+
+        removedtime = NULL;
+        duration = NULL;
+
+        switch (status) {
+        case RECORD_STATUS_CRASH:
+                duration = get_duration (event, remove_event);
+                removedtime = g_strdup ("- crash");
+                break;
+        case RECORD_STATUS_DOWN:
+                duration = get_duration (event, remove_event);
+                removedtime = g_strdup ("- down ");
+                break;
+        case RECORD_STATUS_NOW:
+                duration = g_strdup ("logged in");
+                removedtime = g_strdup ("  still");
+                break;
+        case RECORD_STATUS_PHANTOM:
+                duration = g_strdup ("- no logout");
+                removedtime = g_strdup ("   gone");
+                break;
+        case RECORD_STATUS_REBOOT:
+                removedtime = g_strdup ("");
+                break;
+        case RECORD_STATUS_TIMECHANGE:
+                removedtime = g_strdup ("");
+                break;
+        case RECORD_STATUS_NORMAL:
+                duration = get_duration (event, remove_event);
+                removedtime = g_strdup_printf ("- %s", ctime (&remove_event->timestamp.tv_sec) + 11);
+                removedtime[7] = 0;
+                break;
+        default:
+                g_assert_not_reached ();
+                break;
+        }
+
+        g_string_append_printf (str,
+                                " %-7.7s %-12.12s",
+                                removedtime,
+                                duration);
+
+        g_print ("%s\n", str->str);
+        g_string_free (str, TRUE);
+        g_free (removedtime);
+        g_free (duration);
 }
 
 static void
@@ -306,88 +554,28 @@ generate_report_last (int         uid,
         /* print events in reverse time order */
 
         for (l = g_list_last (all_events); l != NULL; l = l->prev) {
-                CkLogEvent                 *event;
-                GString                    *str;
-                char                       *username;
-                char                       *utline;
-                char                       *addedtime;
-                char                       *removedtime;
-                char                       *duration;
-                CkLogSeatSessionAddedEvent *e;
-                CkLogEvent                 *remove_event;
+                CkLogEvent *event;
 
                 event = l->data;
 
-                if (event->type != CK_LOG_EVENT_SEAT_SESSION_ADDED) {
-                        continue;
-                }
+                if (event->type == CK_LOG_EVENT_SEAT_SESSION_ADDED) {
+                        CkLogSeatSessionAddedEvent *e;
+                        e = (CkLogSeatSessionAddedEvent *)event;
 
-                e = (CkLogSeatSessionAddedEvent *)event;
-
-
-                if (uid >= 0 && e->session_unix_user != uid) {
-                        continue;
-                }
-
-                if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
-                        continue;
-                }
-
-                if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
-                        continue;
-                }
-
-                str = g_string_new (NULL);
-
-                username = get_user_name_for_uid (e->session_unix_user);
-                utline = get_utline_for_event (e);
-
-                addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
-                g_string_printf (str,
-                                 "%-8.8s %12s %-10.10s %-7.7s %-12.12s %-16.16s %-16.16s",
-                                 username,
-                                 e->session_type,
-                                 e->session_id,
-                                 e->seat_id,
-                                 utline,
-                                 e->session_remote_host_name ? e->session_remote_host_name : "",
-                                 addedtime);
-                g_free (username);
-                g_free (addedtime);
-                g_free (utline);
-
-                remove_event = find_first_matching_remove_event (l, e);
-                if (remove_event != NULL) {
-                        time_t secs;
-                        int    mins;
-                        int    hours;
-                        int    days;
-
-                        removedtime = g_strdup_printf ("- %s", ctime (&remove_event->timestamp.tv_sec) + 11);
-                        removedtime[7] = 0;
-                        secs = remove_event->timestamp.tv_sec - event->timestamp.tv_sec;
-                        mins  = (secs / 60) % 60;
-                        hours = (secs / 3600) % 24;
-                        days  = secs / 86400;
-                        if (days > 0) {
-                                duration = g_strdup_printf ("(%d+%02d:%02d)", days, hours, mins);
-                        } else {
-                                duration = g_strdup_printf (" (%02d:%02d)", hours, mins);
+                        if (uid >= 0 && e->session_unix_user != uid) {
+                                continue;
                         }
-                } else {
-                        removedtime = g_strdup ("  still");
-                        duration = g_strdup ("logged in");
+
+                        if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                                continue;
+                        }
+
+                        if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
+                                continue;
+                        }
                 }
 
-                g_string_append_printf (str,
-                                        " %-7.7s %-12.12s",
-                                        removedtime,
-                                        duration);
-
-                g_print ("%s\n", str->str);
-                g_string_free (str, TRUE);
-                g_free (removedtime);
-                g_free (duration);
+                print_last_report_record (l, event, FALSE);
         }
 
         oldest = g_list_first (all_events);
@@ -409,84 +597,28 @@ generate_report_last_compat (int         uid,
         /* print events in reverse time order */
 
         for (l = g_list_last (all_events); l != NULL; l = l->prev) {
-                CkLogEvent                 *event;
-                GString                    *str;
-                char                       *username;
-                char                       *utline;
-                char                       *addedtime;
-                char                       *removedtime;
-                char                       *duration;
-                CkLogSeatSessionAddedEvent *e;
-                CkLogEvent                 *remove_event;
+                CkLogEvent *event;
 
                 event = l->data;
 
-                if (event->type != CK_LOG_EVENT_SEAT_SESSION_ADDED) {
-                        continue;
-                }
+                if (event->type == CK_LOG_EVENT_SEAT_SESSION_ADDED) {
+                        CkLogSeatSessionAddedEvent *e;
+                        e = (CkLogSeatSessionAddedEvent *)event;
 
-                e = (CkLogSeatSessionAddedEvent *)event;
-
-                if (uid >= 0 && e->session_unix_user != uid) {
-                        continue;
-                }
-
-                if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
-                        continue;
-                }
-
-                if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
-                        continue;
-                }
-
-                str = g_string_new (NULL);
-
-                username = get_user_name_for_uid (e->session_unix_user);
-                utline = get_utline_for_event (e);
-
-                addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
-                g_string_printf (str,
-                                 "%-8.8s %-12.12s %-16.16s %-16.16s",
-                                 username,
-                                 utline,
-                                 e->session_remote_host_name ? e->session_remote_host_name : "",
-                                 addedtime);
-                g_free (username);
-                g_free (addedtime);
-                g_free (utline);
-
-                remove_event = find_first_matching_remove_event (l, e);
-                if (remove_event != NULL) {
-                        time_t secs;
-                        int    mins;
-                        int    hours;
-                        int    days;
-
-                        removedtime = g_strdup_printf ("- %s", ctime (&remove_event->timestamp.tv_sec) + 11);
-                        removedtime[7] = 0;
-                        secs = remove_event->timestamp.tv_sec - event->timestamp.tv_sec;
-                        mins  = (secs / 60) % 60;
-                        hours = (secs / 3600) % 24;
-                        days  = secs / 86400;
-                        if (days > 0) {
-                                duration = g_strdup_printf ("(%d+%02d:%02d)", days, hours, mins);
-                        } else {
-                                duration = g_strdup_printf (" (%02d:%02d)", hours, mins);
+                        if (uid >= 0 && e->session_unix_user != uid) {
+                                continue;
                         }
-                } else {
-                        removedtime = g_strdup ("  still");
-                        duration = g_strdup ("logged in");
+
+                        if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                                continue;
+                        }
+
+                        if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
+                                continue;
+                        }
                 }
 
-                g_string_append_printf (str,
-                                        " %-7.7s %-12.12s",
-                                        removedtime,
-                                        duration);
-
-                g_print ("%s\n", str->str);
-                g_string_free (str, TRUE);
-                g_free (removedtime);
-                g_free (duration);
+                print_last_report_record (l, event, TRUE);
         }
 
         oldest = g_list_first (all_events);

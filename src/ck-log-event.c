@@ -47,6 +47,25 @@ event_seat_removed_free (CkLogSeatRemovedEvent *event)
 }
 
 static void
+event_system_stop_free (CkLogSystemStopEvent *event)
+{
+        g_assert (event != NULL);
+}
+
+static void
+event_system_restart_free (CkLogSystemRestartEvent *event)
+{
+        g_assert (event != NULL);
+}
+
+
+static void
+event_system_start_free (CkLogSystemStartEvent *event)
+{
+        g_assert (event != NULL);
+}
+
+static void
 event_seat_session_added_free (CkLogSeatSessionAddedEvent *event)
 {
         g_assert (event != NULL);
@@ -155,6 +174,31 @@ event_seat_removed_copy (CkLogSeatRemovedEvent *event,
 }
 
 static void
+event_system_stop_copy (CkLogSystemStopEvent *event,
+                        CkLogSystemStopEvent *event_copy)
+{
+        g_assert (event != NULL);
+        g_assert (event_copy != NULL);
+}
+
+static void
+event_system_restart_copy (CkLogSystemRestartEvent *event,
+                           CkLogSystemRestartEvent *event_copy)
+{
+        g_assert (event != NULL);
+        g_assert (event_copy != NULL);
+}
+
+
+static void
+event_system_start_copy (CkLogSystemStartEvent *event,
+                           CkLogSystemStartEvent *event_copy)
+{
+        g_assert (event != NULL);
+        g_assert (event_copy != NULL);
+}
+
+static void
 event_seat_session_added_copy (CkLogSeatSessionAddedEvent *event,
                                CkLogSeatSessionAddedEvent *event_copy)
 {
@@ -250,6 +294,18 @@ ck_log_event_copy (CkLogEvent *event)
                 event_seat_removed_copy ((CkLogSeatRemovedEvent *) event,
                                          (CkLogSeatRemovedEvent *) event_copy);
                 break;
+        case CK_LOG_EVENT_SYSTEM_STOP:
+                event_system_stop_copy ((CkLogSystemStopEvent *) event,
+                                        (CkLogSystemStopEvent *) event_copy);
+                break;
+        case CK_LOG_EVENT_SYSTEM_RESTART:
+                event_system_restart_copy ((CkLogSystemRestartEvent *) event,
+                                           (CkLogSystemRestartEvent *) event_copy);
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                event_system_start_copy ((CkLogSystemStartEvent *) event,
+                                           (CkLogSystemStartEvent *) event_copy);
+                break;
         case CK_LOG_EVENT_SEAT_SESSION_ADDED:
                 event_seat_session_added_copy ((CkLogSeatSessionAddedEvent *) event,
                                                (CkLogSeatSessionAddedEvent *) event_copy);
@@ -287,6 +343,15 @@ ck_log_event_free (CkLogEvent *event)
                 break;
         case CK_LOG_EVENT_SEAT_REMOVED:
                 event_seat_removed_free ((CkLogSeatRemovedEvent *) event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_STOP:
+                event_system_stop_free ((CkLogSystemStopEvent *) event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_RESTART:
+                event_system_restart_free ((CkLogSystemRestartEvent *) event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                event_system_start_free ((CkLogSystemStartEvent *) event);
                 break;
         case CK_LOG_EVENT_SEAT_SESSION_ADDED:
                 event_seat_session_added_free ((CkLogSeatSessionAddedEvent *) event);
@@ -380,6 +445,34 @@ add_log_for_seat_session_removed (GString    *str,
 }
 
 static void
+add_log_for_system_stop (GString    *str,
+                         CkLogEvent *event)
+{
+        CkLogSystemStopEvent *e;
+
+        e = (CkLogSystemStopEvent *)event;
+}
+
+static void
+add_log_for_system_restart (GString    *str,
+                            CkLogEvent *event)
+{
+        CkLogSystemRestartEvent *e;
+
+        e = (CkLogSystemRestartEvent *)event;
+}
+
+
+static void
+add_log_for_system_start (GString    *str,
+                            CkLogEvent *event)
+{
+        CkLogSystemStartEvent *e;
+
+        e = (CkLogSystemStartEvent *)event;
+}
+
+static void
 add_log_for_seat_active_session_changed (GString    *str,
                                          CkLogEvent *event)
 {
@@ -431,6 +524,15 @@ event_type_to_name (CkLogEventType event_type)
         case CK_LOG_EVENT_SEAT_REMOVED:
                 str = "SEAT_REMOVED";
                 break;
+        case CK_LOG_EVENT_SYSTEM_STOP:
+                str = "SYSTEM_STOP";
+                break;
+        case CK_LOG_EVENT_SYSTEM_RESTART:
+                str = "SYSTEM_RESTART";
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                str = "SYSTEM_START";
+                break;
         case CK_LOG_EVENT_SEAT_SESSION_ADDED:
                 str = "SEAT_SESSION_ADDED";
                 break;
@@ -465,6 +567,12 @@ event_name_to_type (const char     *event_name,
                 *event_type = CK_LOG_EVENT_SEAT_ADDED;
         } else if (strcmp (event_name, "SEAT_REMOVED") == 0) {
                 *event_type = CK_LOG_EVENT_SEAT_REMOVED;
+        } else if (strcmp (event_name, "SYSTEM_STOP") == 0) {
+                *event_type = CK_LOG_EVENT_SYSTEM_STOP;
+        } else if (strcmp (event_name, "SYSTEM_RESTART") == 0) {
+                *event_type = CK_LOG_EVENT_SYSTEM_RESTART;
+        } else if (strcmp (event_name, "SYSTEM_START") == 0) {
+                *event_type = CK_LOG_EVENT_SYSTEM_START;
         } else if (strcmp (event_name, "SEAT_SESSION_ADDED") == 0) {
                 *event_type = CK_LOG_EVENT_SEAT_SESSION_ADDED;
         } else if (strcmp (event_name, "SEAT_SESSION_REMOVED") == 0) {
@@ -507,6 +615,15 @@ ck_log_event_to_string (CkLogEvent  *event,
         case CK_LOG_EVENT_SEAT_REMOVED:
                 add_log_for_seat_removed (str, event);
                 break;
+        case CK_LOG_EVENT_SYSTEM_STOP:
+                add_log_for_system_stop (str, event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_RESTART:
+                add_log_for_system_restart (str, event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                add_log_for_system_start (str, event);
+                break;
         case CK_LOG_EVENT_SEAT_SESSION_ADDED:
                 add_log_for_seat_session_added (str, event);
                 break;
@@ -528,7 +645,7 @@ ck_log_event_to_string (CkLogEvent  *event,
         }
 }
 
-static char *
+static const char *
 skip_header (const char *str,
              gssize      len)
 {
@@ -566,7 +683,7 @@ parse_log_for_seat_added (const GString *str,
                           CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -626,7 +743,7 @@ parse_log_for_seat_removed (const GString *str,
                             CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -682,11 +799,80 @@ parse_log_for_seat_removed (const GString *str,
 }
 
 static gboolean
+parse_log_for_system_stop (const GString *str,
+                           CkLogEvent    *event)
+{
+        gboolean    ret;
+        const char *s;
+        CkLogSystemStopEvent *e;
+
+        ret = FALSE;
+
+        s = skip_header (str->str, str->len);
+        if (s == NULL) {
+                goto out;
+        }
+
+        e = (CkLogSystemStopEvent *)event;
+
+        ret = TRUE;
+ out:
+
+        return ret;
+}
+
+static gboolean
+parse_log_for_system_restart (const GString *str,
+                              CkLogEvent    *event)
+{
+        gboolean    ret;
+        const char *s;
+        CkLogSystemRestartEvent *e;
+
+        ret = FALSE;
+
+        s = skip_header (str->str, str->len);
+        if (s == NULL) {
+                goto out;
+        }
+
+        e = (CkLogSystemRestartEvent *)event;
+
+        ret = TRUE;
+ out:
+
+        return ret;
+}
+
+static gboolean
+parse_log_for_system_start (const GString *str,
+                              CkLogEvent    *event)
+{
+        gboolean    ret;
+        const char *s;
+        CkLogSystemStartEvent *e;
+
+        ret = FALSE;
+
+        s = skip_header (str->str, str->len);
+        if (s == NULL) {
+                goto out;
+        }
+
+        e = (CkLogSystemStartEvent *)event;
+
+        ret = TRUE;
+ out:
+
+        return ret;
+}
+
+static gboolean
 parse_log_for_seat_session_added (const GString *str,
                                   CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -761,7 +947,7 @@ parse_log_for_seat_session_removed (const GString *str,
                                     CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -836,7 +1022,7 @@ parse_log_for_seat_active_session_changed (const GString *str,
                                            CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -888,7 +1074,7 @@ parse_log_for_seat_device_added (const GString *str,
                                  CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -941,7 +1127,7 @@ parse_log_for_seat_device_removed (const GString *str,
                                    CkLogEvent    *event)
 {
         gboolean    ret;
-        char       *s;
+        const char *s;
         GRegex     *re;
         GMatchInfo *match_info;
         gboolean    res;
@@ -1042,6 +1228,15 @@ ck_log_event_fill_from_string (CkLogEvent    *event,
                 break;
         case CK_LOG_EVENT_SEAT_REMOVED:
                 res = parse_log_for_seat_removed (str, event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_STOP:
+                res = parse_log_for_system_stop (str, event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_RESTART:
+                res = parse_log_for_system_restart (str, event);
+                break;
+        case CK_LOG_EVENT_SYSTEM_START:
+                res = parse_log_for_system_start (str, event);
                 break;
         case CK_LOG_EVENT_SEAT_SESSION_ADDED:
                 res = parse_log_for_seat_session_added (str, event);

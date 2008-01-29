@@ -435,6 +435,50 @@ log_seat_removed_event (CkManager  *manager,
 }
 
 static void
+log_system_stop_event (CkManager  *manager)
+{
+        CkLogEvent         event;
+        gboolean           res;
+        GError            *error;
+
+        memset (&event, 0, sizeof (CkLogEvent));
+
+        event.type = CK_LOG_EVENT_SYSTEM_STOP;
+        g_get_current_time (&event.timestamp);
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        /* FIXME: in this case we should block and wait for log to flush */
+}
+
+static void
+log_system_restart_event (CkManager  *manager)
+{
+        CkLogEvent         event;
+        gboolean           res;
+        GError            *error;
+
+        memset (&event, 0, sizeof (CkLogEvent));
+
+        event.type = CK_LOG_EVENT_SYSTEM_RESTART;
+        g_get_current_time (&event.timestamp);
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        /* FIXME: in this case we should block and wait for log to flush */
+}
+
+static void
 log_seat_session_added_event (CkManager  *manager,
                               CkSeat     *seat,
                               const char *ssid)
@@ -1214,7 +1258,7 @@ get_system_num_users (CkManager *manager)
 
 #ifdef ENABLE_RBAC_SHUTDOWN
 static gboolean
-check_rbac_permissions (CkManager *manager,
+check_rbac_permissions (CkManager             *manager,
                         DBusGMethodInvocation *context)
 {
         const char *sender;
@@ -1243,10 +1287,11 @@ check_rbac_permissions (CkManager *manager,
 
 out:
 
-        if (res == TRUE)
+        if (res == TRUE) {
                 g_debug ("User %s has RBAC permission to stop/restart", username);
-        else
+        } else {
                 g_debug ("User %s does not have RBAC permission to stop/restart", username);
+        }
 
         g_free (username);
         return res;
@@ -1287,11 +1332,14 @@ ck_manager_restart (CkManager             *manager,
 #endif
 
 #ifdef ENABLE_RBAC_SHUTDOWN
-        if (!check_rbac_permissions (manager, context))
+        if (! check_rbac_permissions (manager, context)) {
                 goto out;
+        }
 #endif
 
         g_debug ("ConsoleKit preforming Restart: %s", action);
+
+        log_system_restart_event (manager);
 
         error = NULL;
         res = g_spawn_command_line_async (LIBDIR "/ConsoleKit/scripts/ck-system-restart",
@@ -1348,6 +1396,9 @@ ck_manager_stop (CkManager             *manager,
 #endif
 
         g_debug ("Stopping system");
+
+        log_system_stop_event (manager);
+
         error = NULL;
         res = g_spawn_command_line_async (LIBDIR "/ConsoleKit/scripts/ck-system-stop",
                                           &error);
