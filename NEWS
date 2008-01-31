@@ -1,4 +1,19 @@
 =============
+Version 0.2.7
+=============
+
+ * update gitignore files (William Jon McCann)
+ * add a helper to write a system start record to the CK history (William Jon McCann)
+ * add support for logging start/stop/restart (William Jon McCann)
+ * fix typo in man page (William Jon McCann)
+ * make autogen work with aclocal 1.10 (Marc-Andre Lureau)
+ * allow session type filtering for all report formats (William Jon McCann)
+ * make polkit optional and use RBAC on Solaris (Brian Cameron)
+ * fixes for solaris (Brian Cameron)
+ * add session-type filtering to ck-history (William Jon McCann)
+ * try to activate x11-display-device not only display-device (William Jon McCann)
+
+=============
 Version 0.2.6
 =============
 
