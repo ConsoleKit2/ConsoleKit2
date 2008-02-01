@@ -711,7 +711,7 @@ parse_log_for_seat_added (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse seat added event: %s", s);
                 goto out;
         }
 
@@ -771,7 +771,7 @@ parse_log_for_seat_removed (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse seat removed event: %s", s);
                 goto out;
         }
 
@@ -900,7 +900,7 @@ parse_log_for_seat_session_added (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse session added event: %s", s);
                 goto out;
         }
 
@@ -975,7 +975,7 @@ parse_log_for_seat_session_removed (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse session removed event: %s", s);
                 goto out;
         }
 
@@ -1049,7 +1049,7 @@ parse_log_for_seat_active_session_changed (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse session changed event: %s", s);
                 goto out;
         }
 
@@ -1101,7 +1101,7 @@ parse_log_for_seat_device_added (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse device added event: %s", s);
                 goto out;
         }
 
@@ -1154,7 +1154,7 @@ parse_log_for_seat_device_removed (const GString *str,
 
         res = g_match_info_matches (match_info);
         if (! res) {
-                g_warning ("Unable to parse event: %s", s);
+                g_warning ("Unable to parse device removed event: %s", s);
                 goto out;
         }
 
@@ -1269,11 +1269,16 @@ CkLogEvent *
 ck_log_event_new_from_string (const GString *str)
 {
         CkLogEvent *event;
+        gboolean    res;
 
         g_return_val_if_fail (str != NULL, NULL);
 
         event = g_new0 (CkLogEvent, 1);
-        ck_log_event_fill_from_string (event, str);
+        res = ck_log_event_fill_from_string (event, str);
+        if (! res) {
+                g_free (event);
+                event = NULL;
+        }
 
         return event;
 }

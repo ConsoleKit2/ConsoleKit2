@@ -566,11 +566,11 @@ generate_report_last (int         uid,
                                 continue;
                         }
 
-                        if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        if (seat != NULL && e->seat_id != NULL && strcmp (e->seat_id, seat) != 0) {
                                 continue;
                         }
 
-                        if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
+                        if (session_type != NULL && e->session_type != NULL && strcmp (e->session_type, session_type) != 0) {
                                 continue;
                         }
                 }
@@ -609,11 +609,11 @@ generate_report_last_compat (int         uid,
                                 continue;
                         }
 
-                        if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                        if (seat != NULL && e->seat_id != NULL && strcmp (e->seat_id, seat) != 0) {
                                 continue;
                         }
 
-                        if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
+                        if (session_type != NULL && e->session_type != NULL && strcmp (e->session_type, session_type) != 0) {
                                 continue;
                         }
                 }
@@ -689,11 +689,11 @@ generate_report_frequent (int         uid,
                         continue;
                 }
 
-                if (seat != NULL && strcmp (e->seat_id, seat) != 0) {
+                if (seat != NULL && e->seat_id != NULL && strcmp (e->seat_id, seat) != 0) {
                         continue;
                 }
 
-                if (session_type != NULL && strcmp (e->session_type, session_type) != 0) {
+                if (session_type != NULL && e->session_type != NULL && strcmp (e->session_type, session_type) != 0) {
                         continue;
                 }
 
