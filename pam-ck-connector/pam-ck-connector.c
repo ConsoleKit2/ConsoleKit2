@@ -103,9 +103,9 @@ ck_pam_vsyslog (const pam_handle_t *pamh,
                         mod_name,
                         service,
                         choice);
-	if (res < 0) {
+        if (res < 0) {
                 return;
-	}
+        }
 
         errno = save_errno;
         res = vsnprintf (msgbuf2, sizeof (msgbuf2), fmt, args);
@@ -247,6 +247,11 @@ pam_sm_open_session (pam_handle_t *pamh,
                 ck_pam_syslog (pamh, LOG_ERR, "process already registered with ConsoleKit");
                 goto out;
         }
+
+        /* set a global flag so that D-Bus does not change the SIGPIPE handler.
+           See https://bugzilla.redhat.com/show_bug.cgi?id=430431
+        */
+        dbus_connection_set_change_sigpipe (FALSE);
 
         ckc = ck_connector_new ();
         if (ckc == NULL) {
