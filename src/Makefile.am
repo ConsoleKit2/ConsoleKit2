@@ -201,3 +201,4 @@ install-data-local:
 	-mkdir -p $(DESTDIR)$(sysconfdir)/ConsoleKit/run-session.d
 	-mkdir -p $(DESTDIR)$(libdir)/ConsoleKit/run-session.d
 	-mkdir -p $(DESTDIR)$(localstatedir)/run/ConsoleKit
+	-mkdir -p $(DESTDIR)$(localstatedir)/log/ConsoleKit
