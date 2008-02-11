@@ -50,6 +50,8 @@ bin_PROGRAMS = \
 
 sbin_PROGRAMS = \
 	ck-log-system-start		\
+	ck-log-system-restart		\
+	ck-log-system-stop		\
 	$(NULL)
 
 ck_list_sessions_SOURCES =		\
@@ -75,6 +77,24 @@ ck_log_system_start_SOURCES =		\
 	$(NULL)
 
 ck_log_system_start_LDADD =		\
+	$(HISTORY_LIBS)			\
+	$(top_builddir)/src/libck-event-log.la	\
+	$(NULL)
+
+ck_log_system_restart_SOURCES =		\
+	ck-log-system-restart.c		\
+	$(NULL)
+
+ck_log_system_restart_LDADD =		\
+	$(HISTORY_LIBS)			\
+	$(top_builddir)/src/libck-event-log.la	\
+	$(NULL)
+
+ck_log_system_stop_SOURCES =		\
+	ck-log-system-stop.c		\
+	$(NULL)
+
+ck_log_system_stop_LDADD =		\
 	$(HISTORY_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
