@@ -28,6 +28,7 @@ INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(top_srcdir)/src					\
+	-I$(top_builddir)/libck-connector			\
 	$(CONSOLE_KIT_CFLAGS)					\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
@@ -44,6 +45,7 @@ INCLUDES =							\
 	$(NULL)
 
 bin_PROGRAMS = \
+	ck-launch-session		\
 	ck-list-sessions		\
 	ck-history			\
 	$(NULL)
@@ -52,6 +54,15 @@ sbin_PROGRAMS = \
 	ck-log-system-start		\
 	ck-log-system-restart		\
 	ck-log-system-stop		\
+	$(NULL)
+
+ck_launch_session_SOURCES =		\
+	ck-launch-session.c		\
+	$(NULL)
+
+ck_launch_session_LDADD =		\
+	$(top_builddir)/libck-connector/libck-connector.la	\
+	$(CONSOLE_KIT_LIBS)		\
 	$(NULL)
 
 ck_list_sessions_SOURCES =		\

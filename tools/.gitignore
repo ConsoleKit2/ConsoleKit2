@@ -9,6 +9,7 @@ ck-collect-session-info
 ck-get-x11-display-device
 ck-get-x11-server-pid
 ck-history
+ck-launch-session
 ck-list-sessions
 ck-log-system-start
 ck-log-system-restart

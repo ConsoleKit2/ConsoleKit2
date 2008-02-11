@@ -6,10 +6,10 @@ NULL =
 
 SUBDIRS =			\
 	src			\
+	libck-connector         \
 	tools			\
 	data			\
 	doc			\
-	libck-connector         \
 	pam-ck-connector        \
 	$(NULL)
 
