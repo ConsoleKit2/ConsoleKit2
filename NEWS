@@ -1,4 +1,15 @@
 =============
+Version 0.2.8
+=============
+
+ * add tools to log restart and stop events (William Jon McCann)
+ * fix typo in dbus policy file (William Jon McCann)
+ * touch the history file to create it for people not using packages (William Jon McCann)
+ * mkdir /var/log/ConsoleKit at install time (William Jon McCann)
+ * set a global flag so that D-Bus does not change the SIGPIPE handler in the PAM module (William Jon McCann)
+ * when a parsing error occurs don't return an empty event (William Jon McCann)
+
+=============
 Version 0.2.7
 =============
 
