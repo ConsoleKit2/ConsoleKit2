@@ -15,7 +15,7 @@ manager_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/Co
 manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
 
 params = dbus.Array ([], signature = "sv")
-params.append (("user", dbus.Variant (730)))
+params.append (("unix-user", dbus.Variant (730)))
 params.append (("session-type", dbus.Variant ("gnome-session")))
 #params.append (("x11-display", dbus.Variant (":0.0")))
 params.append (("display-device", dbus.Variant ("/dev/tty8")))
