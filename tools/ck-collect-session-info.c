@@ -42,7 +42,6 @@ typedef struct {
         char    *x11_display;
         gboolean x11_can_connect;
         char    *remote_host_name;
-        char    *session_type;
         gboolean is_local;
         gboolean is_local_is_set;
 } SessionInfo;
@@ -54,7 +53,6 @@ session_info_free (SessionInfo *si)
         g_free (si->x11_display_device);
         g_free (si->x11_display);
         g_free (si->remote_host_name);
-        g_free (si->session_type);
         g_free (si);
 }
 
@@ -300,7 +298,6 @@ fill_session_info (SessionInfo *si)
         }
 
         si->display_device = ck_process_stat_get_tty (stat);
-        si->session_type = ck_process_stat_get_cmd (stat);
         ck_process_stat_free (stat);
 
         fill_x11_info (si);
@@ -327,9 +324,6 @@ print_session_info (SessionInfo *si)
         }
         if (si->display_device != NULL) {
                 printf ("display-device = %s\n", si->display_device);
-        }
-        if (si->session_type != NULL) {
-                printf ("session-type = %s\n", si->session_type);
         }
         if (si->remote_host_name != NULL) {
                 printf ("remote-host-name = %s\n", si->remote_host_name);
