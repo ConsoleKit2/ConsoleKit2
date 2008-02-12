@@ -49,6 +49,7 @@
 #define CK_DBUS_PATH "/org/freedesktop/ConsoleKit"
 #define CK_DBUS_NAME "org.freedesktop.ConsoleKit"
 
+#define NONULL_STRING(x) ((x) != NULL ? (x) : "")
 
 struct CkSeatPrivate
 {
@@ -1201,7 +1202,10 @@ ck_seat_dump (CkSeat   *seat,
                                    error->message);
                         g_error_free (error);
                 } else {
-                        g_key_file_set_string (key_file, group_name, "active_session", session_id);
+                        g_key_file_set_string (key_file,
+                                               group_name,
+                                               "active_session",
+                                               NONULL_STRING (session_id));
                         g_free (session_id);
                 }
         }

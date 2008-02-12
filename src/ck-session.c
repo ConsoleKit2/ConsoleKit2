@@ -47,6 +47,8 @@
 #define CK_DBUS_PATH "/org/freedesktop/ConsoleKit"
 #define CK_DBUS_NAME "org.freedesktop.ConsoleKit"
 
+#define NONULL_STRING(x) ((x) != NULL ? (x) : "")
+
 #define IDLE_TIME_SECS 60
 
 struct CkSessionPrivate
@@ -1256,29 +1258,56 @@ ck_session_dump (CkSession *session,
 
         group_name = g_strdup_printf ("Session %s", session->priv->id);
         g_key_file_set_integer (key_file, group_name, "uid", session->priv->uid);
-        g_key_file_set_string (key_file, group_name, "seat", session->priv->seat_id);
-        g_key_file_set_string (key_file, group_name, "cookie", session->priv->cookie);
+        g_key_file_set_string (key_file,
+                               group_name,
+                               "seat",
+                               NONULL_STRING (session->priv->seat_id));
+        g_key_file_set_string (key_file,
+                               group_name,
+                               "cookie",
+                               NONULL_STRING (session->priv->cookie));
         if (session->priv->session_type != NULL) {
-                g_key_file_set_string (key_file, group_name, "type", session->priv->session_type);
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "type",
+                                       NONULL_STRING (session->priv->session_type));
         }
         if (session->priv->display_device != NULL && strlen (session->priv->display_device) > 0) {
-                g_key_file_set_string (key_file, group_name, "display_device", session->priv->display_device);
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "display_device",
+                                       NONULL_STRING (session->priv->display_device));
         }
         if (session->priv->x11_display_device != NULL && strlen (session->priv->x11_display_device) > 0) {
-                g_key_file_set_string (key_file, group_name, "x11_display_device", session->priv->x11_display_device);
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "x11_display_device",
+                                       NONULL_STRING (session->priv->x11_display_device));
         }
         if (session->priv->x11_display != NULL && strlen (session->priv->x11_display) > 0) {
-                g_key_file_set_string (key_file, group_name, "x11_display", session->priv->x11_display);
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "x11_display",
+                                       NONULL_STRING (session->priv->x11_display));
         }
         if (session->priv->remote_host_name != NULL && strlen (session->priv->remote_host_name) > 0) {
-                g_key_file_set_string (key_file, group_name, "remote_host_name", session->priv->remote_host_name);
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "remote_host_name",
+                                       NONULL_STRING (session->priv->remote_host_name));
         }
-        g_key_file_set_string (key_file, group_name, "remote_host_name", session->priv->remote_host_name);
+        g_key_file_set_string (key_file,
+                               group_name,
+                               "remote_host_name",
+                               NONULL_STRING (session->priv->remote_host_name));
         g_key_file_set_boolean (key_file, group_name, "is_active", session->priv->active);
         g_key_file_set_boolean (key_file, group_name, "is_local", session->priv->is_local);
 
         s = g_time_val_to_iso8601 (&(session->priv->creation_time));
-        g_key_file_set_string (key_file, group_name, "creation_time", s);
+        g_key_file_set_string (key_file,
+                               group_name,
+                               "creation_time",
+                               NONULL_STRING (s));
         g_free (s);
 
         g_free (group_name);
