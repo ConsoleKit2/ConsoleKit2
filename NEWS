@@ -1,4 +1,11 @@
 =============
+Version 0.2.9
+=============
+
+ * add a ck-launch-session tool (William Jon McCann)
+ * don't set the session-type to the command name (William Jon McCann)
+
+=============
 Version 0.2.8
 =============
 

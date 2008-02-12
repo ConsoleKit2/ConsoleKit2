@@ -1,0 +1,517 @@
+#!/usr/bin/env python
+#
+# Test access to methods
+#
+
+import os
+import gobject
+import dbus
+import dbus.glib
+
+bus = dbus.SystemBus ()
+
+privileged = (os.geteuid () == 0)
+if privileged:
+    print "Running privileged as uid=%d pid=%d" % (os.geteuid (), os.getpid ())
+else:
+    print "Running unprivileged as uid=%d pid=%d" % (os.geteuid (), os.getpid ())
+
+print "Testing all public methods to check D-Bus policy"
+
+manager_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Manager')
+manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
+
+print "Testing Manager.OpenSession:",
+res = "PASS"
+try:
+    cookie = manager.OpenSession ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Manager.CloseSession:",
+res = "PASS"
+try:
+    manager.CloseSession (cookie)
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Manager.OpenSessionWithParameters:",
+res = "PASS"
+try:
+    cookie = manager.OpenSessionWithParameters (dbus.Array([], signature = "sv"))
+    if not privileged:
+        res = "FAIL"
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        if privileged:
+            res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t%s" % res
+
+print "Testing Manager.GetSeats:",
+res = "PASS"
+try:
+    manager.GetSeats ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Manager.GetSessionForCookie:",
+res = "PASS"
+try:
+    manager.GetSessionForCookie (os.environ['XDG_SESSION_COOKIE'])
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Manager.GetSessionForUnixProcess:",
+res = "PASS"
+try:
+    manager.GetSessionForUnixProcess (os.getpid ())
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t%s" % res
+
+print "Testing Manager.GetCurrentSession:",
+res = "PASS"
+try:
+    manager.GetCurrentSession ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Manager.GetSessionsForUnixUser:",
+res = "PASS"
+try:
+    manager.GetSessionsForUnixUser (os.geteuid ())
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t%s" % res
+
+print "Testing Manager.GetSessionsForUser:",
+res = "PASS"
+try:
+    manager.GetSessionsForUser (os.geteuid ())
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Manager.GetSystemIdleHint:",
+res = "PASS"
+try:
+    manager.GetSystemIdleHint ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Manager.GetSystemIdleSinceHint:",
+res = "PASS"
+try:
+    manager.GetSystemIdleSinceHint ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t%s" % res
+
+
+# Test Seat Interface
+
+seat_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Seat1')
+seat = dbus.Interface (seat_obj, 'org.freedesktop.ConsoleKit.Seat')
+
+print "Testing Seat.GetId:",
+res = "PASS"
+try:
+    seat.GetId ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t\t%s" % res
+
+print "Testing Seat.GetSessions:",
+res = "PASS"
+try:
+    seat.GetSessions ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Seat.GetDevices:",
+res = "PASS"
+try:
+    seat.GetDevices ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Seat.GetActiveSession:",
+res = "PASS"
+try:
+    seat.GetActiveSession ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Seat.CanActivateSessions:",
+res = "PASS"
+try:
+    seat.CanActivateSessions ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Seat.ActivateSession:",
+res = "PASS"
+try:
+    seat.ActivateSession ('/org/freedesktop/ConsoleKit/SessionN')
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+# Test Session Interface
+
+# create a new session so we can set props
+cookie = manager.OpenSession ()
+ssid = manager.GetSessionForCookie (cookie)
+if not ssid:
+    print "Could not create a session to test"
+    sys.exit ()
+
+session_obj = bus.get_object ('org.freedesktop.ConsoleKit', ssid)
+session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
+
+print "Testing Session.GetId:",
+res = "PASS"
+try:
+    session.GetId ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t\t%s" % res
+
+print "Testing Session.GetSeatId:",
+res = "PASS"
+try:
+    session.GetSeatId ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.GetSessionType:",
+res = "PASS"
+try:
+    session.GetSessionType ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Session.GetUser:",
+res = "PASS"
+try:
+    session.GetUser ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.GetUnixUser:",
+res = "PASS"
+try:
+    session.GetUnixUser ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.GetX11Display:",
+res = "PASS"
+try:
+    session.GetX11Display ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.GetX11DisplayDevice:",
+res = "PASS"
+try:
+    session.GetX11DisplayDevice ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Session.GetDisplayDevice:",
+res = "PASS"
+try:
+    session.GetDisplayDevice ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Session.GetRemoteHostName:",
+res = "PASS"
+try:
+    session.GetRemoteHostName ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Session.IsActive:",
+res = "PASS"
+try:
+    session.IsActive ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.IsLocal:",
+res = "PASS"
+try:
+    session.IsLocal ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.GetCreationTime:",
+res = "PASS"
+try:
+    session.GetCreationTime ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Session.Activate:",
+res = "PASS"
+try:
+    session.Activate ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+print "Testing Session.Lock:",
+res = "PASS"
+try:
+    session.Lock ()
+    if not privileged:
+        res = "FAIL"
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        if privileged:
+            res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t\t%s" % res
+
+print "Testing Session.Unlock:",
+res = "PASS"
+try:
+    session.Unlock ()
+    if not privileged:
+        res = "FAIL"
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        if privileged:
+            res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
+
+# Test session properties
+
+session_props = dbus.Interface (session_obj, 'org.freedesktop.DBus.Properties')
+
+print "Testing Properties.Get 'unix-user':",
+res = "PASS"
+try:
+    session_props.Get ('org.freedesktop.ConsoleKit.Session', "unix-user")
+    if not privileged:
+        res = "FAIL"
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        if privileged:
+            res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Properties.Get 'cookie':",
+res = "PASS"
+try:
+    session_props.Get ('org.freedesktop.ConsoleKit.Session', "cookie")
+    if not privileged:
+        res = "FAIL"
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        if privileged:
+            res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
+print "Testing Properties.Set:",
+res = "PASS"
+try:
+    session_props.Set ('org.freedesktop.ConsoleKit.Session', "unix-user", 0)
+    if not privileged:
+        res = "FAIL"
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        if privileged:
+            res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t\t%s" % res
