@@ -28,7 +28,7 @@ INCLUDES =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(top_srcdir)/src					\
-	-I$(top_builddir)/libck-connector			\
+	-I$(top_srcdir)/libck-connector				\
 	$(CONSOLE_KIT_CFLAGS)					\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\

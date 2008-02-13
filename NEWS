@@ -2,6 +2,9 @@
 Version 0.2.9
 =============
 
+ * ck_seat_get_active_session shouldn't return a null ssid (William Jon McCann)
+ * guard against writing null string to keyfile (William Jon McCann)
+ * reverse the sense of the dbus policy (William Jon McCann)
  * add a ck-launch-session tool (William Jon McCann)
  * don't set the session-type to the command name (William Jon McCann)
 
