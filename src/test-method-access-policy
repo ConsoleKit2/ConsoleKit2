@@ -4,6 +4,7 @@
 #
 
 import os
+import sys
 import gobject
 import dbus
 import dbus.glib
@@ -166,7 +167,6 @@ except dbus.exceptions.DBusException, e:
 except:
     pass
 print "\t%s" % res
-
 
 # Test Seat Interface
 

@@ -1880,6 +1880,8 @@ create_session_for_sender (CkManager             *manager,
         char            *ssid;
         CkSessionLeader *leader;
 
+        g_debug ("CkManager: create session for sender: %s", sender);
+
         res = get_caller_info (manager,
                                sender,
                                &uid,
@@ -1951,6 +1953,8 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
         GError          *local_error;
 
         ssid = NULL;
+
+        g_debug ("CkManager: get session for cookie");
 
         sender = dbus_g_method_get_sender (context);
 
@@ -2038,11 +2042,11 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
         char          *sender;
         uid_t          calling_uid;
         pid_t          calling_pid;
-        CkProcessStat *stat;
         char          *cookie;
-        GError        *error;
 
         sender = dbus_g_method_get_sender (context);
+
+        g_debug ("CkManager: get session for unix process: %u", pid);
 
         res = get_caller_info (manager,
                                sender,
@@ -2060,27 +2064,12 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                 return FALSE;
         }
 
-        error = NULL;
-        res = ck_process_stat_new_for_unix_pid (calling_pid, &stat, &error);
-        if (! res) {
-                GError *error;
-                g_debug ("stat on pid %d failed", calling_pid);
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to lookup information about calling process '%d'"),
-                                     calling_pid);
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-                return FALSE;
-        }
-
-        /* FIXME: check stuff? */
-
-        ck_process_stat_free (stat);
-
         cookie = get_cookie_for_pid (manager, pid);
         if (cookie == NULL) {
                 GError *error;
+
+                g_debug ("CkManager: unable to lookup session for unix process: %u", pid);
+
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
                                      _("Unable to lookup session information for process '%d'"),
@@ -2113,6 +2102,8 @@ ck_manager_get_current_session (CkManager             *manager,
         pid_t       calling_pid;
 
         sender = dbus_g_method_get_sender (context);
+
+        g_debug ("CkManager: get current session");
 
         res = get_caller_info (manager,
                                sender,

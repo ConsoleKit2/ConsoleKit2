@@ -124,17 +124,37 @@ ck_seat_get_active_session (CkSeat         *seat,
                             char          **ssid,
                             GError        **error)
 {
+        gboolean ret;
+        char    *session_id;
+
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
+        g_debug ("CkSeat: get active session");
+        session_id = NULL;
+        ret = FALSE;
         if (seat->priv->active_session != NULL) {
-                ck_session_get_id (seat->priv->active_session, ssid, NULL);
+                gboolean res;
+                res = ck_session_get_id (seat->priv->active_session, &session_id, NULL);
+                if (res) {
+                        ret = TRUE;
+                }
+        } else {
+                g_debug ("CkSeat: seat has no active session");
+        }
+
+        if (! ret) {
+                g_set_error (error,
+                             CK_SEAT_ERROR,
+                             CK_SEAT_ERROR_GENERAL,
+                             "%s", "Seat has no active session");
         } else {
                 if (ssid != NULL) {
-                        *ssid = NULL;
+                        *ssid = g_strdup (session_id);
                 }
         }
 
-        return TRUE;
+        g_free (session_id);
+        return ret;
 }
 
 typedef struct
