@@ -109,13 +109,14 @@ open_log_file (CkEventLogger *event_logger)
 #endif
 
 retry:
+        errno = 0;
         fd = g_open (event_logger->priv->log_filename, flags, 0600);
         if (fd < 0) {
                 if (errno == ENOENT) {
                         /* FIXME: should we just skip if file doesn't exist? */
                         fd = g_open (event_logger->priv->log_filename,
                                      O_CREAT | O_EXCL | O_APPEND,
-                                     S_IRUSR | S_IWUSR | S_IRGRP);
+                                     S_IRUSR | S_IWUSR | S_IRGRP | S_IRGRP | S_IROTH);
                         if (fd < 0) {
                                 g_warning ("Couldn't create log file %s (%s)",
                                            event_logger->priv->log_filename,
