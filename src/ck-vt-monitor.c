@@ -40,6 +40,12 @@
 #include "ck-sysdeps.h"
 #include "ck-marshal.h"
 
+#ifdef __sun
+#include <sys/vt.h>
+#include <signal.h>
+#include <stropts.h>
+#endif
+
 #ifndef ERROR
 #define ERROR -1
 #endif
@@ -156,6 +162,44 @@ ck_vt_monitor_get_active (CkVtMonitor    *vt_monitor,
 
         return TRUE;
 }
+
+#ifdef __sun
+static void
+handle_vt_active (void)
+{
+        struct vt_stat state;
+        guint          num;
+        CkVtMonitor   *vt_monitor = CK_VT_MONITOR (vt_object);
+
+        g_return_if_fail (CK_IS_VT_MONITOR (vt_monitor));
+
+      /*
+	 * state.v_active value: [1 .. N]
+	 *
+	 * VT device file	 VT #
+	 *
+	 * /dev/console		--- VT #1
+	 * /dev/vt/2		--- VT #2
+	 * /dev/vt/3		--- VT #3
+	 * /dev/vt/N		--- VT #4
+	 */
+        if (ioctl (vt_monitor->priv->vfd, VT_GETSTATE, &state) != -1) {
+                num = state.v_active;
+        } else {
+                g_debug ("Fails to ioctl VT_GETSTATE");
+        }
+
+        if (vt_monitor->priv->active_num != num) {
+                g_debug ("Changing active VT: %d", num);
+
+                vt_monitor->priv->active_num = num;
+
+                g_signal_emit (vt_monitor, signals [ACTIVE_CHANGED], 0, num);
+        } else {
+                g_debug ("VT activated but already active: %d", num);
+        }
+}
+#endif
 
 static void
 change_active_num (CkVtMonitor *vt_monitor,
@@ -338,6 +382,20 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         int    i;
         gint32 current_num;
 
+#ifdef __sun
+        /*
+         * Solaris supports synchronous event notification in STREAMS.
+         * Applications that open the virtual console device  can
+         * get a asynchronous notification of VT switching by setting
+         * the S_MSG flag in an I_SETSIG STREAMS ioctl. Such processes
+         * receive a SIGPOLL signal when a VT switching succeeds.
+         */
+        struct sigaction act;
+        act.sa_handler = handle_vt_active;
+        sigaction (SIGPOLL, &act, NULL);
+
+        ioctl (vt_monitor->priv->vfd, I_SETSIG, S_MSG);
+#else
         G_LOCK (hash_lock);
 
         current_num = vt_monitor->priv->active_num;
@@ -365,6 +423,7 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         }
 
         G_UNLOCK (hash_lock);
+#endif
 }
 
 static void

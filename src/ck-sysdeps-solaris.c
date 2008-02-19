@@ -364,7 +364,7 @@ ck_get_max_num_consoles (guint *num)
         error = NULL;
         svcprop_stdout = NULL;
         status = 0;
-        res = g_spawn_command_line_sync ("/usr/bin/svcprop -p options/vtnodecount vtdaemon",
+        res = g_spawn_command_line_sync ("/usr/bin/svcprop -p options/nodecount vtdaemon",
                                          &svcprop_stdout,
                                          NULL,
                                          &status,
