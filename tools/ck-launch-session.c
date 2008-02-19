@@ -33,7 +33,12 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#else
+#define _PATH_BSHELL "/bin/sh"
+#endif
+
 #include <stdlib.h>
 #include <syslog.h>
 #include <unistd.h>
