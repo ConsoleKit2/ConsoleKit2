@@ -177,8 +177,11 @@ stat2proc (pid_t        pid,
 
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
+	if (tty_maj == 15) {
+		snprintf (P->tty_text, sizeof P->tty_text, "/dev/vt/%u", tty_min);
+        }
         if (tty_maj == 24) {
-                snprintf (P->tty_text, sizeof P->tty_text, "pts/%-3u", tty_min);
+                snprintf (P->tty_text, sizeof P->tty_text, "/dev/pts/%u", tty_min);
         }
 
         if (P->tty == NO_TTY_VALUE) {
@@ -197,7 +200,7 @@ stat2proc (pid_t        pid,
         }
 
         if (P->tty == DEV_ENCODE(0,0)) {
-                memcpy (P->tty_text, "console", 8);
+                memcpy (P->tty_text, "/dev/console", 12);
         }
 
         if (P->pid != pid) {
@@ -410,7 +413,10 @@ ck_get_console_device_for_num (guint num)
 {
         char *device;
 
-        device = g_strdup_printf ("/dev/vt/%u", num);
+        if (num == 1)
+                device = g_strdup_printf ("/dev/console", num);
+        else
+                device = g_strdup_printf ("/dev/vt/%u", num);
 
         return device;
 }
@@ -429,7 +435,9 @@ ck_get_console_num_from_device (const char *device,
                 return FALSE;
         }
 
-        if (sscanf (device, "/dev/vt/%u", &n) == 1) {
+        if (strcmp (device, "/dev/console") == 0) {
+                *num = 1;
+        } else if (sscanf (device, "/dev/vt/%u", &n) == 1) {
                 ret = TRUE;
         }
 
