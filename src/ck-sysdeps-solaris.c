@@ -471,8 +471,12 @@ ck_get_active_console_num (int    console_fd,
                 *num = active;
         }
 #else
-        res = ERROR;
-        errno = ENOTSUP;
+        /*
+         * If not using VT, not really an active number, but return 1,
+         * which maps to "/dev/console".
+         */
+        ret  = TRUE;
+        *num = 1;
 #endif
 
         return ret;
