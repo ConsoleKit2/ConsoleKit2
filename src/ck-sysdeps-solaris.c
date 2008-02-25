@@ -182,7 +182,18 @@ stat2proc (pid_t        pid,
         }
 
         if (P->tty == NO_TTY_VALUE) {
+#ifdef HAVE_SYS_VT_H
                 memcpy (P->tty_text, "   ?   ", 8);
+#else
+                /*
+                 * This is a bit of a hack.  On Solaris, pre-VT integration, the
+                 * Xorg process is not assigned a TTY.  So, just assign the value
+                 * to "/dev/console" if running without VT support.  This will
+                 * allow people using Solaris pre-VT integration to use
+                 * ConsoleKit.
+                 */
+                memcpy (P->tty_text, "/dev/console", 12);
+#endif
         }
 
         if (P->tty == DEV_ENCODE(0,0)) {
