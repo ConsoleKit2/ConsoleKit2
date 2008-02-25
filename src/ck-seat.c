@@ -500,7 +500,7 @@ change_active_session (CkSeat    *seat,
                 ck_session_set_active (session, TRUE, NULL);
         }
 
-        g_debug ("Active session changed: %s", ssid);
+        g_debug ("Active session changed: %s", ssid ? ssid : "(null)");
 
         g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED], 0, ssid);
 
