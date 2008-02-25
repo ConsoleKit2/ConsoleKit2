@@ -40,7 +40,7 @@
 #include "ck-sysdeps.h"
 #include "ck-marshal.h"
 
-#ifdef __sun
+#if defined (__sun) && defined (HAVE_SYS_VT_H)
 #include <sys/vt.h>
 #include <signal.h>
 #include <stropts.h>
@@ -163,7 +163,7 @@ ck_vt_monitor_get_active (CkVtMonitor    *vt_monitor,
         return TRUE;
 }
 
-#ifdef __sun
+#if defined (__sun) && defined (HAVE_SYS_VT_H)
 static void
 handle_vt_active (void)
 {
@@ -382,7 +382,9 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         int    i;
         gint32 current_num;
 
-#ifdef __sun
+#if defined (__sun) && !defined (HAVE_SYS_VT_H)
+        /* Best to do nothing if VT is not supported */
+#elif defined (__sun) && defined (HAVE_SYS_VT_H)
         /*
          * Solaris supports synchronous event notification in STREAMS.
          * Applications that open the virtual console device  can
