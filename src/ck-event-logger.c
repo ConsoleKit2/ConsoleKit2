@@ -97,8 +97,10 @@ ck_event_logger_queue_event (CkEventLogger      *event_logger,
 static gboolean
 open_log_file (CkEventLogger *event_logger)
 {
-        int flags;
-        int fd;
+        int   flags;
+        int   fd;
+        int   res;
+        char *dirname;
 
         /*
          * Likely errors on rotate: ENFILE, ENOMEM, ENOSPC
@@ -108,6 +110,20 @@ open_log_file (CkEventLogger *event_logger)
         flags |= O_NOFOLLOW;
 #endif
 
+        dirname = g_path_get_dirname (event_logger->priv->log_filename);
+        /* always make sure we have a directory */
+        errno = 0;
+        res = g_mkdir_with_parents (dirname,
+                                    S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if (res < 0) {
+                g_warning ("Unable to create directory %s (%s)",
+                           dirname,
+                           g_strerror (errno));
+                g_free (dirname);
+                return FALSE;
+        }
+        g_free (dirname);
+
 retry:
         errno = 0;
         fd = g_open (event_logger->priv->log_filename, flags, 0600);
@@ -115,7 +131,7 @@ retry:
                 if (errno == ENOENT) {
                         fd = g_open (event_logger->priv->log_filename,
                                      O_CREAT | O_EXCL | O_APPEND,
-                                     S_IRUSR | S_IWUSR | S_IRGRP | S_IRGRP | S_IROTH);
+                                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
                         if (fd < 0) {
                                 g_warning ("Couldn't create log file %s (%s)",
                                            event_logger->priv->log_filename,

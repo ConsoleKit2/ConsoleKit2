@@ -182,41 +182,56 @@ out:
 static void
 ck_manager_dump (CkManager *manager)
 {
+        int         fd;
+        int         res;
         const char *filename = LOCALSTATEDIR "/run/ConsoleKit/database";
         const char *filename_tmp = LOCALSTATEDIR "/run/ConsoleKit/database~";
-        if (manager != NULL) {
-                int fd;
 
-                fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0600);
-                if (fd == -1) {
-                        g_warning ("Cannot create file %s: %s", filename_tmp, g_strerror (errno));
-                        goto error;
-                }
+        if (manager == NULL) {
+                return;
+        }
 
-                if (! do_dump (manager, fd)) {
-                        g_warning ("Cannot write to file %s", filename_tmp);
-                        close (fd);
-                        goto error;
-                }
-        again:
-                if (close (fd) != 0) {
-                        if (errno == EINTR)
-                                goto again;
-                        else {
-                                g_warning ("Cannot close fd for %s: %s", filename_tmp, g_strerror (errno));
-                                goto error;
-                        }
-                }
+        /* always make sure we have a directory */
+        errno = 0;
+        res = g_mkdir_with_parents (LOCALSTATEDIR "/run/ConsoleKit",
+                                    S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if (res < 0) {
+                g_warning ("Unable to create directory %s (%s)",
+                           LOCALSTATEDIR "/run/ConsoleKit",
+                           g_strerror (errno));
+                return;
+        }
 
-                if (g_rename (filename_tmp, filename) != 0) {
-                        g_warning ("Cannot rename %s to %s: %s", filename_tmp, filename, g_strerror (errno));
+        fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0600);
+        if (fd == -1) {
+                g_warning ("Cannot create file %s: %s", filename_tmp, g_strerror (errno));
+                goto error;
+        }
+
+        if (! do_dump (manager, fd)) {
+                g_warning ("Cannot write to file %s", filename_tmp);
+                close (fd);
+                goto error;
+        }
+ again:
+        if (close (fd) != 0) {
+                if (errno == EINTR)
+                        goto again;
+                else {
+                        g_warning ("Cannot close fd for %s: %s", filename_tmp, g_strerror (errno));
                         goto error;
                 }
         }
 
+        if (g_rename (filename_tmp, filename) != 0) {
+                g_warning ("Cannot rename %s to %s: %s", filename_tmp, filename, g_strerror (errno));
+                goto error;
+        }
+
         return;
 error:
-        /* For security reasons; unlink the existing file since it contains outdated information */
+        /* For security reasons; unlink the existing file since it
+           contains outdated information */
         if (g_unlink (filename) != 0) {
                 g_warning ("Cannot unlink %s: %s", filename, g_strerror (errno));
         }

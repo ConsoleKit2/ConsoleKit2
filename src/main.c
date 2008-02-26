@@ -252,6 +252,42 @@ setup_debug_log (gboolean debug)
         setup_debug_log_signals ();
 }
 
+static void
+create_pid_file (void)
+{
+        char   *dirname;
+        int     res;
+        int     pf;
+        ssize_t written;
+        char    pid[9];
+
+        /* remove old pid file */
+        unlink (CONSOLE_KIT_PID_FILE);
+
+        dirname = g_path_get_dirname (CONSOLE_KIT_PID_FILE);
+        errno = 0;
+        res = g_mkdir_with_parents (dirname,
+                                    S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if (res < 0) {
+                g_warning ("Unable to create directory %s (%s)",
+                           dirname,
+                           g_strerror (errno));
+        }
+        g_free (dirname);
+
+        /* make a new pid file */
+        if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) > 0) {
+                snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
+                written = write (pf, pid, strlen (pid));
+                close (pf);
+                g_atexit (delete_pid);
+        } else {
+                g_warning ("Unable to write pid file %s: %s",
+                           CONSOLE_KIT_PID_FILE,
+                           g_strerror (errno));
+        }
+}
+
 int
 main (int    argc,
       char **argv)
@@ -263,9 +299,6 @@ main (int    argc,
         DBusGConnection *connection;
         GError          *error;
         int              ret;
-        int              pf;
-        ssize_t          written;
-        char             pid[9];
         gboolean         res;
         static gboolean     debug            = FALSE;
         static gboolean     no_daemon        = FALSE;
@@ -330,16 +363,7 @@ main (int    argc,
 
         g_debug ("initializing console-kit-daemon %s", VERSION);
 
-        /* remove old pid file */
-        unlink (CONSOLE_KIT_PID_FILE);
-
-        /* make a new pid file */
-        if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) > 0) {
-                snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
-                written = write (pf, pid, strlen (pid));
-                close (pf);
-                g_atexit (delete_pid);
-        }
+        create_pid_file ();
 
         manager = ck_manager_new ();
 
