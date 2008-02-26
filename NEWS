@@ -1,3 +1,17 @@
+==============
+Version 0.2.10
+==============
+
+ * always create the directories we need (William Jon McCann)
+ * properly get display device on Solaris (Simon Zheng)
+ * fix solaris x11-display-device when no vt available (Brian Cameron)
+ * solaris doesn't like printing null (Brian Cameron)
+ * fix display of active vt when vt is disabled (Brian Cameron)
+ * fix solaris vt handling to work when no vt available (Brian Cameron)
+ * improve supporting Solaris VT switching (Simon Zheng)
+ * don't include paths.h on systems that don't have it (William Jon McCann)
+ * create the log file with S_IROTH and don't touch the log on build (William Jo
+
 =============
 Version 0.2.9
 =============
