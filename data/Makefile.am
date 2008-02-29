@@ -9,7 +9,7 @@ seat_DATA = 00-primary.seat
 if HAVE_POLKIT
 polkit_policydir = $(datadir)/PolicyKit/policy
 dist_polkit_policy_DATA =	\
-	ConsoleKit.policy	\
+	org.freedesktop.consolekit.policy	\
 	$(NULL)
 endif
 
