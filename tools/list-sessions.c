@@ -216,7 +216,7 @@ list_session (DBusGConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tuid = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
+        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
                 short_ssid,
                 uid,
                 realname,
