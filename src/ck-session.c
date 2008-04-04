@@ -58,6 +58,7 @@ struct CkSessionPrivate
         char            *seat_id;
 
         char            *session_type;
+        char            *login_session_id;
         char            *display_device;
         char            *x11_display_device;
         char            *x11_display;
@@ -98,6 +99,7 @@ enum {
         PROP_DISPLAY_DEVICE,
         PROP_SESSION_TYPE,
         PROP_REMOTE_HOST_NAME,
+        PROP_LOGIN_SESSION_ID,
         PROP_IS_LOCAL,
         PROP_ACTIVE,
         PROP_IDLE_HINT,
@@ -498,6 +500,20 @@ ck_session_get_display_device (CkSession      *session,
 }
 
 gboolean
+ck_session_get_login_session_id (CkSession      *session,
+                                 char          **login_session_id,
+                                 GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        if (login_session_id != NULL) {
+                *login_session_id = g_strdup (session->priv->login_session_id);
+        }
+
+        return TRUE;
+}
+
+gboolean
 ck_session_get_x11_display_device (CkSession      *session,
                                    char          **x11_display_device,
                                    GError        **error)
@@ -672,6 +688,19 @@ ck_session_set_x11_display_device (CkSession      *session,
 }
 
 gboolean
+ck_session_set_login_session_id (CkSession      *session,
+                                 const char     *login_session_id,
+                                 GError        **error)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        g_free (session->priv->login_session_id);
+        session->priv->login_session_id = g_strdup (login_session_id);
+
+        return TRUE;
+}
+
+gboolean
 ck_session_set_remote_host_name (CkSession      *session,
                                  const char     *remote_host_name,
                                  GError        **error)
@@ -732,6 +761,9 @@ ck_session_set_property (GObject            *object,
         case PROP_DISPLAY_DEVICE:
                 ck_session_set_display_device (self, g_value_get_string (value), NULL);
                 break;
+        case PROP_LOGIN_SESSION_ID:
+                ck_session_set_login_session_id (self, g_value_get_string (value), NULL);
+                break;
         case PROP_UNIX_USER:
                 ck_session_set_unix_user (self, g_value_get_uint (value), NULL);
                 break;
@@ -784,6 +816,9 @@ ck_session_get_property (GObject    *object,
                 break;
         case PROP_DISPLAY_DEVICE:
                 g_value_set_string (value, self->priv->display_device);
+                break;
+        case PROP_LOGIN_SESSION_ID:
+                g_value_set_string (value, self->priv->login_session_id);
                 break;
         case PROP_UNIX_USER:
                 g_value_set_uint (value, self->priv->uid);
@@ -972,6 +1007,13 @@ ck_session_class_init (CkSessionClass *klass)
                                          g_param_spec_string ("session-type",
                                                               "session-type",
                                                               "session type",
+                                                              NULL,
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+        g_object_class_install_property (object_class,
+                                         PROP_LOGIN_SESSION_ID,
+                                         g_param_spec_string ("login-session-id",
+                                                              "login-session-id",
+                                                              "login session id",
                                                               NULL,
                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
@@ -1271,6 +1313,12 @@ ck_session_dump (CkSession *session,
                                        group_name,
                                        "type",
                                        NONULL_STRING (session->priv->session_type));
+        }
+        if (session->priv->login_session_id != NULL && strlen (session->priv->login_session_id) > 0) {
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "login_session_id",
+                                       NONULL_STRING (session->priv->login_session_id));
         }
         if (session->priv->display_device != NULL && strlen (session->priv->display_device) > 0) {
                 g_key_file_set_string (key_file,

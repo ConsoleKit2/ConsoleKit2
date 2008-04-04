@@ -356,6 +356,15 @@ ck_unix_pid_get_ppid (pid_t pid)
 }
 
 gboolean
+ck_unix_pid_get_login_session_id (pid_t  pid,
+                                  char **idp)
+{
+        g_return_val_if_fail (pid > 1, FALSE);
+
+        return FALSE;
+}
+
+gboolean
 ck_get_max_num_consoles (guint *num)
 {
         GError  *error;

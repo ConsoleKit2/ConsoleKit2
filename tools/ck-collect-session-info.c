@@ -37,6 +37,7 @@
 typedef struct {
         uid_t    uid;
         pid_t    pid;
+        char    *login_session_id;
         char    *display_device;
         char    *x11_display_device;
         char    *x11_display;
@@ -49,6 +50,7 @@ typedef struct {
 static void
 session_info_free (SessionInfo *si)
 {
+        g_free (si->login_session_id);
         g_free (si->display_device);
         g_free (si->x11_display_device);
         g_free (si->x11_display);
@@ -309,6 +311,11 @@ fill_session_info (SessionInfo *si)
                 si->is_local_is_set = TRUE;
         }
 
+        res = ck_unix_pid_get_login_session_id (si->pid, &si->login_session_id);
+        if (! res) {
+                si->login_session_id = NULL;
+        }
+
         return TRUE;
 }
 
@@ -330,6 +337,9 @@ print_session_info (SessionInfo *si)
         }
         if (si->is_local_is_set == TRUE) {
                 printf ("is-local = %s\n", si->is_local ? "true" : "false");
+        }
+        if (si->login_session_id != NULL) {
+                printf ("login-session-id = %s\n", si->login_session_id);
         }
 }
 

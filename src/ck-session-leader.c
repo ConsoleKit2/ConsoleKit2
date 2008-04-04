@@ -198,6 +198,7 @@ static struct {
         char          *key;
         CkAddParamFunc func;
 } parse_ops[] = {
+        { "login-session-id",   add_param_string },
         { "display-device",     add_param_string },
         { "x11-display-device", add_param_string },
         { "x11-display",        add_param_string },

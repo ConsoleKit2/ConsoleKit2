@@ -618,6 +618,72 @@ ck_unix_pid_get_ppid (pid_t pid)
 }
 
 gboolean
+ck_unix_pid_get_login_session_id (pid_t  pid,
+                                  char **idp)
+{
+        gboolean ret;
+        gboolean res;
+        char    *path;
+        char    *contents;
+        gsize    length;
+        GError  *error;
+        char    *end_of_valid_ulong;
+        gulong   ulong_value;
+
+        g_return_val_if_fail (pid > 1, FALSE);
+
+        ret = FALSE;
+        contents = NULL;
+
+        path = g_strdup_printf ("/proc/%u/sessionid", (guint)pid);
+
+        error = NULL;
+        res = g_file_get_contents (path,
+                                   &contents,
+                                   &length,
+                                   &error);
+        if (! res) {
+                g_warning ("Couldn't read %s: %s", path, error->message);
+                g_error_free (error);
+                goto out;
+        }
+
+        if (contents[0] == '\0') {
+                g_warning ("Couldn't read %s: empty file", path);
+                goto out;
+        }
+
+        errno = 0;
+        ulong_value = strtoul (contents, &end_of_valid_ulong, 10);
+
+        if (*end_of_valid_ulong != '\0') {
+                goto out;
+        }
+
+        if (errno == ERANGE) {
+                g_warning ("Couldn't read %s: %s", path, g_strerror (errno));
+                goto out;
+        }
+
+        /* Will be G_MAXULONG if it isn't set */
+        if (ulong_value == G_MAXULONG) {
+                goto out;
+        }
+
+        if (idp != NULL) {
+                *idp = g_strdup_printf ("%lu", (unsigned long int)ulong_value);
+        }
+
+        ret = TRUE;
+
+ out:
+        g_free (contents);
+        g_free (path);
+
+        return ret;
+}
+
+gboolean
 ck_get_max_num_consoles (guint *num)
 {
         if (num != NULL) {
