@@ -1123,8 +1123,9 @@ _check_polkit_for_action (CkManager             *manager,
         if (pk_result != POLKIT_RESULT_YES) {
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                     "Not privileged for action: %s",
-                                     action);
+                                     "Not privileged for action: %s %s",
+                                     action,
+                                     polkit_result_to_string_representation (pk_result));
                 dbus_error_free (&dbus_error);
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
