@@ -6,7 +6,7 @@ NULL =
 SUBDIRS = \
 	$(NULL)
 
-scriptdir = $(libdir)/ConsoleKit/scripts
+scriptdir = $(libexecdir)/ConsoleKit/scripts
 script_SCRIPTS =			\
 	ck-system-stop			\
 	ck-system-restart		\

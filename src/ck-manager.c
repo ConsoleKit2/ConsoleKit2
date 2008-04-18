@@ -1358,7 +1358,7 @@ ck_manager_restart (CkManager             *manager,
         log_system_restart_event (manager);
 
         error = NULL;
-        res = g_spawn_command_line_async (LIBDIR "/ConsoleKit/scripts/ck-system-restart",
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-restart",
                                           &error);
         if (! res) {
                 GError *new_error;
@@ -1416,7 +1416,7 @@ ck_manager_stop (CkManager             *manager,
         log_system_stop_event (manager);
 
         error = NULL;
-        res = g_spawn_command_line_async (LIBDIR "/ConsoleKit/scripts/ck-system-stop",
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-stop",
                                           &error);
         if (! res) {
                 GError *new_error;
