@@ -16,7 +16,7 @@ manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
 
 params = dbus.Array ([], signature = "(sv)")
 params.append (("unix-user", dbus.Int32 (730, variant_level=1)))
-params.append (("session-type", dbus.String ("gnome-session", variant_level=1)))
+params.append (("session-type", dbus.String ("Unknown", variant_level=1)))
 #params.append (("x11-display", dbus.String (":0.0", variant_level=1)))
 params.append (("display-device", dbus.String ("/dev/tty8", variant_level=1)))
 params.append (("is-local", dbus.Boolean (True, variant_level=1)))

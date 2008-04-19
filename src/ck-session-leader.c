@@ -192,12 +192,10 @@ add_param_string (GPtrArray  *parameters,
 }
 
 static gboolean
-maybe_add_override_parameter (CkSessionLeader *leader,
-                              const char      *prop_name,
-                              GPtrArray       *parameters)
+have_override_parameter (CkSessionLeader *leader,
+                         const char      *prop_name)
 {
         gpointer data;
-        gpointer data_copy;
 
         if (leader->priv->override_parameters == NULL) {
                 return FALSE;
@@ -212,10 +210,18 @@ maybe_add_override_parameter (CkSessionLeader *leader,
                 return FALSE;
         }
 
+        return TRUE;
+}
+
+static void
+add_to_parameters (gpointer   key,
+                   gpointer   data,
+                   GPtrArray *parameters)
+{
+        gpointer data_copy;
+
         data_copy = g_boxed_copy (CK_TYPE_PARAMETER_STRUCT, data);
         g_ptr_array_add (parameters, data_copy);
-
-        return TRUE;
 }
 
 typedef void (* CkAddParamFunc) (GPtrArray  *arr,
@@ -252,6 +258,7 @@ parse_output (CkSessionLeader *leader,
 
         parameters = g_ptr_array_sized_new (10);
 
+        /* first add generated params */
         for (i = 0; lines[i] != NULL; i++) {
                 char **vals;
 
@@ -261,7 +268,8 @@ parse_output (CkSessionLeader *leader,
                         continue;
                 }
 
-                if (maybe_add_override_parameter (leader, vals[0], parameters)) {
+                /* we're going to override this anyway so just shortcut out */
+                if (have_override_parameter (leader, vals[0])) {
                         g_strfreev (vals);
                         continue;
                 }
@@ -274,8 +282,12 @@ parse_output (CkSessionLeader *leader,
                 }
                 g_strfreev (vals);
         }
-
         g_strfreev (lines);
+
+        /* now overlay the overrides */
+        g_hash_table_foreach (leader->priv->override_parameters,
+                              (GHFunc)add_to_parameters,
+                              parameters);
 
         return parameters;
 }
@@ -338,6 +350,8 @@ save_parameters (CkSessionLeader *leader,
                                 g_free (prop_name);
                                 continue;
                         }
+
+                        g_debug ("Setting override parameters for: %s", prop_name);
 
                         data_copy = g_boxed_copy (CK_TYPE_PARAMETER_STRUCT, data);
 
