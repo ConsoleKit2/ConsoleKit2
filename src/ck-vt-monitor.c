@@ -313,7 +313,6 @@ vt_thread_start (ThreadData *data)
 {
         CkVtMonitor *vt_monitor;
         gboolean     res;
-        int          ret;
         gint32       num;
 
         vt_monitor = data->vt_monitor;

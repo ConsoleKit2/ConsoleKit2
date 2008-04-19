@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2006-2007 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2006-2008 William Jon McCann <mccann@jhu.edu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1923,22 +1923,16 @@ create_session_for_sender (CkManager             *manager,
         ck_session_leader_set_service_name (leader, sender);
         ck_session_leader_set_session_id (leader, ssid);
         ck_session_leader_set_cookie (leader, cookie);
+        ck_session_leader_set_override_parameters (leader, parameters);
 
         /* need to store the leader info first so the pending request can be revoked */
         g_hash_table_insert (manager->priv->leaders,
                              g_strdup (cookie),
                              g_object_ref (leader));
 
-        if (parameters == NULL) {
-                generate_session_for_leader (manager,
-                                             leader,
-                                             context);
-        } else {
-                verify_and_open_session_for_leader (manager,
-                                                    leader,
-                                                    parameters,
-                                                    context);
-        }
+        generate_session_for_leader (manager,
+                                     leader,
+                                     context);
 
         g_free (cookie);
         g_free (ssid);
