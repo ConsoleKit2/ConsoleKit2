@@ -183,7 +183,6 @@ out_watch (GIOChannel   *source,
 
                 switch (status) {
                 case G_IO_STATUS_NORMAL:
-                        g_debug ("command output: %s", line);
                         g_string_append (job->priv->std_out, line);
                         break;
                 case G_IO_STATUS_EOF:

@@ -14,15 +14,15 @@ manager_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/Co
 
 manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
 
-params = dbus.Array ([], signature = "sv")
-params.append (("unix-user", dbus.Variant (730)))
-params.append (("session-type", dbus.Variant ("gnome-session")))
-#params.append (("x11-display", dbus.Variant (":0.0")))
-params.append (("display-device", dbus.Variant ("/dev/tty8")))
-params.append (("is-local", dbus.Variant (True)))
-params.append (("bogus-property", dbus.Variant ("Something bogus")))
-params.append (("cookie", dbus.Variant ("This should be ignored")))
-params.append (("id", dbus.Variant ("This should be ignored too")))
+params = dbus.Array ([], signature = "(sv)")
+params.append (("unix-user", dbus.Int32 (730, variant_level=1)))
+params.append (("session-type", dbus.String ("gnome-session", variant_level=1)))
+#params.append (("x11-display", dbus.String (":0.0", variant_level=1)))
+params.append (("display-device", dbus.String ("/dev/tty8", variant_level=1)))
+params.append (("is-local", dbus.Boolean (True, variant_level=1)))
+params.append (("bogus-property", dbus.String ("Something bogus", variant_level=1)))
+params.append (("cookie", dbus.String ("This should be ignored", variant_level=1)))
+params.append (("id", dbus.String  ("This should be ignored too", variant_level=1)))
 
 cookie = manager.OpenSessionWithParameters (params)
 os.environ['XDG_SESSION_COOKIE'] = cookie
@@ -38,7 +38,7 @@ for sid in seats:
             session = dbus.Interface (session_obj, 'org.freedesktop.ConsoleKit.Session')
             uid = session.GetUser ()
 
-# Hmm looks like the proc environment doesn't get updated when
+# The proc environment doesn't get updated when
 # os.environ is set.  So, we won't use GetCurrentSession.
 #current_session = manager.GetCurrentSession ()
 current_session = manager.GetSessionForCookie (cookie)
