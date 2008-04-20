@@ -23,7 +23,7 @@ Policy definitions for ConsoleKit
     <message>System policy prevents stopping the system when other users are logged in</message>
     <defaults>
       <allow_inactive>no</allow_inactive>
-      <allow_active>auth_admin</allow_active>
+      <allow_active>auth_admin_keep_always</allow_active>
     </defaults>
   </action>
 
@@ -41,7 +41,7 @@ Policy definitions for ConsoleKit
     <message>System policy prevents restarting the system when other users are logged in</message>
     <defaults>
       <allow_inactive>no</allow_inactive>
-      <allow_active>auth_admin</allow_active>
+      <allow_active>auth_admin_keep_always</allow_active>
     </defaults>
   </action>
 
