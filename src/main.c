@@ -44,9 +44,6 @@
 
 #define CK_DBUS_NAME         "org.freedesktop.ConsoleKit"
 
-static void bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
-                                    CkManager  *manager);
-
 static gboolean
 timed_exit_cb (GMainLoop *loop)
 {
@@ -138,60 +135,12 @@ get_system_bus (void)
         return bus;
 }
 
-static gboolean
-bus_reconnect (CkManager *manager)
-{
-        DBusGConnection *bus;
-        DBusGProxy      *bus_proxy;
-        gboolean         ret;
-
-        ret = TRUE;
-
-        bus = get_system_bus ();
-        if (bus == NULL) {
-                goto out;
-        }
-
-        bus_proxy = get_bus_proxy (bus);
-        if (bus_proxy == NULL) {
-                g_warning ("Could not construct bus_proxy object; will retry");
-                goto out;
-        }
-
-        if (! acquire_name_on_proxy (bus_proxy) ) {
-                g_warning ("Could not acquire name; will retry");
-                goto out;
-        }
-
-        manager = ck_manager_new ();
-        if (manager == NULL) {
-                g_warning ("Could not construct manager object");
-                exit (1);
-        }
-
-        g_signal_connect (bus_proxy,
-                          "destroy",
-                          G_CALLBACK (bus_proxy_destroyed_cb),
-                          manager);
-
-        g_debug ("Successfully reconnected to D-Bus");
-
-        ret = FALSE;
-
- out:
-        return ret;
-}
-
 static void
 bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
-                        CkManager  *manager)
+                        GMainLoop  *loop)
 {
         g_debug ("Disconnected from D-Bus");
-
-        g_object_unref (manager);
-        manager = NULL;
-
-        g_timeout_add (3000, (GSourceFunc)bus_reconnect, manager);
+        g_main_loop_quit (loop);
 }
 
 static void
@@ -371,12 +320,12 @@ main (int    argc,
                 goto out;
         }
 
+        loop = g_main_loop_new (NULL, FALSE);
+
         g_signal_connect (bus_proxy,
                           "destroy",
                           G_CALLBACK (bus_proxy_destroyed_cb),
-                          manager);
-
-        loop = g_main_loop_new (NULL, FALSE);
+                          loop);
 
         if (do_timed_exit) {
                 g_timeout_add (1000 * 30, (GSourceFunc) timed_exit_cb, loop);
@@ -384,7 +333,9 @@ main (int    argc,
 
         g_main_loop_run (loop);
 
-        g_object_unref (manager);
+        if (manager != NULL) {
+                g_object_unref (manager);
+        }
 
         g_main_loop_unref (loop);
 
