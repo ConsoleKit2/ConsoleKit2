@@ -27,7 +27,8 @@ G_BEGIN_DECLS
 
 typedef enum
 {
-        CK_LOG_EVENT_START = 0,
+        CK_LOG_EVENT_NONE = 0,
+        CK_LOG_EVENT_START,
         CK_LOG_EVENT_STOP,
         CK_LOG_EVENT_SYSTEM_START,
         CK_LOG_EVENT_SYSTEM_STOP,
@@ -41,6 +42,10 @@ typedef enum
         CK_LOG_EVENT_SEAT_DEVICE_REMOVED,
         CK_LOG_EVENT_SEAT_ACTIVE_SESSION_CHANGED,
 } CkLogEventType;
+
+typedef struct
+{
+} CkLogNoneEvent;
 
 typedef struct
 {
@@ -117,6 +122,7 @@ typedef struct
 typedef struct
 {
         union {
+                CkLogNoneEvent none;
                 CkLogSystemRestartEvent system_start;
                 CkLogSystemStopEvent system_stop;
                 CkLogSystemRestartEvent system_restart;

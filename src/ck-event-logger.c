@@ -254,12 +254,16 @@ writer_thread_start (CkEventLogger *event_logger)
 {
         CkLogEvent *event;
 
-        while ((event = g_async_queue_pop (event_logger->priv->event_queue)) != NULL) {
+        while (1) {
+                event = g_async_queue_pop (event_logger->priv->event_queue);
+                if (event == NULL || event->type == CK_LOG_EVENT_NONE) {
+                        break;
+                }
                 write_log_for_event (event_logger, event);
                 ck_log_event_free (event);
         }
 
-        g_thread_exit (NULL);
+        g_debug ("Writer thread received None event - exiting");
         return NULL;
 }
 
@@ -274,7 +278,7 @@ create_writer_thread (CkEventLogger *event_logger)
         event_logger->priv->writer_thread = g_thread_create_full ((GThreadFunc)writer_thread_start,
                                                                   event_logger,
                                                                   65536,
-                                                                  FALSE,
+                                                                  TRUE,
                                                                   TRUE,
                                                                   G_THREAD_PRIORITY_NORMAL,
                                                                   &error);
@@ -282,6 +286,22 @@ create_writer_thread (CkEventLogger *event_logger)
                 g_debug ("Unable to create thread: %s", error->message);
                 g_error_free (error);
         }
+}
+
+static void
+destroy_writer_thread (CkEventLogger *event_logger)
+{
+        CkLogEvent event;
+
+        event.type = CK_LOG_EVENT_NONE;
+
+        g_debug ("Destroying writer thread");
+        g_async_queue_push (event_logger->priv->event_queue,
+                            &event);
+#if 1
+        g_debug ("Joining writer thread");
+        g_thread_join (event_logger->priv->writer_thread);
+#endif
 }
 
 static GObject *
@@ -393,6 +413,8 @@ ck_event_logger_finalize (GObject *object)
         event_logger = CK_EVENT_LOGGER (object);
 
         g_return_if_fail (event_logger->priv != NULL);
+
+        destroy_writer_thread (event_logger);
 
         if (event_logger->priv->event_queue != NULL) {
                 g_async_queue_unref (event_logger->priv->event_queue);
