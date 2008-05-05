@@ -289,6 +289,19 @@ except:
     pass
 print "\t\t\t%s" % res
 
+print "Testing Session.GetLoginSessionId:",
+res = "PASS"
+try:
+    session.GetLoginSessionId ()
+except dbus.exceptions.DBusException, e:
+    if e.get_dbus_name () == "org.freedesktop.DBus.Error.AccessDenied":
+        res = "FAIL"
+    elif e.get_dbus_name () == "org.freedesktop.DBus.Error.UnknownMethod":
+        res = "UKNOWN METHOD"
+except:
+    pass
+print "\t\t%s" % res
+
 print "Testing Session.GetSessionType:",
 res = "PASS"
 try:

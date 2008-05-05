@@ -7,6 +7,9 @@
     <method name="GetSeatId">
       <arg name="sid" direction="out" type="o"/>
     </method>
+    <method name="GetLoginSessionId">
+      <arg name="lsid" direction="out" type="s"/>
+    </method>
     <method name="GetSessionType">
       <arg name="type" direction="out" type="s"/>
     </method>

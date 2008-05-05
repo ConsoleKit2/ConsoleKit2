@@ -1981,6 +1981,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to get information about the calling process"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
+                g_debug ("CkManager: Unable to lookup caller info - failing");
                 return FALSE;
         }
 
@@ -1999,10 +2000,14 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
 
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
+
+                g_debug ("CkManager: Unable to lookup info for caller - failing");
+
                 return FALSE;
         }
 
         /* FIXME: should we restrict this by uid? */
+
         ck_process_stat_free (stat);
 
         leader = g_hash_table_lookup (manager->priv->leaders, cookie);
@@ -2013,6 +2018,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to find session for cookie"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
+                g_debug ("CkManager: Unable to lookup cookie for caller - failing");
                 return FALSE;
         }
 
@@ -2024,10 +2030,13 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to find session for cookie"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
+                g_debug ("CkManager: Unable to lookup session for cookie - failing");
                 return FALSE;
         }
 
         ck_session_get_id (session, &ssid, NULL);
+
+        g_debug ("CkManager: Found session '%s'", ssid);
 
         dbus_g_method_return (context, ssid);
 

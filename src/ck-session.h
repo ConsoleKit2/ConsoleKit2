@@ -113,9 +113,6 @@ gboolean            ck_session_set_remote_host_name   (CkSession             *se
 gboolean            ck_session_set_session_type       (CkSession             *session,
                                                        const char            *type,
                                                        GError               **error);
-gboolean            ck_session_get_login_session_id   (CkSession             *session,
-                                                       char                 **login_session_id,
-                                                       GError               **error);
 
 /* Exported methods */
 
@@ -143,6 +140,9 @@ gboolean            ck_session_get_x11_display_device (CkSession             *se
                                                        GError               **error);
 gboolean            ck_session_get_display_device     (CkSession             *session,
                                                        char                 **display,
+                                                       GError               **error);
+gboolean            ck_session_get_login_session_id   (CkSession             *session,
+                                                       char                 **login_session_id,
                                                        GError               **error);
 gboolean            ck_session_get_session_type       (CkSession             *session,
                                                        char                 **type,

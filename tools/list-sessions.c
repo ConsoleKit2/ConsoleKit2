@@ -163,6 +163,7 @@ list_session (DBusGConnection *connection,
         int         uid;
         char       *realname;
         char       *sid;
+        char       *lsid;
         char       *session_type;
         char       *x11_display;
         char       *x11_display_device;
@@ -184,6 +185,7 @@ list_session (DBusGConnection *connection,
         }
 
         sid = NULL;
+        lsid = NULL;
         session_type = NULL;
         x11_display = NULL;
         x11_display_device = NULL;
@@ -194,6 +196,7 @@ list_session (DBusGConnection *connection,
 
         get_int (proxy, "GetUnixUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
+        get_string (proxy, "GetLoginSessionId", &lsid);
         get_string (proxy, "GetSessionType", &session_type);
         get_string (proxy, "GetX11Display", &x11_display);
         get_string (proxy, "GetX11DisplayDevice", &x11_display_device);
@@ -216,7 +219,7 @@ list_session (DBusGConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'",
+        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'\n\tlogin-session-id = '%s'",
                 short_ssid,
                 uid,
                 realname,
@@ -228,7 +231,8 @@ list_session (DBusGConnection *connection,
                 display_device,
                 remote_host_name,
                 is_local ? "TRUE" : "FALSE",
-                creation_time);
+                creation_time,
+                lsid);
         if (idle_since_hint != NULL && idle_since_hint[0] != '\0') {
                 printf ("\n\tidle-since-hint = '%s'", idle_since_hint);
         }
@@ -239,6 +243,7 @@ list_session (DBusGConnection *connection,
         g_free (remote_host_name);
         g_free (realname);
         g_free (sid);
+        g_free (lsid);
         g_free (session_type);
         g_free (x11_display);
         g_free (x11_display_device);

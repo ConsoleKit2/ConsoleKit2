@@ -505,7 +505,7 @@ ck_session_get_login_session_id (CkSession      *session,
                                  GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
+        g_debug ("Got: %s", session->priv->login_session_id);
         if (login_session_id != NULL) {
                 *login_session_id = g_strdup (session->priv->login_session_id);
         }
