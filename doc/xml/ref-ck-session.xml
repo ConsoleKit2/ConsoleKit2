@@ -11,8 +11,8 @@
     <synopsis><link linkend="Session.GetId">GetId</link>               (out 'o' ssid)
 <link linkend="Session.GetSeatId">GetSeatId</link>           (out 'o' sid)
 <link linkend="Session.GetSessionType">GetSessionType</link>      (out 's' type)
-<link linkend="Session.GetUser">GetUser</link>             (out 'i' uid)
-<link linkend="Session.GetUnixUser">GetUnixUser</link>         (out 'i' uid)
+<link linkend="Session.GetUser">GetUser</link>             (out 'u' uid)
+<link linkend="Session.GetUnixUser">GetUnixUser</link>         (out 'u' uid)
 <link linkend="Session.GetX11Display">GetX11Display</link>       (out 's' display)
 <link linkend="Session.GetX11DisplayDevice">GetX11DisplayDevice</link> (out 's' x11_display_device)
 <link linkend="Session.GetDisplayDevice">GetDisplayDevice</link>    (out 's' display_device)
@@ -82,13 +82,13 @@ See also:
           </para>
         <variablelist role="params"><varlistentry><term><parameter>type</parameter>:</term><listitem><simpara>Session type</simpara></listitem></varlistentry></variablelist><para>
 See also:
-<link linkend="Session:session-type"><literal>session-type</literal></link></para><refsect2><title><anchor role="function" id="Session.GetUser"/>GetUser ()</title><indexterm><primary>GetUser</primary><secondary>Session</secondary></indexterm><programlisting>GetUser (out 'i' uid)</programlisting></refsect2><para>Returns the user that the session belongs to.</para>
+<link linkend="Session:session-type"><literal>session-type</literal></link></para><refsect2><title><anchor role="function" id="Session.GetUser"/>GetUser ()</title><indexterm><primary>GetUser</primary><secondary>Session</secondary></indexterm><programlisting>GetUser (out 'u' uid)</programlisting></refsect2><para>Returns the user that the session belongs to.</para>
         <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>User ID</simpara></listitem></varlistentry></variablelist><para role="deprecated"><warning><para><literal>GetUser</literal> is deprecated since version 0.1.3 and should not be used in newly-written code. Use
 
   <link linkend="Session.GetUnixUser"><function>GetUnixUser</function></link>
 instead.</para></warning></para><para>
 See also:
-<link linkend="Session:user"><literal>user</literal></link></para><refsect2><title><anchor role="function" id="Session.GetUnixUser"/>GetUnixUser ()</title><indexterm><primary>GetUnixUser</primary><secondary>Session</secondary></indexterm><programlisting>GetUnixUser (out 'i' uid)</programlisting></refsect2><para>Returns the POSIX user ID that the session belongs to.</para>
+<link linkend="Session:user"><literal>user</literal></link></para><refsect2><title><anchor role="function" id="Session.GetUnixUser"/>GetUnixUser ()</title><indexterm><primary>GetUnixUser</primary><secondary>Session</secondary></indexterm><programlisting>GetUnixUser (out 'u' uid)</programlisting></refsect2><para>Returns the POSIX user ID that the session belongs to.</para>
         <variablelist role="params"><varlistentry><term><parameter>uid</parameter>:</term><listitem><simpara>POSIX User ID</simpara></listitem></varlistentry></variablelist><para>
 See also:
 <link linkend="Session:unix-user"><literal>unix-user</literal></link></para><refsect2><title><anchor role="function" id="Session.GetX11Display"/>GetX11Display ()</title><indexterm><primary>GetX11Display</primary><secondary>Session</secondary></indexterm><programlisting>GetX11Display (out 's' display)</programlisting></refsect2><para>Returns the value of the X11 DISPLAY for this session
