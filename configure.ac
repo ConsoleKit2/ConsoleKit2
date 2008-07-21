@@ -7,7 +7,7 @@ AC_INIT([ConsoleKit],
 
 AC_CONFIG_SRCDIR([src/ck-manager.c])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.9 no-dist-gzip dist-bzip2])
 
 AM_MAINTAINER_MODE
 
