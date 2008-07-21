@@ -331,7 +331,7 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
         -Wall \
         -Wchar-subscripts -Wmissing-declarations -Wmissing-prototypes \
         -Wnested-externs -Wpointer-arith \
-        -Wcast-align -Wsign-compare \
+        -Wcast-align -Wsign-compare -Wp,-D_FORTIFY_SOURCE=2 \
         $CFLAGS"
 
         for option in -Wno-strict-aliasing -Wno-sign-compare; do
