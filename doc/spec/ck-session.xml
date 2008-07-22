@@ -130,6 +130,19 @@
         <doc:seealso><doc:ref type="property" to="Session:remote-host-name">remote-host-name</doc:ref></doc:seealso>
       </doc:doc>
     </method>
+    <method name="GetLoginSessionId">
+       <arg name="login_session_id" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The value of the native system login session ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description><doc:para>Returns the value of the login session ID that the
+        underlying system uses to enforce session boundaries.  If there is no login session ID
+        set then this value is an empty string.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
     <method name="IsActive">
       <arg name="active" direction="out" type="b">
         <doc:doc>
