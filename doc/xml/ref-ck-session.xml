@@ -17,6 +17,7 @@
 <link linkend="Session.GetX11DisplayDevice">GetX11DisplayDevice</link> (out 's' x11_display_device)
 <link linkend="Session.GetDisplayDevice">GetDisplayDevice</link>    (out 's' display_device)
 <link linkend="Session.GetRemoteHostName">GetRemoteHostName</link>   (out 's' remote_host_name)
+<link linkend="Session.GetLoginSessionId">GetLoginSessionId</link>   (out 's' login_session_id)
 <link linkend="Session.IsActive">IsActive</link>            (out 'b' active)
 <link linkend="Session.IsLocal">IsLocal</link>             (out 'b' local)
 <link linkend="Session.GetCreationTime">GetCreationTime</link>     (out 's' iso8601_datetime)
@@ -108,7 +109,10 @@ See also:
         </para>
         <variablelist role="params"><varlistentry><term><parameter>remote_host_name</parameter>:</term><listitem><simpara>The remote host name</simpara></listitem></varlistentry></variablelist><para>
 See also:
-<link linkend="Session:remote-host-name"><literal>remote-host-name</literal></link></para><refsect2><title><anchor role="function" id="Session.IsActive"/>IsActive ()</title><indexterm><primary>IsActive</primary><secondary>Session</secondary></indexterm><programlisting>IsActive (out 'b' active)</programlisting></refsect2><para>Returns whether the session is active on the Seat that
+<link linkend="Session:remote-host-name"><literal>remote-host-name</literal></link></para><refsect2><title><anchor role="function" id="Session.GetLoginSessionId"/>GetLoginSessionId ()</title><indexterm><primary>GetLoginSessionId</primary><secondary>Session</secondary></indexterm><programlisting>GetLoginSessionId (out 's' login_session_id)</programlisting></refsect2><para>Returns the value of the login session ID that the
+        underlying system uses to enforce session boundaries.  If there is no login session ID
+        set then this value is an empty string.</para>
+        <variablelist role="params"><varlistentry><term><parameter>login_session_id</parameter>:</term><listitem><simpara>The value of the native system login session ID</simpara></listitem></varlistentry></variablelist><refsect2><title><anchor role="function" id="Session.IsActive"/>IsActive ()</title><indexterm><primary>IsActive</primary><secondary>Session</secondary></indexterm><programlisting>IsActive (out 'b' active)</programlisting></refsect2><para>Returns whether the session is active on the Seat that
         it is attached to.</para>
         <para>If the session is not attached to a seat this value is undefined.
         </para>

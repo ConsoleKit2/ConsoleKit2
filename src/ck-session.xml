@@ -28,6 +28,9 @@
     <method name="GetRemoteHostName">
       <arg name="remote_host_name" direction="out" type="s"/>
     </method>
+    <method name="GetLoginSessionId">
+      <arg name="login_session_id" direction="out" type="s"/>
+    </method>
     <method name="IsActive">
       <arg name="active" direction="out" type="b"/>
     </method>
