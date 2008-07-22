@@ -47,9 +47,9 @@
 #define CK_SESSION_INTERFACE "org.freedesktop.ConsoleKit.Session"
 
 static gboolean
-get_int (DBusGProxy *proxy,
-         const char *method,
-         int        *val)
+get_uint (DBusGProxy *proxy,
+          const char *method,
+          guint      *val)
 {
         GError  *error;
         gboolean res;
@@ -59,7 +59,7 @@ get_int (DBusGProxy *proxy,
                                  method,
                                  &error,
                                  G_TYPE_INVALID,
-                                 G_TYPE_INT, val,
+                                 G_TYPE_UINT, val,
                                  G_TYPE_INVALID);
         if (! res) {
                 g_warning ("%s failed: %s", method, error->message);
@@ -160,7 +160,7 @@ list_session (DBusGConnection *connection,
               const char      *ssid)
 {
         DBusGProxy *proxy;
-        int         uid;
+        guint       uid;
         char       *realname;
         char       *sid;
         char       *lsid;
@@ -194,7 +194,7 @@ list_session (DBusGConnection *connection,
         creation_time = NULL;
         idle_since_hint = NULL;
 
-        get_int (proxy, "GetUnixUser", &uid);
+        get_uint (proxy, "GetUnixUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
         get_string (proxy, "GetLoginSessionId", &lsid);
         get_string (proxy, "GetSessionType", &session_type);
