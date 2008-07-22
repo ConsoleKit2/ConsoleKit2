@@ -2526,9 +2526,9 @@ ck_manager_class_init (CkManagerClass *klass)
                               G_STRUCT_OFFSET (CkManagerClass, seat_added),
                               NULL,
                               NULL,
-                              g_cclosure_marshal_VOID__STRING,
+                              g_cclosure_marshal_VOID__BOXED,
                               G_TYPE_NONE,
-                              1, G_TYPE_STRING);
+                              1, DBUS_TYPE_G_OBJECT_PATH);
         signals [SEAT_REMOVED] =
                 g_signal_new ("seat-removed",
                               G_TYPE_FROM_CLASS (object_class),
@@ -2536,9 +2536,9 @@ ck_manager_class_init (CkManagerClass *klass)
                               G_STRUCT_OFFSET (CkManagerClass, seat_removed),
                               NULL,
                               NULL,
-                              g_cclosure_marshal_VOID__STRING,
+                              g_cclosure_marshal_VOID__BOXED,
                               G_TYPE_NONE,
-                              1, G_TYPE_STRING);
+                              1, DBUS_TYPE_G_OBJECT_PATH);
         signals [SYSTEM_IDLE_HINT_CHANGED] =
                 g_signal_new ("system-idle-hint-changed",
                               G_TYPE_FROM_CLASS (object_class),
