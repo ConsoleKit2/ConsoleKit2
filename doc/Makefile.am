@@ -26,6 +26,7 @@ EXTRA_DIST =				\
 	ConsoleKit.xml.in		\
 	config.xsl			\
 	docbook.css			\
+	dbus-introspect-docs.dtd	\
 	$(SPEC_XML_FILES)
 	$(NULL)
 

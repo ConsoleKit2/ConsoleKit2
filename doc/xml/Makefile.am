@@ -9,7 +9,7 @@ org.freedesktop.ConsoleKit.Seat.ref.xml : $(top_srcdir)/src/org.freedesktop.Cons
 org.freedesktop.ConsoleKit.Session.ref.xml : $(top_srcdir)/src/org.freedesktop.ConsoleKit.Session.xml spec-to-docbook.xsl
 	$(XSLTPROC) $(top_srcdir)/doc/xml/spec-to-docbook.xsl $< | tail -n +2 >> $@
 
-EXTRA_DIST = spec-to-docbook.xsl dbus-introspect-docs.dtd
+EXTRA_DIST = spec-to-docbook.xsl
 
 MAINTAINERCLEANFILES =		\
 	*~			\
