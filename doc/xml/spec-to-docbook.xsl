@@ -37,32 +37,40 @@
     </synopsis>
   </refsynopsisdiv>
 
-  <refsect1 role="signal_proto">
-    <title role="signal_proto.title">Signals</title>
-    <synopsis>
-  <xsl:call-template name="signals-synopsis">
-    <xsl:with-param name="basename" select="$basename"/>
-  </xsl:call-template>
-    </synopsis>
-  </refsect1>
+  <xsl:choose>
+    <xsl:when test="count(///signal) > 0">
+      <refsect1 role="signal_proto">
+        <title role="signal_proto.title">Signals</title>
+        <synopsis>
+          <xsl:call-template name="signals-synopsis">
+            <xsl:with-param name="basename" select="$basename"/>
+          </xsl:call-template>
+        </synopsis>
+      </refsect1>
+    </xsl:when>
+  </xsl:choose>
 
   <refsect1 role="impl_interfaces">
     <title role="impl_interfaces.title">Implemented Interfaces</title>
     <para>
-    <xsl:value-of select="$interface"/> implements
+    Objects implementing <xsl:value-of select="$interface"/> also implements
     org.freedesktop.DBus.Introspectable,
     org.freedesktop.DBus.Properties
     </para>
   </refsect1>
 
-  <refsect1 role="properties">
-    <title role="properties.title">Properties</title>
-    <synopsis>
-  <xsl:call-template name="properties-synopsis">
-    <xsl:with-param name="basename" select="$basename"/>
-  </xsl:call-template>
-    </synopsis>
-  </refsect1>
+  <xsl:choose>
+    <xsl:when test="count(///property) > 0">
+      <refsect1 role="properties">
+        <title role="properties.title">Properties</title>
+        <synopsis>
+          <xsl:call-template name="properties-synopsis">
+            <xsl:with-param name="basename" select="$basename"/>
+          </xsl:call-template>
+        </synopsis>
+      </refsect1>
+    </xsl:when>
+  </xsl:choose>
 
   <refsect1 role="desc">
     <title role="desc.title">Description</title>
@@ -78,19 +86,27 @@
     </xsl:call-template>
   </refsect1>
 
-  <refsect1 role="signals">
-    <title role="signals.title">Signal Details</title>
-    <xsl:call-template name="signal-details">
-      <xsl:with-param name="basename" select="$basename"/>
-    </xsl:call-template>
-  </refsect1>
+  <xsl:choose>
+    <xsl:when test="count(///signal) > 0">
+      <refsect1 role="signals">
+        <title role="signals.title">Signal Details</title>
+        <xsl:call-template name="signal-details">
+          <xsl:with-param name="basename" select="$basename"/>
+        </xsl:call-template>
+      </refsect1>
+    </xsl:when>
+  </xsl:choose>
 
-  <refsect1 role="property_details">
-    <title role="property_details.title">Property Details</title>
-    <xsl:call-template name="property-details">
-      <xsl:with-param name="basename" select="$basename"/>
-    </xsl:call-template>
-  </refsect1>
+  <xsl:choose>
+    <xsl:when test="count(///property) > 0">
+      <refsect1 role="property_details">
+        <title role="property_details.title">Property Details</title>
+        <xsl:call-template name="property-details">
+          <xsl:with-param name="basename" select="$basename"/>
+        </xsl:call-template>
+      </refsect1>
+    </xsl:when>
+  </xsl:choose>
 
 </refentry>
 </xsl:template>
@@ -176,14 +192,74 @@
 </programlisting>
 </xsl:template>
 
+<xsl:template match="doc:tt">
+  <literal>
+    <xsl:apply-templates />
+  </literal>
+</xsl:template>
+
+<xsl:template match="doc:i">
+  <emphasis>
+    <xsl:apply-templates />
+  </emphasis>
+</xsl:template>
+
+<xsl:template match="doc:b">
+  <emphasis role="bold">
+    <xsl:apply-templates />
+  </emphasis>
+</xsl:template>
+
+<xsl:template match="doc:ulink">
+  <ulink>
+    <xsl:attribute name="url"><xsl:value-of select="@url"/></xsl:attribute>
+    <xsl:value-of select="."/>
+  </ulink>
+</xsl:template>
+
 <xsl:template match="doc:summary">
-<!-- by default don't display -->
+  <xsl:apply-templates />
 </xsl:template>
 
 <xsl:template match="doc:example">
 <informalexample>
 <xsl:apply-templates />
 </informalexample>
+</xsl:template>
+
+<xsl:template name="listitems-do-term">
+  <xsl:param name="str"/>
+  <xsl:choose>
+    <xsl:when test="string-length($str) > 0">
+      <emphasis role="bold"><xsl:value-of select="$str"/>: </emphasis>
+    </xsl:when>
+  </xsl:choose>
+</xsl:template>
+
+<xsl:template name="do-listitems">
+  <xsl:for-each select="doc:item">
+    <listitem>
+      <xsl:call-template name="listitems-do-term"><xsl:with-param name="str" select="doc:term"/></xsl:call-template>
+      <xsl:apply-templates select="doc:definition"/>
+    </listitem>
+  </xsl:for-each>
+</xsl:template>
+
+<xsl:template match="doc:list">
+  <para>
+    <xsl:choose>
+      <xsl:when test="contains(@type,'number')">
+        <orderedlist>
+          <xsl:call-template name="do-listitems"/>
+        </orderedlist>
+      </xsl:when>
+      <xsl:otherwise>
+        <itemizedlist>
+          <xsl:call-template name="do-listitems"/>
+        </itemizedlist>
+      </xsl:otherwise>
+    </xsl:choose>
+  </para>
 </xsl:template>
 
 <xsl:template match="doc:para">
@@ -249,6 +325,12 @@ instead.</para></warning>
 </para>
 </xsl:template>
 
+<xsl:template match="doc:errors">
+<para role="errors">
+<xsl:apply-templates />
+</para>
+</xsl:template>
+
 <xsl:template match="doc:seealso">
 <para>
 See also:
@@ -292,14 +374,39 @@ See also:
   <variablelist role="params">
     <xsl:for-each select="arg">
 <varlistentry><term><parameter><xsl:value-of select="@name"/></parameter>:</term>
-<listitem><simpara><xsl:value-of select="doc:doc/doc:summary"/></simpara></listitem>
+<listitem><simpara><xsl:apply-templates select="doc:doc/doc:summary"/></simpara></listitem>
 </varlistentry>
     </xsl:for-each>
   </variablelist>
 
   <xsl:apply-templates select="doc:doc/doc:since"/>
   <xsl:apply-templates select="doc:doc/doc:deprecated"/>
-  <xsl:apply-templates select="doc:doc/doc:permission"/>
+
+  <xsl:choose>
+    <xsl:when test="count(doc:doc/doc:errors) > 0">
+      <refsect3>
+        <title>Errors</title>
+        <variablelist role="errors">
+          <xsl:for-each select="doc:doc/doc:errors/doc:error">
+            <varlistentry>
+              <term><parameter><xsl:value-of select="@name"/></parameter>:</term>
+              <listitem><simpara><xsl:apply-templates select="."/></simpara></listitem>
+            </varlistentry>
+          </xsl:for-each>
+        </variablelist>
+      </refsect3>
+    </xsl:when>
+  </xsl:choose>
+
+  <xsl:choose>
+    <xsl:when test="count(doc:doc/doc:permission) > 0">
+      <refsect3>
+        <title>Permissions</title>
+        <xsl:apply-templates select="doc:doc/doc:permission"/>
+      </refsect3>
+    </xsl:when>
+  </xsl:choose>
+
   <xsl:apply-templates select="doc:doc/doc:seealso"/>
 </xsl:template>
 
