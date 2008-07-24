@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
-<!ENTITY dbus-Manager SYSTEM "xml/ref-ck-manager.xml">
-<!ENTITY dbus-Seat SYSTEM "xml/ref-ck-seat.xml">
-<!ENTITY dbus-Session SYSTEM "xml/ref-ck-session.xml">
-<!ENTITY Intro SYSTEM "xml/ck-introduction.xml">
-<!ENTITY Terms SYSTEM "xml/ck-terms.xml">
-<!ENTITY Design SYSTEM "xml/ck-design.xml">
 ]>
 
-<book id="index">
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
   <bookinfo>
     <title>ConsoleKit @VERSION@ Documentation</title>
     <releaseinfo>Version @VERSION@</releaseinfo>
@@ -34,10 +28,9 @@
 
   <part>
     <title>Concepts</title>
-
-    &Intro;
-    &Terms;
-    &Design;
+    <xi:include href="xml/ck-introduction.xml"/>
+    <xi:include href="xml/ck-terms.xml"/>
+    <xi:include href="xml/ck-design.xml"/>
   </part>
 
   <part>
@@ -59,11 +52,9 @@
         This API is not yet stable and is likely to change in the future.
         </para>
       </partintro>
-
-      &dbus-Manager;
-      &dbus-Seat;
-      &dbus-Session;
-
+      <xi:include href="xml/org.freedesktop.ConsoleKit.Manager.ref.xml"/>
+      <xi:include href="xml/org.freedesktop.ConsoleKit.Seat.ref.xml"/>
+      <xi:include href="xml/org.freedesktop.ConsoleKit.Session.ref.xml"/>
     </reference>
   </part>
 
