@@ -275,6 +275,11 @@ AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_MSG_RESULT(yes)
 
 dnl ---------------------------------------------------------------------------
+dnl Check for xsltproc
+dnl ---------------------------------------------------------------------------
+AC_PATH_PROG([XSLTPROC], [xsltproc])
+
+dnl ---------------------------------------------------------------------------
 dnl check for inotify
 dnl ---------------------------------------------------------------------------
 
@@ -392,6 +397,7 @@ tools/solaris/Makefile
 data/Makefile
 doc/Makefile
 doc/ConsoleKit.xml
+doc/xml/Makefile
 libck-connector/Makefile
 libck-connector/ck-connector.pc
 pam-ck-connector/Makefile

@@ -75,12 +75,19 @@ BUILT_SOURCES = 		\
 	ck-marshal.h		\
 	$(NULL)
 
-ck-manager-glue.h: ck-manager.xml Makefile.am
-	dbus-binding-tool --prefix=ck_manager --mode=glib-server --output=ck-manager-glue.h ck-manager.xml
-ck-seat-glue.h: ck-seat.xml Makefile.am
-	dbus-binding-tool --prefix=ck_seat --mode=glib-server --output=ck-seat-glue.h ck-seat.xml
-ck-session-glue.h: ck-session.xml Makefile.am
-	dbus-binding-tool --prefix=ck_session --mode=glib-server --output=ck-session-glue.h ck-session.xml
+dbusifdir = $(datadir)/dbus-1/interfaces
+dbusif_DATA = 					\
+	org.freedesktop.ConsoleKit.Manager.xml	\
+	org.freedesktop.ConsoleKit.Seat.xml	\
+	org.freedesktop.ConsoleKit.Session.xml	\
+	$(NULL)
+
+ck-manager-glue.h: org.freedesktop.ConsoleKit.Manager.xml Makefile.am
+	dbus-binding-tool --prefix=ck_manager --mode=glib-server --output=ck-manager-glue.h org.freedesktop.ConsoleKit.Manager.xml
+ck-seat-glue.h: org.freedesktop.ConsoleKit.Seat.xml Makefile.am
+	dbus-binding-tool --prefix=ck_seat --mode=glib-server --output=ck-seat-glue.h org.freedesktop.ConsoleKit.Seat.xml
+ck-session-glue.h: org.freedesktop.ConsoleKit.Session.xml Makefile.am
+	dbus-binding-tool --prefix=ck_session --mode=glib-server --output=ck-session-glue.h org.freedesktop.ConsoleKit.Session.xml
 
 ck-marshal.c: ck-marshal.list
 	echo "#include \"ck-marshal.h\"" > $@ && \
@@ -183,9 +190,7 @@ test_tty_idle_monitor_LDADD =		\
 
 EXTRA_DIST =			\
 	ck-marshal.list		\
-	ck-manager.xml		\
-	ck-seat.xml		\
-	ck-session.xml		\
+	$(dbusif_DATA)		\
 	valgrind.sh		\
 	test-open-session	\
 	test-open-session-with-parameters	\

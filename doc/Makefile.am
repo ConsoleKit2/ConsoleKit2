@@ -5,9 +5,9 @@ SPEC_XML_FILES =			\
 	xml/ck-introduction.xml		\
 	xml/ck-terms.xml		\
 	xml/ck-design.xml		\
-	xml/ref-ck-manager.xml		\
-	xml/ref-ck-seat.xml		\
-	xml/ref-ck-session.xml		\
+	xml/org.freedesktop.ConsoleKit.Manager.ref.xml \
+	xml/org.freedesktop.ConsoleKit.Seat.ref.xml \
+	xml/org.freedesktop.ConsoleKit.Session.ref.xml \
 	$(NULL)
 
 if DOCBOOK_DOCS_ENABLED
