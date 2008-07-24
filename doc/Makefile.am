@@ -1,5 +1,7 @@
 NULL =
 
+SUBDIRS = xml
+
 SPEC_XML_FILES =			\
 	ConsoleKit.xml			\
 	xml/ck-introduction.xml		\
