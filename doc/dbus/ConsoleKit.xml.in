@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
-<!ENTITY dbus-Manager SYSTEM "xml/org.freedesktop.ConsoleKit.Manager.ref.xml">
-<!ENTITY dbus-Seat SYSTEM "xml/org.freedesktop.ConsoleKit.Seat.ref.xml">
-<!ENTITY dbus-Session SYSTEM "xml/org.freedesktop.ConsoleKit.Session.ref.xml">
-<!ENTITY Intro SYSTEM "xml/ck-introduction.xml">
-<!ENTITY Terms SYSTEM "xml/ck-terms.xml">
-<!ENTITY Design SYSTEM "xml/ck-design.xml">
+<!ENTITY dbus-Manager SYSTEM "org.freedesktop.ConsoleKit.Manager.ref.xml">
+<!ENTITY dbus-Seat SYSTEM "org.freedesktop.ConsoleKit.Seat.ref.xml">
+<!ENTITY dbus-Session SYSTEM "org.freedesktop.ConsoleKit.Session.ref.xml">
+<!ENTITY Intro SYSTEM "ck-introduction.xml">
+<!ENTITY Terms SYSTEM "ck-terms.xml">
+<!ENTITY Design SYSTEM "ck-design.xml">
 ]>
 
 <book id="index">
