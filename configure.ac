@@ -431,5 +431,14 @@ echo "
         PAM module dir:           ${PAM_MODULE_DIR}
         Build PAM module:         ${msg_pam_module}
         Build docs:               ${enable_docbook_docs}
-        Build with RBAC:          ${msg_rbac_shutdown}
+
+        PolicyKit support         ${have_polkit}
+        RBAC (Solaris) support:   ${msg_rbac_shutdown}
 "
+if test x${have_polkit} = xno -a x${msg_rbac_shutdown} = xno; then
+   echo "WARNING: PolicyKit and RBAC are disabled. You need to manually edit the ConsoleKit.conf"
+   echo "         file to lock down the service. Failure to do so may be"
+   echo "         a huge SECURITY HOLE. I repeat: YOU NEED TO EDIT THE FILE"
+   echo "         ConsoleKit.conf to match your distro/site to avoid NASTY SECURITY HOLES."
+   echo ""
+fi

@@ -39,11 +39,9 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
-#ifdef HAVE_POLKIT
+#if defined HAVE_POLKIT
 #include <polkit/polkit.h>
-#endif
-
-#ifdef ENABLE_RBAC_SHUTDOWN
+#elif defined ENABLE_RBAC_SHUTDOWN
 #include <auth_attr.h>
 #include <secdb.h>
 #endif
@@ -1340,17 +1338,18 @@ ck_manager_restart (CkManager             *manager,
 
         g_debug ("ConsoleKit Restart: %s", action);
 
-#ifdef HAVE_POLKIT
+#if defined HAVE_POLKIT
         res = _check_polkit_for_action (manager, context, action);
         if (! res) {
                 goto out;
         }
-#endif
-
-#ifdef ENABLE_RBAC_SHUTDOWN
+#elif defined ENABLE_RBAC_SHUTDOWN
         if (! check_rbac_permissions (manager, context)) {
                 goto out;
         }
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        goto out;
 #endif
 
         g_debug ("ConsoleKit preforming Restart: %s", action);
@@ -1399,16 +1398,18 @@ ck_manager_stop (CkManager             *manager,
                 action = "org.freedesktop.consolekit.system.stop";
         }
 
-#ifdef HAVE_POLKIT
+#if defined HAVE_POLKIT
         res = _check_polkit_for_action (manager, context, action);
         if (! res) {
                 goto out;
         }
-#endif
-
-#ifdef ENABLE_RBAC_SHUTDOWN
-        if (!check_rbac_permissions (manager, context))
+#elif defined  ENABLE_RBAC_SHUTDOWN
+        if (!check_rbac_permissions (manager, context)) {
                 goto out;
+        }
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        goto out;
 #endif
 
         g_debug ("Stopping system");
