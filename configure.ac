@@ -396,8 +396,8 @@ tools/freebsd/Makefile
 tools/solaris/Makefile
 data/Makefile
 doc/Makefile
-doc/ConsoleKit.xml
-doc/xml/Makefile
+doc/dbus/ConsoleKit.xml
+doc/dbus/Makefile
 libck-connector/Makefile
 libck-connector/ck-connector.pc
 pam-ck-connector/Makefile
