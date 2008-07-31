@@ -1,4 +1,46 @@
 ==============
+Version 0.3.0
+==============
+
+ * API changes to make the daemon conform to the published spec
+
+ * don't allow reboot if PolicyKit and RBAC are disabled (William Jon McCann)
+ * fix path in includes (William Jon McCann)
+ * reorganize the docs a bit (William Jon McCann)
+ * pull updated DTD and xsl from DeviceKit-disks (William Jon McCann)
+ * fix distcheck (William Jon McCann)
+ * still having problems using xinclude (William Jon McCann)
+ * fix the includes (William Jon McCann)
+ * add missing bits (William Jon McCann)
+ * use spec files directly as introspection xml and try to generate docs on the fly (William Jon McCan
+ * use object paths for seat added/removed signals per spec (William Jon McCann)
+ * regenerate the docs and xml from the spec (William Jon McCann)
+ * add GetLoginSessionId to exported interface (William Jon McCann)
+ * fix use of unix-user as int (William Jon McCann)
+ * use fortify source flag when building from git (William Jon McCann)
+ * fix location of scripts again (William Jon McCann)
+ * dist bzip by default (William Jon McCann)
+ * fix up signal definition (William Jon McCann)
+ * fix UnixUser to be uint (William Jon McCann)
+ * use object paths instead of strings for signals (William Jon McCann)
+ * cleanly shutdown event logging thread (William Jon McCann)
+ * export login session id to the bus (William Jon McCann)
+ * exit with the bus now that we're activated by the bus (William Jon McCann)
+ * allow retaining authorizations for {stop,restart}-multiple-users (David Zeuthen)
+ * make sure to add all override parameters (William Jon McCann)
+ * fix the script to work with recent dbus-python api changes (William Jon McCann)
+ * always try to detect parameters for session (William Jon McCann)
+ * oops one more place (William Jon McCann)
+ * install scripts into $(prefix)/lib instead of $libdir (William Jon McCann)
+ * return PolicyKit results when not privileged for action (William Jon McCann)
+ * fix typo (William Jon McCann)
+ * initial login session id support (William Jon McCann)
+ * display uid as unix-user to match api (William Jon McCann)
+ * fix packaging of policy file (William Jon McCann)
+ * rename policy file (William Jon McCann)
+ * post release version bump (William Jon McCann)
+
+==============
 Version 0.2.10
 ==============
 
