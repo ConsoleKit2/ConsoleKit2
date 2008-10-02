@@ -35,7 +35,7 @@
 
 DBUS_BEGIN_DECLS
 
-struct _CkConnecter;
+struct _CkConnector;
 typedef struct _CkConnector CkConnector;
 
 CkConnector  *ck_connector_new                          (void);
