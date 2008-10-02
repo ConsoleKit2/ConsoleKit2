@@ -160,7 +160,12 @@ retry:
                 return FALSE;
         }
 
-        fchown (fd, 0, 0);
+        if (fchown (fd, 0, 0) == -1) {
+                close (fd);
+                g_warning ("Error setting owner of log file (%s)",
+                           g_strerror (errno));
+                return FALSE;
+        }
 
         event_logger->priv->file = fdopen (fd, "a");
         if (event_logger->priv->file == NULL) {
