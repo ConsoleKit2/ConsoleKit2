@@ -225,6 +225,7 @@ ck_run_programs (const char *dirpath,
         out_loop:
                 g_free (child_argv[0]);
         }
+        g_dir_close (dir);
 out:
         g_strfreev (env_for_child);
 }
