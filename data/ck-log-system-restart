@@ -1,0 +1,8 @@
+# Upstart event
+# ck-log-system-restart - write system restart to log
+#
+
+start on runlevel 6
+
+console output
+exec /usr/sbin/ck-log-system-restart

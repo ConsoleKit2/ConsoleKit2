@@ -27,6 +27,9 @@ edit = sed \
 	-e 's|@CONSOLE_KIT_PID_FILE[@]|$(CONSOLE_KIT_PID_FILE)|g'
 
 EXTRA_DIST =						\
+	ck-log-system-restart				\
+	ck-log-system-start				\
+	ck-log-system-stop				\
 	$(dbusconf_DATA)				\
 	$(seat_DATA)					\
 	$(service_in_files)				\
