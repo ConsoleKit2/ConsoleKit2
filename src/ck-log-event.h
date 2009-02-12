@@ -45,18 +45,22 @@ typedef enum
 
 typedef struct
 {
+        gpointer dummy;
 } CkLogNoneEvent;
 
 typedef struct
 {
+        gpointer dummy;
 } CkLogSystemStopEvent;
 
 typedef struct
 {
+        gpointer dummy;
 } CkLogSystemRestartEvent;
 
 typedef struct
 {
+        gpointer dummy;
 } CkLogSystemStartEvent;
 
 typedef struct
