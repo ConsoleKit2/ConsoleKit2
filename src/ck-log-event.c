@@ -384,7 +384,7 @@ add_log_for_seat_added (GString    *str,
 
         e = (CkLogSeatAddedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' seat-kind=%d",
+                                "seat-id='%s' seat-kind=%d",
                                 e->seat_id,
                                 e->seat_kind);
 }
@@ -397,7 +397,7 @@ add_log_for_seat_removed (GString    *str,
 
         e = (CkLogSeatRemovedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' seat-kind=%d",
+                                "seat-id='%s' seat-kind=%d",
                                 e->seat_id,
                                 e->seat_kind);
 }
@@ -410,7 +410,7 @@ add_log_for_seat_session_added (GString    *str,
 
         e = (CkLogSeatSessionAddedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' session-id='%s' session-type='%s' session-x11-display='%s' session-x11-display-device='%s' session-display-device='%s' session-remote-host-name='%s' session-is-local=%s session-unix-user=%u session-creation-time='%s'",
+                                "seat-id='%s' session-id='%s' session-type='%s' session-x11-display='%s' session-x11-display-device='%s' session-display-device='%s' session-remote-host-name='%s' session-is-local=%s session-unix-user=%u session-creation-time='%s'",
                                 e->seat_id ? e->seat_id : "",
                                 e->session_id ? e->session_id : "",
                                 e->session_type ? e->session_type : "",
@@ -431,7 +431,7 @@ add_log_for_seat_session_removed (GString    *str,
 
         e = (CkLogSeatSessionRemovedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' session-id='%s' session-type='%s' session-x11-display='%s' session-x11-display-device='%s' session-display-device='%s' session-remote-host-name='%s' session-is-local=%s session-unix-user=%u session-creation-time='%s'",
+                                "seat-id='%s' session-id='%s' session-type='%s' session-x11-display='%s' session-x11-display-device='%s' session-display-device='%s' session-remote-host-name='%s' session-is-local=%s session-unix-user=%u session-creation-time='%s'",
                                 e->seat_id ? e->seat_id : "",
                                 e->session_id ? e->session_id : "",
                                 e->session_type ? e->session_type : "",
@@ -480,7 +480,7 @@ add_log_for_seat_active_session_changed (GString    *str,
 
         e = (CkLogSeatActiveSessionChangedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' session-id='%s'",
+                                "seat-id='%s' session-id='%s'",
                                 e->seat_id ? e->seat_id : "",
                                 e->session_id ? e->session_id : "");
 }
@@ -493,7 +493,7 @@ add_log_for_seat_device_added (GString    *str,
 
         e = (CkLogSeatDeviceAddedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' device-id='%s' device-type='%s'",
+                                "seat-id='%s' device-id='%s' device-type='%s'",
                                 e->seat_id ? e->seat_id : "",
                                 e->device_id ? e->device_id : "",
                                 e->device_type ? e->device_type : "");
@@ -507,7 +507,7 @@ add_log_for_seat_device_removed (GString    *str,
 
         e = (CkLogSeatDeviceRemovedEvent *)event;
         g_string_append_printf (str,
-                                " seat-id='%s' device-id='%s' device-type='%s'",
+                                "seat-id='%s' device-id='%s' device-type='%s'",
                                 e->seat_id ? e->seat_id : "",
                                 e->device_id ? e->device_id : "",
                                 e->device_type ? e->device_type : "");
@@ -595,7 +595,7 @@ add_log_for_any (GString    *str,
                  CkLogEvent *event)
 {
         g_string_append_printf (str,
-                                "%lu.%03u type=%s :",
+                                "%lu.%03u type=%s : ",
                                 (gulong)event->timestamp.tv_sec,
                                 (guint)(event->timestamp.tv_usec / 1000),
                                 event_type_to_name (event->type));
@@ -655,8 +655,17 @@ skip_header (const char *str,
                           " : ");
         if (r != NULL) {
                 r += 3;
+                goto out;
         }
 
+        r = g_strstr_len (str,
+                          len,
+                          " :");
+        if (r != NULL) {
+                r += 2;
+        }
+
+ out:
         return r;
 }
 
