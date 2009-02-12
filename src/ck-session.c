@@ -1100,6 +1100,8 @@ ck_session_finalize (GObject *object)
 
         session_remove_activity_watch (session);
 
+        g_object_unref (session->priv->bus_proxy);
+
         g_free (session->priv->id);
         g_free (session->priv->cookie);
         g_free (session->priv->seat_id);
