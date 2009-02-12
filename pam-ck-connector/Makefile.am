@@ -22,6 +22,7 @@ pam_ck_connector_la_LIBADD =  			\
 
 man_MANS = pam_ck_connector.8
 
+if CK_COMPILE_LINUX
 noinst_PROGRAMS = 				\
 	test-pam				\
 	$(NULL)
@@ -34,6 +35,7 @@ test_pam_LDADD =				\
 	$(PAM_LIBS)				\
 	-lpam_misc				\
 	$(NULL)
+endif
 
 endif
 

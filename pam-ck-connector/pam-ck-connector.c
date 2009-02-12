@@ -39,6 +39,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <limits.h>
 #include <errno.h>
 
 #ifdef HAVE_PATHS_H
@@ -51,8 +52,8 @@
 
 #define PAM_SM_SESSION
 
+#include <security/pam_appl.h>
 #include <security/pam_modules.h>
-#include <security/_pam_macros.h>
 #ifdef HAVE_SECURITY_PAM_MODUTIL_H
 #include <security/pam_modutil.h>
 #endif
@@ -69,6 +70,14 @@ static int opt_nox11 = FALSE;
 
 #ifndef LOG_AUTHPRIV
 #define LOG_AUTHPRIV LOG_AUTH
+#endif
+
+#ifndef PAM_EXTERN
+#ifdef PAM_STATIC
+#define PAM_EXTERN static
+#else
+#define PAM_EXTERN extern
+#endif
 #endif
 
 static void
@@ -188,10 +197,17 @@ _util_name_to_uid (const char *username,
 
         bufsize = sysconf (_SC_GETPW_R_SIZE_MAX);
         buf = calloc (sizeof (char), bufsize);
+#ifdef __sun
+        pwdp = getpwnam_r (username, &pwd, buf, bufsize);
+        if (pwdp == NULL) {
+                goto out;
+        }
+#else
         rc = getpwnam_r (username, &pwd, buf, bufsize, &pwdp);
         if (rc != 0 || pwdp == NULL) {
                 goto out;
         }
+#endif
 
         res = pwdp->pw_uid;
         if (default_gid != NULL) {
