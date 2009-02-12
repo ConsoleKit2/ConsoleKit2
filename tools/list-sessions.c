@@ -148,8 +148,19 @@ get_real_name (uid_t uid)
 
         pwent = getpwuid (uid);
 
-        if (pwent != NULL) {
-                realname = g_strdup (pwent->pw_gecos);
+        if (pwent != NULL
+            && pwent->pw_gecos
+            && *pwent->pw_gecos != '\0') {
+                char **gecos_fields;
+                char **name_parts;
+
+                /* split the gecos field and substitute '&' */
+                gecos_fields = g_strsplit (pwent->pw_gecos, ",", 0);
+                name_parts = g_strsplit (gecos_fields[0], "&", 0);
+                pwent->pw_name[0] = g_ascii_toupper (pwent->pw_name[0]);
+                realname = g_strjoinv (pwent->pw_name, name_parts);
+                g_strfreev (gecos_fields);
+                g_strfreev (name_parts);
         }
 
         return realname;
