@@ -190,6 +190,9 @@ case "$host" in
         *-*-solaris*)
         CK_BACKEND="solaris"
         ;;
+	*)
+	AC_MSG_ERROR([No sysdeps back-end implemented for host $host])
+	;;
 esac
 
 AC_SUBST(KVM_LIBS)
