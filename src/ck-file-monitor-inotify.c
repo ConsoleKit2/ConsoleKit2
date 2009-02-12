@@ -55,7 +55,7 @@ typedef struct
 
 typedef struct
 {
-        FileInotifyWatch  *watch;
+        int                wd;
         CkFileMonitorEvent event;
         char              *path;
 } FileMonitorEventInfo;
@@ -80,7 +80,9 @@ struct CkFileMonitorPrivate
         guchar     *buffer;
 
         guint       events_idle_id;
+        guint       remove_idle_id;
         GQueue     *notify_events;
+        GQueue     *remove_events;
 };
 
 enum {
@@ -242,6 +244,10 @@ static void
 file_monitor_remove_watch (CkFileMonitor    *monitor,
                            FileInotifyWatch *watch)
 {
+        if (watch->wd == -1) {
+                return;
+        }
+
         g_hash_table_remove (monitor->priv->path_to_watch,
                              watch->path);
         g_hash_table_remove (monitor->priv->wd_to_watch,
@@ -296,6 +302,8 @@ static gboolean
 emit_events_in_idle (CkFileMonitor *monitor)
 {
         FileMonitorEventInfo *event_info;
+        char                 *path;
+        char                 *freeme;
 
         monitor->priv->events_idle_id = 0;
 
@@ -303,32 +311,72 @@ emit_events_in_idle (CkFileMonitor *monitor)
                 GSList           *l;
                 FileInotifyWatch *watch;
 
-                watch = event_info->watch;
+                watch = g_hash_table_lookup (monitor->priv->wd_to_watch,
+                                             GINT_TO_POINTER (event_info->wd));
 
-                for (l = watch->notifies; l != NULL; l = l->next) {
-                        FileMonitorNotify *notify;
+                if (watch != NULL) {
+                    for (l = watch->notifies; l != NULL; l = l->next) {
+                            FileMonitorNotify *notify;
 
-                        notify = g_hash_table_lookup (monitor->priv->notifies,
-                                                      GUINT_TO_POINTER (l->data));
-                        if (notify == NULL) {
-                                continue;
-                        }
+                            notify = g_hash_table_lookup (monitor->priv->notifies,
+                                                          GUINT_TO_POINTER (l->data));
+                            if (notify == NULL) {
+                                    continue;
+                            }
 
-                        if (! (notify->mask & event_info->event)) {
-                                continue;
-                        }
+                            if (! (notify->mask & event_info->event)) {
+                                    continue;
+                            }
 
-                        if (notify->notify_func) {
-                                notify->notify_func (monitor, event_info->event, event_info->path, notify->user_data);
-                        }
+                            if (notify->notify_func) {
+                                    freeme = NULL;
+                                    if (event_info->path != NULL) {
+                                            path = freeme = g_build_filename (watch->path, event_info->path, NULL);
+                                    } else {
+                                            path = watch->path;
+                                    }
+                                    notify->notify_func (monitor, event_info->event, path, notify->user_data);
+                                    if (freeme != NULL) {
+                                        g_free (freeme);
+                                    }
+                            }
+                    }
                 }
 
-                g_free (event_info->path);
                 event_info->path = NULL;
-
                 event_info->event = CK_FILE_MONITOR_EVENT_NONE;
 
                 g_free (event_info);
+        }
+
+        return FALSE;
+}
+
+static gboolean
+emit_removals_in_idle (CkFileMonitor *monitor)
+{
+        gpointer          wd_p;
+        FileInotifyWatch *watch;
+        GSList           *l;
+
+        monitor->priv->remove_idle_id = 0;
+
+        while ((wd_p = g_queue_pop_head (monitor->priv->remove_events)) != NULL) {
+                watch = g_hash_table_lookup (monitor->priv->wd_to_watch, wd_p);
+                if (watch && watch->wd != -1) {
+                    for (l = watch->notifies; l != NULL; l = l->next) {
+                            FileMonitorNotify *notify;
+
+                            notify = g_hash_table_lookup (monitor->priv->notifies,
+                                                          GUINT_TO_POINTER (l->data));
+                            if (notify == NULL) {
+                                    continue;
+                            }
+                            notify->watch = NULL;
+                    }
+                    file_monitor_remove_watch (monitor, watch);
+                    g_free (watch);
+                }
         }
 
         return FALSE;
@@ -347,7 +395,7 @@ file_monitor_queue_event (CkFileMonitor        *monitor,
 
 static void
 queue_watch_event (CkFileMonitor     *monitor,
-                   FileInotifyWatch  *watch,
+                   int                wd,
                    CkFileMonitorEvent event,
                    const char        *path)
 {
@@ -355,7 +403,7 @@ queue_watch_event (CkFileMonitor     *monitor,
 
         event_info = g_new0 (FileMonitorEventInfo, 1);
 
-        event_info->watch   = watch;
+        event_info->wd      = wd;
         event_info->path    = g_strdup (path);
         event_info->event   = event;
 
@@ -363,8 +411,18 @@ queue_watch_event (CkFileMonitor     *monitor,
 }
 
 static void
+queue_remove_event (CkFileMonitor *monitor,
+                    int            wd)
+{
+        g_queue_push_tail (monitor->priv->remove_events, GINT_TO_POINTER (wd));
+
+        if (monitor->priv->remove_idle_id == 0) {
+                monitor->priv->remove_idle_id = g_idle_add ((GSourceFunc) emit_removals_in_idle, monitor);
+        }
+}
+
+static void
 handle_inotify_event (CkFileMonitor        *monitor,
-                      FileInotifyWatch     *watch,
                       struct inotify_event *ievent)
 {
         CkFileMonitorEvent  event;
@@ -375,9 +433,9 @@ handle_inotify_event (CkFileMonitor        *monitor,
         freeme = NULL;
 
         if (ievent->len > 0) {
-                path = freeme = g_build_filename (watch->path, ievent->name, NULL);
+                path = ievent->name;
         } else {
-                path = watch->path;
+                path = NULL;
         }
 
         mask_str = imask_to_string (ievent->mask);
@@ -397,11 +455,11 @@ handle_inotify_event (CkFileMonitor        *monitor,
         }
 
         if (event != CK_FILE_MONITOR_EVENT_NONE) {
-                queue_watch_event (monitor, watch, event, path);
+                queue_watch_event (monitor, ievent->wd, event, path);
         }
 
         if (ievent->mask & IN_IGNORED) {
-                file_monitor_remove_watch (monitor, watch);
+                queue_remove_event (monitor, ievent->wd);
         }
 }
 
@@ -460,7 +518,7 @@ inotify_data_pending (GIOChannel    *source,
                 watch = g_hash_table_lookup (monitor->priv->wd_to_watch,
                                              GINT_TO_POINTER (ievent->wd));
                 if (watch != NULL) {
-                        handle_inotify_event (monitor, watch, ievent);
+                        handle_inotify_event (monitor, ievent);
                 }
 
                 i += sizeof (struct inotify_event) + ievent->len;
@@ -523,11 +581,13 @@ file_monitor_remove_notify (CkFileMonitor *monitor,
         g_hash_table_steal (monitor->priv->notifies,
                             GUINT_TO_POINTER (id));
 
-        notify->watch->notifies = g_slist_remove (notify->watch->notifies, GUINT_TO_POINTER (id));
+        if (notify->watch) {
+            notify->watch->notifies = g_slist_remove (notify->watch->notifies, GUINT_TO_POINTER (id));
 
-        if (g_slist_length (notify->watch->notifies) == 0) {
-                file_monitor_remove_watch (monitor, notify->watch);
-                g_free (notify->watch);
+            if (g_slist_length (notify->watch->notifies) == 0) {
+                    file_monitor_remove_watch (monitor, notify->watch);
+                    g_free (notify->watch);
+            }
         }
 
         g_free (notify);
@@ -629,6 +689,7 @@ ck_file_monitor_init (CkFileMonitor *monitor)
 
         monitor->priv->serial = 1;
         monitor->priv->notify_events = g_queue_new ();
+        monitor->priv->remove_events = g_queue_new ();
 
         setup_inotify (monitor);
 }
@@ -649,6 +710,7 @@ ck_file_monitor_finalize (GObject *object)
 
         g_hash_table_destroy (monitor->priv->notifies);
         g_queue_free (monitor->priv->notify_events);
+        g_queue_free (monitor->priv->remove_events);
 
         G_OBJECT_CLASS (ck_file_monitor_parent_class)->finalize (object);
 }
