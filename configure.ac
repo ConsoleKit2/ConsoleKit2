@@ -277,6 +277,9 @@ fi
 AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_MSG_RESULT(yes)
 
+AC_ARG_VAR([XMLTO],[Define/override the `xmlto' location.])
+AC_ARG_VAR([XMLTO_FLAGS],[Define/override `xmlto' options, like `--skip-validation'.])
+
 dnl ---------------------------------------------------------------------------
 dnl Check for xsltproc
 dnl ---------------------------------------------------------------------------

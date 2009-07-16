@@ -16,7 +16,7 @@ htmldocdir = $(docdir)/spec
 htmldoc_DATA = ConsoleKit.html
 
 ConsoleKit.html : $(SPEC_XML_FILES)
-	$(XMLTO) xhtml-nochunks -m $(top_srcdir)/doc/dbus/config.xsl ConsoleKit.xml
+	$(XMLTO) $(XMLTO_FLAGS) xhtml-nochunks -m $(top_srcdir)/doc/dbus/config.xsl ConsoleKit.xml
 
 endif # DOCBOOK_DOCS_ENABLED
 
@@ -44,3 +44,6 @@ MAINTAINERCLEANFILES =		\
 clean-local:
 	rm -f *~ *.ref.xml
 	rm -f ConsoleKit.html
+
+check-local:
+	xmllint --noout --noent --valid ConsoleKit.xml

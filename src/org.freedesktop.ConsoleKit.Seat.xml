@@ -17,7 +17,8 @@ seat at a time.</doc:para>
         </doc:doc>
       </arg>
       <doc:doc>
-        <doc:description>Returns the ID for Seat.
+        <doc:description>
+          <doc:para>Returns the ID for Seat.</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -76,7 +77,7 @@ seat at a time.</doc:para>
         </doc:doc>
       </arg>
       <doc:doc>
-        <doc:description>Used to determine whether the seat supports session activation.
+        <doc:description><doc:para>Used to determine whether the seat supports session activation.</doc:para>
         </doc:description>
       </doc:doc>
     </method>

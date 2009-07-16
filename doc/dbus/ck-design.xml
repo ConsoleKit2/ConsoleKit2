@@ -38,16 +38,16 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To open a new Session.
+          <simpara>To open a new Session.</simpara>
         </listitem>
         <listitem>
-        To set properties for the Session.
+          <simpara>To set properties for the Session.</simpara>
         </listitem>
         <listitem>
-        To maintain a connection to the D-Bus system bus.
+          <simpara>To maintain a connection to the D-Bus system bus.</simpara>
         </listitem>
         <listitem>
-        To close the Session at logout.
+          <simpara>To close the Session at logout.</simpara>
         </listitem>
       </orderedlist>
     </sect2>
@@ -58,25 +58,25 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To determine which Seat it is running on.
+          <simpara>To determine which Seat it is running on.</simpara>
         </listitem>
         <listitem>
-        To know if the current seat supports session switching.
+          <simpara>To know if the current seat supports session switching.</simpara>
         </listitem>
         <listitem>
-        A list of all sessions on the current Seat.
+          <simpara>A list of all sessions on the current Seat.</simpara>
         </listitem>
         <listitem>
-        To know which session is active for the current Seat.
+          <simpara>To know which session is active for the current Seat.</simpara>
         </listitem>
         <listitem>
-        To know when the session active state changes.
+          <simpara>To know when the session active state changes.</simpara>
         </listitem>
         <listitem>
-        To know when sessions are added or removed.
+          <simpara>To know when sessions are added or removed.</simpara>
         </listitem>
         <listitem>
-        Access to the metadata for any open Session.
+          <simpara>Access to the metadata for any open Session.</simpara>
         </listitem>
       </orderedlist>
     </sect2>
@@ -87,10 +87,10 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To know if any user sessions are open.
+          <simpara>To know if any user sessions are open.</simpara>
         </listitem>
         <listitem>
-        To know if the system is currently being used.
+          <simpara>To know if the system is currently being used.</simpara>
         </listitem>
       </orderedlist>
     </sect2>
@@ -101,16 +101,16 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To determine what hardware is associated with a Seat.
+          <simpara>To determine what hardware is associated with a Seat.</simpara>
         </listitem>
         <listitem>
-        To determine what Session is active and inactive on a particular Seat.
+          <simpara>To determine what Session is active and inactive on a particular Seat.</simpara>
         </listitem>
         <listitem>
-        To know when the session active state changes.
+          <simpara>To know when the session active state changes.</simpara>
         </listitem>
         <listitem>
-        To determine what Session a process belongs to.
+          <simpara>To determine what Session a process belongs to.</simpara>
         </listitem>
       </orderedlist>
     </sect2>
@@ -121,28 +121,28 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To determine which session it is running in.
+          <simpara>To determine which session it is running in.</simpara>
         </listitem>
         <listitem>
-        To determine which Seat it is running on.
+          <simpara>To determine which Seat it is running on.</simpara>
         </listitem>
         <listitem>
-        To know if the current seat supports session switching.
+          <simpara>To know if the current seat supports session switching.</simpara>
         </listitem>
         <listitem>
-        A list of all sessions on the current Seat.
+          <simpara>A list of all sessions on the current Seat.</simpara>
         </listitem>
         <listitem>
-        Which session is active for the current Seat.
+          <simpara>Which session is active for the current Seat.</simpara>
         </listitem>
         <listitem>
-        To know when the session active state changes.
+          <simpara>To know when the session active state changes.</simpara>
         </listitem>
         <listitem>
-        Access to the metadata for any open Session.
+          <simpara>Access to the metadata for any open Session.</simpara>
         </listitem>
         <listitem>
-        To know when sessions are added or removed.
+          <simpara>To know when sessions are added or removed.</simpara>
         </listitem>
       </orderedlist>
     </sect2>
@@ -153,10 +153,10 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To determine which session it is running in.
+          <simpara>To determine which session it is running in.</simpara>
         </listitem>
         <listitem>
-        To know when the session active state changes.
+          <simpara>To know when the session active state changes.</simpara>
         </listitem>
       </orderedlist>
     </sect2>
@@ -167,10 +167,10 @@ The Session will remain open until the Session Leader disconnects from the D-Bus
       </para>
       <orderedlist>
         <listitem>
-        To determine which session it is running in.
+          <simpara>To determine which session it is running in.</simpara>
         </listitem>
         <listitem>
-        To know when the session active state changes.
+          <simpara>To know when the session active state changes.</simpara>
         </listitem>
       </orderedlist>
     </sect2>

@@ -158,7 +158,7 @@
       </arg>
       <doc:doc>
         <doc:description>
-          <doc:para>This gets a list of all the <doc:ref type="interface" to="Sessions">Sessions</doc:ref>
+          <doc:para>This gets a list of all the <doc:ref type="interface" to="Session">Sessions</doc:ref>
           that are currently present on the system.</doc:para>
           <doc:para>Each Session ID is an D-Bus object path for the object that implements the
           <doc:ref type="interface" to="Session">Session</doc:ref> interface.</doc:para>
