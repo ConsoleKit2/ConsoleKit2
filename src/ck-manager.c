@@ -1213,7 +1213,7 @@ session_is_real_user (CkSession *session,
 
         g_object_get (session,
                       "unix-user", &uid,
-                      "session-type", session_type,
+                      "session-type", &session_type,
                       NULL);
 
         username = get_user_name (uid);
