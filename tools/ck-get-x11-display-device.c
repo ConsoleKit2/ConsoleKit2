@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 #include <glib.h>
 
 #include "ck-sysdeps.h"
@@ -78,6 +79,72 @@ display_init (const char *display_name)
         return xdisplay;
 }
 
+static char *
+get_tty_for_display (Display *xdisplay)
+{
+        Window root_window;
+        Atom xfree86_vt_atom;
+        Atom return_type_atom;
+        int return_format;
+        gulong return_count;
+        gulong bytes_left;
+        guchar *return_value;
+        glong vt;
+        char *display;
+
+        display = NULL;
+
+        xfree86_vt_atom = XInternAtom (xdisplay, "XFree86_VT", True);
+
+        if (xfree86_vt_atom == None) {
+                return NULL;
+        }
+
+        root_window = DefaultRootWindow (xdisplay);
+
+        g_assert (root_window != None);
+
+        return_value = NULL;
+        if (XGetWindowProperty(xdisplay, root_window, xfree86_vt_atom,
+                               0L, 1L, False, XA_INTEGER,
+                               &return_type_atom, &return_format,
+                               &return_count, &bytes_left,
+                               &return_value) != Success) {
+                goto out;
+        }
+
+        if (return_type_atom != XA_INTEGER) {
+                goto out;
+        }
+
+        if (return_format != 32) {
+                goto out;
+        }
+
+        if (return_count != 1) {
+                goto out;
+        }
+
+        if (bytes_left != 0) {
+                goto out;
+        }
+
+        vt = *((glong *) return_value);
+
+        if (vt <= 0) {
+                goto out;
+        }
+
+        display = g_strdup_printf ("/dev/tty%ld", vt);
+
+out:
+        if (return_value != NULL) {
+                XFree (return_value);
+        }
+
+        return display;
+}
+
 int
 main (int    argc,
       char **argv)
@@ -115,6 +182,11 @@ main (int    argc,
                 if (res) {
                         if (pid > 0) {
                                 device = get_tty_for_pid (pid);
+
+                                if (device == NULL) {
+                                        device = get_tty_for_display (xdisplay);
+                                }
+
                                 if (device != NULL) {
                                         printf ("%s\n", device);
                                         g_free (device);
