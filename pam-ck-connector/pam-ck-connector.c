@@ -197,17 +197,10 @@ _util_name_to_uid (const char *username,
 
         bufsize = sysconf (_SC_GETPW_R_SIZE_MAX);
         buf = calloc (sizeof (char), bufsize);
-#ifdef __sun
-        pwdp = getpwnam_r (username, &pwd, buf, bufsize);
-        if (pwdp == NULL) {
-                goto out;
-        }
-#else
         rc = getpwnam_r (username, &pwd, buf, bufsize, &pwdp);
         if (rc != 0 || pwdp == NULL) {
                 goto out;
         }
-#endif
 
         res = pwdp->pw_uid;
         if (default_gid != NULL) {
