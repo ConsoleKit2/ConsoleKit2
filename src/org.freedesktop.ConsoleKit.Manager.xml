@@ -13,6 +13,11 @@
       </doc:doc>
     </method>
 
+    <method name="CanRestart">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_restart" type="b" direction="out"/>
+    </method>
+
     <method name="Stop">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <doc:doc>
@@ -20,6 +25,11 @@
           <doc:para>This method initiates a request to stop (ie. shutdown) the computer system.</doc:para>
         </doc:description>
       </doc:doc>
+    </method>
+
+    <method name="CanStop">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_stop" type="b" direction="out"/>
     </method>
 
     <method name="OpenSession">

@@ -67,7 +67,7 @@
 struct CkManagerPrivate
 {
 #ifdef HAVE_POLKIT
-        PolKitContext   *pol_ctx;
+        PolkitAuthority *pol_ctx;
 #endif
 
         GHashTable      *seats;
@@ -740,346 +740,79 @@ get_cookie_for_pid (CkManager *manager,
         return cookie;
 }
 
-static CkSession *
-get_session_for_unix_process (CkManager *manager,
-                              guint      pid)
+typedef void (*AuthorizedCallback) (CkManager             *manager,
+                                    DBusGMethodInvocation *context);
+
+typedef struct
 {
-        CkSessionLeader *leader;
-        CkSession       *session;
-        char            *cookie;
+        CkManager             *manager;
+        DBusGMethodInvocation *context;
+        AuthorizedCallback     callback;
+} AuthorizedCallbackData;
 
-        session = NULL;
-        leader = NULL;
-
-        cookie = get_cookie_for_pid (manager, pid);
-        if (cookie == NULL) {
-                goto out;
-        }
-
-        leader = g_hash_table_lookup (manager->priv->leaders, cookie);
-        if (leader == NULL) {
-                goto out;
-        }
-
-        session = g_hash_table_lookup (manager->priv->sessions, ck_session_leader_peek_session_id (leader));
-
- out:
-        g_free (cookie);
-
-        return session;
+static void
+data_free (AuthorizedCallbackData *data)
+{
+        g_object_unref (data->manager);
+        g_free (data);
 }
 
 #ifdef HAVE_POLKIT
-static PolKitSession *
-new_polkit_session_from_session (CkManager *manager,
-                                 CkSession *ck_session)
+static void
+auth_ready_callback (PolkitAuthority        *authority,
+                     GAsyncResult           *res,
+                     AuthorizedCallbackData *data)
 {
-        PolKitSession *pk_session;
-        PolKitSeat    *pk_seat;
-        uid_t          uid;
-        gboolean       is_active;
-        gboolean       is_local;
-        char          *sid;
-        char          *ssid;
-        char          *remote_host;
+        GError *error;
+        GError *error2;
+        PolkitAuthorizationResult *result;
 
-        sid = NULL;
-        ssid = NULL;
-        remote_host = NULL;
+        error = NULL;
 
-        ck_session_get_seat_id (ck_session, &sid, NULL);
-
-        g_object_get (ck_session,
-                      "active", &is_active,
-                      "is-local", &is_local,
-                      "id", &ssid,
-                      "unix-user", &uid,
-                      "remote-host-name", &remote_host,
-                      NULL);
-
-        pk_session = polkit_session_new ();
-        if (pk_session == NULL) {
-                goto out;
+        result = polkit_authority_check_authorization_finish (authority,
+                                                              res,
+                                                              &error);
+        if (error != NULL) {
+                error2 = g_error_new (CK_MANAGER_ERROR,
+                                      CK_MANAGER_ERROR_NOT_PRIVILEGED,
+                                      "Not Authorized: %s", error->message);
+                dbus_g_method_return_error (data->context, error2);
+                g_error_free (error2);
+                g_error_free (error);
         }
-        if (!polkit_session_set_uid (pk_session, uid)) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
+        else if (polkit_authorization_result_get_is_authorized (result)) {
+                data->callback (data->manager, data->context);
         }
-        if (!polkit_session_set_ck_objref (pk_session, ssid)) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
+        else if (polkit_authorization_result_get_is_challenge (result)) {
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_NOT_PRIVILEGED,
+                                     "Authorization is required");
+                dbus_g_method_return_error (data->context, error);
+                g_error_free (error);
         }
-        if (!polkit_session_set_ck_is_active (pk_session, is_active)) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-        if (!polkit_session_set_ck_is_local (pk_session, is_local)) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-        if (!is_local) {
-                if (!polkit_session_set_ck_remote_host (pk_session, remote_host)) {
-                        polkit_session_unref (pk_session);
-                        pk_session = NULL;
-                        goto out;
-                }
-
+        else {
+                error = g_error_new (CK_MANAGER_ERROR,
+                                     CK_MANAGER_ERROR_NOT_PRIVILEGED,
+                                     "Not Authorized");
+                dbus_g_method_return_error (data->context, error);
+                g_error_free (error);
         }
 
+        g_object_unref (result);
 
-        pk_seat = polkit_seat_new ();
-        if (pk_seat == NULL) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-        if (!polkit_seat_set_ck_objref (pk_seat, sid)) {
-                polkit_seat_unref (pk_seat);
-                pk_seat = NULL;
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-        if (!polkit_seat_validate (pk_seat)) {
-                polkit_seat_unref (pk_seat);
-                pk_seat = NULL;
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-
-        if (!polkit_session_set_seat (pk_session, pk_seat)) {
-                polkit_seat_unref (pk_seat);
-                pk_seat = NULL;
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-        polkit_seat_unref (pk_seat); /* session object now owns this object */
-        pk_seat = NULL;
-
-        if (!polkit_session_validate (pk_session)) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-
-out:
-        g_free (ssid);
-        g_free (sid);
-        g_free (remote_host);
-
-        return pk_session;
+        data_free (data);
 }
 
-static PolKitCaller *
-new_polkit_caller_from_dbus_name (CkManager  *manager,
-                                  const char *dbus_name)
-{
-        PolKitCaller *caller;
-        pid_t pid;
-        uid_t uid;
-        char *selinux_context;
-        PolKitSession *pk_session;
-        DBusMessage *message;
-        DBusMessage *reply;
-        DBusMessageIter iter;
-        DBusMessageIter sub_iter;
-        char *str;
-        int num_elems;
-        DBusConnection *con;
-        DBusError       error;
-        CkSession      *ck_session;
-
-        dbus_error_init (&error);
-
-        con = dbus_g_connection_get_connection (manager->priv->connection);
-
-        g_return_val_if_fail (con != NULL, NULL);
-        g_return_val_if_fail (dbus_name != NULL, NULL);
-
-        selinux_context = NULL;
-
-        caller = NULL;
-        ck_session = NULL;
-        pk_session = NULL;
-
-        uid = dbus_bus_get_unix_user (con, dbus_name, &error);
-        if (dbus_error_is_set (&error)) {
-                g_warning ("Could not get uid for connection: %s %s",
-                           error.name,
-                           error.message);
-                dbus_error_free (&error);
-                goto out;
-        }
-
-        message = dbus_message_new_method_call ("org.freedesktop.DBus",
-                                                "/org/freedesktop/DBus/Bus",
-                                                "org.freedesktop.DBus",
-                                                "GetConnectionUnixProcessID");
-        dbus_message_iter_init_append (message, &iter);
-        dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &dbus_name);
-        reply = dbus_connection_send_with_reply_and_block (con, message, -1, &error);
-
-        if (reply == NULL || dbus_error_is_set (&error)) {
-                g_warning ("Error doing GetConnectionUnixProcessID on Bus: %s: %s",
-                           error.name,
-                           error.message);
-                dbus_message_unref (message);
-                if (reply != NULL) {
-                        dbus_message_unref (reply);
-                }
-                dbus_error_free (&error);
-                goto out;
-        }
-        dbus_message_iter_init (reply, &iter);
-        dbus_message_iter_get_basic (&iter, &pid);
-        dbus_message_unref (message);
-        dbus_message_unref (reply);
-
-        message = dbus_message_new_method_call ("org.freedesktop.DBus",
-                                                "/org/freedesktop/DBus/Bus",
-                                                "org.freedesktop.DBus",
-                                                "GetConnectionSELinuxSecurityContext");
-        dbus_message_iter_init_append (message, &iter);
-        dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &dbus_name);
-        reply = dbus_connection_send_with_reply_and_block (con, message, -1, &error);
-        /* SELinux might not be enabled */
-        if (dbus_error_is_set (&error) &&
-            strcmp (error.name, "org.freedesktop.DBus.Error.SELinuxSecurityContextUnknown") == 0) {
-                dbus_message_unref (message);
-                if (reply != NULL) {
-                        dbus_message_unref (reply);
-                }
-                dbus_error_init (&error);
-        } else if (reply == NULL || dbus_error_is_set (&error)) {
-                g_warning ("Error doing GetConnectionSELinuxSecurityContext on Bus: %s: %s", error.name, error.message);
-                dbus_message_unref (message);
-                if (reply != NULL) {
-                        dbus_message_unref (reply);
-                }
-                goto out;
-        } else {
-                /* TODO: verify signature */
-                dbus_message_iter_init (reply, &iter);
-                dbus_message_iter_recurse (&iter, &sub_iter);
-                dbus_message_iter_get_fixed_array (&sub_iter, (void *) &str, &num_elems);
-                if (str != NULL && num_elems > 0) {
-                        selinux_context = g_strndup (str, num_elems);
-                }
-                dbus_message_unref (message);
-                dbus_message_unref (reply);
-        }
-
-        ck_session = get_session_for_unix_process (manager, pid);
-        if (ck_session == NULL) {
-                /* OK, this is not a catastrophe; just means the caller is not a
-                 * member of any session or that ConsoleKit is not available..
-                 */
-                goto not_in_session;
-        }
-
-        pk_session = new_polkit_session_from_session (manager, ck_session);
-        if (pk_session == NULL) {
-                g_warning ("Got a session but couldn't construct polkit session object!");
-                goto out;
-        }
-        if (!polkit_session_validate (pk_session)) {
-                polkit_session_unref (pk_session);
-                pk_session = NULL;
-                goto out;
-        }
-
-not_in_session:
-
-        caller = polkit_caller_new ();
-        if (caller == NULL) {
-                if (pk_session != NULL) {
-                        polkit_session_unref (pk_session);
-                        pk_session = NULL;
-                }
-                goto out;
-        }
-
-        if (!polkit_caller_set_dbus_name (caller, dbus_name)) {
-                if (pk_session != NULL) {
-                        polkit_session_unref (pk_session);
-                        pk_session = NULL;
-                }
-                polkit_caller_unref (caller);
-                caller = NULL;
-                goto out;
-        }
-        if (!polkit_caller_set_uid (caller, uid)) {
-                if (pk_session != NULL) {
-                        polkit_session_unref (pk_session);
-                        pk_session = NULL;
-                }
-                polkit_caller_unref (caller);
-                caller = NULL;
-                goto out;
-        }
-        if (!polkit_caller_set_pid (caller, pid)) {
-                if (pk_session != NULL) {
-                        polkit_session_unref (pk_session);
-                        pk_session = NULL;
-                }
-                polkit_caller_unref (caller);
-                caller = NULL;
-                goto out;
-        }
-        if (selinux_context != NULL) {
-                if (!polkit_caller_set_selinux_context (caller, selinux_context)) {
-                        if (pk_session != NULL) {
-                                polkit_session_unref (pk_session);
-                                pk_session = NULL;
-                        }
-                        polkit_caller_unref (caller);
-                        caller = NULL;
-                        goto out;
-                }
-        }
-        if (pk_session != NULL) {
-                if (!polkit_caller_set_ck_session (caller, pk_session)) {
-                        if (pk_session != NULL) {
-                                polkit_session_unref (pk_session);
-                                pk_session = NULL;
-                        }
-                        polkit_caller_unref (caller);
-                        caller = NULL;
-                        goto out;
-                }
-                polkit_session_unref (pk_session); /* caller object now own this object */
-                pk_session = NULL;
-        }
-
-        if (!polkit_caller_validate (caller)) {
-                polkit_caller_unref (caller);
-                caller = NULL;
-                goto out;
-        }
-
-out:
-        g_free (selinux_context);
-
-        return caller;
-}
-
-static gboolean
-_check_polkit_for_action (CkManager             *manager,
+static void
+check_polkit_permissions (CkManager             *manager,
                           DBusGMethodInvocation *context,
-                          const char            *action)
+                          const char            *action,
+                          AuthorizedCallback     callback)
 {
-        const char   *sender;
-        GError       *error;
-        DBusError     dbus_error;
-        PolKitCaller *pk_caller;
-        PolKitAction *pk_action;
-        PolKitResult  pk_result;
+        const char    *sender;
+        GError        *error;
+        PolkitSubject *subject;
+        AuthorizedCallbackData *data;
 
         error = NULL;
 
@@ -1087,50 +820,77 @@ _check_polkit_for_action (CkManager             *manager,
 
         /* Check that caller is privileged */
         sender = dbus_g_method_get_sender (context);
-        dbus_error_init (&dbus_error);
-
-        pk_caller = new_polkit_caller_from_dbus_name (manager, sender);
-        if (pk_caller == NULL) {
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     "Error getting information about caller: %s: %s",
-                                     dbus_error.name,
-                                     dbus_error.message);
-                dbus_error_free (&dbus_error);
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-                return FALSE;
-        }
-
-        pk_action = polkit_action_new ();
-        polkit_action_set_action_id (pk_action, action);
+        subject = polkit_system_bus_name_new (sender);
 
         g_debug ("checking if caller %s is authorized", sender);
 
-        /* this version crashes if error is used */
-        pk_result = polkit_context_is_caller_authorized (manager->priv->pol_ctx,
-                                                         pk_action,
-                                                         pk_caller,
-                                                         TRUE,
-                                                         NULL);
-        g_debug ("answer is: %s", (pk_result == POLKIT_RESULT_YES) ? "yes" : "no");
+        data = g_new0 (AuthorizedCallbackData, 1);
+        data->manager = g_object_ref (manager);
+        data->context = context;
+        data->callback = callback;
 
-        polkit_caller_unref (pk_caller);
-        polkit_action_unref (pk_action);
+        polkit_authority_check_authorization (manager->priv->pol_ctx,
+                                              subject,
+                                              action,
+                                              NULL,
+                                              POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
+                                              NULL,
+                                              (GAsyncReadyCallback)auth_ready_callback,
+                                              data);
+}
 
-        if (pk_result != POLKIT_RESULT_YES) {
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                     "Not privileged for action: %s %s",
-                                     action,
-                                     polkit_result_to_string_representation (pk_result));
-                dbus_error_free (&dbus_error);
+static void
+ready_cb (PolkitAuthority *authority,
+          GAsyncResult    *res,
+          DBusGMethodInvocation *context)
+{
+        PolkitAuthorizationResult *ret;
+        GError *error;
+
+        error = NULL;
+        ret = polkit_authority_check_authorization_finish (authority, res, &error);
+        if (error != NULL) {
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
-                return FALSE;
+        }
+        else if (polkit_authorization_result_get_is_authorized (ret)) {
+                dbus_g_method_return (context, TRUE);
+        }
+        else if (polkit_authorization_result_get_is_challenge (ret)) {
+                dbus_g_method_return (context, TRUE);
+        }
+        else {
+                dbus_g_method_return (context, FALSE);
         }
 
-        return TRUE;
+        g_object_unref (ret);
+}
+
+static void
+get_polkit_permissions (CkManager   *manager,
+                        const char  *action,
+                        DBusGMethodInvocation *context)
+{
+        const char    *sender;
+        PolkitSubject *subject;
+        GError *error;
+
+        g_debug ("get permissions for action %s", action);
+
+        sender = dbus_g_method_get_sender (context);
+        subject = polkit_system_bus_name_new (sender);
+
+        error = NULL;
+        polkit_authority_check_authorization (manager->priv->pol_ctx,
+                                              subject,
+                                              action,
+                                              NULL,
+                                              0,
+                                              NULL,
+                                              (GAsyncReadyCallback) ready_cb,
+                                              context);
+        g_object_unref (subject);
+
 }
 #endif
 
@@ -1271,9 +1031,10 @@ get_system_num_users (CkManager *manager)
 }
 
 #ifdef ENABLE_RBAC_SHUTDOWN
-static gboolean
+static void
 check_rbac_permissions (CkManager             *manager,
-                        DBusGMethodInvocation *context)
+                        DBusGMethodInvocation *context,
+                        AuthorizedCallback     callback)
 {
         const char *sender;
         char       *username;
@@ -1308,51 +1069,21 @@ out:
         }
 
         g_free (username);
-        return res;
+
+        if (res) {
+                callback (manager, context);
+        }
 }
 #endif
 
-/*
-  Example:
-  dbus-send --system --dest=org.freedesktop.ConsoleKit \
-  --type=method_call --print-reply --reply-timeout=2000 \
-  /org/freedesktop/ConsoleKit/Manager \
-  org.freedesktop.ConsoleKit.Manager.Restart
-*/
-gboolean
-ck_manager_restart (CkManager             *manager,
-                    DBusGMethodInvocation *context)
+static void
+do_restart (CkManager             *manager,
+            DBusGMethodInvocation *context)
 {
-        gboolean    ret;
-        gboolean    res;
-        const char *action;
-        GError     *error;
+        GError *error;
+        gboolean res;
 
-        ret = FALSE;
-
-        if (get_system_num_users (manager) > 1) {
-                action = "org.freedesktop.consolekit.system.restart-multiple-users";
-        } else {
-                action = "org.freedesktop.consolekit.system.restart";
-        }
-
-        g_debug ("ConsoleKit Restart: %s", action);
-
-#if defined HAVE_POLKIT
-        res = _check_polkit_for_action (manager, context, action);
-        if (! res) {
-                goto out;
-        }
-#elif defined ENABLE_RBAC_SHUTDOWN
-        if (! check_rbac_permissions (manager, context)) {
-                goto out;
-        }
-#else
-        g_warning ("Compiled without PolicyKit or RBAC support!");
-        goto out;
-#endif
-
-        g_debug ("ConsoleKit preforming Restart: %s", action);
+        g_debug ("ConsoleKit preforming Restart");
 
         log_system_restart_event (manager);
 
@@ -1372,45 +1103,66 @@ ck_manager_restart (CkManager             *manager,
 
                 g_error_free (error);
         } else {
-                ret = TRUE;
                 dbus_g_method_return (context);
         }
+}
 
- out:
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Restart
+*/
+gboolean
+ck_manager_restart (CkManager             *manager,
+                    DBusGMethodInvocation *context)
+{
+        const char *action;
 
-        return ret;
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.restart-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.restart";
+        }
+
+        g_debug ("ConsoleKit Restart: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_restart);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, do_restart);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+#endif
+
+        return TRUE;
 }
 
 gboolean
-ck_manager_stop (CkManager             *manager,
-                 DBusGMethodInvocation *context)
+ck_manager_can_restart (CkManager  *manager,
+                    DBusGMethodInvocation *context)
+
 {
-        gboolean    ret;
-        gboolean    res;
         const char *action;
-        GError     *error;
 
-        ret = TRUE;
-
-        if (get_system_num_users (manager) > 1) {
-                action = "org.freedesktop.consolekit.system.stop-multiple-users";
-        } else {
-                action = "org.freedesktop.consolekit.system.stop";
-        }
+        action = "org.freedesktop.consolekit.system.restart";
 
 #if defined HAVE_POLKIT
-        res = _check_polkit_for_action (manager, context, action);
-        if (! res) {
-                goto out;
-        }
-#elif defined  ENABLE_RBAC_SHUTDOWN
-        if (!check_rbac_permissions (manager, context)) {
-                goto out;
-        }
+        get_polkit_permissions (manager, action, context);
 #else
-        g_warning ("Compiled without PolicyKit or RBAC support!");
-        goto out;
+        dbus_g_method_return (context, TRUE);
 #endif
+
+        return TRUE;
+}
+
+static void
+do_stop (CkManager             *manager,
+         DBusGMethodInvocation *context)
+{
+        GError *error;
+        gboolean res;
 
         g_debug ("Stopping system");
 
@@ -1429,15 +1181,50 @@ ck_manager_stop (CkManager             *manager,
                                          "Unable to stop system: %s", error->message);
                 dbus_g_method_return_error (context, new_error);
                 g_error_free (new_error);
-
                 g_error_free (error);
         } else {
-                ret = TRUE;
                 dbus_g_method_return (context);
         }
+}
 
- out:
-        return ret;
+gboolean
+ck_manager_stop (CkManager             *manager,
+                 DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.stop-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.stop";
+        }
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_stop);
+#elif defined  ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, do_stop);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_stop (CkManager  *manager,
+                    DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        action = "org.freedesktop.consolekit.system.stop";
+
+#if defined HAVE_POLKIT
+        get_polkit_permissions (manager, action, context);
+#else
+        dbus_g_method_return (context, TRUE);
+#endif
+
+        return TRUE;
 }
 
 static void
@@ -2423,63 +2210,13 @@ bus_name_owner_changed (DBusGProxy  *bus_proxy,
                    service_name, old_service_name, new_service_name);
 }
 
-#ifdef HAVE_POLKIT
-static gboolean
-pk_io_watch_have_data (GIOChannel  *channel,
-                       GIOCondition condition,
-                       gpointer     user_data)
-{
-        int            fd;
-        PolKitContext *pk_context = user_data;
-
-        fd = g_io_channel_unix_get_fd (channel);
-        polkit_context_io_func (pk_context, fd);
-        return TRUE;
-}
-
-static int
-pk_io_add_watch (PolKitContext *pk_context,
-                 int            fd)
-{
-        guint       id = 0;
-        GIOChannel *channel;
-
-        channel = g_io_channel_unix_new (fd);
-        if (channel == NULL) {
-                goto out;
-        }
-
-        id = g_io_add_watch (channel, G_IO_IN, pk_io_watch_have_data, pk_context);
-        if (id == 0) {
-                g_io_channel_unref (channel);
-                goto out;
-        }
-        g_io_channel_unref (channel);
-
-out:
-        return id;
-}
-
-static void
-pk_io_remove_watch (PolKitContext *pk_context,
-                    int            watch_id)
-{
-        g_source_remove (watch_id);
-}
-#endif
-
 static gboolean
 register_manager (CkManager *manager)
 {
         GError *error = NULL;
 
 #ifdef HAVE_POLKIT
-        manager->priv->pol_ctx = polkit_context_new ();
-        polkit_context_set_io_watch_functions (manager->priv->pol_ctx, pk_io_add_watch, pk_io_remove_watch);
-        if (! polkit_context_init (manager->priv->pol_ctx, NULL)) {
-                g_critical ("cannot initialize libpolkit");
-                return FALSE;
-        }
+        manager->priv->pol_ctx = polkit_authority_get ();
 #endif
 
         error = NULL;

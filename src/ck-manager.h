@@ -79,9 +79,14 @@ CkManager         * ck_manager_new                            (void);
 /* System actions */
 gboolean            ck_manager_stop                           (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
+
 gboolean            ck_manager_restart                        (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
 
+gboolean            ck_manager_can_stop                       (CkManager *manager,
+                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_can_restart                    (CkManager *manager,
+                                                               DBusGMethodInvocation *context);
 /* Authoritative properties */
 gboolean            ck_manager_open_session                   (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
