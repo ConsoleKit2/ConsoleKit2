@@ -51,7 +51,7 @@ ChangeLog: $(srcdir)/ChangeLog
 $(srcdir)/ChangeLog:
 	@if test -d "$(srcdir)/.git"; then \
 	  (cd "$(srcdir)" && \
-	  ./missing --run git-log --stat) | fmt --split-only > $@.tmp \
+	  ./missing --run git log --stat) | fmt --split-only > $@.tmp \
 	  && mv -f $@.tmp $@ \
 	  || ($(RM) $@.tmp; \
 	      echo Failed to generate ChangeLog, your ChangeLog may be outdated >&2; \
