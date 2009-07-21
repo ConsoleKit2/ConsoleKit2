@@ -1,4 +1,25 @@
 ==============
+Version 0.3.1
+==============
+
+ * port to PolicyKit 1.0 (Matthias Clasen)
+ * D-Bus policy updates (Colin Walters, Martin Pitt, Vincent Untz, William Jon McCann)
+ * better diagnostic information for unimplemented backends (Daniel Macks)
+ * file monitoring fixes (James Westby)
+ * get VT from X display if no controlling tty is available (Ray Strode)
+ * add "nox11" option to PAM module (Martin Pitt)
+ * parse log entries with no body correctly (William Jon McCann)
+ * fix zero-sized struct/unions (William Jon McCann)
+ * solaris build fixes (Halton Huo)
+ * parse gecos field for real name (William Jon McCann)
+ * leak fixes (James Westby, Steve Langasek)
+ * compile warning fixes (Matthias Clasen)
+ * fix doc xml validation errors (William Jon McCann)
+ * fix doc generation when srcdir != builddir (Ray Strode)
+ * add example upstart events for logging (William Jon McCann)
+ * fix ChangeLog generation script to work with git-log moved to libexecdir (Ray Strode)
+
+==============
 Version 0.3.0
 ==============
 
