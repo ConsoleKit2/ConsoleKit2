@@ -2,7 +2,7 @@
 # ck-log-system-start - write system start to log
 #
 
-start on startup
+start on stopped rcS
 
 console output
 exec /usr/sbin/ck-log-system-start

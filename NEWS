@@ -16,7 +16,7 @@ Version 0.3.1
  * compile warning fixes (Matthias Clasen)
  * fix doc xml validation errors (William Jon McCann)
  * fix doc generation when srcdir != builddir (Ray Strode)
- * add example upstart events for logging (William Jon McCann)
+ * add example upstart events for logging (William Jon McCann, Ray Strode)
  * fix ChangeLog generation script to work with git-log moved to libexecdir (Ray Strode)
 
 ==============
