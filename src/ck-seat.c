@@ -741,8 +741,8 @@ active_vt_changed (CkVtMonitor    *vt_monitor,
         update_active_vt (seat, num);
 }
 
-static gboolean
-register_seat (CkSeat *seat)
+gboolean
+ck_seat_register (CkSeat *seat)
 {
         GError *error = NULL;
 
@@ -1023,18 +1023,11 @@ ck_seat_new (const char *sid,
              CkSeatKind  kind)
 {
         GObject *object;
-        gboolean res;
 
         object = g_object_new (CK_TYPE_SEAT,
                                "id", sid,
                                "kind", kind,
                                NULL);
-
-        res = register_seat (CK_SEAT (object));
-        if (! res) {
-                g_object_unref (object);
-                return NULL;
-        }
 
         return CK_SEAT (object);
 }
@@ -1045,7 +1038,6 @@ ck_seat_new_with_devices (const char *sid,
                           GPtrArray  *devices)
 {
         GObject *object;
-        gboolean res;
         int      i;
 
         object = g_object_new (CK_TYPE_SEAT,
@@ -1057,12 +1049,6 @@ ck_seat_new_with_devices (const char *sid,
                 for (i = 0; i < devices->len; i++) {
                         ck_seat_add_device (CK_SEAT (object), g_ptr_array_index (devices, i), NULL);
                 }
-        }
-
-        res = register_seat (CK_SEAT (object));
-        if (! res) {
-                g_object_unref (object);
-                return NULL;
         }
 
         return CK_SEAT (object);
@@ -1232,4 +1218,3 @@ ck_seat_dump (CkSeat   *seat,
 
         g_free (group_name);
 }
-

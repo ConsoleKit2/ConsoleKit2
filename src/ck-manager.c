@@ -1304,13 +1304,21 @@ add_new_seat (CkManager *manager,
         sid = generate_seat_id (manager);
 
         seat = ck_seat_new (sid, kind);
-        if (seat == NULL) {
-                /* returns null if connection to bus fails */
-                g_free (sid);
-                goto out;
-        }
+
+        /* First we connect our own signals to the seat, followed by
+         * the D-Bus signal hookup to make sure we can first dump the
+         * database and only then send out the D-Bus signals for
+         * it. GObject guarantees us that the signal handlers are
+         * called in the same order as they are registered. */
 
         connect_seat_signals (manager, seat);
+        if (!ck_seat_register (seat)) {
+                /* returns false if connection to bus fails */
+                disconnect_seat_signals (manager, seat);
+                g_object_unref (seat);
+                g_free (sid);
+                return NULL;
+        }
 
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
@@ -1322,7 +1330,6 @@ add_new_seat (CkManager *manager,
 
         log_seat_added_event (manager, seat);
 
- out:
         return seat;
 }
 
@@ -2407,13 +2414,15 @@ add_seat_for_file (CkManager  *manager,
         sid = generate_seat_id (manager);
 
         seat = ck_seat_new_from_file (sid, filename);
-        if (seat == NULL) {
-                /* returns null if connection to bus fails */
+
+        connect_seat_signals (manager, seat);
+        if (!ck_seat_register (seat)) {
+                /* returns false if connection to bus fails */
+                disconnect_seat_signals (manager, seat);
+                g_object_unref (seat);
                 g_free (sid);
                 return;
         }
-
-        connect_seat_signals (manager, seat);
 
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
