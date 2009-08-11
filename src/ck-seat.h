@@ -93,6 +93,11 @@ CkSeat            * ck_seat_new_with_devices    (const char            *sid,
 
 gboolean            ck_seat_register            (CkSeat                *seat);
 
+void                ck_seat_run_programs        (CkSeat                *seat,
+                                                 CkSession             *old_session,
+                                                 CkSession             *new_session,
+                                                 const char            *action);
+
 void                ck_seat_dump                (CkSeat                *seat,
                                                  GKeyFile              *key_file);
 
