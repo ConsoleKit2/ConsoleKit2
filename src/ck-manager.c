@@ -200,7 +200,7 @@ ck_manager_dump (CkManager *manager)
                 return;
         }
 
-        fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0600);
+        fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0644);
         if (fd == -1) {
                 g_warning ("Cannot create file %s: %s", filename_tmp, g_strerror (errno));
                 goto error;

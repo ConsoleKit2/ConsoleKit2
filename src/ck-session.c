@@ -1306,10 +1306,6 @@ ck_session_dump (CkSession *session,
                                group_name,
                                "seat",
                                NONULL_STRING (session->priv->seat_id));
-        g_key_file_set_string (key_file,
-                               group_name,
-                               "cookie",
-                               NONULL_STRING (session->priv->cookie));
         if (session->priv->session_type != NULL) {
                 g_key_file_set_string (key_file,
                                        group_name,
