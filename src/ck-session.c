@@ -1285,6 +1285,8 @@ ck_session_run_programs (CkSession  *session,
         extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_LOCAL=%s", session->priv->is_local ? "true" : "false");
         extra_env[n++] = NULL;
 
+        g_assert(n <= G_N_ELEMENTS(extra_env));
+
         ck_run_programs (SYSCONFDIR "/ConsoleKit/run-session.d", action, extra_env);
         ck_run_programs (PREFIX "/lib/ConsoleKit/run-session.d", action, extra_env);
 
