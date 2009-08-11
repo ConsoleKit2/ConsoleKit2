@@ -76,6 +76,9 @@ CkSession         * ck_session_new_with_parameters    (const char            *ss
 
 void                ck_session_dump                   (CkSession             *session,
                                                        GKeyFile              *key_file);
+void                ck_session_run_programs           (CkSession             *session,
+                                                       const char            *action);
+
 
 gboolean            ck_session_set_active             (CkSession             *session,
                                                        gboolean               active,

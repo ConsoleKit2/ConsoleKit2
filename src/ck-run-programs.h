@@ -30,9 +30,6 @@ G_BEGIN_DECLS
 
 void ck_run_programs (const char *dirpath, const char *action, char **extra_env);
 
-void ck_session_run_programs (CkSession *session, const char *action);
-
-
 G_END_DECLS
 
 #endif /* __CK_RUN_PROGRAMS_H */
