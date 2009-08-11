@@ -1109,7 +1109,7 @@ ck_seat_new_from_file (const char *sid,
 
         device_list = g_key_file_get_string_list (key_file, group, "Devices", &ndevices, NULL);
 
-        g_debug ("Creating seat %s with %d devices", sid, ndevices);
+        g_debug ("Creating seat %s with %zd devices", sid, ndevices);
 
         devices = g_ptr_array_sized_new (ndevices);
 
