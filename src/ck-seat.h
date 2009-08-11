@@ -103,9 +103,6 @@ gboolean            ck_seat_add_session         (CkSeat                *seat,
 gboolean            ck_seat_remove_session      (CkSeat                *seat,
                                                  CkSession             *session,
                                                  GError               **error);
-gboolean            ck_seat_set_active_session  (CkSeat                *seat,
-                                                 CkSession             *session,
-                                                 GError               **error);
 gboolean            ck_seat_add_device          (CkSeat                *seat,
                                                  GValueArray           *device,
                                                  GError               **error);
