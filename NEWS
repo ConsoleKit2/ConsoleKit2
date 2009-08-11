@@ -1,4 +1,10 @@
 ==============
+Version 0.3.2
+==============
+
+ * Starting with this release we will not do session.d/ 'session_active_changed' callouts anymore. (Lennart Poettering)
+
+==============
 Version 0.3.1
 ==============
 
@@ -33,7 +39,7 @@ Version 0.3.0
  * still having problems using xinclude (William Jon McCann)
  * fix the includes (William Jon McCann)
  * add missing bits (William Jon McCann)
- * use spec files directly as introspection xml and try to generate docs on the fly (William Jon McCan
+ * use spec files directly as introspection xml and try to generate docs on the fly (William Jon McCann)
  * use object paths for seat added/removed signals per spec (William Jon McCann)
  * regenerate the docs and xml from the spec (William Jon McCann)
  * add GetLoginSessionId to exported interface (William Jon McCann)
