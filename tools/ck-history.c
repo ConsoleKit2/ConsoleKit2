@@ -236,10 +236,10 @@ find_first_matching_remove_event (GList                      *events,
 
                 etype = ((CkLogEvent *)l->data)->type;
                 /* skip all non removal events */
-                if (etype != CK_LOG_EVENT_SEAT_SESSION_REMOVED
-                    || etype == CK_LOG_EVENT_SYSTEM_START
-                    || etype == CK_LOG_EVENT_SYSTEM_STOP
-                    || etype == CK_LOG_EVENT_SYSTEM_RESTART) {
+                if (! (etype == CK_LOG_EVENT_SEAT_SESSION_REMOVED
+                       || etype == CK_LOG_EVENT_SYSTEM_START
+                       || etype == CK_LOG_EVENT_SYSTEM_STOP
+                       || etype == CK_LOG_EVENT_SYSTEM_RESTART)) {
                         continue;
                 }
 
