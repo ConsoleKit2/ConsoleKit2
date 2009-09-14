@@ -1119,6 +1119,8 @@ ck_seat_new_from_file (const char *sid,
         gsize      ndevices;
         gsize      i;
 
+        seat = NULL;
+
         key_file = g_key_file_new ();
         error = NULL;
         res = g_key_file_load_from_file (key_file,
@@ -1128,19 +1130,19 @@ ck_seat_new_from_file (const char *sid,
         if (! res) {
                 g_warning ("Unable to load seats from file %s: %s", path, error->message);
                 g_error_free (error);
-                return NULL;
+                goto out;
         }
 
         group = g_key_file_get_start_group (key_file);
         if (group == NULL || strcmp (group, "Seat Entry") != 0) {
                 g_warning ("Not a seat file: %s", path);
-                return NULL;
+                goto out;
         }
 
         hidden = g_key_file_get_boolean (key_file, group, "Hidden", NULL);
         if (hidden) {
                 g_debug ("Seat is hidden");
-                return NULL;
+                goto out;
         }
 
         device_list = g_key_file_get_string_list (key_file, group, "Devices", &ndevices, NULL);
@@ -1173,12 +1175,15 @@ ck_seat_new_from_file (const char *sid,
 
                 g_strfreev (split);
         }
-
+        g_strfreev (device_list);
         g_free (group);
 
         seat = ck_seat_new_with_devices (sid, CK_SEAT_KIND_STATIC, devices);
-
         g_ptr_array_free (devices, TRUE);
+
+out:
+
+        g_key_file_free (key_file);
 
         return seat;
 }
