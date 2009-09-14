@@ -336,8 +336,12 @@ get_utline_for_event (CkLogEvent *event)
                 {
                         CkLogSeatSessionAddedEvent *e;
                         e = (CkLogSeatSessionAddedEvent *)event;
-                        if (e->session_x11_display != NULL && e->session_x11_display[0] != '\0') {
-                                utline = g_strdup (e->session_x11_display);
+                        if (e->session_x11_display_device != NULL && e->session_x11_display_device[0] != '\0') {
+                                if (g_str_has_prefix (e->session_x11_display_device, "/dev/")) {
+                                        utline = g_strdup (e->session_x11_display_device + 5);
+                                } else {
+                                        utline = g_strdup (e->session_x11_display_device);
+                                }
                         } else {
                                 if (g_str_has_prefix (e->session_display_device, "/dev/")) {
                                         utline = g_strdup (e->session_display_device + 5);
@@ -381,23 +385,27 @@ get_user_name_for_event (CkLogEvent *event)
 static char *
 get_host_for_event (CkLogEvent *event)
 {
-        char *username;
+        char *name;
 
-        username = NULL;
+        name = NULL;
 
         switch (event->type) {
         case CK_LOG_EVENT_SEAT_SESSION_ADDED:
-                username = g_strdup (((CkLogSeatSessionAddedEvent *)event)->session_remote_host_name);
+                name = g_strdup (((CkLogSeatSessionAddedEvent *)event)->session_remote_host_name);
+                if (name == NULL) {
+                        /* If not set then use the display value */
+                        name = g_strdup (((CkLogSeatSessionAddedEvent *)event)->session_x11_display);
+                }
                 break;
         case CK_LOG_EVENT_SYSTEM_START:
                 /* FIXME: get kernel version */
-                username = g_strdup ("");
+                name = g_strdup ("");
                 break;
         default:
                 g_assert_not_reached ();
         }
 
-        return username;
+        return name;
 }
 
 static RecordStatus
