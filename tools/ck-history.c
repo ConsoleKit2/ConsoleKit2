@@ -262,6 +262,33 @@ find_first_matching_remove_event (GList                      *events,
         return revent;
 }
 
+static CkLogEvent *
+find_first_matching_system_stop_event (GList                      *events,
+                                       CkLogSeatSessionAddedEvent *event)
+{
+        CkLogEvent *revent;
+        GList      *l;
+
+        revent = NULL;
+
+        for (l = events; l != NULL; l = l->next) {
+                CkLogEventType etype;
+
+                etype = ((CkLogEvent *)l->data)->type;
+
+                /* skip all non removal events */
+                if (! (etype == CK_LOG_EVENT_SYSTEM_STOP
+                       || etype == CK_LOG_EVENT_SYSTEM_RESTART)) {
+                        continue;
+                }
+
+                revent = (CkLogEvent *)l->data;
+                break;
+        }
+
+        return revent;
+}
+
 static char *
 get_user_name_for_uid (int  uid)
 {
@@ -408,7 +435,14 @@ get_duration (CkLogEvent *event,
         int    days;
         char  *duration;
 
-        secs = remove_event->timestamp.tv_sec - event->timestamp.tv_sec;
+        if (remove_event != NULL) {
+                secs = remove_event->timestamp.tv_sec - event->timestamp.tv_sec;
+        } else {
+                GTimeVal now;
+                g_get_current_time (&now);
+                secs = now.tv_sec - event->timestamp.tv_sec;
+        }
+
         mins  = (secs / 60) % 60;
         hours = (secs / 3600) % 24;
         days  = secs / 86400;
@@ -449,7 +483,7 @@ print_last_report_record (GList      *list,
         if (event->type == CK_LOG_EVENT_SEAT_SESSION_ADDED) {
                 e = (CkLogSeatSessionAddedEvent *)event;
 
-                remove_event = find_first_matching_remove_event (list, e);
+                remove_event = find_first_matching_remove_event (list->next, e);
                 status = get_event_record_status (remove_event);
 
                 session_type = e->session_type;
@@ -457,6 +491,7 @@ print_last_report_record (GList      *list,
                 seat_id = e->seat_id;
         } else {
                 status = RECORD_STATUS_REBOOT;
+                remove_event = find_first_matching_system_stop_event (list->next, e);
 
                 session_type = "";
                 session_id = "";
@@ -516,9 +551,11 @@ print_last_report_record (GList      *list,
                 removedtime = g_strdup ("   gone");
                 break;
         case RECORD_STATUS_REBOOT:
+                duration = get_duration (event, remove_event);
                 removedtime = g_strdup ("");
                 break;
         case RECORD_STATUS_TIMECHANGE:
+                duration = g_strdup ("");
                 removedtime = g_strdup ("");
                 break;
         case RECORD_STATUS_NORMAL:
