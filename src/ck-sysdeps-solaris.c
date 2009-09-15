@@ -286,6 +286,7 @@ ck_unix_pid_get_env_hash (pid_t pid)
         }
 
  out:
+        pclose (fp);
         return hash;
 }
 
