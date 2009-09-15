@@ -63,6 +63,8 @@ static void
 event_system_start_free (CkLogSystemStartEvent *event)
 {
         g_assert (event != NULL);
+        g_free (event->kernel_release);
+        g_free (event->boot_arguments);
 }
 
 static void
@@ -196,6 +198,9 @@ event_system_start_copy (CkLogSystemStartEvent *event,
 {
         g_assert (event != NULL);
         g_assert (event_copy != NULL);
+
+        event_copy->kernel_release = g_strdup (event->kernel_release);
+        event_copy->boot_arguments = g_strdup (event->boot_arguments);
 }
 
 static void
@@ -470,6 +475,10 @@ add_log_for_system_start (GString    *str,
         CkLogSystemStartEvent *e;
 
         e = (CkLogSystemStartEvent *)event;
+        g_string_append_printf (str,
+                                "kernel-release='%s' boot-arguments='%s'",
+                                e->kernel_release ? e->kernel_release : "",
+                                e->boot_arguments ? e->boot_arguments : "");
 }
 
 static void
@@ -855,23 +864,54 @@ parse_log_for_system_restart (const GString *str,
 
 static gboolean
 parse_log_for_system_start (const GString *str,
-                              CkLogEvent    *event)
+                            CkLogEvent    *event)
 {
         gboolean    ret;
         const char *s;
+        GRegex     *re;
+        GMatchInfo *match_info;
+        gboolean    res;
+        GError     *error;
         CkLogSystemStartEvent *e;
 
         ret = FALSE;
+        re = NULL;
+        match_info = NULL;
 
         s = skip_header (str->str, str->len);
         if (s == NULL) {
                 goto out;
         }
 
+        /* kernel-release and boot-arguments are attributes added in 0.4 */
+        error = NULL;
+        re = g_regex_new ("(kernel-release='(?P<release>[^']+)')?[ ]?(boot-arguments='(?P<arguments>.*)')?", 0, 0, &error);
+        if (re == NULL) {
+                g_warning (error->message);
+                goto out;
+        }
+
+        g_regex_match (re, s, 0, &match_info);
+
+        res = g_match_info_matches (match_info);
+        if (! res) {
+                g_warning ("Unable to parse system start event: %s", s);
+                goto out;
+        }
+
         e = (CkLogSystemStartEvent *)event;
+
+        e->kernel_release = g_match_info_fetch_named (match_info, "release");
+        e->boot_arguments = g_match_info_fetch_named (match_info, "arguments");
 
         ret = TRUE;
  out:
+        if (match_info != NULL) {
+                g_match_info_free (match_info);
+        }
+        if (re != NULL) {
+                g_regex_unref (re);
+        }
 
         return ret;
 }

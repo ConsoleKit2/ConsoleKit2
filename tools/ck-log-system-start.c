@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
 #include <string.h>
 
 #include <locale.h>
@@ -40,6 +41,7 @@
 
 #define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/log/ConsoleKit/history"
 
+#define LINUX_KERNEL_CMDLINE "/proc/cmdline"
 
 /* Adapted from auditd auditd-event.c */
 static gboolean
@@ -157,16 +159,46 @@ write_log_for_event (CkLogEvent *event)
         return TRUE;
 }
 
+static char *
+get_boot_arguments (void)
+{
+        char *contents;
+        gboolean res;
+
+        contents = NULL;
+        res = g_file_get_contents (LINUX_KERNEL_CMDLINE,
+                                   &contents,
+                                   NULL,
+                                   NULL);
+        if (!res) {
+                g_free (contents);
+                contents = NULL;
+        } else {
+                g_strchomp (contents);
+        }
+
+        return contents;
+}
+
 int
 main (int    argc,
       char **argv)
 {
         CkLogEvent event;
+        CkLogSystemStartEvent *e;
+        struct utsname uts;
 
         memset (&event, 0, sizeof (CkLogEvent));
 
         event.type = CK_LOG_EVENT_SYSTEM_START;
         g_get_current_time (&event.timestamp);
+        e = (CkLogSystemStartEvent *) &event;
+
+        if (uname (&uts) == 0) {
+                e->kernel_release = uts.release;
+        }
+
+        e->boot_arguments = get_boot_arguments ();
 
         write_log_for_event (&event);
 

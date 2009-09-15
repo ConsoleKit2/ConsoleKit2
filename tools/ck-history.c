@@ -398,8 +398,7 @@ get_host_for_event (CkLogEvent *event)
                 }
                 break;
         case CK_LOG_EVENT_SYSTEM_START:
-                /* FIXME: get kernel version */
-                name = g_strdup ("");
+                name = g_strdup (((CkLogSystemStartEvent *)event)->kernel_release);
                 break;
         default:
                 g_assert_not_reached ();
@@ -523,7 +522,7 @@ print_last_report_record (GList      *list,
                                  addedtime);
         } else {
                 g_string_printf (str,
-                                 "%-8.8s %12s %-10.10s %-7.7s %-12.12s %-16.16s %-16.16s",
+                                 "%-8.8s %12s %-10.10s %-7.7s %-12.12s %-28.28s %-16.16s",
                                  username,
                                  session_type,
                                  session_id,

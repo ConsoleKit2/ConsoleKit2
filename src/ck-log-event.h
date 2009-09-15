@@ -60,7 +60,8 @@ typedef struct
 
 typedef struct
 {
-        gpointer dummy;
+        char *kernel_release;
+        char *boot_arguments;
 } CkLogSystemStartEvent;
 
 typedef struct
