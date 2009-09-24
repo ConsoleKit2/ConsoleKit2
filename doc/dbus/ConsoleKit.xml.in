@@ -12,14 +12,13 @@
   <bookinfo>
     <title>ConsoleKit @VERSION@ Documentation</title>
     <releaseinfo>Version @VERSION@</releaseinfo>
-    <date>8 March, 2007</date>
     <authorgroup>
       <author>
         <firstname>William Jon</firstname>
         <surname>McCann</surname>
         <affiliation>
           <address>
-            <email>mccann@jhu.edu</email>
+            <email>william.jon.mccann@gmail.com</email>
           </address>
         </affiliation>
       </author>
