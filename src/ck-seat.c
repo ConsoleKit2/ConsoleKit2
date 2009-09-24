@@ -1202,42 +1202,49 @@ env_add_session_info (CkSession  *session,
                 return;
         }
 
+        s = NULL;
         if (ck_session_get_id (session, &s, NULL) && s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sID=%s", prefix, s);
-                g_free (s);
         }
+        g_free (s);
 
+        s = NULL;
         if (ck_session_get_session_type (session, &s, NULL) && s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sTYPE=%s", prefix, s);
-                g_free (s);
         }
+        g_free (s);
 
         if (ck_session_get_unix_user (session, &u, NULL)) {
                 extra_env[(*n)++] = g_strdup_printf ("%sUSER_UID=%u", prefix, u);
         }
 
+        s = NULL;
         if (ck_session_get_display_device (session, &s, NULL) && s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sDISPLAY_DEVICE=%s", prefix, s);
-                g_free (s);
         }
+        g_free (s);
 
+        s = NULL;
         if (ck_session_get_x11_display_device (session, &s, NULL) && s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sX11_DISPLAY_DEVICE=%s", prefix, s);
-                g_free (s);
         }
+        g_free (s);
 
+        s = NULL;
         if (ck_session_get_x11_display (session, &s, NULL) && s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sX11_DISPLAY=%s", prefix, s);
-                g_free (s);
         }
+        g_free (s);
 
+        s = NULL;
         if (ck_session_get_remote_host_name (session, &s, NULL) && s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sREMOTE_HOST_NAME=%s", prefix, s);
-                g_free (s);
         }
+        g_free (s);
 
-        if (ck_session_is_local (session, &b, NULL))
+        if (ck_session_is_local (session, &b, NULL)) {
                 extra_env[(*n)++] = g_strdup_printf ("%sIS_LOCAL=%s", prefix, b ? "true" : "false");
+        }
 }
 
 void
