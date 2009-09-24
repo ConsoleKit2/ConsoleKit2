@@ -1,8 +1,24 @@
 ==============
-Version 0.3.2
+Version 0.4.0
 ==============
 
  * Starting with this release we will not do session.d/ 'session_active_changed' callouts anymore. (Lennart Poettering)
+
+ * get rid of session.d's session_active_changed callout (Lennart Poettering)
+ * close file descriptors before exit func (Halton Huo)
+ * log the kernel release and boot arguments at start time (William Jon McCann)
+ * show display in host field if the host isn't set (William Jon McCann)
+ * print the uptime for the reboot items in the report (William Jon McCann)
+ * fix logic for finding session remove events (William Jon McCann)
+ * fix a few small leaks (William Jon McCann)
+ * Add seat.d/ callout directory and guarantee we dump the database before call
+ * database: write the console database to disk before signalling via dbus (Len
+ * Enforce that the env array has the right size (Lennart Poettering)
+ * when printing size_t use %z format string (Lennart Poettering)
+ * make CK database world readable (Lennart Poettering)
+ * get rid of ck_seat_set_active_session() prototype since no such function exi
+ * Move ck_session_run_programs() from ck-run-programs.h to ck-session.h (Lenna
+ * post release version bump (Ray Strode)
 
 ==============
 Version 0.3.1
