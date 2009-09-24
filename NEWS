@@ -1,4 +1,12 @@
 ==============
+Version 0.4.1
+==============
+
+ * Fix a crasher (William Jon McCann)
+ * fix a small memory leak (Matthias Clasen)
+ * update email address (William Jon McCann)
+
+==============
 Version 0.4.0
 ==============
 
