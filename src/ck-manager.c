@@ -810,11 +810,8 @@ check_polkit_permissions (CkManager             *manager,
                           AuthorizedCallback     callback)
 {
         const char    *sender;
-        GError        *error;
         PolkitSubject *subject;
         AuthorizedCallbackData *data;
-
-        error = NULL;
 
         g_debug ("constructing polkit data");
 
@@ -837,6 +834,7 @@ check_polkit_permissions (CkManager             *manager,
                                               NULL,
                                               (GAsyncReadyCallback)auth_ready_callback,
                                               data);
+        g_object_unref (subject);
 }
 
 static void
@@ -873,14 +871,12 @@ get_polkit_permissions (CkManager   *manager,
 {
         const char    *sender;
         PolkitSubject *subject;
-        GError *error;
 
         g_debug ("get permissions for action %s", action);
 
         sender = dbus_g_method_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
 
-        error = NULL;
         polkit_authority_check_authorization (manager->priv->pol_ctx,
                                               subject,
                                               action,
@@ -890,7 +886,6 @@ get_polkit_permissions (CkManager   *manager,
                                               (GAsyncReadyCallback) ready_cb,
                                               context);
         g_object_unref (subject);
-
 }
 #endif
 
