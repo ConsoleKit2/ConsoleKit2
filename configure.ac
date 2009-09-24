@@ -1,7 +1,7 @@
 
 AC_PREREQ(2.59c)
 AC_INIT([ConsoleKit],
-        [0.4.0],
+        [0.4.1],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],
         [ConsoleKit])
 
