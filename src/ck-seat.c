@@ -1214,7 +1214,6 @@ env_add_session_info (CkSession  *session,
 
         if (ck_session_get_unix_user (session, &u, NULL)) {
                 extra_env[(*n)++] = g_strdup_printf ("%sUSER_UID=%u", prefix, u);
-                g_free (s);
         }
 
         if (ck_session_get_display_device (session, &s, NULL) && s != NULL && *s != '\0') {
