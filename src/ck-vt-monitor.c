@@ -393,6 +393,8 @@ vt_add_watches (CkVtMonitor *vt_monitor)
          */
         struct sigaction act;
         act.sa_handler = handle_vt_active;
+        sigemptyset (&act.sa_mask);
+        act.sa_flags = 0;
         sigaction (SIGPOLL, &act, NULL);
 
         ioctl (vt_monitor->priv->vfd, I_SETSIG, S_MSG);
