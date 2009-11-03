@@ -124,6 +124,26 @@ ck_process_stat_get_tty (CkProcessStat *stat)
         return g_strdup (stat->tty_text);
 }
 
+#define VT0_FILE "/dev/vt/0"
+static int
+get_system_vt_major ()
+{
+        static      ret = -1;
+        struct stat st;
+        int         res;
+
+        if (ret >= 0)
+                return ret;
+
+        res = stat (VT0_FILE, &st);
+
+        if (res == 0) {
+                ret = major (st.st_rdev);
+        }
+        
+        return ret;
+}
+
 /* return 1 if it works, or 0 for failure */
 static gboolean
 stat2proc (pid_t        pid,
@@ -177,7 +197,7 @@ stat2proc (pid_t        pid,
 
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
-	if (tty_maj == 15) {
+	if (tty_maj == get_system_vt_major ()) {
 		snprintf (P->tty_text, sizeof P->tty_text, "/dev/vt/%u", tty_min);
         }
         if (P->tty == NO_TTY_VALUE) {
