@@ -139,6 +139,7 @@ console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
 	$(POLKIT_LIBS)		\
 	$(RBAC_LIBS)		\
+	$(SCF_LIBS)		\
 	libck.la		\
 	libck-event-log.la	\
 	$(NULL)

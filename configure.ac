@@ -320,6 +320,19 @@ fi
 AC_SUBST(RBAC_LIBS)
 
 dnl ---------------------------------------------------------------------------
+dnl check for SCF (Only avail on solaris)
+dnl ---------------------------------------------------------------------------
+
+AC_CHECK_LIB(scf, smf_get_state,
+             [SCF_LIBS=-lscf
+             AC_DEFINE(HAVE_SCF,1,[Define to 1 if the libscf library is present.])],
+             [AC_MSG_WARN([[
+***
+*** libscf was not found.
+]])])
+AC_SUBST(SCF_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
