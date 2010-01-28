@@ -1064,7 +1064,7 @@ ck_session_class_init (CkSessionClass *klass)
                                                             0,
                                                             G_PARAM_READWRITE));
         g_object_class_install_property (object_class,
-                                         PROP_ACTIVE,
+                                         PROP_IDLE_HINT,
                                          g_param_spec_boolean ("idle-hint",
                                                                NULL,
                                                                NULL,
