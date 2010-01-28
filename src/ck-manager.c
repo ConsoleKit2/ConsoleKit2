@@ -2447,6 +2447,10 @@ add_seat_for_file (CkManager  *manager,
 
         seat = ck_seat_new_from_file (sid, filename);
 
+        if (seat == NULL) {
+                return;
+        }
+
         connect_seat_signals (manager, seat);
         if (!ck_seat_register (seat)) {
                 /* returns false if connection to bus fails */
