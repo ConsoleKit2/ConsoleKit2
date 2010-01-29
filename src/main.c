@@ -283,7 +283,7 @@ main (int    argc,
         res = g_option_context_parse (context, &argc, &argv, &error);
         g_option_context_free (context);
         if (! res) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 g_error_free (error);
                 goto out;
         }

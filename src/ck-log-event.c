@@ -721,7 +721,7 @@ parse_log_for_seat_added (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' seat-kind=(?P<sessionid>[0-9]*)", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -781,7 +781,7 @@ parse_log_for_seat_removed (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' seat-kind=(?P<sessionid>[0-9]*)", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -887,7 +887,7 @@ parse_log_for_system_start (const GString *str,
         error = NULL;
         re = g_regex_new ("(kernel-release='(?P<release>[^']+)')?[ ]?(boot-arguments='(?P<arguments>.*)')?", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -941,7 +941,7 @@ parse_log_for_seat_session_added (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' session-id='(?P<sessionid>[a-zA-Z0-9/]+)' session-type='(?P<sessiontype>[a-zA-Z0-9 ]*)' session-x11-display='(?P<sessionx11display>[0-9a-zA-Z.:]*)' session-x11-display-device='(?P<sessionx11displaydevice>[^']*)' session-display-device='(?P<sessiondisplaydevice>[^']*)' session-remote-host-name='(?P<sessionremovehostname>[^']*)' session-is-local=(?P<sessionislocal>[a-zA-Z]*) session-unix-user=(?P<sessionunixuser>[0-9]*) session-creation-time='(?P<sessioncreationtime>[^']*)'", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -1016,7 +1016,7 @@ parse_log_for_seat_session_removed (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' session-id='(?P<sessionid>[a-zA-Z0-9/]+)' session-type='(?P<sessiontype>[a-zA-Z0-9 ]*)' session-x11-display='(?P<sessionx11display>[0-9a-zA-Z.:]*)' session-x11-display-device='(?P<sessionx11displaydevice>[^']*)' session-display-device='(?P<sessiondisplaydevice>[^']*)' session-remote-host-name='(?P<sessionremovehostname>[^']*)' session-is-local=(?P<sessionislocal>[a-zA-Z]*) session-unix-user=(?P<sessionunixuser>[0-9]*) session-creation-time='(?P<sessioncreationtime>[^']*)'", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -1090,7 +1090,7 @@ parse_log_for_seat_active_session_changed (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' session-id='(?P<sessionid>[a-zA-Z0-9/]*)'", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -1142,7 +1142,7 @@ parse_log_for_seat_device_added (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' device-id='(?P<deviceid>[^']+)' device-type='(?P<devicetype>[^']+)'", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
@@ -1195,7 +1195,7 @@ parse_log_for_seat_device_removed (const GString *str,
         error = NULL;
         re = g_regex_new ("seat-id='(?P<seatid>[a-zA-Z0-9/]+)' device-id='(?P<deviceid>[^']+)' device-type='(?P<devicetype>[^']+)'", 0, 0, &error);
         if (re == NULL) {
-                g_warning (error->message);
+                g_warning ("%s", error->message);
                 goto out;
         }
 
