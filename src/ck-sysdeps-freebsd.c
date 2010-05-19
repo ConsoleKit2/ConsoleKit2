@@ -361,6 +361,12 @@ done:
         return ret;
 }
 
+gboolean
+ck_supports_activatable_consoles (void)
+{
+        return TRUE;
+}
+
 char *
 ck_get_console_device_for_num (guint num)
 {

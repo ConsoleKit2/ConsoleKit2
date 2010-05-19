@@ -33,6 +33,7 @@
 #ifdef HAVE_SYS_VT_H
 #include <sys/vt.h>
 #endif
+#include <libscf.h>
 
 #define DEV_ENCODE(M,m) ( \
   ( (M&0xfff) << 8)   |   ( (m&0xfff00) << 12)   |   (m&0xff)   \
@@ -417,6 +418,23 @@ ck_get_max_num_consoles (guint *num)
         g_free (svcprop_stdout);
 
         return ret;
+}
+
+gboolean
+ck_supports_activatable_consoles (void)
+{
+        char *state = NULL;
+        gboolean vt_enabled;
+                               
+        state = smf_get_state ("svc:/system/vtdaemon:default");
+        if (state && g_str_equal (state, SCF_STATE_STRING_ONLINE)) {
+                vt_enabled = TRUE;
+        } else {
+                vt_enabled = FALSE;
+        }           
+                    
+        g_free (state);
+        return vt_enabled;
 }
 
 char *

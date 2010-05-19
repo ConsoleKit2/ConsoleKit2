@@ -49,6 +49,7 @@ if CK_COMPILE_SOLARIS
 libck_la_SOURCES +=		\
 	ck-sysdeps-solaris.c	\
 	$(NULL)
+libck_la_LIBADD = -lscf
 endif
 if CK_COMPILE_FREEBSD
 libck_la_SOURCES +=		\
