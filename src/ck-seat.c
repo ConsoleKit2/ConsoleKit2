@@ -25,9 +25,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#ifdef HAVE_SCF
-#include <libscf.h>
-#endif
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -664,26 +661,6 @@ ck_seat_add_session (CkSeat         *seat,
         return TRUE;
 }
 
-is_VT_enabled ()
-{
-#ifdef HAVE_SYS_VT_H
-        char *state = NULL;
-        gboolean vt_enabled;
-
-        state = smf_get_state ("svc:/system/vtdaemon:default");
-        if (state && g_str_equal (state, SCF_STATE_STRING_ONLINE)) {
-                vt_enabled = TRUE;
-        } else {
-                vt_enabled = FALSE;
-        }
-
-        g_free (state);
-        return vt_enabled;
-#else
-         return FALSE;
-#endif /* HAVE_SYS_VT_H */
-}
-
 gboolean
 ck_seat_can_activate_sessions (CkSeat   *seat,
                                gboolean *can_activate,
@@ -692,8 +669,7 @@ ck_seat_can_activate_sessions (CkSeat   *seat,
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
         if (can_activate != NULL) {
-                *can_activate = (seat->priv->kind == CK_SEAT_KIND_STATIC)
-                                 && is_VT_enabled ();
+                *can_activate = (seat->priv->kind == CK_SEAT_KIND_STATIC);
         }
 
         return TRUE;
