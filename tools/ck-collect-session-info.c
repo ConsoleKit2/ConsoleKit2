@@ -274,8 +274,7 @@ fill_x11_info (SessionInfo *si)
         si->x11_display_device = ck_process_stat_get_tty (xorg_stat);
         ck_process_stat_free (xorg_stat);
 
-        si->is_local = TRUE;
-        si->is_local_is_set = TRUE;
+        /* don't set is-local here - let the daemon do that */
 
         g_free (si->remote_host_name);
         si->remote_host_name = NULL;
@@ -303,13 +302,6 @@ fill_session_info (SessionInfo *si)
         ck_process_stat_free (stat);
 
         fill_x11_info (si);
-
-        if (! si->is_local_is_set) {
-                /* FIXME: how should we set this? */
-                /* non x11 sessions must be local I guess */
-                si->is_local = TRUE;
-                si->is_local_is_set = TRUE;
-        }
 
         res = ck_unix_pid_get_login_session_id (si->pid, &si->login_session_id);
         if (! res) {
