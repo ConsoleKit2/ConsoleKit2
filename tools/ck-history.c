@@ -62,8 +62,8 @@ typedef enum {
 
 static GList *all_events = NULL;
 
-static gboolean
-process_event_line (const char *line)
+static CkLogEvent *
+parse_event_line (const char *line)
 {
         GString    *str;
         CkLogEvent *event;
@@ -72,47 +72,80 @@ process_event_line (const char *line)
         event = ck_log_event_new_from_string (str);
         g_string_free (str, TRUE);
 
-        if (event != NULL) {
-                all_events = g_list_prepend (all_events, event);
-        }
-
-        return TRUE;
+        return event;
 }
 
 static gboolean
-process_log_gzstream (gzFile *fstream)
+process_log_gzstream (gzFile   *fstream,
+                      GTimeVal *since)
 {
-        char line[MAX_LINE_LEN];
+        char     line[MAX_LINE_LEN];
+        gboolean hit_since;
+        GList   *events;
 
+        events = NULL;
+        hit_since = FALSE;
         while (gzgets (fstream, line, sizeof (line)) != Z_NULL) {
+                CkLogEvent *event;
+
                 if (strlen (line) == sizeof (line) - 1) {
                         g_warning ("Log line truncated");
                 }
 
-                process_event_line (line);
+                event = parse_event_line (line);
+                if (event == NULL) {
+                        continue;
+                }
+
+                if (since == NULL || event->timestamp.tv_sec >= since->tv_sec) {
+                        events = g_list_prepend (events, event);
+                } else {
+                        hit_since = TRUE;
+                }
         }
 
-        return TRUE;
+        all_events = g_list_concat (all_events, events);
+
+        return !hit_since;
 }
 
 static gboolean
-process_log_stream (FILE *fstream)
+process_log_stream (FILE     *fstream,
+                    GTimeVal *since)
 {
-        char line[MAX_LINE_LEN];
+        char     line[MAX_LINE_LEN];
+        gboolean hit_since;
+        GList   *events;
 
+        events = NULL;
+        hit_since = FALSE;
         while (fgets (line, sizeof (line), fstream) != NULL) {
+                CkLogEvent *event;
+
                 if (strlen (line) == sizeof (line) - 1) {
                         g_warning ("Log line truncated");
                 }
 
-                process_event_line (line);
+                event = parse_event_line (line);
+                if (event == NULL) {
+                        continue;
+                }
+
+                if (since == NULL || event->timestamp.tv_sec >= since->tv_sec) {
+                        events = g_list_prepend (events, event);
+                } else {
+                        hit_since = TRUE;
+                }
         }
 
-        return TRUE;
+        all_events = g_list_concat (all_events, events);
+
+        return !hit_since;
 }
 
 static gboolean
-process_log_file (const char *filename)
+process_log_file (const char *filename,
+                  GTimeVal   *since)
 {
         gboolean ret;
 
@@ -131,7 +164,7 @@ process_log_file (const char *filename)
                                    errmsg);
                         return FALSE;
                 }
-                ret = process_log_gzstream (f);
+                ret = process_log_gzstream (f, since);
                 gzclose (f);
         } else {
                 FILE    *f;
@@ -143,7 +176,7 @@ process_log_file (const char *filename)
                                    g_strerror (errno));
                         return FALSE;
                 }
-                ret = process_log_stream (f);
+                ret = process_log_stream (f, since);
                 fclose (f);
         }
 
@@ -180,11 +213,14 @@ get_log_file_list (void)
                 files = g_list_prepend (files, filename);
         };
 
+        /* Return the list in reverse time order, newest first */
+        files = g_list_reverse (files);
+
         return files;
 }
 
 static gboolean
-process_logs (void)
+process_logs (GTimeVal *since)
 {
         gboolean ret;
         GList   *files;
@@ -199,8 +235,7 @@ process_logs (void)
                 char    *filename;
 
                 filename = l->data;
-
-                res = process_log_file (filename);
+                res = process_log_file (filename, since);
                 if (! res) {
                         goto out;
                 }
@@ -843,6 +878,8 @@ main (int    argc,
         GError             *error = NULL;
         int                 report_type;
         int                 uid;
+        GTimeVal            timestamp;
+        gboolean            use_since;
         static gboolean     do_version = FALSE;
         static gboolean     report_last_compat = FALSE;
         static gboolean     report_last = FALSE;
@@ -851,6 +888,7 @@ main (int    argc,
         static char        *username = NULL;
         static char        *seat = NULL;
         static char        *session_type = NULL;
+        static char        *since = NULL;
         static GOptionEntry entries [] = {
                 { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
                 { "frequent", 0, 0, G_OPTION_ARG_NONE, &report_frequent, N_("Show listing of frequent users"), NULL },
@@ -860,6 +898,7 @@ main (int    argc,
                 { "seat", 's', 0, G_OPTION_ARG_STRING, &seat, N_("Show entries for the specified seat"), N_("SEAT") },
                 { "session-type", 't', 0, G_OPTION_ARG_STRING, &session_type, N_("Show entries for the specified session type"), N_("TYPE") },
                 { "user", 'u', 0, G_OPTION_ARG_STRING, &username, N_("Show entries for the specified user"), N_("NAME") },
+                { "since", 0, 0, G_OPTION_ARG_STRING, &since, N_("Show entries since the specified time (ISO 8601 format)"), N_("DATETIME") },
                 { NULL }
         };
 
@@ -878,6 +917,15 @@ main (int    argc,
         if (do_version) {
                 g_print ("%s %s\n", argv [0], VERSION);
                 exit (1);
+        }
+
+        use_since = FALSE;
+        if (since != NULL) {
+                use_since = g_time_val_from_iso8601 (since, &timestamp);
+                if (! use_since) {
+                        g_warning ("Invalid ISO 8601 time value");
+                        exit (1);
+                }
         }
 
         if (report_last_compat) {
@@ -902,7 +950,11 @@ main (int    argc,
                 uid = -1;
         }
 
-        process_logs ();
+        if (use_since) {
+                process_logs (&timestamp);
+        } else {
+                process_logs (NULL);
+        }
         generate_report (report_type, uid, seat, session_type);
         free_events ();
 
