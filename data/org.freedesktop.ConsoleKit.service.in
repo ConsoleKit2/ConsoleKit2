@@ -2,3 +2,4 @@
 Name=org.freedesktop.ConsoleKit
 Exec=@sbindir@/console-kit-daemon --no-daemon
 User=root
+SystemdService=console-kit-daemon.service

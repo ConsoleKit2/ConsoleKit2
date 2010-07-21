@@ -63,3 +63,6 @@ $(srcdir)/ChangeLog:
 	fi
 
 .PHONY: ChangeLog $(srcdir)/ChangeLog
+
+DISTCHECK_CONFIGURE_FLAGS = \
+	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)

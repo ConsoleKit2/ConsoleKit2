@@ -2,3 +2,4 @@ Makefile
 Makefile.in
 ConsoleKit
 org.freedesktop.ConsoleKit.service
+console-kit-daemon.service

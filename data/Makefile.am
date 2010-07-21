@@ -20,6 +20,15 @@ service_DATA = $(service_in_files:.service.in=.service)
 $(service_DATA): $(service_in_files) Makefile
 	$(edit) $< >$@
 
+if HAVE_SYSTEMD
+systemdsystemunit_DATA = \
+	console-kit-daemon.service
+
+console-kit-daemon.service: console-kit-daemon.service.in
+	$(edit) $< >$@
+
+endif
+
 edit = sed \
 	-e 's|@sbindir[@]|$(sbindir)|g' \
 	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
@@ -33,10 +42,11 @@ EXTRA_DIST =						\
 	$(dbusconf_DATA)				\
 	$(seat_DATA)					\
 	$(service_in_files)				\
+	console-kit-daemon.service.in                   \
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
 	*~				\
 	Makefile.in
 
-CLEANFILES = $(service_DATA)
+CLEANFILES = $(service_DATA) console-kit-daemon.service
