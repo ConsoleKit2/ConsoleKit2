@@ -2660,10 +2660,12 @@ load_seats_from_dir (CkManager *manager)
         }
 
         while ((file = g_dir_read_name (d)) != NULL) {
-                char *path;
-                path = g_build_filename (CK_SEAT_DIR, file, NULL);
-                add_seat_for_file (manager, path);
-                g_free (path);
+                if (g_str_has_suffix (file, ".seat")) {
+                        char *path;
+                        path = g_build_filename (CK_SEAT_DIR, file, NULL);
+                        add_seat_for_file (manager, path);
+                        g_free (path);
+                }
         }
 
         g_dir_close (d);

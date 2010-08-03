@@ -770,6 +770,8 @@ ck_seat_register (CkSeat *seat)
 {
         GError *error = NULL;
 
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
         error = NULL;
         seat->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
         if (seat->priv->connection == NULL) {
