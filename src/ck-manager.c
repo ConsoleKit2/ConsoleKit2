@@ -1251,6 +1251,8 @@ on_seat_active_session_changed_full (CkSeat     *seat,
         ck_seat_run_programs (seat, old_session, session, "seat_active_session_changed");
 
         log_seat_active_session_changed_event (manager, seat, ssid);
+
+        g_free (ssid);
 }
 
 static void
@@ -1266,6 +1268,8 @@ on_seat_session_added_full (CkSeat     *seat,
         ck_session_run_programs (session, "session_added");
 
         log_seat_session_added_event (manager, seat, ssid);
+
+        g_free (ssid);
 }
 
 static void
@@ -1281,6 +1285,8 @@ on_seat_session_removed_full (CkSeat     *seat,
         ck_session_run_programs (session, "session_removed");
 
         log_seat_session_removed_event (manager, seat, ssid);
+
+        g_free (ssid);
 }
 
 static void
@@ -1925,6 +1931,7 @@ create_session_for_sender (CkManager             *manager,
 
         g_free (cookie);
         g_free (ssid);
+        g_object_unref (leader);
 
         return TRUE;
 }

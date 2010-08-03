@@ -1105,9 +1105,10 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->cookie);
         g_free (session->priv->seat_id);
         g_free (session->priv->session_type);
-        g_free (session->priv->x11_display);
+        g_free (session->priv->login_session_id);
         g_free (session->priv->display_device);
         g_free (session->priv->x11_display_device);
+        g_free (session->priv->x11_display);
         g_free (session->priv->remote_host_name);
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
