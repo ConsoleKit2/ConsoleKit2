@@ -296,6 +296,50 @@ ck_wait_for_active_console_num (int   console_fd,
         return ret;
 }
 
+#ifdef VT_WAITEVENT
+gboolean
+ck_wait_for_console_switch (int   console_fd,
+                            guint *num)
+{
+        gboolean ret;
+        int      res;
+        struct vt_event vt;
+
+        g_assert (console_fd != -1);
+
+ again:
+        ret = FALSE;
+        errno = 0;
+        vt.event = VT_EVENT_SWITCH;
+        vt.oldev = *num;
+        res = ioctl (console_fd, VT_WAITEVENT, &vt);
+
+        if (res == ERROR) {
+                const char *errmsg;
+
+                errmsg = g_strerror (errno);
+
+                if (errno == EINTR) {
+                        g_debug ("Interrupted waiting for native console event: %s",
+                                  errmsg);
+                       goto again;
+                } else if (errno == ENOTSUP) {
+                        g_debug ("Console event not supported on this system");
+                } else {
+                        g_warning ("Error waiting for native console event: %s",
+                                   errmsg);
+                }
+                goto out;
+        }
+
+        ret = TRUE;
+        *num = vt.newev;
+
+ out:
+        return ret;
+}
+#endif
+
 gboolean
 ck_activate_console_num (int   console_fd,
                          guint num)

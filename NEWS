@@ -8,6 +8,7 @@ Version 0.4.2
  * Don't take bus name until ready (Ray Strode)
  * systemd hookup (Lennart Poettering)
  * add --since option to ck-history (William Jon McCann)
+ * Reduce number of threads on Linux (Kan-Ru Chen)
  * Other fixes (Anders Kaseor, Frederic Crozat, Matthias Clasen, Michael Biebl, William Jon McCann)
 
 ==============
