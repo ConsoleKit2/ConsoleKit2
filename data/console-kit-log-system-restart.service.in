@@ -1,0 +1,9 @@
+[Unit]
+Description=Console System Reboot Logging
+DefaultDependencies=no
+Before=poweroff.service reboot.service halt.service killall.service
+After=console-kit-system-start.service
+
+[Service]
+Type=oneshot
+ExecStart=@sbindir@/ck-log-system-restart

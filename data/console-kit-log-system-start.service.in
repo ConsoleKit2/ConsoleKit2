@@ -1,0 +1,9 @@
+[Unit]
+Description=Console System Startup Logging
+DefaultDependencies=no
+Before=poweroff.service reboot.service halt.service killall.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=@sbindir@/ck-log-system-start

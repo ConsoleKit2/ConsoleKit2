@@ -3,3 +3,6 @@ Makefile.in
 ConsoleKit
 org.freedesktop.ConsoleKit.service
 console-kit-daemon.service
+console-kit-log-system-start.service
+console-kit-log-system-stop.service
+console-kit-log-system-restart.service
