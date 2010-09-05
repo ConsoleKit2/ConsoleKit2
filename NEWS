@@ -1,4 +1,16 @@
 ==============
+Version 0.4.2
+==============
+
+ * Ensure we only care for seat files ending in .seat (William Jon McCann)
+ * Various Solaris improvements (Halton Huo)
+ * Make build silent (Ray Strode)
+ * Don't take bus name until ready (Ray Strode)
+ * systemd hookup (Lennart Poettering)
+ * add --since option to ck-history (William Jon McCann)
+ * Other fixes (Anders Kaseor, Frederic Crozat, Matthias Clasen, Michael Biebl, William Jon McCann)
+
+==============
 Version 0.4.1
 ==============
 
@@ -11,7 +23,6 @@ Version 0.4.0
 ==============
 
  * Starting with this release we will not do session.d/ 'session_active_changed' callouts anymore. (Lennart Poettering)
-
  * get rid of session.d's session_active_changed callout (Lennart Poettering)
  * close file descriptors before exit func (Halton Huo)
  * log the kernel release and boot arguments at start time (William Jon McCann)
