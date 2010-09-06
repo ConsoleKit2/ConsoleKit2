@@ -7,3 +7,4 @@ After=local-fs.target
 [Service]
 Type=oneshot
 ExecStart=@sbindir@/ck-log-system-start
+RemainAfterExit=yes
