@@ -1,8 +1,9 @@
 [Unit]
 Description=Console System Startup Logging
 DefaultDependencies=no
+Wants=local-fs.target sysinit.target
+After=local-fs.target sysinit.target
 Before=poweroff.service reboot.service halt.service killall.service
-After=local-fs.target
 
 [Service]
 Type=oneshot

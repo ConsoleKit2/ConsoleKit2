@@ -1,8 +1,9 @@
 [Unit]
 Description=Console System Reboot Logging
 DefaultDependencies=no
+Wants=local-fs.target sysinit.target
+After=local-fs.target sysinit.target console-kit-system-start.service
 Before=poweroff.service reboot.service halt.service killall.service
-After=console-kit-system-start.service
 
 [Service]
 Type=oneshot
