@@ -176,7 +176,7 @@ dnl ---------------------------------------------------------------------------
 CK_BACKEND=""
 KVM_LIBS=""
 case "$host" in
-        *-*-freebsd*)
+        *-*-freebsd* | *-*-kfreebsd*-gnu)
         CK_BACKEND="freebsd"
         AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
                 AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD]))
