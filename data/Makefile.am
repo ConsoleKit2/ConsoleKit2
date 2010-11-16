@@ -44,7 +44,8 @@ install-data-hook:
 		$(DESTDIR)$(systemdsystemunitdir)/basic.target.wants \
 		$(DESTDIR)$(systemdsystemunitdir)/halt.target.wants \
 		$(DESTDIR)$(systemdsystemunitdir)/poweroff.target.wants \
-		$(DESTDIR)$(systemdsystemunitdir)/reboot.target.wants
+		$(DESTDIR)$(systemdsystemunitdir)/reboot.target.wants \
+		$(DESTDIR)$(systemdsystemunitdir)/kexec.target.wants
 	( cd $(DESTDIR)$(systemdsystemunitdir)/basic.target.wants && \
 		$(LN_S) ../console-kit-log-system-start.service )
 	( cd $(DESTDIR)$(systemdsystemunitdir)/halt.target.wants && \
@@ -52,6 +53,8 @@ install-data-hook:
 	( cd $(DESTDIR)$(systemdsystemunitdir)/poweroff.target.wants && \
 		$(LN_S) ../console-kit-log-system-stop.service )
 	( cd $(DESTDIR)$(systemdsystemunitdir)/reboot.target.wants && \
+		$(LN_S) ../console-kit-log-system-restart.service )
+	( cd $(DESTDIR)$(systemdsystemunitdir)/kexec.target.wants && \
 		$(LN_S) ../console-kit-log-system-restart.service )
 endif
 
