@@ -1,9 +1,9 @@
 [Unit]
 Description=Console System Shutdown Logging
 DefaultDependencies=no
-Wants=local-fs.target sysinit.target
-After=local-fs.target sysinit.target console-kit-system-start.service
-Before=poweroff.service reboot.service halt.service killall.service
+Wants=sysinit.target
+After=sysinit.target console-kit-system-start.service
+Before=shutdown.service
 
 [Service]
 Type=oneshot
