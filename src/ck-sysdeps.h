@@ -72,8 +72,6 @@ gboolean     ck_activate_console_num          (int             console_fd,
                                                guint           num);
 gboolean     ck_wait_for_active_console_num   (int             console_fd,
                                                guint           num);
-gboolean     ck_wait_for_console_switch       (int             console_fd,
-                                               guint          *num);
 
 G_END_DECLS
 

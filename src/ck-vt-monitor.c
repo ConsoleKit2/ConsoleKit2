@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <signal.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -40,11 +39,9 @@
 #include "ck-sysdeps.h"
 #include "ck-marshal.h"
 
-#ifdef HAVE_SYS_VT_H
+#if defined (__sun) && defined (HAVE_SYS_VT_H)
 #include <sys/vt.h>
-#endif
-
-#ifdef __sun
+#include <signal.h>
 #include <stropts.h>
 #endif
 
@@ -165,7 +162,7 @@ ck_vt_monitor_get_active (CkVtMonitor    *vt_monitor,
         return TRUE;
 }
 
-#if defined(HAVE_SYS_VT_H) && defined(__sun)
+#if defined (__sun) && defined (HAVE_SYS_VT_H)
 static void
 handle_vt_active (void)
 {
@@ -315,31 +312,11 @@ vt_thread_start (ThreadData *data)
 {
         CkVtMonitor *vt_monitor;
         gboolean     res;
-        guint        num;
+        gint32       num;
 
         vt_monitor = data->vt_monitor;
         num = data->num;
 
-#ifdef VT_WAITEVENT
-        for (;;) {
-                res = ck_wait_for_console_switch (vt_monitor->priv->vfd, &num);
-                if (! res) {
-                        break;
-                } else {
-                        EventData *event;
-
-                        /* add event to queue */
-                        event = g_new0 (EventData, 1);
-                        event->num = num;
-                        g_debug ("Pushing activation event for VT %d onto queue", num);
-
-                        g_async_queue_push (vt_monitor->priv->event_queue, event);
-
-                        /* schedule processing of queue */
-                        schedule_process_queue (vt_monitor);
-                }
-        }
-#else
         res = ck_wait_for_active_console_num (vt_monitor->priv->vfd, num);
         if (! res) {
                 /* FIXME: what do we do if it fails? */
@@ -356,7 +333,6 @@ vt_thread_start (ThreadData *data)
                 /* schedule processing of queue */
                 schedule_process_queue (vt_monitor);
         }
-#endif
 
         G_LOCK (hash_lock);
         if (vt_monitor->priv->vt_thread_hash != NULL) {
@@ -400,6 +376,10 @@ vt_add_watch_unlocked (CkVtMonitor *vt_monitor,
 static void
 vt_add_watches (CkVtMonitor *vt_monitor)
 {
+        guint  max_consoles;
+        int    i;
+        gint32 current_num;
+
 #if defined (__sun) && !defined (HAVE_SYS_VT_H)
         /* Best to do nothing if VT is not supported */
 #elif defined (__sun) && defined (HAVE_SYS_VT_H)
@@ -417,19 +397,7 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         sigaction (SIGPOLL, &act, NULL);
 
         ioctl (vt_monitor->priv->vfd, I_SETSIG, S_MSG);
-#elif defined (VT_WAITEVENT)
-        gpointer id;
-
-        G_LOCK (hash_lock);
-        id = GINT_TO_POINTER (1);
-        if (g_hash_table_lookup (vt_monitor->priv->vt_thread_hash, id) == NULL)
-                vt_add_watch_unlocked (vt_monitor, 1);
-        G_UNLOCK (hash_lock);
 #else
-        guint  max_consoles;
-        int    i;
-        gint32 current_num;
-
         G_LOCK (hash_lock);
 
         current_num = vt_monitor->priv->active_num;
