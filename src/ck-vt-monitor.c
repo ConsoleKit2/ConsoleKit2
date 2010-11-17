@@ -27,7 +27,6 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
-#include <sys/ioctl.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -311,34 +310,6 @@ schedule_process_queue (CkVtMonitor *vt_monitor)
         G_UNLOCK (schedule_lock);
 }
 
-#ifdef VT_WAITEVENT
-static gboolean
-vt_waitevent_supported (int fd)
-{
-        static int supported = -1;
-        int res;
-
-        if (supported >= 0)
-                return supported;
-
-        res = ioctl(fd, VT_WAITEVENT, NULL);
-
-        if (res == ERROR) {
-                if (errno == EINVAL) {
-                        g_debug ("VT_WAITEVENT not supported on this system");
-                        supported = FALSE;
-                        return FALSE;
-                } else if (errno == EFAULT) {
-                        g_debug ("VT_WAITEVENT supported on this system");
-                        supported = TRUE;
-                        return TRUE;
-                }
-        }
-        g_debug ("Unexpected result for VT_WAITEVENT check, returning FALSE");
-        return FALSE;
-}
-#endif
-
 static void *
 vt_thread_start (ThreadData *data)
 {
@@ -350,9 +321,6 @@ vt_thread_start (ThreadData *data)
         num = data->num;
 
 #ifdef VT_WAITEVENT
-        if (!vt_waitevent_supported(vt_monitor->priv->vfd))
-                goto no_waitevent;
-
         for (;;) {
                 res = ck_wait_for_console_switch (vt_monitor->priv->vfd, &num);
                 if (! res) {
@@ -371,10 +339,7 @@ vt_thread_start (ThreadData *data)
                         schedule_process_queue (vt_monitor);
                 }
         }
-        goto out;
-#endif
-
-no_waitevent:
+#else
         res = ck_wait_for_active_console_num (vt_monitor->priv->vfd, num);
         if (! res) {
                 /* FIXME: what do we do if it fails? */
@@ -391,8 +356,8 @@ no_waitevent:
                 /* schedule processing of queue */
                 schedule_process_queue (vt_monitor);
         }
+#endif
 
-out:
         G_LOCK (hash_lock);
         if (vt_monitor->priv->vt_thread_hash != NULL) {
                 g_hash_table_remove (vt_monitor->priv->vt_thread_hash, GUINT_TO_POINTER (num));
@@ -452,24 +417,19 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         sigaction (SIGPOLL, &act, NULL);
 
         ioctl (vt_monitor->priv->vfd, I_SETSIG, S_MSG);
-#else
-        guint  max_consoles;
-        int    i;
-        gint32 current_num;
+#elif defined (VT_WAITEVENT)
         gpointer id;
-
-#if defined (VT_WAITEVENT)
-        if (!vt_waitevent_supported(vt_monitor->priv->vfd))
-                goto no_waitevent;
 
         G_LOCK (hash_lock);
         id = GINT_TO_POINTER (1);
         if (g_hash_table_lookup (vt_monitor->priv->vt_thread_hash, id) == NULL)
                 vt_add_watch_unlocked (vt_monitor, 1);
-        goto out;
-#endif
+        G_UNLOCK (hash_lock);
+#else
+        guint  max_consoles;
+        int    i;
+        gint32 current_num;
 
-no_waitevent:
         G_LOCK (hash_lock);
 
         current_num = vt_monitor->priv->active_num;
@@ -481,6 +441,7 @@ no_waitevent:
         }
 
         for (i = 1; i < max_consoles; i++) {
+                gpointer id;
 
                 /* don't wait on the active vc */
                 if (i == current_num) {
@@ -495,7 +456,6 @@ no_waitevent:
                 }
         }
 
-out:
         G_UNLOCK (hash_lock);
 #endif
 }
