@@ -3,7 +3,7 @@ Description=Console System Startup Logging
 DefaultDependencies=no
 Wants=sysinit.target
 After=sysinit.target
-Before=shutdown.service
+Before=shutdown.target
 
 [Service]
 Type=oneshot
