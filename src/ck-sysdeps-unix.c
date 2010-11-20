@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -150,9 +151,25 @@ open_a_console (char *fnam)
 {
         int fd;
 
+again:
         fd = open (fnam, O_RDONLY | O_NOCTTY);
         if (fd < 0 && errno == EACCES)
                 fd = open (fnam, O_WRONLY | O_NOCTTY);
+#ifdef __linux__
+	if (fd < 0 && errno == EIO) {
+		/* Linux can return EIO if the tty is currently closing,
+		 * which can happen if multiple processes are opening and
+		 * closing the console in parallel.  Unfortunately it can
+		 * also return EIO in more serious situations too (see
+		 * https://bugs.launchpad.net/bugs/554172), but there isn't
+		 * much we can do about that since we really need a console
+		 * fd.
+		 */
+		struct timespec ts = { 0, 100000000 }; /* 0.1 seconds */
+		nanosleep (&ts, NULL);
+		goto again;
+	}
+#endif
 
         if (fd < 0)
                 return -1;
