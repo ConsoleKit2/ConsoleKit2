@@ -2,6 +2,7 @@ prefix=@prefix@
 exec_prefix=@prefix@
 libdir=@libdir@
 includedir=@prefix@/include
+libexecdir=@libexecdir@
 
 Name: ck-connector
 Description: Library for connecting new sessions to ConsoleKit
