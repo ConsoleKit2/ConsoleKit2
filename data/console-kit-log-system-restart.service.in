@@ -2,7 +2,7 @@
 Description=Console System Reboot Logging
 DefaultDependencies=no
 Wants=sysinit.target
-After=sysinit.target console-kit-system-start.service
+After=sysinit.target console-kit-log-system-start.service
 Before=shutdown.target
 
 [Service]
