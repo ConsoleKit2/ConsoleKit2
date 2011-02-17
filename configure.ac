@@ -1,7 +1,7 @@
 
 AC_PREREQ(2.59c)
 AC_INIT([ConsoleKit],
-        [0.4.4],
+        [0.4.5],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],
         [ConsoleKit])
 
@@ -457,4 +457,3 @@ if test x${have_polkit} = xno -a x${msg_rbac_shutdown} = xno; then
    echo "         ConsoleKit.conf to match your distro/site to avoid NASTY SECURITY HOLES."
    echo ""
 fi
-
