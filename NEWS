@@ -1,4 +1,11 @@
 ==============
+Version 0.4.5
+==============
+
+ * Loop around opening /dev/console to deal with BKL-less kernels (Colin Watson)
+ * systemd fixes (Lennart Poettering)
+
+==============
 Version 0.4.4
 ==============
 
