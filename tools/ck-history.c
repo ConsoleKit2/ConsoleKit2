@@ -804,7 +804,7 @@ generate_report_frequent (int         uid,
                 data = user_counts->data;
 
                 username = get_user_name_for_uid (data->uid);
-                g_print ("%-8.8s %u\n", username, data->count);
+                g_print ("%-8s %u\n", username, data->count);
                 g_free (data);
                 user_counts = g_list_delete_link (user_counts, user_counts);
                 g_free (username);
