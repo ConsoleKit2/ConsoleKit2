@@ -16,6 +16,7 @@ AC_GNU_SOURCE
 
 AC_ISC_POSIX
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_STDC_HEADERS
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
@@ -233,6 +234,25 @@ if test "x$enable_pam_module" = "xyes"; then
 fi
 AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
 
+dnl ------------------------------------------------------------------------------
+dnl udev-acl - apply ACLs for users with local forground sessions
+dnl ------------------------------------------------------------------------------
+AC_ARG_ENABLE([udev-acl],
+	AS_HELP_STRING([--enable-udev-acl], [enable local user acl permissions support @<:@default=disabled@:>@]),
+	[], [enable_udev_acl=no])
+AS_IF([test "x$enable_udev_acl" = "xyes"], [
+
+	PKG_CHECK_MODULES([UDEV_ACL], [glib-2.0 >= 2.22.0 gobject-2.0 >= 2.22.0 libudev])
+	AC_CHECK_LIB([acl], [acl_init], [UDEV_ACL_LIBS="$UDEV_ACL_LIBS -lacl"], AC_MSG_ERROR([libacl not found]))
+	AC_CHECK_HEADER([acl/libacl.h], [:], AC_MSG_ERROR([libacl header not found]))
+	UDEVDIR=`$PKG_CONFIG --variable udevdir udev`
+	if test -z "$UDEVDIR" ; then
+		UDEVDIR="/lib/udev"
+	fi
+])
+AM_CONDITIONAL([ENABLE_UDEV_ACL], [test "x$enable_udev_acl" = "xyes"])
+
+
 dnl ---------------------------------------------------------------------------
 dnl - Install directory for PAM security module
 dnl ---------------------------------------------------------------------------
@@ -445,6 +465,7 @@ echo "
         Build backend:            ${CK_BACKEND}
         PAM module dir:           ${PAM_MODULE_DIR}
         Build PAM module:         ${msg_pam_module}
+        Build udev-acl:           ${enable_udev_acl}
         Build docs:               ${enable_docbook_docs}
 
         PolicyKit support         ${have_polkit}

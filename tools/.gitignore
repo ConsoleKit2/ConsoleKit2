@@ -14,3 +14,4 @@ ck-list-sessions
 ck-log-system-start
 ck-log-system-restart
 ck-log-system-stop
+udev-acl
