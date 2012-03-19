@@ -244,12 +244,12 @@ pam_sm_open_session (pam_handle_t *pamh,
         const char *s;
         uid_t       uid;
         char        buf[256];
-        char        ttybuf[PATH_MAX];
+        char       *ttybuf;
         DBusError   error;
         dbus_bool_t is_local;
 
         ret = PAM_IGNORE;
-
+        ttybuf = NULL;
         is_local = TRUE;
 
         _parse_pam_args (pamh, flags, argc, argv);
@@ -295,7 +295,13 @@ pam_sm_open_session (pam_handle_t *pamh,
                 x11_display = display_device;
                 display_device = "";
         } else if (strncmp (_PATH_DEV, display_device, 5) != 0) {
-                snprintf (ttybuf, sizeof (ttybuf), _PATH_DEV "%s", display_device);
+                int len = strlen (_PATH_DEV) + strlen (display_device) + 1;
+                ttybuf = malloc (len);
+                if (ttybuf == NULL) {
+                        ck_pam_syslog (pamh, LOG_ERR, "oom allocating ttybuf");
+                        goto out;
+                }
+                snprintf (ttybuf, len, _PATH_DEV "%s", display_device);
                 display_device = ttybuf;
         }
 
@@ -411,6 +417,8 @@ pam_sm_open_session (pam_handle_t *pamh,
         ret = PAM_SUCCESS;
 
 out:
+        free (ttybuf);
+
         return ret;
 }
 
