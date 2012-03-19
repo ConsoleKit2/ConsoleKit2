@@ -1,6 +1,9 @@
 
 AC_PREREQ([2.68])
-AC_INIT([ConsoleKit],[0.4.6],[https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],[ConsoleKit])
+AC_INIT([ConsoleKit],
+        [0.4.6],
+        [https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],
+        [ConsoleKit])
 
 AC_CONFIG_SRCDIR([src/ck-manager.c])
 
@@ -368,10 +371,9 @@ AC_SUBST(LDFLAGS)
 
 AC_ARG_WITH([systemdsystemunitdir],
         AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files]),
-        [],
-        [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)])
-AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
-AM_CONDITIONAL(HAVE_SYSTEMD, [test -n "$with_systemdsystemunitdir"])
+        [], [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)])
+AS_IF([test "x$with_systemdsystemunitdir" != "xno"], [ AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])])
+AM_CONDITIONAL(HAVE_SYSTEMD, [test -n "$with_systemdsystemunitdir" -a "x$with_systemdsystemunitdir" != "xno"])
 
 # Files
 
