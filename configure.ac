@@ -155,6 +155,9 @@ case "$host" in
         *-*-solaris*)
         CK_BACKEND="solaris"
         ;;
+        *-*-gnu*)
+        CK_BACKEND="gnu"
+        ;;
 	*)
 	AC_MSG_ERROR([No sysdeps back-end implemented for host $host])
 	;;
@@ -165,6 +168,7 @@ AC_SUBST(KVM_LIBS)
 AM_CONDITIONAL(CK_COMPILE_LINUX, test x$CK_BACKEND = xlinux, [Compiling for Linux])
 AM_CONDITIONAL(CK_COMPILE_FREEBSD, test x$CK_BACKEND = xfreebsd, [Compiling for FreeBSD])
 AM_CONDITIONAL(CK_COMPILE_SOLARIS, test x$CK_BACKEND = xsolaris, [Compiling for Solaris])
+AM_CONDITIONAL(CK_COMPILE_GNU, test x$CK_BACKEND = xgnu, [Compiling for GNU])
 AC_SUBST(CK_BACKEND)
 
 dnl ---------------------------------------------------------------------------

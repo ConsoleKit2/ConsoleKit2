@@ -57,11 +57,18 @@ libck_la_SOURCES +=		\
 	$(NULL)
 libck_la_LIBADD = $(KVM_LIBS)
 endif
+if CK_COMPILE_GNU
+libck_la_SOURCES +=		\
+	ck-sysdeps-gnu.c	\
+	$(NULL)
+libck_la_LIBADD = -lps
+endif
 
 EXTRA_libck_la_SOURCES =		\
 	ck-sysdeps-linux.c		\
 	ck-sysdeps-solaris.c		\
 	ck-sysdeps-freebsd.c		\
+	ck-sysdeps-gnu.c		\
 	$(NULL)
 
 sbin_PROGRAMS = 		\
