@@ -1,9 +1,6 @@
 
-AC_PREREQ(2.59c)
-AC_INIT([ConsoleKit],
-        [0.4.6],
-        [https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],
-        [ConsoleKit])
+AC_PREREQ([2.68])
+AC_INIT([ConsoleKit],[0.4.6],[https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],[ConsoleKit])
 
 AC_CONFIG_SRCDIR([src/ck-manager.c])
 
@@ -12,14 +9,14 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
 
 # for O_NOFOLLOW support
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_STDC_HEADERS
+AC_HEADER_STDC
 AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
+LT_INIT
 
 AC_HEADER_STDC
 
@@ -95,11 +92,9 @@ dnl - Are we specifying a different dbus root ?
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_WITH(dbus-sys,
-	[AC_HELP_STRING([--with-dbus-sys=<dir>],
-	[where D-BUS system.d directory is])])
+	[AS_HELP_STRING([--with-dbus-sys=<dir>],[where D-BUS system.d directory is])])
 AC_ARG_WITH(dbus-services,
-	[AC_HELP_STRING([--with-dbus-services=<dir>],
-	[where D-BUS services directory is])])
+	[AS_HELP_STRING([--with-dbus-services=<dir>],[where D-BUS services directory is])])
 if ! test -z "$with_dbus_sys" ; then
         DBUS_SYS_DIR="$with_dbus_sys"
 else
@@ -126,8 +121,7 @@ dnl - PID file
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_WITH(pid-file,
-	[AC_HELP_STRING([--with-pid-file=<file>],
-	[pid file location])])
+	[AS_HELP_STRING([--with-pid-file=<file>],[pid file location])])
 
 if ! test -z "$with_pid_file"; then
    CONSOLE_KIT_PID_FILE=$with_pid_file
@@ -189,8 +183,7 @@ AC_CHECK_LIB(pam, pam_syslog, [AC_DEFINE(HAVE_PAM_SYSLOG, [], [Define to 1 if yo
 # Check if we should build the PAM module
 msg_pam_module=no
 AC_ARG_ENABLE(pam-module,
-	[AC_HELP_STRING([--enable-pam-module],
-	[build PAM module])],
+	[AS_HELP_STRING([--enable-pam-module],[build PAM module])],
         , enable_pam_module=no)
 if test "x$enable_pam_module" = "xyes"; then
 	if test "x$have_pam" = "xno"; then
@@ -225,8 +218,7 @@ dnl - Install directory for PAM security module
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_WITH(pam-module-dir,
-	[AC_HELP_STRING([--with-pam-module-dir=<dir>],
-	[directory to install PAM security module])])
+	[AS_HELP_STRING([--with-pam-module-dir=<dir>],[directory to install PAM security module])])
 if ! test -z "$with_pam_module_dir"; then
 	PAM_MODULE_DIR="$with_pam_module_dir"
 else
@@ -239,8 +231,7 @@ dnl - DocBook Documentation
 dnl ---------------------------------------------------------------------------
 
 AC_ARG_ENABLE(docbook-docs,
-	[AC_HELP_STRING([--enable-docbook-docs],
-	[build documentation (requires xmlto)])],
+	[AS_HELP_STRING([--enable-docbook-docs],[build documentation (requires xmlto)])],
 	enable_docbook_docs=$enableval,enable_docbook_docs=no)
 AC_PATH_PROG(XMLTO, xmlto, no)
 AC_MSG_CHECKING([whether to build DocBook documentation])
@@ -295,8 +286,7 @@ dnl ---------------------------------------------------------------------------
 
 msg_rbac_shutdown=no
 AC_ARG_ENABLE(rbac-shutdown,
-	[AC_HELP_STRING([--enable-rbac-shutdown=<key>],
-	[Build with RBAC support specifying shutdown/reboot RBAC authentication key])],
+	[AS_HELP_STRING([--enable-rbac-shutdown=<key>],[Build with RBAC support specifying shutdown/reboot RBAC authentication key])],
 	enable_rbac_shutdown=$enableval,enable_rbac_shutdown=no)
 if test "x$enable_rbac_shutdown" != "xno"; then
 	RBAC_LIBS="-lsecdb -lsocket -lnsl"
@@ -313,8 +303,7 @@ dnl ---------------------------------------------------------------------------
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
 AC_ARG_ENABLE(more-warnings,
-	[AC_HELP_STRING([--enable-more-warnings],
-	[Maximum compiler warnings])],
+	[AS_HELP_STRING([--enable-more-warnings],[Maximum compiler warnings])],
 	set_more_warnings="$enableval",[
         	if test -d $srcdir/.git; then
         		set_more_warnings=yes
@@ -336,9 +325,7 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
                 SAVE_CFLAGS="$CFLAGS"
                 CFLAGS="$CFLAGS $option"
                 AC_MSG_CHECKING([whether gcc understands $option])
-                AC_TRY_COMPILE([], [],
-                        has_option=yes,
-                        has_option=no,)
+                AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[has_option=yes],[has_option=no])
                 if test $has_option = no; then
                         CFLAGS="$SAVE_CFLAGS"
                 fi
@@ -355,8 +342,7 @@ fi
 # Enable Debug
 #
 AC_ARG_ENABLE(debug,
-	[AC_HELP_STRING([--enable-debug],
-	[turn on debugging])],
+	[AS_HELP_STRING([--enable-debug],[turn on debugging])],
 	, enable_debug=yes)
 if test "$enable_debug" = "yes"; then
 	DEBUG_CFLAGS="-DG_ENABLE_DEBUG"
