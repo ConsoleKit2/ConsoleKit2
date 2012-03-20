@@ -216,6 +216,7 @@ AS_IF([test "x$enable_udev_acl" = "xyes"], [
 	if test -z "$UDEVDIR" ; then
 		UDEVDIR="/lib/udev"
 	fi
+	AC_SUBST(UDEVDIR)
 ])
 AM_CONDITIONAL([ENABLE_UDEV_ACL], [test "x$enable_udev_acl" = "xyes"])
 
