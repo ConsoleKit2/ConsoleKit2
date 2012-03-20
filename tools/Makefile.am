@@ -153,6 +153,10 @@ udev_PROGRAMS = udev-acl
 udev_acl_SOURCES = udev-acl.c
 udev_acl_LDADD = $(UDEV_ACL_LIBS)
 udev_acl_CFLAGS = $(UDEV_ACL_CFLAGS)
+
+install-exec-hook:
+	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d
+	ln -sf $(UDEVDIR)/udev-acl $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d/udev-acl.ck
 endif
 
 EXTRA_DIST =				\
