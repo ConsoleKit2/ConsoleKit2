@@ -56,14 +56,21 @@ PKG_CHECK_MODULES(CONSOLE_KIT,
   gthread-2.0 >= $GLIB_REQUIRED_VERSION
 )
 
-PKG_CHECK_MODULES(POLKIT,
-  polkit-gobject-1 >= $POLKIT_REQUIRED_VERSION,
-  have_polkit=yes,
-  have_polkit=no)
-if test "x$have_polkit" = "xyes" ; then
-       AC_DEFINE(HAVE_POLKIT, [], [Define if we have polkit])
-fi
-AM_CONDITIONAL(HAVE_POLKIT, test x$have_polkit = xyes)
+have_polkit=no
+AC_ARG_ENABLE([polkit],
+  AS_HELP_STRING([--enable-polkit], [Enable PolicyKit support @<:@default=auto@:>@]),
+  [enable_polkit=$enableval],
+  [enable_polkit=auto])
+AS_IF([test "x$enable_polkit" != "xno"], [
+  PKG_CHECK_MODULES([POLKIT], [polkit-gobject-1 >= $POLKIT_REQUIRED_VERSION], [have_polkit=yes], [have_polkit=no])
+  if test "x$enable_polkit"  = "xyes" -a "x$have_polkit" = "xno"; then
+    AC_MSG_ERROR([PolicyKit support explicitly requested but dependencies not found])
+  fi
+])
+AS_IF([test "x$have_polkit" = "xyes"],
+  AC_DEFINE([HAVE_POLKIT], [], [Define if we have polkit])
+])
+AM_CONDITIONAL([HAVE_POLKIT], [test "x$have_polkit" = "xyes"])
 AC_SUBST(HAVE_POLKIT)
 
 PKG_CHECK_MODULES(LIBDBUS,
