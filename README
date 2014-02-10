@@ -1,7 +1,7 @@
-What is ConsoleKit?
+What is ConsoleKit2?
 ===================
 
-ConsoleKit is a framework for defining and tracking users, login
+ConsoleKit2 is a framework for defining and tracking users, login
 sessions, and seats.
 
 What is a seat?
@@ -22,7 +22,4 @@ login manager under the name XDG_SESSION_COOKIE.
 More Information
 ================
 
-http://www.freedesktop.org/wiki/Software/ConsoleKit
-
-Discussion takes place on the HAL list.
-http://lists.freedesktop.org/mailman/listinfo/hal
+https://github.com/EricKoegel/ConsoleKit2
