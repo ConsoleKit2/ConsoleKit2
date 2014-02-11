@@ -138,7 +138,7 @@ ck_fd_is_a_console (int fd)
 {
 #ifdef __linux__
         struct vt_stat vts;
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
         int vers;
 #endif
         int  kb_ok;
@@ -146,7 +146,7 @@ ck_fd_is_a_console (int fd)
         errno = 0;
 #ifdef __linux__
         kb_ok = (ioctl (fd, VT_GETSTATE, &vts) == 0);
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
         kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
 #else
         kb_ok = 1;
