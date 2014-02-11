@@ -83,9 +83,18 @@ AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 EXTRA_COMPILE_WARNINGS(yes)
 
 # Solaris requires libresolv for daemon()
-case "$host" in
-	*-*-solaris*)
+case "$host_os" in
+	solaris*)
 		AC_CHECK_LIB(resolv, daemon, [CONSOLE_KIT_LIBS="$CONSOLE_KIT_LIBS -lresolv"])
+	;;
+	kfreebsd*-gnu)
+		have_getpeereid=no
+		AC_CHECK_LIB(bsd, getpeereid, have_getpeereid=yes)
+		if test "x$have_getpeereid" = "xyes"; then
+			CONSOLE_KIT_LIBS="${CONSOLE_KIT_LIBS} -lbsd"
+			TOOLS_LIBS="${TOOLS_LIBS} -lbsd"
+			AC_DEFINE(HAVE_GETPEEREID, [], [Define if we have getpeereid])
+		fi
 	;;
 esac
 

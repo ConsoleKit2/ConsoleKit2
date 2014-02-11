@@ -100,6 +100,15 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         if (ucred != NULL) {
                 ucred_free (ucred);
         }
+#elif defined(HAVE_GETPEEREID)
+	gid_t dummy;
+
+        if (getpeereid (socket_fd, &uid_read, &dummy) == 0) {
+                ret = TRUE;
+        } else {
+                g_warning ("Failed to getpeereid() credentials: %s\n",
+                           g_strerror (errno));
+        }
 #else /* !SO_PEERCRED && !HAVE_GETPEERUCRED */
         g_warning ("Socket credentials not supported on this OS\n");
 #endif
