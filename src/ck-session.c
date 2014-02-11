@@ -896,9 +896,6 @@ ck_session_constructor (GType                  type,
                         GObjectConstructParam *construct_properties)
 {
         CkSession      *session;
-        CkSessionClass *klass;
-
-        klass = CK_SESSION_CLASS (g_type_class_peek (CK_TYPE_SESSION));
 
         session = CK_SESSION (G_OBJECT_CLASS (ck_session_parent_class)->constructor (type,
                                                                                      n_construct_properties,

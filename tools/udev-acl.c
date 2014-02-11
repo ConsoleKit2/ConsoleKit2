@@ -332,9 +332,6 @@ int main (int argc, char* argv[])
         const char* remove_session_id = NULL;
         int rc = 0;
 
-        /* valgrind is more important to us than a slice allocator */
-        g_slice_set_config (G_SLICE_CONFIG_ALWAYS_MALLOC, 1);
-
         while (1) {
                 int option;
 

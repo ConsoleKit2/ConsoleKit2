@@ -282,6 +282,13 @@ create_writer_thread (CkEventLogger *event_logger)
         g_debug ("Creating thread for log writing");
 
         error = NULL;
+
+#if GLIB_CHECK_VERSION(2, 32, 0)
+        event_logger->priv->writer_thread = g_thread_try_new ("writer_thread_start",
+                                                              (GThreadFunc)writer_thread_start,
+                                                              event_logger,
+                                                              &error);
+#else
         event_logger->priv->writer_thread = g_thread_create_full ((GThreadFunc)writer_thread_start,
                                                                   event_logger,
                                                                   65536,
@@ -289,6 +296,8 @@ create_writer_thread (CkEventLogger *event_logger)
                                                                   TRUE,
                                                                   G_THREAD_PRIORITY_NORMAL,
                                                                   &error);
+#endif
+
         if (event_logger->priv->writer_thread == NULL) {
                 g_debug ("Unable to create thread: %s", error->message);
                 g_error_free (error);
@@ -317,9 +326,6 @@ ck_event_logger_constructor (GType                  type,
                              GObjectConstructParam *construct_properties)
 {
         CkEventLogger      *event_logger;
-        CkEventLoggerClass *klass;
-
-        klass = CK_EVENT_LOGGER_CLASS (g_type_class_peek (CK_TYPE_EVENT_LOGGER));
 
         event_logger = CK_EVENT_LOGGER (G_OBJECT_CLASS (ck_event_logger_parent_class)->constructor (type,
                                                                                                     n_construct_properties,

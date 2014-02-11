@@ -73,7 +73,9 @@ main (int argc, char **argv)
         CkTtyIdleMonitor *monitor;
         char             *device;
 
+#if !GLIB_CHECK_VERSION(2, 36, 0)
         g_type_init ();
+#endif
 
         if (argc < 2) {
                 device = ttyname (0);

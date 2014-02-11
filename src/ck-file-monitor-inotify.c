@@ -427,10 +427,7 @@ handle_inotify_event (CkFileMonitor        *monitor,
 {
         CkFileMonitorEvent  event;
         const char         *path;
-        char               *freeme;
         char               *mask_str;
-
-        freeme = NULL;
 
         if (ievent->len > 0) {
                 path = ievent->name;

@@ -100,7 +100,10 @@ retry:
                 goto out;
         }
 
-        fchown (fd, 0, 0);
+        if (fchown (fd, 0, 0) == -1) {
+                g_warning ("Error changing owner of log file (%s)",
+                           g_strerror (errno));
+        }
 
         file = fdopen (fd, "a");
         if (file == NULL) {

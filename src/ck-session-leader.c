@@ -568,10 +568,6 @@ ck_session_leader_set_property (GObject            *object,
                                 const GValue       *value,
                                 GParamSpec         *pspec)
 {
-        CkSessionLeader *self;
-
-        self = CK_SESSION_LEADER (object);
-
         switch (prop_id) {
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -585,10 +581,6 @@ ck_session_leader_get_property (GObject    *object,
                                 GValue     *value,
                                 GParamSpec *pspec)
 {
-        CkSessionLeader *self;
-
-        self = CK_SESSION_LEADER (object);
-
         switch (prop_id) {
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -602,9 +594,6 @@ ck_session_leader_constructor (GType                  type,
                                GObjectConstructParam *construct_properties)
 {
         CkSessionLeader      *session_leader;
-        CkSessionLeaderClass *klass;
-
-        klass = CK_SESSION_LEADER_CLASS (g_type_class_peek (CK_TYPE_SESSION_LEADER));
 
         session_leader = CK_SESSION_LEADER (G_OBJECT_CLASS (ck_session_leader_parent_class)->constructor (type,
                                                                                                           n_construct_properties,

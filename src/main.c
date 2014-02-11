@@ -227,8 +227,13 @@ create_pid_file (void)
         if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) > 0) {
                 snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
                 written = write (pf, pid, strlen (pid));
-                close (pf);
+                if (written != strlen(pid)) {
+                        g_warning ("unable to write pid file %s: %s",
+                                   CONSOLE_KIT_PID_FILE,
+                                   g_strerror (errno));
+                }
                 g_atexit (delete_pid);
+                close (pf);
         } else {
                 g_warning ("Unable to write pid file %s: %s",
                            CONSOLE_KIT_PID_FILE,
@@ -260,11 +265,17 @@ main (int    argc,
 
         ret = 1;
 
+#if !GLIB_CHECK_VERSION(2, 32, 0)
         if (! g_thread_supported ()) {
                 g_thread_init (NULL);
         }
+#endif
+
         dbus_g_thread_init ();
+
+#if !GLIB_CHECK_VERSION(2, 36, 0)
         g_type_init ();
+#endif
 
         if (! ck_is_root_user ()) {
                 g_warning ("Must be run as root");

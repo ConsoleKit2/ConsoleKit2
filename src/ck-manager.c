@@ -2396,9 +2396,9 @@ remove_sessions_for_connection (CkManager  *manager,
 
         g_debug ("Removing sessions for service name: %s", service_name);
 
-        n_removed = g_hash_table_foreach_remove (manager->priv->leaders,
-                                                 (GHRFunc)remove_leader_for_connection,
-                                                 &data);
+        g_hash_table_foreach_remove (manager->priv->leaders,
+                                     (GHRFunc)remove_leader_for_connection,
+                                     &data);
 
 }
 
@@ -2417,13 +2417,23 @@ bus_name_owner_changed (DBusGProxy  *bus_proxy,
                    service_name, old_service_name, new_service_name);
 }
 
+static void
+polkit_authority_get_cb (GObject *source_object,
+                         GAsyncResult *res,
+                         gpointer user_data)
+{
+        CkManager *manager = CK_MANAGER (user_data);
+
+        manager->priv->pol_ctx = polkit_authority_get_finish (res, NULL);
+}
+
 static gboolean
 register_manager (CkManager *manager)
 {
         GError *error = NULL;
 
 #ifdef HAVE_POLKIT
-        manager->priv->pol_ctx = polkit_authority_get ();
+        polkit_authority_get_async (NULL, polkit_authority_get_cb, manager);
 #endif
 
         error = NULL;

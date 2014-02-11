@@ -364,7 +364,11 @@ vt_add_watch_unlocked (CkVtMonitor *vt_monitor,
         id = GINT_TO_POINTER (num);
 
         error = NULL;
+#if GLIB_CHECK_VERSION(2, 32, 0)
+        thread = g_thread_try_new ("vt_thread_start", (GThreadFunc)vt_thread_start, data, &error);
+#else
         thread = g_thread_create_full ((GThreadFunc)vt_thread_start, data, 65536, FALSE, TRUE, G_THREAD_PRIORITY_NORMAL, &error);
+#endif
         if (thread == NULL) {
                 g_debug ("Unable to create thread: %s", error->message);
                 g_error_free (error);

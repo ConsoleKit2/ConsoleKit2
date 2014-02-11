@@ -910,9 +910,6 @@ ck_seat_constructor (GType                  type,
                      GObjectConstructParam *construct_properties)
 {
         CkSeat      *seat;
-        CkSeatClass *klass;
-
-        klass = CK_SEAT_CLASS (g_type_class_peek (CK_TYPE_SEAT));
 
         seat = CK_SEAT (G_OBJECT_CLASS (ck_seat_parent_class)->constructor (type,
                                                                             n_construct_properties,
