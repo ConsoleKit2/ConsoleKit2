@@ -1,11 +1,11 @@
 Making Changes
 ==============
 
-Please send all patches (in unified diff form) to the HAL mailing list:
-http://lists.freedesktop.org/mailman/listinfo/hal
+Please send all patches/pull requests to the ConsoleKit2 github
+repository: https://github.com/ConsoleKit2/ConsoleKit2
 
 All patches should be against the latest version (see Source Code
-Repository).
+Repository). Patches can be added to the issue tracker.
 
 
 Source Code Repository
@@ -13,38 +13,26 @@ Source Code Repository
 
  - anonymous checkouts
 
-   $ git clone git://git.freedesktop.org/git/ConsoleKit
+   $ git clone git@github.com:ConsoleKit2/ConsoleKit2.git
 
- - checkouts if you have an ssh account on fd.o (username@ is optional)
+ - checkouts over https
 
-   $ git clone ssh://[username@]git.freedesktop.org/git/ConsoleKit
+   $ git clone https://github.com/ConsoleKit2/ConsoleKit2.git
+
+ - stage changed files
+
+   $ git add -u
 
  - commit to local repository
 
-   $ git commit -a
+   $ git commit
 
- - push local repository to master repository at fd.o (remember most patches
-   requires review at the mailing list)
+ - pull patch out of local repository to add to issue tracker
 
-   $ git push
+   $ git format-patch -1
 
- - pull changes from master repository at fd.o
+ - attach patch as an issue on the issue tracker
 
-   $ git pull
-
- - diff of working tree versus local repository
-
-   $ git diff
-
- - diff of local repository vs. master repository at fd.o
-
-   synchronize with upstream repo:
-   $ git pull
-
-   (possibly merge changes)
-
-   generate the diff:
-   $ git diff origin HEAD
 
  - influential environment variables (set these in e.g. .bash_profile)
 
@@ -76,9 +64,8 @@ tracker reference if applicable) and so forth. Be concise but not too brief.
    the commit and terminate by two newlines (it will work without the
    second newline, but that is not nice for the interfaces).
 
- - First line (the brief description) must only be one sentence and
-   must not start with a capital letter. Don't use a trailing period
-   either.
+ - First line (the brief description) must only be one sentence. It should
+   optionally reference issue tracker numbers if they exist.
 
  - The main description (the body) is normal prose and should use normal
    punctuation and capital letters where appropriate. Normally, for patches
