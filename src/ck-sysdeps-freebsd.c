@@ -261,6 +261,8 @@ ck_unix_pid_get_env_hash (pid_t pid)
         for (i = 0; penv[i] != NULL; i++) {
                 char **vals;
 
+                if (!penv[i][0]) continue;
+
                 vals = g_strsplit (penv[i], "=", 2);
                 if (vals != NULL) {
                         g_hash_table_insert (hash,
