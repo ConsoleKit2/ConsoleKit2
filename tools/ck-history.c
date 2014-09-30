@@ -522,8 +522,9 @@ print_last_report_record (GList      *list,
 
         remove_event = NULL;
 
+        e = (CkLogSeatSessionAddedEvent *)event;
+
         if (event->type == CK_LOG_EVENT_SEAT_SESSION_ADDED) {
-                e = (CkLogSeatSessionAddedEvent *)event;
 
                 remove_event = find_first_matching_remove_event (list->next, e);
                 status = get_event_record_status (remove_event);
