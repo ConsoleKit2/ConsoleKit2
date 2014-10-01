@@ -2390,7 +2390,6 @@ static void
 remove_sessions_for_connection (CkManager  *manager,
                                 const char *service_name)
 {
-        guint            n_removed;
         RemoveLeaderData data;
 
         data.service_name = service_name;
