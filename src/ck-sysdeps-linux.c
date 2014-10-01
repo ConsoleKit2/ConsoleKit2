@@ -93,7 +93,7 @@ typedef struct tty_map_node {
         guint major_number;
         guint minor_first;
         guint minor_last;
-        char name[16];
+        char name[32];
         char devfs_type;
 } tty_map_node;
 
