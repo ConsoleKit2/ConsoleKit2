@@ -1131,6 +1131,7 @@ ck_manager_restart (CkManager             *manager,
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_restart);
 #else
         g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_restart(manager, context);
 #endif
 
         return TRUE;
@@ -1207,6 +1208,7 @@ ck_manager_stop (CkManager             *manager,
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_stop);
 #else
         g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_stop(manager, context);
 #endif
 
         return TRUE;
