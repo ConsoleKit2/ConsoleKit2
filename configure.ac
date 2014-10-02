@@ -75,7 +75,7 @@ AS_IF([test "x$enable_polkit" != "xno"], [
     AC_MSG_ERROR([PolicyKit support explicitly requested but dependencies not found])
   fi
 ])
-AS_IF([test "x$have_polkit" = "xyes"],
+AS_IF([test "x$have_polkit" = "xyes"], [
   AC_DEFINE([HAVE_POLKIT], [], [Define if we have polkit])
 ])
 AM_CONDITIONAL([HAVE_POLKIT], [test "x$have_polkit" = "xyes"])
