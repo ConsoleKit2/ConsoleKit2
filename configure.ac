@@ -1,9 +1,9 @@
 
 AC_PREREQ([2.68])
-AC_INIT([ConsoleKit],
-        [0.4.6],
-        [https://bugs.freedesktop.org/enter_bug.cgi?product=ConsoleKit],
-        [ConsoleKit])
+AC_INIT([ConsoleKit2],
+        [0.5.0],
+        [https://github.com/ConsoleKit2/ConsoleKit2/issues],
+        [ConsoleKit2])
 
 AC_CONFIG_SRCDIR([src/ck-manager.c])
 
@@ -20,8 +20,15 @@ AM_PROG_CC_C_O
 AC_HEADER_STDC
 AC_DISABLE_STATIC
 LT_INIT
-
+AC_CHECK_HEADER_STDBOOL
 AC_HEADER_STDC
+AC_FUNC_FORK
+AC_FUNC_MALLOC
+AC_HEADER_MAJOR
+AC_PATH_X
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 
 AC_SUBST(VERSION)
 
@@ -41,12 +48,13 @@ GLIB_REQUIRED_VERSION=2.14
 X11_REQUIRED_VERSION=1.0.0
 POLKIT_REQUIRED_VERSION=0.92
 
-AC_CHECK_HEADERS(unistd.h)
-AC_CHECK_HEADERS(paths.h)
-AC_CHECK_HEADERS(sys/vt.h)
-AC_CHECK_HEADERS(sys/consio.h)
+AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
+                  sys/ioctl.h sys/param.h sys/socket.h syslog.h])
 
-AC_CHECK_FUNCS(getpeerucred getpeereid)
+AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
+                strerror strrchr strspn strstr strtol strtoul uname])
+
+AC_CHECK_MEMBERS([struct stat.st_rdev])
 
 AC_TYPE_UID_T
 
@@ -157,10 +165,10 @@ dnl ---------------------------------------------------------------------------
 CK_BACKEND=""
 KVM_LIBS=""
 case "$host" in
-        *-*-freebsd* | *-*-kfreebsd*-gnu)
+        *-*-freebsd* | *-*-kfreebsd*-gnu | *-*-dragonfly*)
         CK_BACKEND="freebsd"
         AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
-                AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD]))
+                AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD/DragonflyBSD]))
         if test "x$have_kvm" = "xyes"; then
                 KVM_LIBS="-lkvm"
         fi
