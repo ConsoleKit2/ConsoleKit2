@@ -138,7 +138,7 @@ ck_fd_is_a_console (int fd)
 {
 #ifdef __linux__
         struct vt_stat vts;
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined (__DragonFly__)
         int vers;
 #endif
         int  kb_ok;
@@ -146,7 +146,7 @@ ck_fd_is_a_console (int fd)
         errno = 0;
 #ifdef __linux__
         kb_ok = (ioctl (fd, VT_GETSTATE, &vts) == 0);
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined (__DragonFly__)
         kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
 #else
         kb_ok = 1;
@@ -197,6 +197,15 @@ ck_get_a_console_fd (void)
         int fd;
 
         fd = -1;
+
+#ifdef __FreeBSD__
+        /* On FreeBSD, try /dev/consolectl first as this will survive
+         * /etc/ttys initialization. */
+        fd = open_a_console ("/dev/consolectl");
+        if (fd >= 0) {
+                goto done;
+        }
+#endif
 
 #ifdef __sun
         /* On Solaris, first try Sun VT device. */
