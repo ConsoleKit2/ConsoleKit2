@@ -6,7 +6,7 @@ NULL =
 SUBDIRS = \
 	$(NULL)
 
-INCLUDES =							\
+AM_CFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
 	$(CONSOLE_KIT_CFLAGS)					\

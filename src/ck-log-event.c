@@ -453,18 +453,14 @@ static void
 add_log_for_system_stop (GString    *str,
                          CkLogEvent *event)
 {
-        CkLogSystemStopEvent *e;
-
-        e = (CkLogSystemStopEvent *)event;
+        /* TODO: Not implemented */
 }
 
 static void
 add_log_for_system_restart (GString    *str,
                             CkLogEvent *event)
 {
-        CkLogSystemRestartEvent *e;
-
-        e = (CkLogSystemRestartEvent *)event;
+        /* TODO: Not implemented */
 }
 
 
@@ -822,7 +818,6 @@ parse_log_for_system_stop (const GString *str,
 {
         gboolean    ret;
         const char *s;
-        CkLogSystemStopEvent *e;
 
         ret = FALSE;
 
@@ -830,8 +825,6 @@ parse_log_for_system_stop (const GString *str,
         if (s == NULL) {
                 goto out;
         }
-
-        e = (CkLogSystemStopEvent *)event;
 
         ret = TRUE;
  out:
@@ -845,7 +838,6 @@ parse_log_for_system_restart (const GString *str,
 {
         gboolean    ret;
         const char *s;
-        CkLogSystemRestartEvent *e;
 
         ret = FALSE;
 
@@ -853,8 +845,6 @@ parse_log_for_system_restart (const GString *str,
         if (s == NULL) {
                 goto out;
         }
-
-        e = (CkLogSystemRestartEvent *)event;
 
         ret = TRUE;
  out:

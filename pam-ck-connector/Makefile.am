@@ -2,7 +2,7 @@ NULL =
 
 if ENABLE_PAM_MODULE
 
-INCLUDES = 					\
+AM_CFLAGS = 					\
 	$(LIBDBUS_CFLAGS)			\
 	-I$(top_builddir)/libck-connector	\
 	$(NULL)

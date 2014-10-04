@@ -1,6 +1,6 @@
 NULL =
 
-INCLUDES = 				\
+AM_CFLAGS = 				\
 	-I.				\
 	$(LIBDBUS_CFLAGS)		\
 	$(NULL)

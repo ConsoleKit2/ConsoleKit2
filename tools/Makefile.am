@@ -24,7 +24,7 @@ DIST_SUBDIRS = 		\
 	solaris		\
 	$(NULL)
 
-INCLUDES =							\
+AM_CFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(top_srcdir)/src					\
@@ -147,7 +147,7 @@ if ENABLE_UDEV_ACL
 udevrulesdir = $(UDEVDIR)/rules.d
 
 dist_udevrules_DATA = 70-udev-acl.rules
-libexec_PROGRAMS = udev-acl
+libexec_PROGRAMS += udev-acl
 
 udev_acl_SOURCES = udev-acl.c
 udev_acl_LDADD = $(UDEV_ACL_LIBS)

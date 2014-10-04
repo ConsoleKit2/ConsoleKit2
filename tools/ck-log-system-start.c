@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#ifdef __FreeBSD__ || defined(__FreeBSD_kernel__)
+#ifdef __FreeBSD__
 #include <kenv.h>
 #endif
 #include <sys/types.h>
