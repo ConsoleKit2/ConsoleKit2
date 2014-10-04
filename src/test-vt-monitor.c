@@ -31,6 +31,7 @@
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <locale.h>
 
@@ -55,6 +56,7 @@ main (int argc, char **argv)
         GError           *error;
         guint             num;
         gboolean          res;
+        struct sigaction  sa;
 
 #if !GLIB_CHECK_VERSION(2, 32, 0)
         if (! g_thread_supported ()) {
@@ -65,6 +67,15 @@ main (int argc, char **argv)
 #if !GLIB_CHECK_VERSION(2, 36, 0)
         g_type_init ();
 #endif
+
+        sa.sa_handler = SIG_DFL;
+        sigemptyset (&sa.sa_mask);
+        sa.sa_flags = 0;
+
+        sigaction (SIGINT,  &sa, NULL);
+        sigaction (SIGTERM, &sa, NULL);
+        sigaction (SIGQUIT, &sa, NULL);
+        sigaction (SIGHUP,  &sa, NULL);
 
         if (! ck_is_root_user ()) {
                 g_warning ("Must be run as root");

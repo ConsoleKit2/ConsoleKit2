@@ -10,6 +10,8 @@ scriptdir = $(prefix)/lib/ConsoleKit/scripts
 script_SCRIPTS =			\
 	ck-system-stop			\
 	ck-system-restart		\
+	ck-get-x11-display-device	\
+	ck-get-x11-server-pid		\
 	$(NULL)
 
 EXTRA_DIST =				\
@@ -23,16 +25,16 @@ MAINTAINERCLEANFILES =			\
 
 check:
 	for f in $(script_SCRIPTS); do \
-            echo -n "Validate bash syntax in $$f : "; \
-            bash -n $(srcdir)/$$f 2> bash.error;\
-            if test -s bash.error; then \
+            echo -n "Validate shell syntax in $$f : "; \
+            sh -n $(srcdir)/$$f 2> sh.error;\
+            if test -s sh.error; then \
                 echo failed; \
-                cat bash.error; \
-                rm -f bash.error; \
+                cat sh.error; \
+                rm -f sh.error; \
                 exit 1; \
             else \
                 echo ok; \
-                rm -f bash.error; \
+                rm -f sh.error; \
             fi; \
         done;
 
