@@ -36,6 +36,10 @@
 #include <linux/kd.h>
 #endif
 
+#if defined(__OpenBSD__)
+#include <dev/wscons/wsdisplay_usl_io.h>
+#endif
+
 #ifdef HAVE_SYS_VT_H
 #include <sys/vt.h>
 #endif
@@ -70,7 +74,11 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         ret = FALSE;
 
 #ifdef SO_PEERCRED
+#ifndef __OpenBSD__
         struct ucred cr;
+#else
+        struct sockpeercred cr;
+#endif
         socklen_t    cr_len;
 
         cr_len = sizeof (cr);
@@ -136,7 +144,7 @@ ck_get_socket_peer_credentials   (int      socket_fd,
 gboolean
 ck_fd_is_a_console (int fd)
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__OpenBSD__)
         struct vt_stat vts;
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined (__DragonFly__)
         int vers;
@@ -144,7 +152,7 @@ ck_fd_is_a_console (int fd)
         int  kb_ok;
 
         errno = 0;
-#ifdef __linux__
+#if defined(__linux__) || defined(__OpenBSD__)
         kb_ok = (ioctl (fd, VT_GETSTATE, &vts) == 0);
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined (__DragonFly__)
         kb_ok = (ioctl (fd, CONS_GETVERS, &vers) == 0);
@@ -218,6 +226,14 @@ ck_get_a_console_fd (void)
                 goto done;
         }
 #endif
+
+#if defined(__OpenBSD__)
+        fd = open_a_console ("/dev/ttyC0");
+        if (fd >= 0) {
+                goto done;
+        }
+#endif
+
 
 #ifdef _PATH_TTY
         fd = open_a_console (_PATH_TTY);

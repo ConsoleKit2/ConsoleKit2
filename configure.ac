@@ -165,6 +165,14 @@ dnl ---------------------------------------------------------------------------
 CK_BACKEND=""
 KVM_LIBS=""
 case "$host" in
+        *-*-openbsd*)
+        CK_BACKEND="openbsd"
+        AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
+                AC_MSG_ERROR([Unable to find libkvm which is needed on OpenBSD]))
+        if test "x$have_kvm" = "xyes"; then
+                KVM_LIBS="-lkvm"
+        fi
+        ;;
         *-*-freebsd* | *-*-kfreebsd*-gnu | *-*-dragonfly*)
         CK_BACKEND="freebsd"
         AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
@@ -191,6 +199,7 @@ AC_SUBST(KVM_LIBS)
 
 AM_CONDITIONAL(CK_COMPILE_LINUX, test x$CK_BACKEND = xlinux, [Compiling for Linux])
 AM_CONDITIONAL(CK_COMPILE_FREEBSD, test x$CK_BACKEND = xfreebsd, [Compiling for FreeBSD])
+AM_CONDITIONAL(CK_COMPILE_OPENBSD, test x$CK_BACKEND = xopenbsd, [Compiling for OpenBSD])
 AM_CONDITIONAL(CK_COMPILE_SOLARIS, test x$CK_BACKEND = xsolaris, [Compiling for Solaris])
 AM_CONDITIONAL(CK_COMPILE_GNU, test x$CK_BACKEND = xgnu, [Compiling for GNU])
 AC_SUBST(CK_BACKEND)
@@ -412,6 +421,7 @@ src/Makefile
 tools/Makefile
 tools/linux/Makefile
 tools/freebsd/Makefile
+tools/openbsd/Makefile
 tools/solaris/Makefile
 data/Makefile
 doc/Makefile

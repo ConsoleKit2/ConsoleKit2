@@ -57,6 +57,12 @@ libck_la_SOURCES +=		\
 	$(NULL)
 libck_la_LIBADD = $(KVM_LIBS)
 endif
+if CK_COMPILE_OPENBSD
+libck_la_SOURCES +=		\
+	ck-sysdeps-openbsd.c	\
+	$(NULL)
+libck_la_LIBADD = $(KVM_LIBS)
+endif
 if CK_COMPILE_GNU
 libck_la_SOURCES +=		\
 	ck-sysdeps-gnu.c	\

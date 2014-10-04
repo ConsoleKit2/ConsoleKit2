@@ -21,6 +21,7 @@ endif
 DIST_SUBDIRS = 		\
 	linux		\
 	freebsd		\
+	openbsd		\
 	solaris		\
 	$(NULL)
 
@@ -153,14 +154,23 @@ udev_acl_SOURCES = udev-acl.c
 udev_acl_LDADD = $(UDEV_ACL_LIBS)
 udev_acl_CFLAGS = $(UDEV_ACL_CFLAGS)
 
+scriptdir = $(prefix)/lib/ConsoleKit/scripts
+script_SCRIPTS =			\
+	pam-foreground-compat.ck	\
+	$(NULL)
+
+
 install-exec-hook:
 	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d
+	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d
 	mkdir -p $(DESTDIR)$(UDEVDIR)
 	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d/udev-acl.ck
 	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(UDEVDIR)/udev-acl
+	ln -sf $(prefix)/lib/ConsoleKit/scripts/pam-foreground-compat.ck $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d/pam-foreground-compat.ck
 endif
 
 EXTRA_DIST =				\
+	$(script_SCRIPTS)		\
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
