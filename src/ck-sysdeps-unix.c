@@ -277,18 +277,17 @@ gboolean
 ck_is_root_user (void)
 {
 #ifndef G_OS_WIN32
-        uid_t ruid, euid, suid; /* Real, effective and saved user ID's */
-        gid_t rgid, egid, sgid; /* Real, effective and saved group ID's */
+        uid_t ruid;
 
 #ifdef HAVE_GETRESUID
+        uid_t euid, suid; /* Real, effective and saved user ID's */
+        gid_t rgid, egid, sgid; /* Real, effective and saved group ID's */
+
         if (getresuid (&ruid, &euid, &suid) != 0 ||
             getresgid (&rgid, &egid, &sgid) != 0)
 #endif /* HAVE_GETRESUID */
                 {
-                        suid = ruid = getuid ();
-                        sgid = rgid = getgid ();
-                        euid = geteuid ();
-                        egid = getegid ();
+                        ruid = getuid ();
                 }
 
         if (ruid == 0) {
