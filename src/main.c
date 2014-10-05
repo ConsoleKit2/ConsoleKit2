@@ -285,7 +285,7 @@ create_pid_file (void)
                                    CONSOLE_KIT_PID_FILE,
                                    g_strerror (errno));
                 }
-                g_atexit (cleanup);
+                atexit (cleanup);
                 close (pf);
         } else {
                 g_warning ("Unable to write pid file %s: %s",
