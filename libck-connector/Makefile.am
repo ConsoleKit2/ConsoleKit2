@@ -2,6 +2,7 @@ NULL =
 
 AM_CFLAGS = 				\
 	-I.				\
+	-U_FORTIFY_SOURCE		\
 	$(LIBDBUS_CFLAGS)		\
 	$(NULL)
 

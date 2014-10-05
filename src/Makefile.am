@@ -9,6 +9,7 @@ SUBDIRS = \
 AM_CFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
+	-U_FORTIFY_SOURCE				\
 	$(CONSOLE_KIT_CFLAGS)					\
 	$(POLKIT_CFLAGS)					\
 	$(DISABLE_DEPRECATED_CFLAGS)				\

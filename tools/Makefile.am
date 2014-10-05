@@ -30,6 +30,7 @@ AM_CFLAGS =							\
 	-I$(srcdir)						\
 	-I$(top_srcdir)/src					\
 	-I$(top_srcdir)/libck-connector				\
+	-U_FORTIFY_SOURCE						\
 	$(CONSOLE_KIT_CFLAGS)					\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
