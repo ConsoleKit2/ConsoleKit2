@@ -335,11 +335,6 @@ main (int    argc,
                 exit (1);
         }
 
-        if (debug) {
-                g_setenv ("G_DEBUG", "fatal_criticals", FALSE);
-                g_log_set_always_fatal (G_LOG_LEVEL_CRITICAL);
-        }
-
         context = g_option_context_new (_("Console kit daemon"));
         g_option_context_add_main_entries (context, entries, NULL);
         error = NULL;
@@ -349,6 +344,16 @@ main (int    argc,
                 g_warning ("%s", error->message);
                 g_error_free (error);
                 goto out;
+        }
+
+#ifdef CONSOLEKIT_DEBUGGING
+        /* compiling with --enable-debug=full turns debugging on */
+        debug = TRUE;
+#endif
+
+        if (debug) {
+                g_setenv ("G_DEBUG", "fatal_criticals", FALSE);
+                g_log_set_always_fatal (G_LOG_LEVEL_CRITICAL);
         }
 
         if (! no_daemon && daemon (0, 0)) {

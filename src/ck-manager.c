@@ -185,6 +185,7 @@ ck_manager_dump (CkManager *manager)
         const char *filename_tmp = LOCALSTATEDIR "/run/ConsoleKit/database~";
 
         if (manager == NULL) {
+                g_warning ("ck_manager_dump: manager == NULL");
                 return;
         }
 
@@ -199,17 +200,24 @@ ck_manager_dump (CkManager *manager)
                 return;
         }
 
+        g_debug ("ck_manager_dump: %s/run/ConsoleKit folder created", LOCALSTATEDIR);
+
         fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0644);
         if (fd == -1) {
                 g_warning ("Cannot create file %s: %s", filename_tmp, g_strerror (errno));
                 goto error;
         }
 
+        g_debug ("ck_manager_dump: %s created", filename_tmp);
+
         if (! do_dump (manager, fd)) {
                 g_warning ("Cannot write to file %s", filename_tmp);
                 close (fd);
                 goto error;
         }
+
+        g_debug ("ck_manager_dump: wrote database to %s", filename_tmp);
+
  again:
         if (close (fd) != 0) {
                 if (errno == EINTR)
@@ -224,6 +232,8 @@ ck_manager_dump (CkManager *manager)
                 g_warning ("Cannot rename %s to %s: %s", filename_tmp, filename, g_strerror (errno));
                 goto error;
         }
+
+        g_debug ("ck_manager_dump: renamed %s to %s, operation successful", filename_tmp, filename);
 
         return;
 error:

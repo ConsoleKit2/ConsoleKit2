@@ -297,8 +297,8 @@ fi
 AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_MSG_RESULT(yes)
 
-AC_ARG_VAR([XMLTO],[Define/override the `xmlto' location.])
-AC_ARG_VAR([XMLTO_FLAGS],[Define/override `xmlto' options, like `--skip-validation'.])
+AC_ARG_VAR([XMLTO],[Define/override the xmlto location.])
+AC_ARG_VAR([XMLTO_FLAGS],[Define/override xmlto options, like --skip-validation.])
 
 dnl ---------------------------------------------------------------------------
 dnl Check for xsltproc
@@ -391,8 +391,10 @@ if test "$enable_debug" = "yes"; then
 else
 	if test "x$enable_debug" = "xno"; then
 		DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
-  	else
-    		DEBUG_CFLAGS=""
+	elif test "$enable_debug" = "full"; then
+		DEBUG_CFLAGS="-DG_ENABLE_DEBUG -DCONSOLEKIT_DEBUGGING"
+	else
+		DEBUG_CFLAGS=
   	fi
 fi
 AC_SUBST(DEBUG_CFLAGS)
@@ -452,6 +454,7 @@ echo "
 	source code location:	  ${srcdir}
 	compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
+	debug cflags:	          ${DEBUG_CFLAGS}
         Base libs:                ${CONSOLE_KIT_LIBS}
         Tools libs:               ${TOOLS_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
