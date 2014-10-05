@@ -168,7 +168,10 @@ open_a_console (char *fnam)
 {
         int fd;
 
+#ifdef __linux__
 again:
+#endif /* __linux__ */
+
         fd = open (fnam, O_RDONLY | O_NOCTTY);
         if (fd < 0 && errno == EACCES)
                 fd = open (fnam, O_WRONLY | O_NOCTTY);
@@ -186,7 +189,7 @@ again:
 		nanosleep (&ts, NULL);
 		goto again;
 	}
-#endif
+#endif /* __linux__ */
 
         if (fd < 0)
                 return -1;
