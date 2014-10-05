@@ -94,6 +94,7 @@ _child_watch (GPid       pid,
 
         g_spawn_close_pid (pid);
         g_source_remove (cd->timeout_id);
+        cd->timeout_id = 0;
 
         cd->child_is_running = FALSE;
 

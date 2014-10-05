@@ -504,6 +504,7 @@ ck_vt_monitor_finalize (GObject *object)
 
         if (vt_monitor->priv->process_queue_id > 0) {
                 g_source_remove (vt_monitor->priv->process_queue_id);
+                vt_monitor->priv->process_queue_id = 0;
         }
 
         if (vt_monitor->priv->event_queue != NULL) {

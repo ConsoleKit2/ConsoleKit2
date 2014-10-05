@@ -171,6 +171,7 @@ remove_idle_hint_timeout (CkTtyIdleMonitor *tty_idle_monitor)
 {
         if (tty_idle_monitor->priv->timeout_id > 0) {
                 g_source_remove (tty_idle_monitor->priv->timeout_id);
+                tty_idle_monitor->priv->timeout_id = 0;
         }
 }
 

@@ -369,9 +369,11 @@ ck_job_finalize (GObject *object)
 
         if (job->priv->out_watch_id > 0) {
                 g_source_remove (job->priv->out_watch_id);
+                job->priv->out_watch_id = 0;
         }
         if (job->priv->err_watch_id > 0) {
                 g_source_remove (job->priv->err_watch_id);
+                job->priv->err_watch_id = 0;
         }
         g_free (job->priv->command);
         g_string_free (job->priv->std_out, TRUE);
