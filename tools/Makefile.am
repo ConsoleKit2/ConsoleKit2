@@ -32,6 +32,7 @@ AM_CFLAGS =							\
 	-I$(top_srcdir)/libck-connector				\
 	-U_FORTIFY_SOURCE						\
 	$(CONSOLE_KIT_CFLAGS)					\
+	$(XLIB_CFLAGS)							\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
@@ -73,6 +74,7 @@ ck_list_sessions_SOURCES =		\
 
 ck_list_sessions_LDADD =		\
 	$(CONSOLE_KIT_LIBS)		\
+	$(XLIB_LIBS)			\
 	$(NULL)
 
 ck_history_SOURCES =			\
@@ -133,6 +135,7 @@ ck_get_x11_server_pid_SOURCES =		\
 
 ck_get_x11_server_pid_LDADD =		\
 	$(TOOLS_LIBS)			\
+	$(XLIB_LIBS)			\
 	$(top_builddir)/src/libck.la	\
 	$(NULL)
 

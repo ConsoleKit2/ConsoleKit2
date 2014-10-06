@@ -69,6 +69,8 @@ PKG_CHECK_MODULES(CONSOLE_KIT,
   gthread-2.0 >= $GLIB_REQUIRED_VERSION
 )
 
+PKG_CHECK_MODULES([XLIB], [x11])
+
 have_polkit=no
 AC_ARG_ENABLE([polkit],
   AS_HELP_STRING([--enable-polkit], [Enable PolicyKit support @<:@default=auto@:>@]),
