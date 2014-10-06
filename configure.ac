@@ -59,7 +59,7 @@ AC_CHECK_MEMBERS([struct stat.st_rdev])
 
 AC_CHECK_FILE(/sys/class/tty/tty0/active,
               [AC_DEFINE([HAVE_SYS_VT_SIGNAL], [1], [System has a means of signaling VT changes])],
-              [continue])
+              [])
 
 AC_TYPE_UID_T
 
