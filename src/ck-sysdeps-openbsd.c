@@ -94,7 +94,7 @@ struct _CkProcessStat
         int exit_signal;                /* stat            might not be SIGCHLD */
         int processor;                  /* stat            current (or most recent?) CPU */
         uintptr_t penv;                 /* stat            address of initial environment vector */
-        char tty_text[16];              /* stat            device name */
+        char tty_text[11];              /* stat            device name */
 
 };
 
@@ -126,23 +126,22 @@ static gboolean
 get_kinfo_proc (pid_t pid,
                 struct kinfo_proc *p)
 {
-	int name[6];
-	u_int namelen;
-	size_t sz;
+        size_t len;
 
-	sz = sizeof(*p);
-	namelen = 0;
-	name[namelen++] = CTL_KERN;
-	name[namelen++] = KERN_PROC;
-	name[namelen++] = KERN_PROC_PID;
-	name[namelen++] = pid;
-	name[namelen++] = sz;
-	name[namelen++] = 1;
+        int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, pid,
+                      sizeof(struct kinfo_proc), 0 };
 
-        if (sysctl (name, namelen, p, &sz, NULL, 0) == -1) {
-		perror("sysctl kern.proc.pid");
-                return FALSE;
-        }
+#ifndef nitems
+#define nitems(_a)      (sizeof((_a)) / sizeof((_a)[0]))
+#endif
+
+        if (sysctl(mib, nitems(mib), NULL, &len, NULL, 0) < 0)
+            return FALSE;
+
+        mib[5] = (len / sizeof(struct kinfo_proc));
+
+        if (sysctl(mib, nitems(mib), p, &len, NULL, 0) < 0)
+            return FALSE;
 
         return TRUE;
 }
@@ -180,7 +179,7 @@ stat2proc (pid_t        pid,
         P->wchan      = (unsigned long) p.p_wchan;
         P->state      = p.p_stat;
         P->nice       = p.p_nice;
-        P->flags      = p.p_realflag;
+        P->flags      = p.p_psflags;
         P->tpgid      = p.p_tpgid;
         P->processor  = p.p_cpuid;
 
@@ -196,8 +195,8 @@ stat2proc (pid_t        pid,
         }
 
         if (p.p_tdev == NODEV) {
-		/* XXX nasty hack */
-#if defined(__i386__) || defined(__amd64__)
+		/* XXX how do we associate X with its tty? */
+#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
                 memcpy (P->tty_text, "/dev/ttyC4", sizeof P->tty_text);
 #else
                 memcpy (P->tty_text, "/dev/ttyC0", sizeof P->tty_text);
@@ -246,24 +245,28 @@ ck_process_stat_free (CkProcessStat *stat)
 GHashTable *
 ck_unix_pid_get_env_hash (pid_t pid)
 {
-        GHashTable       *hash;
+        GHashTable       *hash = NULL;
         char            **penv;
+        char              errbuf[_POSIX2_LINE_MAX];
         kvm_t            *kd;
         struct kinfo_proc p;
         int               i;
 
-        kd = kvm_openfiles (NULL, NULL, NULL, O_RDONLY, NULL);
+        kd = kvm_openfiles (NULL, NULL, NULL, O_RDONLY, errbuf);
         if (kd == NULL) {
+		g_warning ("kvm_openfiles failed: %s", errbuf);
                 return NULL;
         }
 
         if (! get_kinfo_proc (pid, &p)) {
-                return NULL;
+		g_warning ("get_kinfo_proc failed: %s", g_strerror (errno));
+		goto fail;
         }
 
-        penv = kvm_getenvv2 (kd, &p, 0);
+        penv = kvm_getenvv (kd, &p, 0);
         if (penv == NULL) {
-                return NULL;
+		g_warning ("kvm_getenvv failed: %s", kvm_geterr (kd));
+		goto fail;
         }
 
         hash = g_hash_table_new_full (g_str_hash,
@@ -274,6 +277,8 @@ ck_unix_pid_get_env_hash (pid_t pid)
         for (i = 0; penv[i] != NULL; i++) {
                 char **vals;
 
+                if (!penv[i][0]) continue;
+
                 vals = g_strsplit (penv[i], "=", 2);
                 if (vals != NULL) {
                         g_hash_table_insert (hash,
@@ -283,6 +288,7 @@ ck_unix_pid_get_env_hash (pid_t pid)
                 }
         }
 
+fail:
         kvm_close (kd);
 
         return hash;
@@ -293,7 +299,7 @@ ck_unix_pid_get_env (pid_t       pid,
                      const char *var)
 {
         GHashTable *hash;
-        char       *val;
+        char       *val = NULL;
 
         /*
          * Would probably be more efficient to just loop through the
@@ -301,6 +307,8 @@ ck_unix_pid_get_env (pid_t       pid,
          * table, but this works for now.
          */
         hash = ck_unix_pid_get_env_hash (pid);
+        if (hash == NULL)
+            return val;
         val  = g_strdup (g_hash_table_lookup (hash, var));
         g_hash_table_destroy (hash);
 
@@ -328,22 +336,55 @@ ck_unix_pid_get_uid (pid_t pid)
 }
 
 gboolean
-ck_unix_pid_get_login_session_id (pid_t  pid,  
+ck_unix_pid_get_login_session_id (pid_t  pid,
                                   char **idp)
 {
         g_return_val_if_fail (pid > 1, FALSE);
 
         return FALSE;
-}  
+}
 
 gboolean
 ck_get_max_num_consoles (guint *num)
 {
-	/* XXX how can we find out how many are configured? */
-        if (num != NULL) {
-                *num = 7;
+        int      max_consoles;
+        int      res;
+        gboolean ret;
+        struct ttyent *t;
+
+        ret = FALSE;
+        max_consoles = 0;
+
+        res = setttyent ();
+        if (res == 0) {
+                goto done;
         }
 
+        while ((t = getttyent ()) != NULL) {
+                if (t->ty_status & TTY_ON && strncmp (t->ty_name, "ttyC", 4) == 0)
+                        max_consoles++;
+        }
+
+        /* Increment one more so that all consoles are properly counted
+         * this is arguable a bug in vt_add_watches().
+         */
+        max_consoles++;
+
+        ret = TRUE;
+
+        endttyent ();
+
+done:
+         if (num != NULL) {
+                *num = max_consoles;
+         }
+
+        return ret;
+}
+
+gboolean
+ck_supports_activatable_consoles (void)
+{
         return TRUE;
 }
 
@@ -352,8 +393,8 @@ ck_get_console_device_for_num (guint num)
 {
         char *device;
 
-// VT are only available on i386 and amd64
-#if defined(__i386__) || defined(__amd64__)
+/* VT are only available on i386, amd64 and macppc */
+#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
         /* The device number is always one less than the VT number. */
         num--;
 #endif
@@ -378,8 +419,8 @@ ck_get_console_num_from_device (const char *device,
         }
 
         if (sscanf (device, "/dev/ttyC%u", &n) == 1) {
-// VT are only available on i386 and amd64
-#if defined(__i386__) || defined(__amd64__)
+/* VT are only available on i386, amd64 and macppc */
+#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
                 /* The VT number is always one more than the device number. */
                 n++;
 #endif
@@ -406,8 +447,8 @@ ck_get_active_console_num (int    console_fd,
         active = 0;
         ret = FALSE;
 
-// VT are only available on i386 and amd64
-#if defined(__i386__) || defined(__amd64__)
+/* VT are only available on i386, amd64 and macppc */
+#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
         res = ioctl (console_fd, VT_GETACTIVE, &active);
         if (res == ERROR) {
                 perror ("ioctl VT_GETACTIVE");
