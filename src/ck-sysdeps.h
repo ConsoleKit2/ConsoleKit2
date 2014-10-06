@@ -73,6 +73,12 @@ gboolean     ck_activate_console_num          (int             console_fd,
 gboolean     ck_wait_for_active_console_num   (int             console_fd,
                                                guint           num);
 
+#ifdef HAVE_SYS_VT_SIGNAL
+gint         ck_get_vt_signal_fd              (void);
+gboolean     ck_wait_for_console_switch       (gint            sys_fd,
+                                               gint32         *num);
+#endif /* HAVE_SYS_VT_SIGNAL */
+
 G_END_DECLS
 
 #endif /* __CK_SYSDEPS_H */

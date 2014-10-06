@@ -50,12 +50,16 @@ POLKIT_REQUIRED_VERSION=0.92
 
 AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/ioctl.h sys/param.h sys/socket.h syslog.h kvm.h \
-                  sys/sysctl.h sys/user.h])
+                  sys/sysctl.h sys/user.h poll.h])
 
 AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
                 strerror strrchr strspn strstr strtol strtoul uname])
 
 AC_CHECK_MEMBERS([struct stat.st_rdev])
+
+AC_CHECK_FILE(/sys/class/tty/tty0/active,
+              [AC_DEFINE([HAVE_SYS_VT_SIGNAL], [1], [System has a means of signaling VT changes])],
+              [continue])
 
 AC_TYPE_UID_T
 
