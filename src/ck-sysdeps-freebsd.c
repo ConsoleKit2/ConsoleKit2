@@ -184,11 +184,11 @@ stat2proc (pid_t        pid,
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
         if (p.kp_tdev != NODEV && (ttname = devname (p.kp_tdev, S_IFCHR)) != NULL) {
-                memcpy (P->tty_text, ttname, sizeof P->tty_text);
+                memcpy (P->tty_text, ttname, sizeof (P->tty_text));
         }
 
         if (p.kp_tdev == NODEV) {
-                memcpy (P->tty_text, "   ?   ", sizeof P->tty_text);
+                memcpy (P->tty_text, "   ?   ", sizeof (P->tty_text));
         }
 
         if (P->pid != pid) {
@@ -244,11 +244,11 @@ stat2proc (pid_t        pid,
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
         if (p.ki_tdev != NODEV && (ttname = devname (p.ki_tdev, S_IFCHR)) != NULL) {
-                memcpy (P->tty_text, ttname, sizeof P->tty_text);
+                memcpy (P->tty_text, ttname, sizeof (P->tty_text));
         }
 
         if (p.ki_tdev == NODEV) {
-                memcpy (P->tty_text, "   ?   ", sizeof P->tty_text);
+                memcpy (P->tty_text, "   ?   ", sizeof (P->tty_text));
         }
 
         if (P->pid != pid) {

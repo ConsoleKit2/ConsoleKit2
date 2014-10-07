@@ -191,15 +191,15 @@ stat2proc (pid_t        pid,
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
         if (p.p_tdev != NODEV && (ttname = devname (p.p_tdev, S_IFCHR)) != NULL) {
-                memcpy (P->tty_text, ttname, sizeof P->tty_text);
+                memcpy (P->tty_text, ttname, sizeof (P->tty_text));
         }
 
         if (p.p_tdev == NODEV) {
 		/* XXX how do we associate X with its tty? */
 #if defined(__i386__) || defined(__amd64__) || defined(__powerpc__)
-                memcpy (P->tty_text, "/dev/ttyC4", sizeof P->tty_text);
+                memcpy (P->tty_text, "/dev/ttyC4", sizeof (P->tty_text));
 #else
-                memcpy (P->tty_text, "/dev/ttyC0", sizeof P->tty_text);
+                memcpy (P->tty_text, "/dev/ttyC0", sizeof (P->tty_text));
 #endif
         }
 
