@@ -367,8 +367,8 @@ vt_thread_start (ThreadData *data)
         }
         G_UNLOCK (hash_lock);
 
-        g_thread_exit (NULL);
         thread_data_free (data);
+        g_thread_exit (NULL);
 
         return NULL;
 }
