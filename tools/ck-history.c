@@ -60,6 +60,8 @@ typedef enum {
 #define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/log/ConsoleKit/history"
 #define MAX_LINE_LEN 2048
 
+#define USERNAME_MAX "64"
+
 static GList *all_events = NULL;
 
 static CkLogEvent *
@@ -558,7 +560,7 @@ print_last_report_record (GList      *list,
                                  addedtime);
         } else {
                 g_string_printf (str,
-                                 "%-8.8s %12s %-10.10s %-7.7s %-12.12s %-28.28s %-16.16s",
+                                 "%-"USERNAME_MAX"."USERNAME_MAX"s %12s %-10.10s %-7.7s %-12.12s %-28.28s %-16.16s",
                                  username,
                                  session_type,
                                  session_id,
@@ -805,7 +807,7 @@ generate_report_frequent (int         uid,
                 data = user_counts->data;
 
                 username = get_user_name_for_uid (data->uid);
-                g_print ("%-8s %u\n", username, data->count);
+                g_print ("%-"USERNAME_MAX"s %u\n", username, data->count);
                 g_free (data);
                 user_counts = g_list_delete_link (user_counts, user_counts);
                 g_free (username);
@@ -891,15 +893,15 @@ main (int    argc,
         static char        *session_type = NULL;
         static char        *since = NULL;
         static GOptionEntry entries [] = {
-                { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
-                { "frequent", 0, 0, G_OPTION_ARG_NONE, &report_frequent, N_("Show listing of frequent users"), NULL },
-                { "last", 0, 0, G_OPTION_ARG_NONE, &report_last, N_("Show listing of last logged in users"), NULL },
-                { "last-compat", 0, 0, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
-                { "log", 0, 0, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
-                { "seat", 's', 0, G_OPTION_ARG_STRING, &seat, N_("Show entries for the specified seat"), N_("SEAT") },
-                { "session-type", 't', 0, G_OPTION_ARG_STRING, &session_type, N_("Show entries for the specified session type"), N_("TYPE") },
-                { "user", 'u', 0, G_OPTION_ARG_STRING, &username, N_("Show entries for the specified user"), N_("NAME") },
-                { "since", 0, 0, G_OPTION_ARG_STRING, &since, N_("Show entries since the specified time (ISO 8601 format)"), N_("DATETIME") },
+                { "version",      'V', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
+                { "frequent",       0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &report_frequent, N_("Show listing of frequent users"), NULL },
+                { "last",           0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &report_last, N_("Show listing of last logged in users"), NULL },
+                { "last-compat",    0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &report_last_compat, N_("Show 'last' compatible listing of last logged in users"), NULL },
+                { "log",            0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &report_log, N_("Show full event log"), NULL },
+                { "seat",         's', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING, &seat, N_("Show entries for the specified seat"), N_("SEAT") },
+                { "session-type", 't', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING, &session_type, N_("Show entries for the specified session type"), N_("TYPE") },
+                { "user",         'u', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING, &username, N_("Show entries for the specified user"), N_("NAME") },
+                { "since",          0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING, &since, N_("Show entries since the specified time (ISO 8601 format)"), N_("DATETIME") },
                 { NULL }
         };
 
