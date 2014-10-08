@@ -56,6 +56,8 @@ open_log_file (const char *filename,
 {
         int      flags;
         int      fd;
+        int      res;
+        char    *dirname;
         FILE    *file;
         gboolean ret;
 
@@ -68,6 +70,20 @@ open_log_file (const char *filename,
 #ifdef O_NOFOLLOW
         flags |= O_NOFOLLOW;
 #endif
+
+        dirname = g_path_get_dirname (filename);
+        /* always make sure we have a directory */
+        errno = 0;
+        res = g_mkdir_with_parents (dirname,
+                                    S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if (res < 0) {
+                g_warning ("Unable to create directory %s (%s)",
+                           dirname,
+                           g_strerror (errno));
+                g_free (dirname);
+                return FALSE;
+        }
+        g_free (dirname);
 
 retry:
         fd = g_open (filename, flags, 0600);
