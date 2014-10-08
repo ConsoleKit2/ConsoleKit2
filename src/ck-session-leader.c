@@ -408,6 +408,7 @@ job_completed (CkJob     *job,
 static void
 job_data_free (JobData *data)
 {
+        g_object_unref (data->leader);
         g_free (data);
 }
 
@@ -427,7 +428,7 @@ ck_session_leader_collect_parameters (CkSessionLeader        *session_leader,
         ret = FALSE;
 
         data = g_new0 (JobData, 1);
-        data->leader = session_leader;
+        data->leader = g_object_ref (session_leader);
         data->done_cb = done_cb;
         data->user_data = user_data;
         data->context = context;
