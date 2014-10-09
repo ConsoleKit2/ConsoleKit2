@@ -501,6 +501,50 @@ log_system_restart_event (CkManager  *manager)
 }
 
 static void
+log_system_suspend_event (CkManager  *manager)
+{
+        CkLogEvent         event;
+        gboolean           res;
+        GError            *error;
+
+        memset (&event, 0, sizeof (CkLogEvent));
+
+        event.type = CK_LOG_EVENT_SYSTEM_SUSPEND;
+        g_get_current_time (&event.timestamp);
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        /* FIXME: in this case we should block and wait for log to flush */
+}
+
+static void
+log_system_hibernate_event (CkManager  *manager)
+{
+        CkLogEvent         event;
+        gboolean           res;
+        GError            *error;
+
+        memset (&event, 0, sizeof (CkLogEvent));
+
+        event.type = CK_LOG_EVENT_SYSTEM_HIBERNATE;
+        g_get_current_time (&event.timestamp);
+
+        error = NULL;
+        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
+        if (! res) {
+                g_debug ("Unable to log event: %s", error->message);
+                g_error_free (error);
+        }
+
+        /* FIXME: in this case we should block and wait for log to flush */
+}
+
+static void
 log_seat_session_added_event (CkManager  *manager,
                               CkSeat     *seat,
                               const char *ssid)
@@ -1231,6 +1275,180 @@ ck_manager_can_stop (CkManager  *manager,
         const char *action;
 
         action = "org.freedesktop.consolekit.system.stop";
+
+#if defined HAVE_POLKIT
+        get_polkit_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
+                                        NULL)) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+#endif
+
+        return TRUE;
+}
+
+static void
+do_suspend (CkManager             *manager,
+            DBusGMethodInvocation *context)
+{
+        GError *error;
+        gboolean res;
+
+        g_debug ("ConsoleKit preforming Suspend");
+
+        log_system_suspend_event (manager);
+
+        error = NULL;
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-suspend",
+                                          &error);
+        if (! res) {
+                GError *new_error;
+
+                g_warning ("Unable to suspend system: %s", error->message);
+
+                new_error = g_error_new (CK_MANAGER_ERROR,
+                                         CK_MANAGER_ERROR_GENERAL,
+                                         "Unable to suspend system: %s", error->message);
+                dbus_g_method_return_error (context, new_error);
+                g_error_free (new_error);
+
+                g_error_free (error);
+        } else {
+                dbus_g_method_return (context);
+        }
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Suspend
+*/
+gboolean
+ck_manager_suspend (CkManager             *manager,
+                    DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.suspend-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.suspend";
+        }
+
+        g_debug ("ConsoleKit Suspend: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_suspend);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_suspend);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_suspend(manager, context);
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_suspend (CkManager  *manager,
+                        DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        action = "org.freedesktop.consolekit.system.suspend";
+
+#if defined HAVE_POLKIT
+        get_polkit_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
+                                        NULL)) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+#endif
+
+        return TRUE;
+}
+
+static void
+do_hibernate (CkManager             *manager,
+              DBusGMethodInvocation *context)
+{
+        GError *error;
+        gboolean res;
+
+        g_debug ("ConsoleKit preforming Hibernate");
+
+        log_system_hibernate_event (manager);
+
+        error = NULL;
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-hibernate",
+                                          &error);
+        if (! res) {
+                GError *new_error;
+
+                g_warning ("Unable to hibernate system: %s", error->message);
+
+                new_error = g_error_new (CK_MANAGER_ERROR,
+                                         CK_MANAGER_ERROR_GENERAL,
+                                         "Unable to hibernate system: %s", error->message);
+                dbus_g_method_return_error (context, new_error);
+                g_error_free (new_error);
+
+                g_error_free (error);
+        } else {
+                dbus_g_method_return (context);
+        }
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Hibernate
+*/
+gboolean
+ck_manager_hibernate (CkManager             *manager,
+                      DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.hibernate-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.hibernate";
+        }
+
+        g_debug ("ConsoleKit Hibernate: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_hibernate);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_hibernate);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_hibernate(manager, context);
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_hibernate (CkManager  *manager,
+                          DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        action = "org.freedesktop.consolekit.system.hibernate";
 
 #if defined HAVE_POLKIT
         get_polkit_permissions (manager, action, context);

@@ -32,6 +32,34 @@
       <arg name="can_stop" type="b" direction="out"/>
     </method>
 
+    <method name="Suspend">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to suspend the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanSuspend">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_suspend" type="b" direction="out"/>
+    </method>
+
+    <method name="Hibernate">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to hibernate the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanHibernate">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_hibernate" type="b" direction="out"/>
+    </method>
+
     <method name="OpenSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="out" type="s">
