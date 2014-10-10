@@ -212,7 +212,11 @@ check_file_stream (CkEventLogger *event_logger)
 
         new_fd = g_open (event_logger->priv->log_filename, O_RDONLY | O_NONBLOCK, 0600);
         if (new_fd == -1 || fstat (new_fd, &new_stats) < 0) {
-                close (new_fd);
+                if (new_fd != -1) {
+                        /* only try to close the fd if it succeeded in
+                         * opening */
+                        g_close (new_fd, NULL);
+                }
                 g_debug ("Unable to open or stat %s - will try to reopen", event_logger->priv->log_filename);
                 reopen_file_stream (event_logger);
                 return;
