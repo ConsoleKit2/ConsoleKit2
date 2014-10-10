@@ -277,7 +277,7 @@ create_pid_file (void)
         g_free (dirname);
 
         /* make a new pid file */
-        if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) > 0) {
+        if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) >= 0) {
                 snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
                 written = write (pf, pid, strlen (pid));
                 if (written != strlen(pid)) {
