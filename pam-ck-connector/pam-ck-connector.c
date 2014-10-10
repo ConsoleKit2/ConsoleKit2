@@ -189,13 +189,16 @@ _util_name_to_uid (const char *username,
         int           rc;
         uid_t         res;
         char         *buf = NULL;
-        unsigned int  bufsize;
+        long          bufsize;
         struct passwd pwd;
         struct passwd *pwdp;
 
         res = (uid_t) -1;
 
         bufsize = sysconf (_SC_GETPW_R_SIZE_MAX);
+        if (bufsize == -1) {
+                return res;
+        }
         buf = calloc (sizeof (char), bufsize);
         rc = getpwnam_r (username, &pwd, buf, bufsize, &pwdp);
         if (rc != 0 || pwdp == NULL) {
