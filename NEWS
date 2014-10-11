@@ -1,3 +1,43 @@
+
+ * Check the return value of sysconf before passing it to calloc.
+ * Only close fds that were opened.
+ * Fix a resource leak.
+ * ck-log-system-start: always create log directory. Patch by
+   Daniel Drake.
+ * Prevent possible use-after-free condition. Patch by
+   Anders Kaseorg.
+ * Fix crash on logout/login via SunRay. Patch by Halton Huo.
+ * Fix ck-history truncating login names.
+ * Call thread_data_free before g_thread_exit.
+ * Add man pages. Patch by Brian Cameron.
+ * Fix for rejected GetAll properties by GDBus. Patch by
+   Teodor MICU.
+ * Linux: Use /sys/class/tty/tty0/active for VT change
+   notifications (i.e. the 63 threads issue)
+ * Set source id to 0 after calling g_source_remove.
+   Patch by Manfred Hampl.
+ * Return early when remote DISPLAY variable set.
+   Patch by Joe Mullally.
+ * Various deprecated functions and other compile warnings
+   were fixed.
+ * Add an --enable-debug=full which always enables debugging.
+ * Add OpenBSD backend. Patches by Robert Nagy and ajacoutot.
+ * Improve FreeBSD backend.
+ * Add DragonFlyBSD backend.
+ * Be able to shutdown or reboot even without polkit or RBAC
+   support. Patch by Romain Perier.
+ * udev-acl install to usr.
+ * Add support for devices with long names.
+   Patch by Aleix Conchillo Flaqué.
+ * Cleanup console tag files on application startup and shutdown.
+ * Fix uninitialized variable.
+ * Use correct type in tools/ck-history.c Patch by Rafal Muzylo.
+ * Add a configure switch for PolicyKit. Patch by Samuli Suominen.
+ * Enables the FreeBSD VT ioctls on GNU/kFreeBSD.
+   Patch by Robert Millan.
+ * Fallback to getpeereid() on FreeBSD and GNU/kFreeBSD.
+   Patch by Robert Millan.
+
 ==============
 Version 0.4.6
 ==============
