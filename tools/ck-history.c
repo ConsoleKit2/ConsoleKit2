@@ -61,7 +61,7 @@ typedef enum {
 #define DEFAULT_LOG_FILENAME LOCALSTATEDIR "/log/ConsoleKit/history"
 #define MAX_LINE_LEN 2048
 
-#define USERNAME_MAX "64"
+#define USERNAME_MAX "24"
 
 static GList *all_events = NULL;
 
