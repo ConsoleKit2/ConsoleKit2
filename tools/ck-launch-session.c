@@ -42,6 +42,8 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include "ck-connector.h"
 
@@ -53,6 +55,14 @@ main (int argc, char **argv)
         const char  *shell;
         pid_t        pid;
         int          status;
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         ckc = ck_connector_new ();
         if (ckc != NULL) {

@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include <glib.h>
 #include <glib/gi18n.h>
@@ -315,6 +317,14 @@ main (int    argc,
                 { "timed-exit", 0, 0, G_OPTION_ARG_NONE, &do_timed_exit, N_("Exit after a time - for debugging"), NULL },
                 { NULL }
         };
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         ret = 1;
 

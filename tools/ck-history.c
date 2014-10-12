@@ -29,6 +29,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <libintl.h>
 #include <locale.h>
 #include <zlib.h>
 
@@ -904,6 +905,14 @@ main (int    argc,
                 { "since",          0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING, &since, N_("Show entries since the specified time (ISO 8601 format)"), N_("DATETIME") },
                 { NULL }
         };
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         context = g_option_context_new (NULL);
         g_option_context_add_main_entries (context, entries, NULL);

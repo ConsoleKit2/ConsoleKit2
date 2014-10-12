@@ -17,9 +17,9 @@ if test -z "$*"; then
   echo
 fi
 
-(cd $srcdir && autoreconf --force --install) || exit 1
+(cd $srcdir && mkdir -p m4 && autoreconf --install --force) || exit 1
 
-conf_flags="--enable-maintainer-mode --enable-gtk-doc --cache-file=config.cache --disable-static"
+conf_flags="--enable-maintainer-mode --cache-file=config.cache --disable-static"
 
 if test x$NOCONFIGURE = x; then
   echo Running $srcdir/configure $conf_flags "$@" ...

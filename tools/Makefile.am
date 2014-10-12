@@ -41,6 +41,7 @@ AM_CFLAGS =							\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
 	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
+	-DLOCALEDIR=\"$(localedir)\"		\
 	$(HISTORY_CFLAGS)					\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\

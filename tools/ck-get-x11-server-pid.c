@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include <X11/Xlib.h>
 #include <glib.h>
@@ -68,6 +70,14 @@ main (int    argc,
         int      fd;
         int      ret;
         Display *xdisplay;
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         ret = 1;
 

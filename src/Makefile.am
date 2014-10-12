@@ -21,6 +21,7 @@ AM_CFLAGS =							\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
 	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
 	-DCONSOLE_KIT_PID_FILE=\""$(CONSOLE_KIT_PID_FILE)"\"	\
+	-DLOCALEDIR=\"$(localedir)\"		\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\
 	$(DBUS_CFLAGS)						\

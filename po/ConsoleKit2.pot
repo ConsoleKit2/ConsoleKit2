@@ -1,0 +1,144 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
+"POT-Creation-Date: 2014-10-12 08:52+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/ck-seat.c:182
+msgid "Another session was activated while waiting"
+msgstr ""
+
+#: src/ck-seat.c:211
+msgid "Activation is not supported for this kind of seat"
+msgstr ""
+
+#: src/ck-seat.c:221
+msgid "Unknown session id"
+msgstr ""
+
+#: src/ck-seat.c:237 src/ck-vt-monitor.c:132 src/ck-session.c:383
+msgid "Unable to activate session"
+msgstr ""
+
+#: src/ck-seat.c:598
+msgid "Session is not attached to this seat"
+msgstr ""
+
+#: src/main.c:315
+msgid "Enable debugging code"
+msgstr ""
+
+#: src/main.c:316
+msgid "Don't become a daemon"
+msgstr ""
+
+#: src/main.c:317
+msgid "Exit after a time - for debugging"
+msgstr ""
+
+#: src/main.c:348
+msgid "Console kit daemon"
+msgstr ""
+
+#: src/ck-vt-monitor.c:113
+msgid "Session is already active"
+msgstr ""
+
+#: src/ck-vt-monitor.c:121 src/ck-vt-monitor.c:154
+msgid "No consoles available"
+msgstr ""
+
+#: src/ck-manager.c:1988 src/ck-manager.c:2087 src/ck-manager.c:2144
+msgid "Unable to get information about the calling process"
+msgstr ""
+
+#: src/ck-manager.c:2001 src/ck-session.c:278
+#, c-format
+msgid "Unable to lookup information about calling process '%d'"
+msgstr ""
+
+#: src/ck-manager.c:2025 src/ck-manager.c:2037 src/ck-manager.c:2294
+msgid "Unable to find session for cookie"
+msgstr ""
+
+#: src/ck-manager.c:2101
+#, c-format
+msgid "Unable to lookup session information for process '%d'"
+msgstr ""
+
+#: src/ck-manager.c:2302
+msgid "User ID does not match the owner of cookie"
+msgstr ""
+
+#: src/ck-manager.c:2312
+msgid "Process ID does not match the owner of cookie"
+msgstr ""
+
+#: src/ck-session.c:291
+msgid "Only session owner may set idle hint state"
+msgstr ""
+
+#: tools/ck-history.c:897 tools/list-sessions.c:372
+msgid "Version of this application"
+msgstr ""
+
+#: tools/ck-history.c:898
+msgid "Show listing of frequent users"
+msgstr ""
+
+#: tools/ck-history.c:899
+msgid "Show listing of last logged in users"
+msgstr ""
+
+#: tools/ck-history.c:900
+msgid "Show 'last' compatible listing of last logged in users"
+msgstr ""
+
+#: tools/ck-history.c:901
+msgid "Show full event log"
+msgstr ""
+
+#: tools/ck-history.c:902
+msgid "Show entries for the specified seat"
+msgstr ""
+
+#: tools/ck-history.c:902
+msgid "SEAT"
+msgstr ""
+
+#: tools/ck-history.c:903
+msgid "Show entries for the specified session type"
+msgstr ""
+
+#: tools/ck-history.c:903
+msgid "TYPE"
+msgstr ""
+
+#: tools/ck-history.c:904
+msgid "Show entries for the specified user"
+msgstr ""
+
+#: tools/ck-history.c:904
+msgid "NAME"
+msgstr ""
+
+#: tools/ck-history.c:905
+msgid "Show entries since the specified time (ISO 8601 format)"
+msgstr ""
+
+#: tools/ck-history.c:905
+msgid "DATETIME"
+msgstr ""

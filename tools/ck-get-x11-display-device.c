@@ -25,6 +25,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -159,6 +161,14 @@ main (int    argc,
                 { "display", 0, 0, G_OPTION_ARG_STRING, &display, "display name", NULL },
                 { NULL }
         };
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         ret = 1;
 

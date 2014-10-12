@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
+#include <libintl.h>
 #include <locale.h>
 
 #include <glib.h>
@@ -165,6 +166,14 @@ main (int    argc,
       char **argv)
 {
         CkLogEvent event;
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         memset (&event, 0, sizeof (CkLogEvent));
 

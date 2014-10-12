@@ -1,10 +1,19 @@
 
-AC_PREREQ([2.68])
+# Dependencies
+m4_define([DBUS_REQUIRED_VERSION], [0.82])
+m4_define([GLIB_REQUIRED_VERSION], [2.14])
+m4_define([X11_REQUIRED_VERSION], [1.0.0])
+m4_define([POLKIT_REQUIRED_VERSION], [0.92])
+
+
+AC_PREREQ([2.50])
 AC_INIT([ConsoleKit2],
-        [0.5.0],
+        [0.9.0],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
         [ConsoleKit2])
 
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/ck-manager.c])
 
 AM_INIT_AUTOMAKE([1.9 no-dist-gzip dist-xz tar-ustar])
@@ -35,25 +44,20 @@ AC_SUBST(VERSION)
 # Save flags to aclocal
 ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
-GETTEXT_PACKAGE=ConsoleKit
+AM_GNU_GETTEXT_VERSION([0.15])
+GETTEXT_PACKAGE=ConsoleKit2
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Name of default gettext domain])
-
-AM_GLIB_GNU_GETTEXT
-
-# Dependencies
-
-DBUS_REQUIRED_VERSION=0.82
-GLIB_REQUIRED_VERSION=2.14
-X11_REQUIRED_VERSION=1.0.0
-POLKIT_REQUIRED_VERSION=0.92
+AM_GNU_GETTEXT([external])
+AM_NLS
 
 AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/ioctl.h sys/param.h sys/socket.h syslog.h kvm.h \
-                  sys/sysctl.h sys/user.h poll.h])
+                  sys/sysctl.h sys/user.h poll.h libintl.h locale.h])
 
 AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
-                strerror strrchr strspn strstr strtol strtoul uname])
+                strerror strrchr strspn strstr strtol strtoul uname \
+                setlocale])
 
 AC_CHECK_MEMBERS([struct stat.st_rdev])
 
@@ -439,9 +443,8 @@ doc/dbus/Makefile
 libck-connector/Makefile
 libck-connector/ck-connector.pc
 pam-ck-connector/Makefile
+po/Makefile.in
 ])
-
-AC_CONFIG_HEADERS([config.h])
 
 AC_OUTPUT
 

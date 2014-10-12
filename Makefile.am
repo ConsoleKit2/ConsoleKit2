@@ -4,16 +4,20 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL =
 
-SUBDIRS =			\
+ACLOCAL_AMFLAGS = -I m4
+
+SUBDIRS =		\
 	src			\
 	libck-connector         \
 	tools			\
 	data			\
 	doc			\
 	pam-ck-connector        \
+	po                      \
 	$(NULL)
 
-EXTRA_DIST =			\
+
+EXTRA_DIST = config.rpath \
 	COPYING			\
 	AUTHORS			\
 	INSTALL			\
@@ -21,6 +25,7 @@ EXTRA_DIST =			\
 	HACKING			\
 	NEWS			\
 	ChangeLog		\
+	m4				\
 	$(NULL)
 
 DISTCLEANFILES =		\

@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <errno.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include <glib.h>
 
@@ -423,6 +425,14 @@ main (int    argc,
                 { "pid", 0, 0, G_OPTION_ARG_INT, &process_id, "Process ID", NULL },
                 { NULL }
         };
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         /* For now at least restrict this to root */
         if (getuid () != 0) {

@@ -34,6 +34,7 @@
 #include <sys/utsname.h>
 #include <string.h>
 
+#include <libintl.h>
 #include <locale.h>
 
 #include <glib.h>
@@ -235,6 +236,14 @@ main (int    argc,
         CkLogEvent event;
         CkLogSystemStartEvent *e;
         struct utsname uts;
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
         memset (&event, 0, sizeof (CkLogEvent));
 

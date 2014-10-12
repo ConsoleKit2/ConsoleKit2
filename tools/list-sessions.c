@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <string.h>
-
+#include <libintl.h>
 #include <locale.h>
 
 #include <glib.h>
@@ -372,6 +372,14 @@ main (int    argc,
                 { "version", 'V', 0, G_OPTION_ARG_NONE, &do_version, N_("Version of this application"), NULL },
                 { NULL }
         };
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+ 
+#ifdef ENABLE_NLS
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+#endif
 
 #if !GLIB_CHECK_VERSION(2, 36, 0)
         g_type_init ();
