@@ -22,6 +22,16 @@ login manager under the name XDG_SESSION_COOKIE.
 More Information
 ================
 
+Documentation is available at:
+http://consolekit2.github.io/ConsoleKit2
+
+Report bugs and feature requests to:
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+Translation is handled with Transifex, please register at:
+https://www.transifex.com/projects/p/consolekit2/
+
+The main development happens at:
 https://github.com/ConsoleKit2/ConsoleKit2
 
 ConsoleKit2 is a fork of ConsoleKit since it is no longer maintained.
