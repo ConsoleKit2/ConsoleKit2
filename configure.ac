@@ -1,9 +1,16 @@
 
+AC_COPYRIGHT([Copyright 2014 The ConsoleKit2 Team])
+
 AC_PREREQ([2.50])
 AC_INIT([ConsoleKit2],
         [0.9.0],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
         [ConsoleKit2])
+VERSION_MAJOR=0
+VERSION_MINOR=9
+VERSION_REVISION=0
+
+COPYRIGHT_YEARS="2014"
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -425,6 +432,24 @@ AC_ARG_WITH([systemdsystemunitdir],
         [], [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)])
 AS_IF([test "x$with_systemdsystemunitdir" != "xno"], [ AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])])
 AM_CONDITIONAL(HAVE_SYSTEMD, [test -n "$with_systemdsystemunitdir" -a "x$with_systemdsystemunitdir" != "xno"])
+
+# Misc version info
+VERSION_MESSAGE="${VERSION}"
+COPYRIGHT_MESSAGE="Copyright © ${COPYRIGHT_YEARS} the ConsoleKit2 team"
+AC_DEFINE_UNQUOTED(VERSION_MESSAGE, "${VERSION_MESSAGE}", [Simple version string])
+AC_DEFINE_UNQUOTED(COPYRIGHT_MESSAGE, "${COPYRIGHT_MESSAGE}", [Copyright string])
+AC_DEFINE_UNQUOTED(COPYRIGHT_YEARS, "${COPYRIGHT_YEARS}", [The copyright years])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_MAJOR,${VERSION_MAJOR}, [version major number])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_MINOR,${VERSION_MINOR}, [version minor number])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_REVISION,${VERSION_REVISION}, [version revision number])
+AC_DEFINE_UNQUOTED(PACKAGE, "ConsoleKit2", [The name of this package])
+AC_SUBST(COPYRIGHT_MESSAGE)
+AC_SUBST(VERSION_MESSAGE)
+AC_SUBST(VERSION_MAJOR)
+AC_SUBST(VERSION_MINOR)
+AC_SUBST(VERSION_REVISION)
+AC_SUBST(COPYRIGHT_YEARS)
+AC_SUBST(PACKAGE)
 
 # Files
 
