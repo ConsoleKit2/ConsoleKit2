@@ -1,11 +1,4 @@
 
-# Dependencies
-DBUS_REQUIRED_VERSION=0.82
-GLIB_REQUIRED_VERSION=2.14
-X11_REQUIRED_VERSION=1.0.0
-POLKIT_REQUIRED_VERSION=0.92
-
-
 AC_PREREQ([2.50])
 AC_INIT([ConsoleKit2],
         [0.9.0],
@@ -51,6 +44,13 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Name of default gettext
 AM_GNU_GETTEXT([external])
 AM_NLS
 
+# Dependencies
+
+DBUS_REQUIRED_VERSION=0.82
+GLIB_REQUIRED_VERSION=2.14
+X11_REQUIRED_VERSION=1.0.0
+POLKIT_REQUIRED_VERSION=0.92
+
 AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/ioctl.h sys/param.h sys/socket.h syslog.h kvm.h \
                   sys/sysctl.h sys/user.h poll.h libintl.h locale.h])
@@ -68,9 +68,9 @@ AC_CHECK_FILE(/sys/class/tty/tty0/active,
 AC_TYPE_UID_T
 
 PKG_CHECK_MODULES(CONSOLE_KIT,
-  dbus-glib-1 >= DBUS_REQUIRED_VERSION
-  gobject-2.0 >= GLIB_REQUIRED_VERSION
-  gthread-2.0 >= GLIB_REQUIRED_VERSION
+  dbus-glib-1 >= $DBUS_REQUIRED_VERSION
+  gobject-2.0 >= $GLIB_REQUIRED_VERSION
+  gthread-2.0 >= $GLIB_REQUIRED_VERSION
 )
 
 PKG_CHECK_MODULES([XLIB], [x11])
@@ -81,7 +81,7 @@ AC_ARG_ENABLE([polkit],
   [enable_polkit=$enableval],
   [enable_polkit=auto])
 AS_IF([test "x$enable_polkit" != "xno"], [
-  PKG_CHECK_MODULES([POLKIT], [polkit-gobject-1 >= POLKIT_REQUIRED_VERSION], [have_polkit=yes], [have_polkit=no])
+  PKG_CHECK_MODULES([POLKIT], [polkit-gobject-1 >= $POLKIT_REQUIRED_VERSION], [have_polkit=yes], [have_polkit=no])
   if test "x$enable_polkit"  = "xyes" -a "x$have_polkit" = "xno"; then
     AC_MSG_ERROR([PolicyKit support explicitly requested but dependencies not found])
   fi
@@ -93,15 +93,15 @@ AM_CONDITIONAL([HAVE_POLKIT], [test "x$have_polkit" = "xyes"])
 AC_SUBST(HAVE_POLKIT)
 
 PKG_CHECK_MODULES(LIBDBUS,
-  dbus-1 >= DBUS_REQUIRED_VERSION
+  dbus-1 >= $DBUS_REQUIRED_VERSION
 )
 PKG_CHECK_MODULES(TOOLS,
-  x11 >= X11_REQUIRED_VERSION
-  glib-2.0 >= GLIB_REQUIRED_VERSION
+  x11 >= $X11_REQUIRED_VERSION
+  glib-2.0 >= $GLIB_REQUIRED_VERSION
 )
 
 PKG_CHECK_MODULES(HISTORY,
-  glib-2.0 >= GLIB_REQUIRED_VERSION
+  glib-2.0 >= $GLIB_REQUIRED_VERSION
 )
 
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
