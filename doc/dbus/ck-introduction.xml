@@ -4,24 +4,38 @@
   <sect1>
     <title>About</title>
     <para>
-      ConsoleKit is a framework for keeping track of the various
+      ConsoleKit2 is a framework for keeping track of the various
       users, sessions, and seats present on a system.  It
       provides a mechanism for software to react to changes of any of
       these items or of any of the metadata associated with them.
+      ConsoleKit2 also allows fast switching between open sessions on
+      the computer.
+    </para>
+    <para>
+      ConsoleKit2 is a fork of ConsoleKit since it is no longer maintained.
+      Information on ConsoleKit can be found at:
+      http://freedesktop.org/wiki/Software/ConsoleKit/
+      William Jon McCann was the primary maintainer of ConsoleKit and
+      most of this documentation was written by him for ConsoleKit. It
+      has been adapted for ConsoleKit2.
     </para>
   </sect1>
 
   <sect1>
     <title>Defining the Problem</title>
     <para>
-    To be written.
+    A simple example is two users logging into a computer at the same time.
+    They may be sharing the same set of hardware for their graphical session,
+    such as the monitor, keyboard, and mouse. ConsoleKit2 will keep track of
+    those resouces and which session is active and should have use of that
+    hardware at a given time.
     </para>
   </sect1>
 
   <sect1>
     <title>Relevant art</title>
     <para>
-    To be written.
+    Logind is a Linux daemon providing the similar functionality to ConsoleKit2.
     </para>
   </sect1>
 

@@ -10,7 +10,7 @@
 
 <book id="index">
   <bookinfo>
-    <title>ConsoleKit @VERSION@ Documentation</title>
+    <title>ConsoleKit2 @VERSION@ Documentation</title>
     <releaseinfo>Version @VERSION@</releaseinfo>
     <authorgroup>
       <author>
@@ -19,6 +19,15 @@
         <affiliation>
           <address>
             <email>william.jon.mccann@gmail.com</email>
+          </address>
+        </affiliation>
+      </author>
+      <author>
+        <firstname>Eric</firstname>
+        <surname>Koegel</surname>
+        <affiliation>
+          <address>
+            <email>eric.koegel@gmail.com</email>
           </address>
         </affiliation>
       </author>
@@ -47,7 +56,7 @@
 
       <partintro>
         <para>
-        ConsoleKit provides a D-Bus API for programs to obtain information about the
+        ConsoleKit2 provides a D-Bus API for programs to obtain information about the
         users, sessions, and seats that are present on a system.
         </para>
         <para>

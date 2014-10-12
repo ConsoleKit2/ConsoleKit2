@@ -5,20 +5,20 @@
     <title>Session Lifecycle</title>
     <para>
 The session leader process is responsible for asking
-ConsoleKit to open a new session.  In this respect, it is
+ConsoleKit2 to open a new session.  In this respect, it is
 similar to the traditional POSIX user login accounting framework.
 In the typical case, the session leader is either an immediate descendant of
-a login manager or the login manager itself.  The leader makes a connection to the D-Bus system bus and asks ConsoleKit to open a session.  There are two methods available for opening a session: org.freedesktop.ConsoleKit.Manager.OpenSession() and org.freedesktop.ConsoleKit.Manager.OpenSessionWithParameters().
+a login manager or the login manager itself.  The leader makes a connection to the D-Bus system bus and asks ConsoleKit2 to open a session.  There are two methods available for opening a session: org.freedesktop.ConsoleKit.Manager.OpenSession() and org.freedesktop.ConsoleKit.Manager.OpenSessionWithParameters().
     </para>
     <para>
 If the operation succeeds, a secret cookie will be returned to the session leader.  The session leader should store this secret in the environment as XDG_SESSION_COOKIE so that it may be shared with its child processes.
     </para>
     <para>
-At this point the session will be registered with ConsoleKit and a particular
+At this point the session will be registered with ConsoleKit2 and a particular
 set of information about the session will be stored along with it.
     </para>
     <para>
-ConsoleKit will decide, based on the information associated with the session, what Seat the session will be added to.
+ConsoleKit2 will decide, based on the information associated with the session, what Seat the session will be added to.
     </para>
     <para>
 It will also be determined, based on the same set of information, whether the Session will control the hardware associated with the Seat.  In other words, whether the Session will be active for the Seat it is attached to.  The exact mechanism for this determination depends on the type of Seat and the capabilities of the host system.
