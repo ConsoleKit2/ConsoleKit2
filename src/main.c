@@ -341,7 +341,7 @@ main (int    argc,
 #endif
 
         if (! ck_is_root_user ()) {
-                g_warning ("Must be run as root");
+                g_warning (_("You must be root to run this program"));
                 exit (1);
         }
 

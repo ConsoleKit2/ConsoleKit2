@@ -31,6 +31,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <glib.h>
+#include <glib/gi18n.h>
 
 #include "ck-sysdeps.h"
 
@@ -158,7 +159,7 @@ main (int    argc,
         GError             *error;
         GOptionContext     *context;
         static GOptionEntry entries [] = {
-                { "display", 0, 0, G_OPTION_ARG_STRING, &display, "display name", NULL },
+                { "display", 0, 0, G_OPTION_ARG_STRING, &display, N_("display name"), NULL },
                 { NULL }
         };
 

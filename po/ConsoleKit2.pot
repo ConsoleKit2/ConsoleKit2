@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2014-10-12 08:52+0300\n"
+"POT-Creation-Date: 2014-10-12 10:42+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -47,6 +47,10 @@ msgstr ""
 
 #: src/main.c:317
 msgid "Exit after a time - for debugging"
+msgstr ""
+
+#: src/main.c:344 tools/ck-collect-session-info.c:440
+msgid "You must be root to run this program"
 msgstr ""
 
 #: src/main.c:348
@@ -141,4 +145,16 @@ msgstr ""
 
 #: tools/ck-history.c:905
 msgid "DATETIME"
+msgstr ""
+
+#: tools/ck-get-x11-display-device.c:162
+msgid "display name"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:425
+msgid "User ID"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:426
+msgid "Process ID"
 msgstr ""

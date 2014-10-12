@@ -33,6 +33,7 @@
 #include <locale.h>
 
 #include <glib.h>
+#include <glib/gi18n.h>
 
 #include "ck-sysdeps.h"
 
@@ -421,8 +422,8 @@ main (int    argc,
         static int          user_id = -1;
         static int          process_id = -1;
         static GOptionEntry entries [] = {
-                { "uid", 0, 0, G_OPTION_ARG_INT, &user_id, "User ID", NULL },
-                { "pid", 0, 0, G_OPTION_ARG_INT, &process_id, "Process ID", NULL },
+                { "uid", 0, 0, G_OPTION_ARG_INT, &user_id, N_("User ID"), NULL },
+                { "pid", 0, 0, G_OPTION_ARG_INT, &process_id, N_("Process ID"), NULL },
                 { NULL }
         };
 
@@ -436,7 +437,7 @@ main (int    argc,
 
         /* For now at least restrict this to root */
         if (getuid () != 0) {
-                g_warning ("You must be root to run this program");
+                g_warning (_("You must be root to run this program"));
                 exit (1);
         }
 
