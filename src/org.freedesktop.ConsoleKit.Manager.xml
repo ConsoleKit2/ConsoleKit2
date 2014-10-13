@@ -120,7 +120,7 @@
       <arg name="fd"   type="h" direction="out">
         <doc:doc>
           <doc:description>
-            <doc:para>Returns a file descriptor that encapsulates the lock, or -1 on failure. As soon as the file descriptor is closed (and all its duplicates) the lock is automatically released. If the client dies while the lock is taken it is automatically closed and the lock is automatically released.</doc:para>
+            <doc:summary>Returns a file descriptor that encapsulates the lock, or -1 on failure. As soon as the file descriptor is closed (and all its duplicates) the lock is automatically released. If the client dies while the lock is taken it is automatically closed and the lock is released.</doc:summary>
           </doc:description>
         </doc:doc>
       </arg>
