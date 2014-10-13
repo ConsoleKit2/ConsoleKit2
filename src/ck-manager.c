@@ -1355,8 +1355,8 @@ ck_manager_suspend (CkManager             *manager,
 }
 
 gboolean
-ck_manager_can_suspend (CkManager  *manager,
-                        DBusGMethodInvocation *context)
+ck_manager_auth_suspend (CkManager  *manager,
+                         DBusGMethodInvocation *context)
 
 {
         const char *action;
@@ -1373,6 +1373,20 @@ ck_manager_can_suspend (CkManager  *manager,
                 dbus_g_method_return (context, FALSE);
         }
 #endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_suspend (CkManager  *manager,
+                        DBusGMethodInvocation *context)
+
+{
+        if (ck_system_can_suspend ()) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
 
         return TRUE;
 }
@@ -1442,8 +1456,8 @@ ck_manager_hibernate (CkManager             *manager,
 }
 
 gboolean
-ck_manager_can_hibernate (CkManager  *manager,
-                          DBusGMethodInvocation *context)
+ck_manager_auth_hibernate (CkManager  *manager,
+                           DBusGMethodInvocation *context)
 
 {
         const char *action;
@@ -1461,6 +1475,30 @@ ck_manager_can_hibernate (CkManager  *manager,
         }
 #endif
 
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_hibernate (CkManager  *manager,
+                          DBusGMethodInvocation *context)
+
+{
+        if (ck_system_can_hibernate ()) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_inhibit (CkManager *manager,
+                    gchar *what,
+                    gchar *who,
+                    gchar *why,
+                    DBusGMethodInvocation *context)
+{
         return TRUE;
 }
 

@@ -469,3 +469,15 @@ ck_get_active_console_num (int    console_fd,
 
         return ret;
 }
+
+gboolean
+ck_system_can_suspend (void)
+{
+        return TRUE;
+}
+
+gboolean
+ck_system_can_hibernate (void)
+{
+        return TRUE;
+}
