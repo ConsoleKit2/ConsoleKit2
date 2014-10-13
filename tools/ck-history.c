@@ -517,6 +517,7 @@ print_last_report_record (GList      *list,
         CkLogSeatSessionAddedEvent *e;
         CkLogEvent                 *remove_event;
         RecordStatus                status;
+        time_t                      added_t, removed_t;
 
         if (event->type != CK_LOG_EVENT_SEAT_SESSION_ADDED
             && event->type != CK_LOG_EVENT_SYSTEM_START) {
@@ -550,7 +551,8 @@ print_last_report_record (GList      *list,
         utline = get_utline_for_event (event);
         host = get_host_for_event (event);
 
-        addedtime = g_strndup (ctime (&event->timestamp.tv_sec), 16);
+        added_t = event->timestamp.tv_sec;
+        addedtime = g_strndup (ctime (&added_t), 16);
 
         if (legacy_compat) {
                 g_string_printf (str,
@@ -606,7 +608,8 @@ print_last_report_record (GList      *list,
                 break;
         case RECORD_STATUS_NORMAL:
                 duration = get_duration (event, remove_event);
-                removedtime = g_strdup_printf ("- %s", ctime (&remove_event->timestamp.tv_sec) + 11);
+                removed_t = remove_event->timestamp.tv_sec;
+                removedtime = g_strdup_printf ("- %s", ctime (&removed_t) + 11);
                 removedtime[7] = 0;
                 break;
         default:
@@ -633,6 +636,7 @@ generate_report_last (int         uid,
         GList      *oldest;
         CkLogEvent *oldest_event;
         GList      *l;
+        time_t      oldest_e;
 
         /* print events in reverse time order */
 
@@ -664,7 +668,8 @@ generate_report_last (int         uid,
         oldest = g_list_first (all_events);
         if (oldest != NULL) {
                 oldest_event = oldest->data;
-                g_print ("\nLog begins %s", ctime (&oldest_event->timestamp.tv_sec));
+                oldest_e = oldest_event->timestamp.tv_sec;
+                g_print ("\nLog begins %s", ctime (&oldest_e));
         }
 }
 
@@ -676,6 +681,7 @@ generate_report_last_compat (int         uid,
         GList      *oldest;
         CkLogEvent *oldest_event;
         GList      *l;
+        time_t      oldest_e;
 
         /* print events in reverse time order */
 
@@ -707,7 +713,8 @@ generate_report_last_compat (int         uid,
         oldest = g_list_first (all_events);
         if (oldest != NULL) {
                 oldest_event = oldest->data;
-                g_print ("\nLog begins %s", ctime (&oldest_event->timestamp.tv_sec));
+                oldest_e = oldest_event->timestamp.tv_sec;
+                g_print ("\nLog begins %s", ctime (&oldest_e));
         }
 }
 
