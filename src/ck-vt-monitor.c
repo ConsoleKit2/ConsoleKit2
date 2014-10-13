@@ -407,13 +407,9 @@ vt_add_watch_unlocked (CkVtMonitor *vt_monitor,
 static void
 vt_add_watches (CkVtMonitor *vt_monitor)
 {
-#if defined (__sun) && !defined (HAVE_SYS_VT_H) || defined(__OpenBSD__)
+#if defined (__sun) && !defined (HAVE_SYS_VT_H) || (defined(__OpenBSD__) && (!defined(__i386__) && !defined(__amd64__) && !defined(__powerpc__)))
+        /* On OpenBSD, VT are only available on i386 and amd64 */
         /* Best to do nothing if VT is not supported */
-        /* For OpenBSD: VT_WAITACTIVE started in a g_thread with our
-         * userland pthreads(3) makes the main console-kit-daemon process
-         * wait forever on VT1, so are forced to disable monitoring for
-         * console activation.
-         */
 #elif defined (__sun) && defined (HAVE_SYS_VT_H)
         /*
          * Solaris supports synchronous event notification in STREAMS.
