@@ -363,21 +363,21 @@ stat2proc (const char    *S,
         S = tmp + 2;                 /* skip ") " */
 
         num = sscanf (S,
-                      "%c "
-                      "%d %d %d %d %d "
-                      "%lu %lu %lu %lu %lu "
+                      "%c " /* state */
+                      "%d %d %d %d %d " /* ppid pgrp session tty tpgid */
+                      "%lu %lu %lu %lu %lu " /* flags min_flt cmin_flt maj_flt cmaj_flt */
                       "%Lu %Lu %Lu %Lu "  /* utime stime cutime cstime */
-                      "%ld %ld "
-                      "%d "
-                      "%ld "
+                      "%ld %ld " /* priority nice*/
+                      "%d " /* nlwp */
+                      "%ld " /* alarm */
                       "%Lu "  /* start_time */
-                      "%lu "
-                      "%ld "
-                      "%lu %"KLF"u %"KLF"u %"KLF"u %"KLF"u %"KLF"u "
+                      "%lu " /* vsize */
+                      "%ld " /* rss */
+                      "%lu %"KLF"u %"KLF"u %"KLF"u %"KLF"u %"KLF"u " /* rss_rlim start_code end_code start_stack kstk_esp kstk_eip */
                       "%*s %*s %*s %*s " /* discard, no RT signals & Linux 2.1 used hex */
-                      "%"KLF"u %*lu %*lu "
-                      "%d %d "
-                      "%lu %lu",
+                      "%"KLF"u %*u %*u " /* wchan */
+                      "%d %d " /* exit_signal processor */
+                      "%lu %lu", /* rtprio sched */
                       &P->state,
                       &P->ppid, &P->pgrp, &P->session, &P->tty, &P->tpgid,
                       &P->flags, &P->min_flt, &P->cmin_flt, &P->maj_flt, &P->cmaj_flt,
