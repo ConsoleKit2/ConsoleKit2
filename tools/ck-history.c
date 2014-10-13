@@ -514,7 +514,7 @@ print_last_report_record (GList      *list,
         char                       *session_type;
         char                       *session_id;
         char                       *seat_id;
-        CkLogSeatSessionAddedEvent *e;
+        CkLogSeatSessionAddedEvent *e = NULL;
         CkLogEvent                 *remove_event;
         RecordStatus                status;
         time_t                      added_t, removed_t;
@@ -526,9 +526,8 @@ print_last_report_record (GList      *list,
 
         remove_event = NULL;
 
-        e = (CkLogSeatSessionAddedEvent *)event;
-
         if (event->type == CK_LOG_EVENT_SEAT_SESSION_ADDED) {
+                e = (CkLogSeatSessionAddedEvent *)event;
 
                 remove_event = find_first_matching_remove_event (list->next, e);
                 status = get_event_record_status (remove_event);
@@ -538,7 +537,7 @@ print_last_report_record (GList      *list,
                 seat_id = e->seat_id;
         } else {
                 status = RECORD_STATUS_REBOOT;
-                remove_event = find_first_matching_system_stop_event (list->next, e);
+                remove_event = find_first_matching_system_stop_event (list->next, NULL);
 
                 session_type = "";
                 session_id = "";
