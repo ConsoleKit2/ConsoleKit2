@@ -58,8 +58,8 @@ typedef enum
 } CkInhibitEvent;
 
 /*
- * Various error codes for CkInhibit. Except for NO_ERROR, all the values
- * will be negative.
+ * Various error codes for CkInhibit. All the values will be negative except
+ * for NO_ERROR
  */
 typedef enum
 {

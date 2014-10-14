@@ -140,7 +140,7 @@ main (int   argc,
     g_print ("tmp file will be written to: %s\n",
              path);
 
-    /* If there's already a named_pipe_path remove it, don't care if this
+    /* If there's already a named_pipe_path remove it; don't care if this
      * fails */
     g_unlink (path);
 

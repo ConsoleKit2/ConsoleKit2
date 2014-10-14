@@ -119,13 +119,13 @@
       </arg>
       <arg name="fd"   type="h" direction="out">
         <doc:doc>
-          <doc:description>
             <doc:summary>Returns a file descriptor that encapsulates the lock, or -1 on failure. As soon as the file descriptor is closed (and all its duplicates) the lock is automatically released. If the client dies while the lock is taken it is automatically closed and the lock is released.</doc:summary>
-          </doc:description>
         </doc:doc>
       </arg>
       <doc:doc>
         <doc:description>
+        <doc:para>Inhibit locks are named pipes used by ConsoleKit2 to prevent the system from performing actions such as suspending, restarting, or going idle. There are various reasons and application would like to prevent one or more of these functions such as a movie player preventing the screen saving from activating or a package manager ensuring an application installs before allowing the computer to shutdown.</doc:para>
+        <doc:para>Note: Each application can have only one lock open at any given time. Multiple applications can hold locks to the same thing, for example a media player application and a cd burning application can both prevent the system from being marked idle.</doc:para>
         <doc:para>See this simple example:
           <doc:example language="c" title="simple example"><doc:code>
     DBusConnection *bus_connection;
