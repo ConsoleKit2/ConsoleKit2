@@ -9,6 +9,7 @@ console-kit-daemon
 test-event-logger
 test-tty-idle-monitor
 test-vt-monitor
+test-inhibit
 ck-marshal.c
 ck-marshal.h
 ck-manager-glue.h
