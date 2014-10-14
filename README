@@ -19,6 +19,25 @@ common ancestor and retain knowledge of a secret.  As an implementation
 detail, this secret may be stored in the process environment by the
 login manager under the name XDG_SESSION_COOKIE.
 
+Minimum Requirements
+====================
+
+* Autotools (for building ConsoleKit2)
+* Gettext 0.15
+* dbus-glib 0.82
+* glib 2.36
+* X11
+* zlib
+* libkvm (required for OpenBSD, FreeBSD, kfreebsd, and DragonFlyBSD)
+* xsltproc
+* PolicyKit/Polkit 0.92 (optional)
+* PAM (optional)
+* libudev (optional)
+* xmlto (optional, for documentation)
+* inotify (optional)
+* RBAC (optional)
+* pm-utils (optional, but required for suspend/hibernate on Linux)
+
 More Information
 ================
 
@@ -31,8 +50,12 @@ https://github.com/ConsoleKit2/ConsoleKit2/issues
 Translation is handled with Transifex, please register at:
 https://www.transifex.com/projects/p/consolekit2/
 
-The main development happens at:
+The main development follows the standard github work flow and happens at:
 https://github.com/ConsoleKit2/ConsoleKit2
+
+Communication can be done through github comments/issues as well as on IRC:
+#ConsoleKit2 on freenode
+You can easily join the channel by going to http://webchat.freenode.net/
 
 ConsoleKit2 is a fork of ConsoleKit since it is no longer maintained.
 Information on ConsoleKit can be found at:
