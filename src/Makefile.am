@@ -134,6 +134,8 @@ console_kit_daemon_SOURCES =	\
 	ck-run-programs.h	\
 	ck-event-logger.c	\
 	ck-event-logger.h	\
+	ck-inhibit.c		\
+	ck-inhibit.h		\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 

@@ -45,6 +45,7 @@ typedef struct
         GObjectClass parent_class;
 } CkInhibitClass;
 
+/* The list of events that may be inhibited -- except for event_last :) */
 typedef enum
 {
         CK_INHIBIT_EVENT_SHUTDOWN = 1,
@@ -56,6 +57,10 @@ typedef enum
         CK_INHIBIT_EVENT_LAST
 } CkInhibitEvent;
 
+/*
+ * Various error codes for CkInhibit. Except for NO_ERROR, all the values
+ * will be negative.
+ */
 typedef enum
 {
         CK_INHIBIT_ERROR_NO_ERROR      =   1,
@@ -67,8 +72,7 @@ typedef enum
 
 GType           ck_inhibit_get_type              (void);
 
-CkInhibit      *ck_create_inhibit_lock           (CkManager   *manager,
-                                                  CkInhibit   *inhibit,
+gint            ck_create_inhibit_lock           (CkInhibit   *inhibit,
                                                   const gchar *who,
                                                   const gchar *what,
                                                   const gchar *why);

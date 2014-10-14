@@ -25,6 +25,8 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include <glib-unix.h>
+#include <glib/gstdio.h>
 
 #include "ck-inhibit.h"
 
@@ -32,7 +34,6 @@
 
 struct CkInhibitPrivate
 {
-        CkManager   *manager;
         /*
          * Who is a human-readable, descriptive string of who is taking
          * the lock. Example: "Xfburn"
@@ -54,17 +55,16 @@ struct CkInhibitPrivate
          */
         const gchar *why;
         /*
-         * fd is a named pipe that the user app will hold onto while they
-         * want the lock to be held. When they close all references to
-         * the fd then the lock is released and this object can be
-         * destroyed.
+         * named_pipe is a named pipe that the user app will hold onto
+         * while they want the lock to be held. When they close all
+         * references to the named pipe then the lock is released and
+         * this object can be destroyed.
          */
-        gint         fd;
-        /*
-         * state file is used to store information on the lock so that
-         * duplicates can be prevented.
-         */
-        gchar       *state_file;
+        gint         named_pipe;
+        /* named_pipe_path is the location the named pipe is created from */
+        gchar *named_pipe_path;
+        /* fd_source is the event source id for the g_unix_fd_add call */
+        gint fd_source;
 };
 
 static void     ck_inhibit_class_init  (CkInhibitClass *klass);
@@ -85,34 +85,38 @@ ck_inhibit_class_init (CkInhibitClass *klass)
 }
 
 static void
-ck_inhibit_init (CkInhibit *monitor)
+ck_inhibit_init (CkInhibit *inhibit)
 {
-        monitor->priv = CK_INHIBIT_GET_PRIVATE (monitor);
+        inhibit->priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        inhibit->priv->named_pipe = -1;
 }
 
 static void
 ck_inhibit_finalize (GObject *object)
 {
-        CkInhibit *monitor;
+        CkInhibit *inhibit;
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_INHIBIT (object));
 
-        monitor = CK_INHIBIT (object);
+        inhibit = CK_INHIBIT (object);
 
-        g_return_if_fail (monitor->priv != NULL);
+        g_return_if_fail (inhibit->priv != NULL);
 
         G_OBJECT_CLASS (ck_inhibit_parent_class)->finalize (object);
 }
 
 /*
- * Creates the LOCALSTATEDIR /run/ConsoleKit/inhibit directory. The
+ * Creates the /run/ConsoleKit/inhibit directory. The
  * state_files will exist inside this directory.
  * Returns TRUE on success.
  */
 static gboolean
 create_inhibit_base_directory (void)
 {
+        gint res;
+
         errno = 0;
         res = g_mkdir_with_parents (LOCALSTATEDIR "/run/ConsoleKit/inhibit",
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -124,25 +128,88 @@ create_inhibit_base_directory (void)
                 return FALSE;
         }
 
+        if (g_chmod (LOCALSTATEDIR "/run/ConsoleKit/inhibit", 0755) == -1) {
+                g_warning ("Failed to change permissions for %s",
+                           LOCALSTATEDIR "/run/ConsoleKit/inhibit");
+        }
+
         return TRUE;
+}
+
+static gboolean
+cb_named_pipe_close (gint fd,
+                     GIOCondition condition,
+                     gpointer user_data)
+{
+        g_warning ("cb_named_pipe_close");
+        return FALSE;
+}
+
+/*
+ * Creates the named pipe.
+ * Returns the fd if successful (return >= 0) or -1
+ */
+static gint
+create_named_pipe (CkInhibit *inhibit)
+{
+        CkInhibitPrivate *priv;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        /* Basic error checking */
+        if (priv->named_pipe != -1) {
+                g_warning ("Attempting to create an inhibit fd when one already exists");
+                return -1;
+        }
+
+        if (priv->named_pipe_path == NULL) {
+                g_warning ("named_pipe_path cannot be NULL");
+                return -1;
+        }
+
+        /* create the named pipe */
+        errno = 0;
+        if (mknod (priv->named_pipe_path, S_IFIFO | 0600 , 0) == -1) {
+                g_warning ("failed to create named pipe: %s",
+                           g_strerror(errno));
+                return -1;
+        }
+
+        /* open our side */
+        priv->named_pipe = g_open (priv->named_pipe_path, O_RDONLY|O_CLOEXEC|O_NDELAY);
+        if (priv->named_pipe < 0) {
+                g_warning ("failed to open the named pipe for reading %s",
+                           g_strerror(errno));
+                return -1;
+        }
+
+        /* Monitor the named pipe */
+        priv->fd_source = g_unix_fd_add (priv->named_pipe,
+                                         G_IO_HUP,
+                                         (GUnixFDSourceFunc)cb_named_pipe_close,
+                                         inhibit);
+
+        /* open the client side of the named pipe and return it */
+        return open(priv->named_pipe_path, O_WRONLY|O_CLOEXEC|O_NDELAY);
 }
 
 /*
  * Initializes the lock fd and populates the inhibit object with data.
- * Returns the fd on success which is a value of 0 or greater.
+ * Returns the named pipe (a file descriptor) on success. This is a value
+ * of 0 or greater.
  * Returns a CkInhbitError on failure.
  */
 gint
-ck_create_inhibit_lock (CkManager   *manager,
-                        CkInhibit   *inhibit,
+ck_create_inhibit_lock (CkInhibit   *inhibit,
                         const gchar *who,
                         const gchar *what,
                         const gchar *why)
 {
         CkInhibitPrivate *priv;
 
-        g_return_val_if_fail (inhibit, CK_INHIBIT_ERROR_INVALID_INPUT);
-        g_return_val_if_fail (manager, CK_INHIBIT_ERROR_INVALID_INPUT);
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), CK_INHIBIT_ERROR_INVALID_INPUT);
 
         /* These fields only get set here and are mandatory */
         if (!who || !what || !why) {
@@ -155,9 +222,9 @@ ck_create_inhibit_lock (CkManager   *manager,
         priv->who = who;
         priv->what = what;
         priv->why = why;
-        priv->state_file = g_strdup_printf (LOCALSTATEDIR "/run/ConsoleKit/inhibit/%s", who);
+        priv->named_pipe_path = g_strdup_printf (LOCALSTATEDIR "/run/ConsoleKit/inhibit/%s", who);
 
-        if(priv->state_file == NULL) {
+        if(priv->named_pipe_path == NULL) {
                 g_warning ("Failed to allocate memory for inhibit state_file string");
                 return CK_INHIBIT_ERROR_OOM;
         }
@@ -166,4 +233,7 @@ ck_create_inhibit_lock (CkManager   *manager,
         if (create_inhibit_base_directory () < 0) {
                 return CK_INHIBIT_ERROR_GENERAL;
         }
+
+        /* create the named pipe and return it */
+        return create_named_pipe (inhibit);
 }
