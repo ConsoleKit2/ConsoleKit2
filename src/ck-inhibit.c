@@ -71,6 +71,8 @@ static void     ck_inhibit_class_init  (CkInhibitClass *klass);
 static void     ck_inhibit_init        (CkInhibit      *inhibit);
 static void     ck_inhibit_finalize    (GObject        *object);
 
+static void     close_named_pipe (CkInhibit *inhibit);
+
 G_DEFINE_TYPE (CkInhibit, ck_inhibit, G_TYPE_OBJECT)
 
 
@@ -96,6 +98,7 @@ static void
 ck_inhibit_finalize (GObject *object)
 {
         CkInhibit *inhibit;
+        CkInhibitPrivate *priv;
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_INHIBIT (object));
@@ -104,7 +107,31 @@ ck_inhibit_finalize (GObject *object)
 
         g_return_if_fail (inhibit->priv != NULL);
 
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        if (priv->fd_source != 0) {
+                g_source_remove (priv->fd_source);
+                priv->fd_source = 0;
+        }
+
+        close_named_pipe (inhibit);
+
         G_OBJECT_CLASS (ck_inhibit_parent_class)->finalize (object);
+}
+
+CkInhibit*
+ck_inhibit_new (void)
+{
+        GObject *object;
+
+        object = g_object_new (CK_TYPE_INHIBIT,
+                               NULL);
+
+        if (object == NULL) {
+                return NULL;
+        }
+
+        return CK_INHIBIT (object);
 }
 
 /*
@@ -136,12 +163,58 @@ create_inhibit_base_directory (void)
         return TRUE;
 }
 
+/*
+ * - Closes the named_pipe if opened.
+ * - Unlinks the named_pipe_path if created.
+ * - Frees the memory allocated to the named_pipe_path.
+ */
+static void
+close_named_pipe (CkInhibit *inhibit)
+{
+        CkInhibitPrivate *priv;
+        GError *error;
+
+        g_return_if_fail (CK_IS_INHIBIT (inhibit));
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        if (priv->named_pipe) {
+                if (g_close (priv->named_pipe, &error) == -1) {
+                        g_warning ("Failed to close inhibit named pipe, error was %s",
+                                   error->message);
+                        g_error_free (error);
+                }
+                priv->named_pipe = -1;
+        }
+
+        if (priv->named_pipe_path) {
+                if (g_unlink (priv->named_pipe_path) == -1) {
+                        g_warning ("Failed to remove inhibit file %s, error reported: %s",
+                                   priv->named_pipe_path,
+                                   g_strerror(errno));
+                }
+                g_free (priv->named_pipe_path);
+                priv->named_pipe_path = NULL;
+        }
+}
+
 static gboolean
 cb_named_pipe_close (gint fd,
                      GIOCondition condition,
                      gpointer user_data)
 {
-        g_warning ("cb_named_pipe_close");
+        /* Sanity checks */
+        if (user_data == NULL) {
+                g_warning ("cb_named_pipe_close: user_data == NULL");
+                return FALSE;
+        }
+
+        if (!CK_IS_INHIBIT (user_data)) {
+                g_warning ("cb_named_pipe_close: !CK_IS_INHIBIT (user_data)");
+                return FALSE;
+        }
+
+        close_named_pipe (CK_INHIBIT (user_data));
         return FALSE;
 }
 
@@ -195,12 +268,24 @@ create_named_pipe (CkInhibit *inhibit)
         return open(priv->named_pipe_path, O_WRONLY|O_CLOEXEC|O_NDELAY);
 }
 
-/*
+/**
+ * ck_create_inhibit_lock:
+ * @who:  A human-readable, descriptive string of who is taking
+ *        the lock. Example: "Xfburn"
+ * @what: What is a colon-separated list of lock types.
+ *        The list of lock types are: shutdown, sleep, idle,
+ *        handle-power-key, handle-suspend-key, handle-hibernate-key.
+ *        Example: "shutdown:idle"
+ * @why:  A human-readable, descriptive string of why the program
+ *        is taking the lock. Example: "Burning a DVD, interrupting now
+ *        will ruin the DVD."
+ *
  * Initializes the lock fd and populates the inhibit object with data.
- * Returns the named pipe (a file descriptor) on success. This is a value
- * of 0 or greater.
- * Returns a CkInhbitError on failure.
- */
+ *
+ * Return value: The named pipe (a file descriptor) on success.
+ *               This is a value of 0 or greater.
+ *               Returns a CkInhbitError on failure.
+ **/
 gint
 ck_create_inhibit_lock (CkInhibit   *inhibit,
                         const gchar *who,

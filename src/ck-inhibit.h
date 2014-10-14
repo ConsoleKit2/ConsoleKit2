@@ -72,6 +72,8 @@ typedef enum
 
 GType           ck_inhibit_get_type              (void);
 
+CkInhibit      *ck_inhibit_new                   (void);
+
 gint            ck_create_inhibit_lock           (CkInhibit   *inhibit,
                                                   const gchar *who,
                                                   const gchar *what,
