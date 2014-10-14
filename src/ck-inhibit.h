@@ -48,7 +48,7 @@ typedef struct
 /* The list of events that may be inhibited -- except for event_last :) */
 typedef enum
 {
-        CK_INHIBIT_EVENT_SHUTDOWN = 1,
+        CK_INHIBIT_EVENT_SHUTDOWN = 0,
         CK_INHIBIT_EVENT_SUSPEND,
         CK_INHIBIT_EVENT_IDLE,
         CK_INHIBIT_EVENT_POWER_KEY,
@@ -70,14 +70,21 @@ typedef enum
 } CkInhbitError;
 
 
-GType           ck_inhibit_get_type              (void);
+GType           ck_inhibit_get_type                    (void);
 
-CkInhibit      *ck_inhibit_new                   (void);
+CkInhibit      *ck_inhibit_new                         (void);
 
-gint            ck_create_inhibit_lock           (CkInhibit   *inhibit,
-                                                  const gchar *who,
-                                                  const gchar *what,
-                                                  const gchar *why);
+gint            ck_create_inhibit_lock                 (CkInhibit   *inhibit,
+                                                        const gchar *who,
+                                                        const gchar *what,
+                                                        const gchar *why);
+
+gboolean        ck_inhibit_is_shutdown_inhibited       (CkInhibit   *inhibit);
+gboolean        ck_inhibit_is_suspend_inhibited        (CkInhibit   *inhibit);
+gboolean        ck_inhibit_is_idle_inhibited           (CkInhibit   *inhibit);
+gboolean        ck_inhibit_is_power_key_inhibited      (CkInhibit   *inhibit);
+gboolean        ck_inhibit_is_suspend_key_inhibited    (CkInhibit   *inhibit);
+gboolean        ck_inhibit_is_hibernate_key_inhibited  (CkInhibit   *inhibit);
 
 G_END_DECLS
 

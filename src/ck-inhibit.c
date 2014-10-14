@@ -41,13 +41,10 @@ struct CkInhibitPrivate
          * isn't supposed to have multiple locks.
          */
         const gchar *who;
-        /*
-         * What is a colon-separated list of lock types.
-         * The list of lock types are: shutdown, sleep, idle,
-         * handle-power-key, handle-suspend-key, handle-hibernate-key.
-         * Example: "shutdown:idle"
-         */
-        const gchar *what;
+        /* inhibitors is an array of which events to suppress.
+         * Setting an CkInhibitEvent value inside the array to TRUE
+         * marks it for suppression. */
+        gboolean inhibitors[CK_INHIBIT_EVENT_LAST];
         /*
          * Why is a human-readable, descriptive string of why the program
          * is taking the lock. Example: "Burning a DVD, interrupting now
@@ -119,6 +116,13 @@ ck_inhibit_finalize (GObject *object)
         G_OBJECT_CLASS (ck_inhibit_parent_class)->finalize (object);
 }
 
+/**
+ * ck_inhibit_new:
+ *
+ * Creates a new CkInhibit object.
+ *
+ * Return value: A @CkInhibit object or NULL on failure.
+ **/
 CkInhibit*
 ck_inhibit_new (void)
 {
@@ -132,6 +136,55 @@ ck_inhibit_new (void)
         }
 
         return CK_INHIBIT (object);
+}
+
+/* Parses what for the inhibitors to assign to inhibit, invalid options
+ * generate a warning but the operation continues. If at least one
+ * inhibitor was set then it returns TRUE. */
+static gboolean
+parse_inhibitors_string (CkInhibit *inhibit,
+                         const gchar *what)
+{
+        CkInhibitPrivate  *priv;
+        gchar            **tokens;
+        gint               i;
+        gboolean           inhibit_set = FALSE;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        tokens = g_strsplit (what, ":", 0);
+
+        /* This rather dense block just parses all the tokens and sets the
+         * inhibit flags*/
+        for (i = 0; tokens[i] && g_strcmp0 ("", tokens[i]); i++) {
+                if (g_strcmp0 (tokens[i], "shutdown") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN] = TRUE;
+                        inhibit_set = TRUE;
+                } else if (g_strcmp0 (tokens[i], "sleep") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND] = TRUE;
+                        inhibit_set = TRUE;
+                } else if (g_strcmp0 (tokens[i], "idle") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_IDLE] = TRUE;
+                        inhibit_set = TRUE;
+                } else if (g_strcmp0 (tokens[i], "handle-power-key") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY] = TRUE;
+                        inhibit_set = TRUE;
+                } else if (g_strcmp0 (tokens[i], "handle-suspend-key") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY] = TRUE;
+                        inhibit_set = TRUE;
+                } else if (g_strcmp0 (tokens[i], "handle-hibernate-key") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] = TRUE;
+                        inhibit_set = TRUE;
+                } else {
+                        g_warning ("requested inhibit operation not supported %s",
+                                   tokens[i]);
+                }
+        }
+        g_strfreev (tokens);
+
+        return inhibit_set;
 }
 
 /*
@@ -196,6 +249,11 @@ close_named_pipe (CkInhibit *inhibit)
                 g_free (priv->named_pipe_path);
                 priv->named_pipe_path = NULL;
         }
+
+        if (priv->fd_source != 0) {
+                g_source_remove (priv->fd_source);
+                priv->fd_source = 0;
+        }
 }
 
 static gboolean
@@ -203,6 +261,8 @@ cb_named_pipe_close (gint fd,
                      GIOCondition condition,
                      gpointer user_data)
 {
+        CkInhibit *inhibit;
+
         /* Sanity checks */
         if (user_data == NULL) {
                 g_warning ("cb_named_pipe_close: user_data == NULL");
@@ -214,7 +274,12 @@ cb_named_pipe_close (gint fd,
                 return FALSE;
         }
 
-        close_named_pipe (CK_INHIBIT (user_data));
+        inhibit = CK_INHIBIT (user_data);
+
+        /* We're about to return FALSE and close the glib source so reset it */
+        inhibit->priv->fd_source = 0;
+
+        close_named_pipe (inhibit);
         return FALSE;
 }
 
@@ -270,6 +335,7 @@ create_named_pipe (CkInhibit *inhibit)
 
 /**
  * ck_create_inhibit_lock:
+ * @inhibit: The @CkInhibit object
  * @who:  A human-readable, descriptive string of who is taking
  *        the lock. Example: "Xfburn"
  * @what: What is a colon-separated list of lock types.
@@ -305,9 +371,12 @@ ck_create_inhibit_lock (CkInhibit   *inhibit,
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
         priv->who = who;
-        priv->what = what;
         priv->why = why;
         priv->named_pipe_path = g_strdup_printf (LOCALSTATEDIR "/run/ConsoleKit/inhibit/%s", who);
+        if (!parse_inhibitors_string(inhibit, what)) {
+                g_error ("Failed to set any inhibitors.");
+                return CK_INHIBIT_ERROR_INVALID_INPUT;
+        }
 
         if(priv->named_pipe_path == NULL) {
                 g_warning ("Failed to allocate memory for inhibit state_file string");
@@ -321,4 +390,88 @@ ck_create_inhibit_lock (CkInhibit   *inhibit,
 
         /* create the named pipe and return it */
         return create_named_pipe (inhibit);
+}
+
+/**
+ * ck_inhibit_is_shutdown_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_shutdown_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN];
+}
+
+/**
+ * ck_inhibit_is_suspend_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_suspend_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND];
+}
+
+/**
+ * ck_inhibit_is_idle_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_idle_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_IDLE];
+}
+
+/**
+ * ck_inhibit_is_power_key_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_power_key_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY];
+}
+
+/**
+ * ck_inhibit_is_suspend_key_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_suspend_key_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY];
+}
+
+/**
+ * ck_inhibit_is_hibernate_key_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_hibernate_key_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY];
 }
