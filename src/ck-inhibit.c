@@ -257,7 +257,7 @@ close_named_pipe (CkInhibit *inhibit)
 }
 
 static gboolean
-cb_named_pipe_close (gint fd,
+cb_named_pipe_close (GIOChannel *source,
                      GIOCondition condition,
                      gpointer user_data)
 {
@@ -291,6 +291,7 @@ static gint
 create_named_pipe (CkInhibit *inhibit)
 {
         CkInhibitPrivate *priv;
+        GIOChannel       *io;
 
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
 
@@ -324,10 +325,11 @@ create_named_pipe (CkInhibit *inhibit)
         }
 
         /* Monitor the named pipe */
-        priv->fd_source = g_unix_fd_add (priv->named_pipe,
-                                         G_IO_HUP,
-                                         (GUnixFDSourceFunc)cb_named_pipe_close,
-                                         inhibit);
+        io = g_io_channel_unix_new (priv->named_pipe);
+        priv->fd_source = g_io_add_watch (io,
+                                          G_IO_HUP | G_IO_ERR | G_IO_NVAL,
+                                          (GIOFunc)cb_named_pipe_close,
+                                          inhibit);
 
         /* open the client side of the named pipe and return it */
         return open(priv->named_pipe_path, O_WRONLY|O_CLOEXEC|O_NDELAY);

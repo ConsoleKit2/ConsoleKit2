@@ -95,6 +95,9 @@ test_close_inhibit_lock (void)
     /* does it properly close? */
     g_assert (g_close (fd, NULL));
 
+    /* verify we can't close it again */
+    g_assert_false (g_close (fd, NULL));
+
     fd = -1;
 }
 
