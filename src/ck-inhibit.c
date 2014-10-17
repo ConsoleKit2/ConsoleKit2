@@ -29,6 +29,7 @@
 #include <glib/gstdio.h>
 
 #include "ck-inhibit.h"
+#include "ck-marshal.h"
 
 #define CK_INHIBIT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_INHIBIT, CkInhibitPrivate))
 
@@ -64,6 +65,16 @@ struct CkInhibitPrivate
         gint fd_source;
 };
 
+
+typedef enum {
+        SIG_CHANGED_EVENT,
+        SIG_N_SIGNALS,
+} INHIBIT_SIGNALS;
+
+static guint __signals[SIG_N_SIGNALS] = { 0, };
+
+
+
 static void     ck_inhibit_class_init  (CkInhibitClass *klass);
 static void     ck_inhibit_init        (CkInhibit      *inhibit);
 static void     ck_inhibit_finalize    (GObject        *object);
@@ -81,6 +92,15 @@ ck_inhibit_class_init (CkInhibitClass *klass)
         object_class->finalize = ck_inhibit_finalize;
 
         g_type_class_add_private (klass, sizeof (CkInhibitPrivate));
+
+        __signals[SIG_CHANGED_EVENT] = g_signal_new("changed-event",
+                                                    G_OBJECT_CLASS_TYPE (object_class),
+                                                    G_SIGNAL_RUN_LAST,
+                                                    G_STRUCT_OFFSET (CkInhibitClass, changed_event),
+                                                    NULL, NULL,
+                                                    ck_marshal_BOOLEAN__INT,
+                                                    G_TYPE_BOOLEAN,
+                                                    1, G_TYPE_INT);
 }
 
 static void
@@ -216,6 +236,85 @@ create_inhibit_base_directory (void)
         return TRUE;
 }
 
+/* When the named pipe is created we then send off the inhibit events */
+static void
+emit_initial_inhibit_signals (CkInhibit *inhibit)
+{
+        CkInhibitPrivate *priv;
+        gboolean          enabled = TRUE;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SHUTDOWN, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_IDLE]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_IDLE, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_POWER_KEY, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND_KEY, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_HIBERNATE_KEY, &enabled);
+        }
+}
+
+/* When the named pipe is closed we set them to FALSE and send off the
+ * uninhibit events */
+static void
+emit_final_uninhibit_signals (CkInhibit *inhibit)
+{
+        CkInhibitPrivate *priv;
+        gboolean          enabled = FALSE;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SHUTDOWN, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_IDLE]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_IDLE] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_IDLE, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_POWER_KEY, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND_KEY, &enabled);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_HIBERNATE_KEY, &enabled);
+        }
+}
+
 /*
  * - Closes the named_pipe if opened.
  * - Unlinks the named_pipe_path if created.
@@ -254,6 +353,9 @@ close_named_pipe (CkInhibit *inhibit)
                 g_source_remove (priv->fd_source);
                 priv->fd_source = 0;
         }
+
+        /* let others know we aren't holding any locks anymore */
+        emit_final_uninhibit_signals (inhibit);
 }
 
 static gboolean
@@ -361,6 +463,7 @@ ck_create_inhibit_lock (CkInhibit   *inhibit,
                         const gchar *why)
 {
         CkInhibitPrivate *priv;
+        gint              pipe;
 
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), CK_INHIBIT_ERROR_INVALID_INPUT);
 
@@ -390,8 +493,19 @@ ck_create_inhibit_lock (CkInhibit   *inhibit,
                 return CK_INHIBIT_ERROR_GENERAL;
         }
 
-        /* create the named pipe and return it */
-        return create_named_pipe (inhibit);
+        /* create the named pipe and get the fd to return. */
+        pipe = create_named_pipe (inhibit);
+
+        if (pipe == -1) {
+                g_warning ("Failed to created named pipe");
+                return CK_INHIBIT_ERROR_GENERAL;
+        }
+
+        /* let others know which locks we now hold */
+        emit_initial_inhibit_signals (inhibit);
+
+        /* return the fd for the user */
+        return pipe;
 }
 
 /**

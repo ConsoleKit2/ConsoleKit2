@@ -43,6 +43,9 @@ typedef struct
 typedef struct
 {
         GObjectClass parent_class;
+
+        /*< signals >*/
+        gboolean (*changed_event) (CkInhibit *inhibit, gint event);
 } CkInhibitClass;
 
 /* The list of events that may be inhibited -- except for event_last :) */

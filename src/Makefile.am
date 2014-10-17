@@ -136,6 +136,8 @@ console_kit_daemon_SOURCES =	\
 	ck-event-logger.h	\
 	ck-inhibit.c		\
 	ck-inhibit.h		\
+	ck-inhibit-manager.c	\
+	ck-inhibit-manager.h	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -213,6 +215,8 @@ test_inhibit_CFLAGS = \
 	$(NULL)
 
 test_inhibit_SOURCES = 	\
+	ck-marshal.h		\
+	ck-marshal.c		\
 	ck-inhibit.h		\
 	ck-inhibit.c		\
 	test-inhibit.c		\
