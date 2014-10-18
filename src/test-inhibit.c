@@ -29,12 +29,17 @@
 #include <glib/gstdio.h>
 
 #include "ck-inhibit.h"
+#include "ck-inhibit-manager.h"
 
 
 static const gchar* WHO  = "test-inhibit";
 static const gchar* WHAT = "sleep:idle";
 static const gchar* WHY  = "for testing";
 
+static const gchar* WHO2  = "test-inhibit2";
+static const gchar* WHAT2 = "shutdown:sleep";
+
+CkInhibitManager *manager;
 CkInhibit *inhibit;
 gint fd;
 
@@ -59,7 +64,7 @@ test_ck_create_inhibit_lock (void)
     g_assert (fd == -1);
     g_assert (CK_IS_INHIBIT (inhibit));
 
-    fd = ck_create_inhibit_lock (inhibit,
+    fd = ck_inhibit_create_lock (inhibit,
                                  WHO,
                                  WHAT,
                                  WHY);
@@ -125,11 +130,80 @@ test_cleanup (void)
     g_assert_false (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS));
 }
 
+static void
+test_cleanup2 (void)
+{
+    gchar *named_pipe_path;
+
+    named_pipe_path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
+                                       LOCALSTATEDIR,
+                                       WHO2);
+
+    /* Verify inhibit cleaned up the inhibit named_pipe_path */
+    g_assert_false (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS));
+}
+
+static void
+test_manager_init (void)
+{
+    manager = ck_inhibit_manager_get ();
+    g_assert (CK_IS_INHIBIT_MANAGER (manager));
+}
+
+static void
+test_manager_add_lock1 (void)
+{
+    ck_inhibit_manager_create_lock (manager,
+                                    WHO,
+                                    WHAT,
+                                    WHY);
+}
+
+static void
+test_manager_add_lock2 (void)
+{
+    ck_inhibit_manager_create_lock (manager,
+                                    WHO2,
+                                    WHAT2,
+                                    WHY);
+}
+
+static void
+test_manager_which_are_inhibited (void)
+{
+    g_assert (ck_inhibit_manager_is_shutdown_inhibited (manager));
+    g_assert (ck_inhibit_manager_is_suspend_inhibited  (manager));
+    g_assert (ck_inhibit_manager_is_idle_inhibited     (manager));
+
+    g_assert_false (ck_inhibit_manager_is_hibernate_key_inhibited (manager));
+    g_assert_false (ck_inhibit_manager_is_suspend_key_inhibited   (manager));
+    g_assert_false (ck_inhibit_manager_is_power_key_inhibited     (manager));
+
+}
+
+static void
+test_manager_remove_lock1 (void)
+{
+    ck_inhibit_manager_remove_lock (manager, WHO);
+}
+
+static void
+test_manager_remove_lock2 (void)
+{
+    ck_inhibit_manager_remove_lock (manager, WHO2);
+}
+
+static void
+test_manager_unref (void)
+{
+    g_object_unref (manager);
+}
+
 int
 main (int   argc,
       char *argv[])
 {
-    gchar *path;
+    gchar *path, *path2;
 
     g_test_init (&argc, &argv, NULL);
 
@@ -139,13 +213,20 @@ main (int   argc,
     path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
                             LOCALSTATEDIR,
                             WHO);
+    path2 = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
+                            LOCALSTATEDIR,
+                            WHO2);
 
     g_print ("tmp file will be written to: %s\n",
              path);
+    g_print ("tmp file will be written to: %s\n",
+             path2);
 
     /* If there's already a named_pipe_path remove it; don't care if this
      * fails */
     g_unlink (path);
+    g_unlink (path2);
+
 
     /* Create the inhibit object */
     g_test_add_func ("/inhibit/create", test_create_inhibit);
@@ -161,6 +242,19 @@ main (int   argc,
 
     /* Ensure the named_pipe_path file was removed */
     g_test_add_func ("/inhibit/cleanup", test_cleanup);
+
+    /* Now let's try using the inhibit manager */
+    g_test_add_func ("/inhibit/test_manager_init", test_manager_init);
+    g_test_add_func ("/inhibit/test_manager_add_lock1", test_manager_add_lock1);
+    g_test_add_func ("/inhibit/test_manager_add_lock2", test_manager_add_lock2);
+    g_test_add_func ("/inhibit/test_manager_which_are_inhibited", test_manager_which_are_inhibited);
+    g_test_add_func ("/inhibit/test_manager_remove_lock1", test_manager_remove_lock1);
+    g_test_add_func ("/inhibit/test_manager_remove_lock2", test_manager_remove_lock2);
+    g_test_add_func ("/inhibit/test_manager_unref", test_manager_unref);
+
+    /* Ensure the named_pipe_path files were removed */
+    g_test_add_func ("/inhibit/cleanup", test_cleanup);
+    g_test_add_func ("/inhibit/cleanup2", test_cleanup2);
 
     return g_test_run();
 }

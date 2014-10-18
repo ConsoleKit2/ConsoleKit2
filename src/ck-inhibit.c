@@ -98,9 +98,9 @@ ck_inhibit_class_init (CkInhibitClass *klass)
                                                     G_SIGNAL_RUN_LAST,
                                                     G_STRUCT_OFFSET (CkInhibitClass, changed_event),
                                                     NULL, NULL,
-                                                    ck_marshal_BOOLEAN__INT,
-                                                    G_TYPE_BOOLEAN,
-                                                    1, G_TYPE_INT);
+                                                    ck_marshal_VOID__INT_BOOLEAN,
+                                                    G_TYPE_NONE,
+                                                    2, G_TYPE_INT, G_TYPE_BOOLEAN);
 }
 
 static void
@@ -241,34 +241,33 @@ static void
 emit_initial_inhibit_signals (CkInhibit *inhibit)
 {
         CkInhibitPrivate *priv;
-        gboolean          enabled = TRUE;
 
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
 
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SHUTDOWN, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SHUTDOWN, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_IDLE]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_IDLE, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_IDLE, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_POWER_KEY, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_POWER_KEY, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND_KEY, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND_KEY, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_HIBERNATE_KEY, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_HIBERNATE_KEY, TRUE);
         }
 }
 
@@ -278,7 +277,6 @@ static void
 emit_final_uninhibit_signals (CkInhibit *inhibit)
 {
         CkInhibitPrivate *priv;
-        gboolean          enabled = FALSE;
 
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
 
@@ -286,32 +284,32 @@ emit_final_uninhibit_signals (CkInhibit *inhibit)
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SHUTDOWN, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SHUTDOWN, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_IDLE]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_IDLE] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_IDLE, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_IDLE, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_POWER_KEY, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_POWER_KEY, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND_KEY, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND_KEY, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_HIBERNATE_KEY, &enabled);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_HIBERNATE_KEY, FALSE);
         }
 }
 
@@ -438,7 +436,7 @@ create_named_pipe (CkInhibit *inhibit)
 }
 
 /**
- * ck_create_inhibit_lock:
+ * ck_inhibit_create_lock:
  * @inhibit: The @CkInhibit object
  * @who:  A human-readable, descriptive string of who is taking
  *        the lock. Example: "Xfburn"
@@ -457,7 +455,7 @@ create_named_pipe (CkInhibit *inhibit)
  *               Returns a CkInhbitError on failure.
  **/
 gint
-ck_create_inhibit_lock (CkInhibit   *inhibit,
+ck_inhibit_create_lock (CkInhibit   *inhibit,
                         const gchar *who,
                         const gchar *what,
                         const gchar *why)
@@ -506,6 +504,34 @@ ck_create_inhibit_lock (CkInhibit   *inhibit,
 
         /* return the fd for the user */
         return pipe;
+}
+
+/**
+ * ck_inhibit_get_who:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: who initiated the inhibit lock.
+ **/
+const gchar*
+ck_inhibit_get_who (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
+
+        return inhibit->priv->who;
+}
+
+/**
+ * ck_inhibit_get_why:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: why it is inhibited.
+ **/
+const gchar*
+ck_inhibit_get_why (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
+
+        return inhibit->priv->why;
 }
 
 /**

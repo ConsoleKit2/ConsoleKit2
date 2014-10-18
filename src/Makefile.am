@@ -217,8 +217,10 @@ test_inhibit_CFLAGS = \
 test_inhibit_SOURCES = 	\
 	ck-marshal.h		\
 	ck-marshal.c		\
-	ck-inhibit.h		\
 	ck-inhibit.c		\
+	ck-inhibit.h		\
+	ck-inhibit-manager.c	\
+	ck-inhibit-manager.h	\
 	test-inhibit.c		\
 	$(NULL)
 

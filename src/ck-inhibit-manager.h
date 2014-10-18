@@ -51,16 +51,20 @@ GType             ck_inhibit_manager_get_type                    (void);
 
 CkInhibitManager *ck_inhibit_manager_get                         (void);
 
-gint              ck_inhibit_manager_create_lock                 (const gchar *who,
-                                                                  const gchar *what,
-                                                                  const gchar *why);
+gint              ck_inhibit_manager_create_lock                 (CkInhibitManager *manager,
+                                                                  const gchar      *who,
+                                                                  const gchar      *what,
+                                                                  const gchar      *why);
 
-gboolean          ck_inhibit_manager_is_shutdown_inhibited       (void);
-gboolean          ck_inhibit_manager_is_suspend_inhibited        (void);
-gboolean          ck_inhibit_manager_is_idle_inhibited           (void);
-gboolean          ck_inhibit_manager_is_power_key_inhibited      (void);
-gboolean          ck_inhibit_manager_is_suspend_key_inhibited    (void);
-gboolean          ck_inhibit_manager_is_hibernate_key_inhibited  (void);
+gboolean          ck_inhibit_manager_remove_lock                 (CkInhibitManager *manager,
+                                                                  const gchar      *who);
+
+gboolean          ck_inhibit_manager_is_shutdown_inhibited       (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_suspend_inhibited        (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_idle_inhibited           (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_power_key_inhibited      (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_suspend_key_inhibited    (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_hibernate_key_inhibited  (CkInhibitManager *manager);
 
 G_END_DECLS
 

@@ -36,6 +36,9 @@
 
 struct CkInhibitManagerPrivate
 {
+         /* We could use something more complicated but
+         * it's doubtful there will be more than a dozen items in the list.
+         */
         GList *inhibit_list;
         /* inhibitors is an array of which events to suppress.
          * The CkInhibitEvent value is used to indicate how many different
@@ -44,7 +47,7 @@ struct CkInhibitManagerPrivate
 };
 
 static void     ck_inhibit_manager_class_init  (CkInhibitManagerClass *klass);
-static void     ck_inhibit_manager_init        (CkInhibitManager      *inhibit);
+static void     ck_inhibit_manager_init        (CkInhibitManager      *manager);
 static void     ck_inhibit_manager_finalize    (GObject               *object);
 
 G_DEFINE_TYPE (CkInhibitManager, ck_inhibit_manager, G_TYPE_OBJECT)
@@ -63,12 +66,122 @@ ck_inhibit_manager_class_init (CkInhibitManagerClass *klass)
 static void
 ck_inhibit_manager_init (CkInhibitManager *manager)
 {
+        manager->priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
 }
 
 static void
 ck_inhibit_manager_finalize (GObject *object)
 {
         G_OBJECT_CLASS (ck_inhibit_manager_parent_class)->finalize (object);
+}
+
+static void
+cb_changed_event (CkInhibit *inhibit, gint event, gboolean enabled, gpointer user_data)
+{
+        CkInhibitManager        *manager;
+        CkInhibitManagerPrivate *priv;
+
+        g_return_if_fail (CK_IS_INHIBIT_MANAGER (user_data));
+
+        manager = CK_INHIBIT_MANAGER (user_data);
+
+        priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
+
+        if (event < 0 || event >= CK_INHIBIT_EVENT_LAST) {
+                g_warning ("invalid event id");
+                return;
+        }
+
+        priv->inhibitors[event]++;
+}
+
+/**
+ * ck_inhibit_manager_create_lock:
+ * @who:  A human-readable, descriptive string of who is taking
+ *        the lock. Example: "Xfburn"
+ * @what: What is a colon-separated list of lock types.
+ *        The list of lock types are: shutdown, sleep, idle,
+ *        handle-power-key, handle-suspend-key, handle-hibernate-key.
+ *        Example: "shutdown:idle"
+ * @why:  A human-readable, descriptive string of why the program
+ *        is taking the lock. Example: "Burning a DVD, interrupting now
+ *        will ruin the DVD."
+ *
+ * Initializes an inhibit lock with the supplied paramters and returns
+ * the named pipe. An application can only hold one lock at a time, multiple
+ * calls will fail.
+ *
+ * Return value: The named pipe (a file descriptor) on success.
+ *               This is a value of 0 or greater.
+ *               Returns a CkInhbitError on failure.
+ **/
+gint
+ck_inhibit_manager_create_lock (CkInhibitManager *manager,
+                                const gchar *who,
+                                const gchar *what,
+                                const gchar *why)
+{
+        CkInhibitManagerPrivate *priv;
+        CkInhibit               *inhibit;
+        gint                     fd, signal_id;
+
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), -1);
+
+        priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
+
+        inhibit = ck_inhibit_new ();
+
+        if (inhibit == NULL) {
+                g_error ("error creating new inhibit object");
+                return CK_INHIBIT_ERROR_OOM;
+        }
+
+        /* add our signal handler before we create the lock so we get
+         * the inhibit enable signals.
+         */
+        signal_id = g_signal_connect (inhibit, "changed-event", G_CALLBACK (cb_changed_event), manager);
+
+        fd = ck_inhibit_create_lock (inhibit, who, what, why);
+
+        if (fd == -1) {
+                g_error ("error creating inhibit lock");
+                /* ensure we disconnect the signal handler and
+                 * unref the inhibit object we won't be using */
+                g_signal_handler_disconnect (inhibit, signal_id);
+                g_object_unref (inhibit);
+                return CK_INHIBIT_ERROR_GENERAL;
+        }
+
+        /* Add it to our list */
+        priv->inhibit_list = g_list_append (priv->inhibit_list,
+                                            inhibit);
+
+        return fd;
+}
+
+gboolean
+ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
+                                const gchar      *who)
+{
+        CkInhibitManagerPrivate *priv;
+        GList                   *l;
+
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
+
+        priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
+
+        for (l = g_list_first (priv->inhibit_list); l != NULL; l = g_list_next (priv->inhibit_list)) {
+                if (l->data && g_strcmp0 (ck_inhibit_get_who (l->data), who) == 0) {
+                        CkInhibit *inhibit = l->data;
+
+                        /* Found it! Remove it from the list and unref the object */
+                        priv->inhibit_list = g_list_remove (priv->inhibit_list, inhibit);
+                        g_object_unref (inhibit);
+                        return TRUE;
+                }
+        }
+
+        return FALSE;
 }
 
 /**
@@ -102,9 +215,9 @@ ck_inhibit_manager_get (void)
  * Return value: TRUE is inhibited.
  **/
 gboolean
-ck_inhibit_manager_is_shutdown_inhibited (void)
+ck_inhibit_manager_is_shutdown_inhibited (CkInhibitManager *manager)
 {
-        CkInhibitManager *manager = ck_inhibit_manager_get ();
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
         return manager->priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN] > 0 ? TRUE : FALSE;
 }
@@ -115,9 +228,9 @@ ck_inhibit_manager_is_shutdown_inhibited (void)
  * Return value: TRUE is inhibited.
  **/
 gboolean
-ck_inhibit_manager_is_suspend_inhibited (void)
+ck_inhibit_manager_is_suspend_inhibited (CkInhibitManager *manager)
 {
-        CkInhibitManager *manager = ck_inhibit_manager_get ();
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
         return manager->priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND] > 0 ? TRUE : FALSE;
 }
@@ -128,9 +241,9 @@ ck_inhibit_manager_is_suspend_inhibited (void)
  * Return value: TRUE is inhibited.
  **/
 gboolean
-ck_inhibit_manager_is_idle_inhibited (void)
+ck_inhibit_manager_is_idle_inhibited (CkInhibitManager *manager)
 {
-        CkInhibitManager *manager = ck_inhibit_manager_get ();
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
         return manager->priv->inhibitors[CK_INHIBIT_EVENT_IDLE] > 0 ? TRUE : FALSE;
 }
@@ -141,9 +254,9 @@ ck_inhibit_manager_is_idle_inhibited (void)
  * Return value: TRUE is inhibited.
  **/
 gboolean
-ck_inhibit_manager_is_power_key_inhibited (void)
+ck_inhibit_manager_is_power_key_inhibited (CkInhibitManager *manager)
 {
-        CkInhibitManager *manager = ck_inhibit_manager_get ();
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
         return manager->priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY] > 0 ? TRUE : FALSE;
 }
@@ -154,9 +267,9 @@ ck_inhibit_manager_is_power_key_inhibited (void)
  * Return value: TRUE is inhibited.
  **/
 gboolean
-ck_inhibit_manager_is_suspend_key_inhibited (void)
+ck_inhibit_manager_is_suspend_key_inhibited (CkInhibitManager *manager)
 {
-        CkInhibitManager *manager = ck_inhibit_manager_get ();
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
         return manager->priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY] > 0 ? TRUE : FALSE;
 }
@@ -167,9 +280,9 @@ ck_inhibit_manager_is_suspend_key_inhibited (void)
  * Return value: TRUE is inhibited.
  **/
 gboolean
-ck_inhibit_manager_is_hibernate_key_inhibited (void)
+ck_inhibit_manager_is_hibernate_key_inhibited (CkInhibitManager *manager)
 {
-        CkInhibitManager *manager = ck_inhibit_manager_get ();
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
         return manager->priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] > 0 ? TRUE : FALSE;
 }

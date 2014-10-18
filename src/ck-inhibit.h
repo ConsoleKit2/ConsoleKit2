@@ -45,7 +45,7 @@ typedef struct
         GObjectClass parent_class;
 
         /*< signals >*/
-        gboolean (*changed_event) (CkInhibit *inhibit, gint event);
+        void (*changed_event) (CkInhibit *inhibit, gint event, gboolean enabled);
 } CkInhibitClass;
 
 /* The list of events that may be inhibited -- except for event_last :) */
@@ -77,10 +77,13 @@ GType           ck_inhibit_get_type                    (void);
 
 CkInhibit      *ck_inhibit_new                         (void);
 
-gint            ck_create_inhibit_lock                 (CkInhibit   *inhibit,
+gint            ck_inhibit_create_lock                 (CkInhibit   *inhibit,
                                                         const gchar *who,
                                                         const gchar *what,
                                                         const gchar *why);
+
+const gchar    *ck_inhibit_get_who                     (CkInhibit   *inhibit);
+const gchar    *ck_inhibit_get_why                     (CkInhibit   *inhibit);
 
 gboolean        ck_inhibit_is_shutdown_inhibited       (CkInhibit   *inhibit);
 gboolean        ck_inhibit_is_suspend_inhibited        (CkInhibit   *inhibit);
