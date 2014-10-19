@@ -80,6 +80,8 @@ EXTRA_DIST =						\
 	console-kit-log-system-start.service.in         \
 	console-kit-log-system-stop.service.in          \
 	console-kit-log-system-restart.service.in       \
+	90consolekit					\
+	consolekit.logrotate			\
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
