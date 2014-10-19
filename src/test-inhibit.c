@@ -56,7 +56,7 @@ static void
 test_create_inhibit (void)
 {
     /* Let's not overwrite our object */
-    g_assert_null (inhibit);
+    g_assert (inhibit == NULL);
 
     inhibit = ck_inhibit_new ();
 
@@ -89,10 +89,10 @@ test_which_are_inhibited (void)
     g_assert (CK_IS_INHIBIT (inhibit));
 
     /* these should test false */
-    g_assert_false (ck_inhibit_is_shutdown_inhibited      (inhibit));
-    g_assert_false (ck_inhibit_is_power_key_inhibited     (inhibit));
-    g_assert_false (ck_inhibit_is_suspend_key_inhibited   (inhibit));
-    g_assert_false (ck_inhibit_is_hibernate_key_inhibited (inhibit));
+    g_assert (ck_inhibit_is_shutdown_inhibited      (inhibit) == FALSE);
+    g_assert (ck_inhibit_is_power_key_inhibited     (inhibit) == FALSE);
+    g_assert (ck_inhibit_is_suspend_key_inhibited   (inhibit) == FALSE);
+    g_assert (ck_inhibit_is_hibernate_key_inhibited (inhibit) == FALSE);
 
     /* these should test true */
     g_assert (ck_inhibit_is_suspend_inhibited (inhibit));
@@ -109,7 +109,7 @@ test_close_inhibit_lock (void)
     g_assert (g_close (fd, NULL));
 
     /* verify we can't close it again */
-    g_assert_false (g_close (fd, NULL));
+    g_assert (g_close (fd, NULL)  == FALSE);
 
     fd = -1;
 }
@@ -133,7 +133,7 @@ test_cleanup (void)
     named_pipe_path = get_named_pipe_path (WHO);
 
     /* Verify inhibit cleaned up the inhibit named_pipe_path */
-    g_assert_false (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS));
+    g_assert (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS)  == FALSE);
 
     g_free (named_pipe_path);
 }
@@ -146,7 +146,7 @@ test_cleanup2 (void)
     named_pipe_path = get_named_pipe_path (WHO2);
 
     /* Verify inhibit cleaned up the inhibit named_pipe_path */
-    g_assert_false (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS));
+    g_assert (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS) == FALSE);
 
     g_free (named_pipe_path);
 }
@@ -194,9 +194,9 @@ test_manager_which_are_inhibited (void)
     g_assert (ck_inhibit_manager_is_suspend_inhibited  (manager));
     g_assert (ck_inhibit_manager_is_idle_inhibited     (manager));
 
-    g_assert_false (ck_inhibit_manager_is_hibernate_key_inhibited (manager));
-    g_assert_false (ck_inhibit_manager_is_suspend_key_inhibited   (manager));
-    g_assert_false (ck_inhibit_manager_is_power_key_inhibited     (manager));
+    g_assert (ck_inhibit_manager_is_hibernate_key_inhibited (manager) == FALSE);
+    g_assert (ck_inhibit_manager_is_suspend_key_inhibited   (manager) == FALSE);
+    g_assert (ck_inhibit_manager_is_power_key_inhibited     (manager) == FALSE);
 
 }
 
