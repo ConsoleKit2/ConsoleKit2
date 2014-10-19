@@ -300,6 +300,19 @@ fi
 AC_SUBST(LOGROTATE_DIR)
 
 dnl ---------------------------------------------------------------------------
+dnl - Install directory for xinitrc file
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(xinitrc-dir,
+	[AS_HELP_STRING([--with-xinitrc-dir=<dir>],[directory to install Xsession.d script for ck-launch-session])])
+if ! test -z "$with_xinitrc_dir"; then
+	XINITRC_DIR="$with_xinitrc_dir"
+else
+	XINITRC_DIR="/etc/X11/xinit/xinitrc.d"
+fi
+AC_SUBST(XINITRC_DIR)
+
+dnl ---------------------------------------------------------------------------
 dnl - DocBook Documentation
 dnl ---------------------------------------------------------------------------
 
@@ -514,6 +527,7 @@ echo "
         Build udev-acl:           ${enable_udev_acl}
         Build docs:               ${enable_docbook_docs}
         Log rotate dir:           ${LOGROTATE_DIR}
+        xinitrc dir:              ${XINITRC_DIR}
 
         PolicyKit support         ${have_polkit}
         RBAC (Solaris) support:   ${msg_rbac_shutdown}

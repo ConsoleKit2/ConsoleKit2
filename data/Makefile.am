@@ -6,8 +6,7 @@ dbusconf_DATA = ConsoleKit.conf
 seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
-logrotatedir = $(LOGROTATE_DIR)
-logrotate_DATA = consolekit.logrotate
+logdir = $(LOGROTATE_DIR)
 
 if HAVE_POLKIT
 polkit_policydir = $(datadir)/polkit-1/actions
@@ -72,19 +71,22 @@ edit = sed \
 	-e 's|@localstatedir[@]|$(localstatedir)|g' \
 	-e 's|@CONSOLE_KIT_PID_FILE[@]|$(CONSOLE_KIT_PID_FILE)|g'
 
+
+install-log:
+	$(INSTALL_PROGRAM) consolekit.logrotate $(logdir)
+
 EXTRA_DIST =						\
 	ck-log-system-restart				\
 	ck-log-system-start				\
 	ck-log-system-stop				\
 	$(dbusconf_DATA)				\
 	$(seat_DATA)					\
-	$(logrotate_DATA)				\
 	$(service_in_files)				\
 	console-kit-daemon.service.in                   \
 	console-kit-log-system-start.service.in         \
 	console-kit-log-system-stop.service.in          \
 	console-kit-log-system-restart.service.in       \
-	90consolekit					\
+	90-consolekit                                   \
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
