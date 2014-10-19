@@ -60,7 +60,7 @@ POLKIT_REQUIRED_VERSION=0.92
 
 AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/ioctl.h sys/param.h sys/socket.h syslog.h kvm.h \
-                  sys/sysctl.h sys/user.h poll.h libintl.h locale.h])
+                  sys/sysctl.h sys/user.h poll.h libintl.h locale.h \
                   sys/wait.h sys/resource.h])
 
 AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \

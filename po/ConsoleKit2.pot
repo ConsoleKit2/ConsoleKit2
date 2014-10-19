@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2014-10-12 16:20+0300\n"
+"POT-Creation-Date: 2014-10-19 13:36+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,29 +65,29 @@ msgstr ""
 msgid "No consoles available"
 msgstr ""
 
-#: src/ck-manager.c:1988 src/ck-manager.c:2087 src/ck-manager.c:2144
+#: src/ck-manager.c:2235 src/ck-manager.c:2334 src/ck-manager.c:2391
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2001 src/ck-session.c:278
+#: src/ck-manager.c:2248 src/ck-session.c:278
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2025 src/ck-manager.c:2037 src/ck-manager.c:2294
+#: src/ck-manager.c:2272 src/ck-manager.c:2284 src/ck-manager.c:2541
 msgid "Unable to find session for cookie"
 msgstr ""
 
-#: src/ck-manager.c:2101
+#: src/ck-manager.c:2348
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2302
+#: src/ck-manager.c:2549
 msgid "User ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:2312
+#: src/ck-manager.c:2559
 msgid "Process ID does not match the owner of cookie"
 msgstr ""
 
@@ -95,55 +95,55 @@ msgstr ""
 msgid "Only session owner may set idle hint state"
 msgstr ""
 
-#: tools/ck-history.c:897 tools/list-sessions.c:372
+#: tools/ck-history.c:903 tools/list-sessions.c:372
 msgid "Version of this application"
 msgstr ""
 
-#: tools/ck-history.c:898
+#: tools/ck-history.c:904
 msgid "Show listing of frequent users"
 msgstr ""
 
-#: tools/ck-history.c:899
+#: tools/ck-history.c:905
 msgid "Show listing of last logged in users"
 msgstr ""
 
-#: tools/ck-history.c:900
+#: tools/ck-history.c:906
 msgid "Show 'last' compatible listing of last logged in users"
 msgstr ""
 
-#: tools/ck-history.c:901
+#: tools/ck-history.c:907
 msgid "Show full event log"
 msgstr ""
 
-#: tools/ck-history.c:902
+#: tools/ck-history.c:908
 msgid "Show entries for the specified seat"
 msgstr ""
 
-#: tools/ck-history.c:902
+#: tools/ck-history.c:908
 msgid "SEAT"
 msgstr ""
 
-#: tools/ck-history.c:903
+#: tools/ck-history.c:909
 msgid "Show entries for the specified session type"
 msgstr ""
 
-#: tools/ck-history.c:903
+#: tools/ck-history.c:909
 msgid "TYPE"
 msgstr ""
 
-#: tools/ck-history.c:904
+#: tools/ck-history.c:910
 msgid "Show entries for the specified user"
 msgstr ""
 
-#: tools/ck-history.c:904
+#: tools/ck-history.c:910
 msgid "NAME"
 msgstr ""
 
-#: tools/ck-history.c:905
+#: tools/ck-history.c:911
 msgid "Show entries since the specified time (ISO 8601 format)"
 msgstr ""
 
-#: tools/ck-history.c:905
+#: tools/ck-history.c:911
 msgid "DATETIME"
 msgstr ""
 
