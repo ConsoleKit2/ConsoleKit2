@@ -7,6 +7,7 @@ seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
 logdir = $(LOGROTATE_DIR)
+xinitrcdir = $(XINITRC_DIR)
 
 if HAVE_POLKIT
 polkit_policydir = $(datadir)/polkit-1/actions
@@ -74,6 +75,10 @@ edit = sed \
 
 install-log:
 	$(INSTALL_PROGRAM) consolekit.logrotate $(logdir)
+
+install-xinitrc:
+	$(INSTALL_PROGRAM) 90-consolekit $(xinitrcdir) && \
+	chmod +x $(xinitrcdir)/90-consolekit
 
 EXTRA_DIST =						\
 	ck-log-system-restart				\
