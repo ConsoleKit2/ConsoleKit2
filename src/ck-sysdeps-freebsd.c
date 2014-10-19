@@ -587,7 +587,7 @@ ck_system_can_suspend (void)
 }
 
 gboolean
-ck_system_can_suspend (void)
+ck_system_can_hibernate (void)
 {
         return freebsd_supports_sleep_state ("S4");
 }

@@ -61,7 +61,7 @@ test_create_inhibit (void)
     inhibit = ck_inhibit_new ();
 
     /* Verify we got a valid inhibit object */
-    g_assert_nonnull (inhibit);
+    g_assert (inhibit != NULL);
     g_assert (CK_IS_INHIBIT (inhibit));
 }
 
@@ -118,7 +118,7 @@ static void
 test_unref_inhibit (void)
 {
     /* Verify we have an inhibit object */
-    g_assert_nonnull (inhibit);
+    g_assert (inhibit != NULL);
     g_assert (CK_IS_INHIBIT (inhibit));
 
     g_object_unref (inhibit);
