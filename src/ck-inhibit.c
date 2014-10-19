@@ -278,7 +278,7 @@ emit_final_uninhibit_signals (CkInhibit *inhibit)
 {
         CkInhibitPrivate *priv;
 
-        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), -1);
+        g_return_if_fail (CK_IS_INHIBIT (inhibit));
 
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
