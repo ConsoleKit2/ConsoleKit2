@@ -52,7 +52,7 @@
 #include "ck-session.h"
 #include "ck-marshal.h"
 #include "ck-event-logger.h"
-
+#include "ck-inhibit-manager.h"
 #include "ck-sysdeps.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
@@ -82,6 +82,8 @@ struct CkManagerPrivate
 
         gboolean         system_idle_hint;
         GTimeVal         system_idle_since_hint;
+
+        CkInhibitManager *inhibit_manager;
 };
 
 enum {
@@ -1499,6 +1501,24 @@ ck_manager_inhibit (CkManager *manager,
                     gchar *why,
                     DBusGMethodInvocation *context)
 {
+        CkManagerPrivate *priv;
+        gint              fd = -1;
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        priv = CK_MANAGER_GET_PRIVATE (manager);
+
+        if (priv->inhibit_manager == NULL) {
+                priv->inhibit_manager = ck_inhibit_manager_get ();
+        }
+
+        fd = ck_inhibit_manager_create_lock (priv->inhibit_manager,
+                                             who,
+                                             what,
+                                             why);
+
+        dbus_g_method_return (context, fd);
+
         return TRUE;
 }
 
@@ -2982,6 +3002,8 @@ ck_manager_init (CkManager *manager)
 
         manager->priv->logger = ck_event_logger_new (LOG_FILE);
 
+        manager->priv->inhibit_manager = ck_inhibit_manager_get ();
+
         create_seats (manager);
 }
 
@@ -3006,6 +3028,10 @@ ck_manager_finalize (GObject *object)
 
         if (manager->priv->logger != NULL) {
                 g_object_unref (manager->priv->logger);
+        }
+
+        if (manager->priv->inhibit_manager != NULL) {
+                g_object_unref (manager->priv->inhibit_manager);
         }
 
         G_OBJECT_CLASS (ck_manager_parent_class)->finalize (object);
