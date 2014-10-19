@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#Try for common tools
+if [ -x "/sbin/acpiconf" ] ; then
+	/sbin/acpiconf -s 3
+	exit $?
+elif [ -x "/usr/sbin/acpiconf" ] ; then
+	/usr/sbin/acpiconf -s 3
+	exit $?
+else
+	exit 1
+fi

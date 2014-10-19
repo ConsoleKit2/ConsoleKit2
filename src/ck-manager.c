@@ -52,7 +52,7 @@
 #include "ck-session.h"
 #include "ck-marshal.h"
 #include "ck-event-logger.h"
-
+#include "ck-inhibit-manager.h"
 #include "ck-sysdeps.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
@@ -82,6 +82,8 @@ struct CkManagerPrivate
 
         gboolean         system_idle_hint;
         GTimeVal         system_idle_since_hint;
+
+        CkInhibitManager *inhibit_manager;
 };
 
 enum {
@@ -456,8 +458,11 @@ log_seat_removed_event (CkManager  *manager,
         g_free (sid);
 }
 
+/* Generic logger for system actions such as CK_LOG_EVENT_SYSTEM_STOP,
+ * restart, hibernate, and suspend */
 static void
-log_system_stop_event (CkManager  *manager)
+log_system_action_event (CkManager *manager,
+                         CkLogEventType type)
 {
         CkLogEvent         event;
         gboolean           res;
@@ -465,29 +470,7 @@ log_system_stop_event (CkManager  *manager)
 
         memset (&event, 0, sizeof (CkLogEvent));
 
-        event.type = CK_LOG_EVENT_SYSTEM_STOP;
-        g_get_current_time (&event.timestamp);
-
-        error = NULL;
-        res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
-        if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
-                g_error_free (error);
-        }
-
-        /* FIXME: in this case we should block and wait for log to flush */
-}
-
-static void
-log_system_restart_event (CkManager  *manager)
-{
-        CkLogEvent         event;
-        gboolean           res;
-        GError            *error;
-
-        memset (&event, 0, sizeof (CkLogEvent));
-
-        event.type = CK_LOG_EVENT_SYSTEM_RESTART;
+        event.type = type;
         g_get_current_time (&event.timestamp);
 
         error = NULL;
@@ -1092,7 +1075,7 @@ do_restart (CkManager             *manager,
 
         g_debug ("ConsoleKit preforming Restart");
 
-        log_system_restart_event (manager);
+        log_system_action_event (manager, CK_LOG_EVENT_SYSTEM_RESTART);
 
         error = NULL;
         res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-restart",
@@ -1126,6 +1109,13 @@ ck_manager_restart (CkManager             *manager,
                     DBusGMethodInvocation *context)
 {
         const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("restart inhibited");
+                dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.restart-multiple-users";
@@ -1179,7 +1169,7 @@ do_stop (CkManager             *manager,
 
         g_debug ("Stopping system");
 
-        log_system_stop_event (manager);
+        log_system_action_event (manager, CK_LOG_EVENT_SYSTEM_STOP);
 
         error = NULL;
         res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-stop",
@@ -1205,6 +1195,13 @@ ck_manager_stop (CkManager             *manager,
                  DBusGMethodInvocation *context)
 {
         const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("shutdown inhibited");
+                dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.stop-multiple-users";
@@ -1242,6 +1239,250 @@ ck_manager_can_stop (CkManager  *manager,
                 dbus_g_method_return (context, FALSE);
         }
 #endif
+
+        return TRUE;
+}
+
+static void
+do_suspend (CkManager             *manager,
+            DBusGMethodInvocation *context)
+{
+        GError *error;
+        gboolean res;
+
+        g_debug ("ConsoleKit preforming Suspend");
+
+        log_system_action_event (manager, CK_LOG_EVENT_SYSTEM_SUSPEND);
+
+        error = NULL;
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-suspend",
+                                          &error);
+        if (! res) {
+                GError *new_error;
+
+                g_warning ("Unable to suspend system: %s", error->message);
+
+                new_error = g_error_new (CK_MANAGER_ERROR,
+                                         CK_MANAGER_ERROR_GENERAL,
+                                         "Unable to suspend system: %s", error->message);
+                dbus_g_method_return_error (context, new_error);
+                g_error_free (new_error);
+
+                g_error_free (error);
+        } else {
+                dbus_g_method_return (context);
+        }
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Suspend
+*/
+gboolean
+ck_manager_suspend (CkManager             *manager,
+                    DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("suspend inhibited");
+                dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.suspend-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.suspend";
+        }
+
+        g_debug ("ConsoleKit Suspend: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_suspend);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_suspend);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_suspend(manager, context);
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_auth_suspend (CkManager  *manager,
+                         DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        action = "org.freedesktop.consolekit.system.suspend";
+
+#if defined HAVE_POLKIT
+        get_polkit_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
+                                        NULL)) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_suspend (CkManager  *manager,
+                        DBusGMethodInvocation *context)
+
+{
+        if (ck_system_can_suspend ()) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+
+        return TRUE;
+}
+
+static void
+do_hibernate (CkManager             *manager,
+              DBusGMethodInvocation *context)
+{
+        GError *error;
+        gboolean res;
+
+        g_debug ("ConsoleKit preforming Hibernate");
+
+        log_system_action_event (manager, CK_LOG_EVENT_SYSTEM_HIBERNATE);
+
+        error = NULL;
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-hibernate",
+                                          &error);
+        if (! res) {
+                GError *new_error;
+
+                g_warning ("Unable to hibernate system: %s", error->message);
+
+                new_error = g_error_new (CK_MANAGER_ERROR,
+                                         CK_MANAGER_ERROR_GENERAL,
+                                         "Unable to hibernate system: %s", error->message);
+                dbus_g_method_return_error (context, new_error);
+                g_error_free (new_error);
+
+                g_error_free (error);
+        } else {
+                dbus_g_method_return (context);
+        }
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Hibernate
+*/
+gboolean
+ck_manager_hibernate (CkManager             *manager,
+                      DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("hibernate inhibited");
+                dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.hibernate-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.hibernate";
+        }
+
+        g_debug ("ConsoleKit Hibernate: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_hibernate);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_hibernate);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_hibernate(manager, context);
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_auth_hibernate (CkManager  *manager,
+                           DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        action = "org.freedesktop.consolekit.system.hibernate";
+
+#if defined HAVE_POLKIT
+        get_polkit_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
+                                        NULL)) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+#endif
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_can_hibernate (CkManager  *manager,
+                          DBusGMethodInvocation *context)
+
+{
+        if (ck_system_can_hibernate ()) {
+                dbus_g_method_return (context, TRUE);
+        } else {
+                dbus_g_method_return (context, FALSE);
+        }
+
+        return TRUE;
+}
+
+gboolean
+ck_manager_inhibit (CkManager *manager,
+                    gchar *what,
+                    gchar *who,
+                    gchar *why,
+                    DBusGMethodInvocation *context)
+{
+        CkManagerPrivate *priv;
+        gint              fd = -1;
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        priv = CK_MANAGER_GET_PRIVATE (manager);
+
+        if (priv->inhibit_manager == NULL) {
+                priv->inhibit_manager = ck_inhibit_manager_get ();
+        }
+
+        fd = ck_inhibit_manager_create_lock (priv->inhibit_manager,
+                                             who,
+                                             what,
+                                             why);
+
+        dbus_g_method_return (context, fd);
 
         return TRUE;
 }
@@ -1497,6 +1738,12 @@ static gboolean
 manager_set_system_idle_hint (CkManager *manager,
                               gboolean   idle_hint)
 {
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_idle_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("idle inhibited, forcing idle_hint to FALSE");
+                idle_hint = FALSE;
+        }
+
         if (manager->priv->system_idle_hint != idle_hint) {
                 manager->priv->system_idle_hint = idle_hint;
 
@@ -2726,6 +2973,8 @@ ck_manager_init (CkManager *manager)
 
         manager->priv->logger = ck_event_logger_new (LOG_FILE);
 
+        manager->priv->inhibit_manager = ck_inhibit_manager_get ();
+
         create_seats (manager);
 }
 
@@ -2750,6 +2999,10 @@ ck_manager_finalize (GObject *object)
 
         if (manager->priv->logger != NULL) {
                 g_object_unref (manager->priv->logger);
+        }
+
+        if (manager->priv->inhibit_manager != NULL) {
+                g_object_unref (manager->priv->inhibit_manager);
         }
 
         G_OBJECT_CLASS (ck_manager_parent_class)->finalize (object);

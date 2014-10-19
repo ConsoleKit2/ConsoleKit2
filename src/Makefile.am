@@ -135,6 +135,10 @@ console_kit_daemon_SOURCES =	\
 	ck-run-programs.h	\
 	ck-event-logger.c	\
 	ck-event-logger.h	\
+	ck-inhibit.c		\
+	ck-inhibit.h		\
+	ck-inhibit-manager.c	\
+	ck-inhibit-manager.h	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -163,6 +167,7 @@ noinst_PROGRAMS = 			\
 	test-event-logger		\
 	test-tty-idle-monitor		\
 	test-vt-monitor			\
+	test-inhibit			\
 	$(NULL)
 
 test_event_logger_SOURCES = 		\
@@ -203,6 +208,29 @@ test_tty_idle_monitor_LDADD =		\
 	$(POLKIT_LIBS)			\
 	libck.la			\
 	$(NULL)
+
+test_inhibit_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-ULOCALSTATEDIR	\
+	-DLOCALSTATEDIR=\"/tmp\" 			\
+	$(NULL)
+
+test_inhibit_SOURCES = 	\
+	ck-marshal.h		\
+	ck-marshal.c		\
+	ck-inhibit.c		\
+	ck-inhibit.h		\
+	ck-inhibit-manager.c	\
+	ck-inhibit-manager.h	\
+	test-inhibit.c		\
+	$(NULL)
+
+test_inhibit_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	libck.la			\
+	$(NULL)
+
 
 EXTRA_DIST =			\
 	ck-marshal.list		\

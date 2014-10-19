@@ -400,3 +400,17 @@ ck_get_active_console_num (int    console_fd,
 
         return ret;
 }
+
+gboolean
+ck_system_can_suspend (void)
+{
+        /* TODO: not implemented */
+        return FALSE;
+}
+
+gboolean
+ck_system_can_hibernate (void)
+{
+        /* TODO: not implemented */
+        return FALSE;
+}

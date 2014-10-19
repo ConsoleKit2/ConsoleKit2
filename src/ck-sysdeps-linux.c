@@ -778,6 +778,43 @@ ck_get_active_console_num (int    console_fd,
         return ret;
 }
 
+static gboolean
+linux_supports_sleep_state (const gchar *state)
+{
+        gboolean ret = FALSE;
+        gchar *command;
+        GError *error = NULL;
+        gint exit_status;
+
+        /* run script from pm-utils */
+        command = g_strdup_printf ("/usr/bin/pm-is-supported --%s", state);
+        g_debug ("excuting command: %s", command);
+        ret = g_spawn_command_line_sync (command, NULL, NULL, &exit_status, &error);
+        if (!ret) {
+                g_warning ("failed to run script: %s", error->message);
+                g_error_free (error);
+                goto out;
+        }
+        ret = (WIFEXITED(exit_status) && (WEXITSTATUS(exit_status) == EXIT_SUCCESS));
+
+out:
+        g_free (command);
+
+        return ret;
+}
+
+gboolean
+ck_system_can_suspend (void)
+{
+        return linux_supports_sleep_state ("suspend");
+}
+
+gboolean
+ck_system_can_hibernate (void)
+{
+        return linux_supports_sleep_state ("hibernate");
+}
+
 #ifdef HAVE_SYS_VT_SIGNAL
 /* For the moment this is Linux only.
  * Returns the vt file descriptor or < 0 on failure.

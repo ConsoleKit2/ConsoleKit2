@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#Try for common tools
+if [ -x "/sbin/pm-hibernate" ] ; then
+	/sbin/pm-hibernate
+	exit $?
+elif [ -x "/usr/sbin/pm-hibernate" ] ; then
+	/usr/sbin/pm-hibernate
+	exit $?
+else
+	exit 1
+fi

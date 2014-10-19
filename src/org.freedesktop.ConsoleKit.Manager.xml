@@ -16,6 +16,11 @@
     <method name="CanRestart">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="can_restart" type="b" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method returns whether the user is authorized to restart the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
     </method>
 
     <method name="Stop">
@@ -30,6 +35,151 @@
     <method name="CanStop">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="can_stop" type="b" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method returns whether the user is authorized to shutdown the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="Suspend">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to suspend the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanSuspend">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_suspend" type="b" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method returns whether the computer system is capable of suspending.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="AuthSuspend">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="auth_suspend" type="b" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method returns whether the user is authorized to suspend the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="Hibernate">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to hibernate the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanHibernate">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_hibernate" type="b" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method returns whether the computer system is capable of hibernating.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="AuthHibernate">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="auth_hibernate" type="b" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method returns whether the user is authorized to hibernate the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="Inhibit">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="what" type="s" direction="in">
+        <doc:doc>
+          <doc:summary>What is a colon-separated list of lock types. The list of lock types are: shutdown, sleep, idle, handle-power-key, handle-suspend-key, handle-hibernate-key. Example: "shutdown:idle"</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="who"  type="s" direction="in">
+        <doc:doc>
+          <doc:summary>Who is a human-readable, descriptive string of who is taking the lock. Example: "Xfburn"</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="why"  type="s" direction="in">
+        <doc:doc>
+          <doc:summary>Why is a human-readable, descriptive string of why the program is taking the lock. Example: "Burning a DVD, interrupting now will ruin the DVD."</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="fd"   type="h" direction="out">
+        <doc:doc>
+            <doc:summary>Returns a file descriptor that encapsulates the lock, or -1 on failure. As soon as the file descriptor is closed (and all its duplicates) the lock is automatically released. If the client dies while the lock is taken it is automatically closed and the lock is released.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+        <doc:para>Inhibit locks are named pipes used by ConsoleKit2 to prevent the system from performing actions such as suspending, restarting, or going idle. There are various reasons and application would like to prevent one or more of these functions such as a movie player preventing the screen saving from activating or a package manager ensuring an application installs before allowing the computer to shutdown.</doc:para>
+        <doc:para>Note: Each application can have only one lock open at any given time. Multiple applications can hold locks to the same thing, for example a media player application and a cd burning application can both prevent the system from being marked idle.</doc:para>
+        <doc:para>See this simple example:
+          <doc:example language="c" title="simple example"><doc:code>
+    DBusConnection *bus_connection;
+    DBusMessage *message = NULL, *reply = NULL;
+    DBusError error;
+    gint fd = -1;
+    const char *what = "shutdown:sleep";
+    const char *who = "Xfburn";
+    const char *why = "Burning a DVD, interrupting now will ruin the DVD.";
+
+    message = dbus_message_new_method_call ("org.freedesktop.ConsoleKit",
+                                            "/org/freedesktop/ConsoleKit/Manager",
+                                            "org.freedesktop.ConsoleKit.Manager",
+                                            "Inhibit");
+
+    if (!message)
+    {
+        g_warning ("Unable to call Inhibit()");
+        return fd;
+    }
+
+    if (!dbus_message_append_args (message,
+                                   DBUS_TYPE_STRING, &amp;what,
+                                   DBUS_TYPE_STRING, &amp;who,
+                                   DBUS_TYPE_STRING, &amp;why,
+                                   DBUS_TYPE_INVALID))
+    {
+        g_warning ("Unable to call Inhibit()");
+        dbus_message_unref (message);
+        return fd;
+    }
+
+    reply = dbus_connection_send_with_reply_and_block (bus_connection, message, -1, &amp;error);
+    if (!reply)
+    {
+        g_warning ("Unable to inhibit: %s", error.message);
+        dbus_message_unref (message);
+        return fd;
+    }
+
+    if (!dbus_message_get_args (reply, &amp;error,
+                                DBUS_TYPE_UNIX_FD, &amp;fd,
+                                DBUS_TYPE_INVALID))
+    {
+        g_warning ("Inhibit() reply parsing failed: %s", error.message);
+    }
+
+    dbus_message_unref (message);
+    dbus_message_unref (reply);
+    dbus_error_free (&amp;error);
+    return fd;
+          </doc:code></doc:example></doc:para>
+        </doc:description>
+      </doc:doc>
     </method>
 
     <method name="OpenSession">

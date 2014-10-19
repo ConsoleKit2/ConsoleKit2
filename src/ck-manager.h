@@ -83,10 +83,30 @@ gboolean            ck_manager_stop                           (CkManager        
 gboolean            ck_manager_restart                        (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
 
+gboolean            ck_manager_suspend                        (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+
+gboolean            ck_manager_hibernate                      (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+
 gboolean            ck_manager_can_stop                       (CkManager *manager,
                                                                 DBusGMethodInvocation *context);
 gboolean            ck_manager_can_restart                    (CkManager *manager,
                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_can_suspend                    (CkManager *manager,
+                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_can_hibernate                  (CkManager *manager,
+                                                               DBusGMethodInvocation *context);
+gboolean            ck_manager_auth_suspend                   (CkManager *manager,
+                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_auth_hibernate                 (CkManager *manager,
+                                                               DBusGMethodInvocation *context);
+gboolean            ck_manager_inhibit                        (CkManager *manager,
+                                                               gchar *what,
+                                                               gchar *who,
+                                                               gchar *why,
+                                                               DBusGMethodInvocation *context);
+
 /* Authoritative properties */
 gboolean            ck_manager_open_session                   (CkManager             *manager,
                                                                DBusGMethodInvocation *context);

@@ -10,6 +10,8 @@ scriptdir = $(prefix)/lib/ConsoleKit/scripts
 script_SCRIPTS =			\
 	ck-system-stop			\
 	ck-system-restart		\
+	ck-system-suspend		\
+	ck-system-hibernate		\
 	ck-get-x11-display-device	\
 	ck-get-x11-server-pid		\
 	$(NULL)

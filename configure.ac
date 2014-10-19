@@ -54,13 +54,14 @@ AM_NLS
 # Dependencies
 
 DBUS_REQUIRED_VERSION=0.82
-GLIB_REQUIRED_VERSION=2.14
+GLIB_REQUIRED_VERSION=2.36
 X11_REQUIRED_VERSION=1.0.0
 POLKIT_REQUIRED_VERSION=0.92
 
 AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/ioctl.h sys/param.h sys/socket.h syslog.h kvm.h \
                   sys/sysctl.h sys/user.h poll.h libintl.h locale.h])
+                  sys/wait.h sys/resource.h])
 
 AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
                 strerror strrchr strspn strstr strtol strtoul uname \
