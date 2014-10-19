@@ -30,6 +30,7 @@
 
 #include "ck-inhibit.h"
 #include "ck-inhibit-manager.h"
+#include "ck-marshal.h"
 
 
 #define CK_INHIBIT_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_INHIBIT_MANAGER, CkInhibitManagerPrivate))
@@ -46,6 +47,14 @@ struct CkInhibitManagerPrivate
         gint inhibitors[CK_INHIBIT_EVENT_LAST];
 };
 
+typedef enum {
+        SIG_CHANGED_EVENT,
+        SIG_N_SIGNALS,
+} INHIBIT_SIGNALS;
+
+static guint __signals[SIG_N_SIGNALS] = { 0, };
+
+
 static void     ck_inhibit_manager_class_init  (CkInhibitManagerClass *klass);
 static void     ck_inhibit_manager_init        (CkInhibitManager      *manager);
 static void     ck_inhibit_manager_finalize    (GObject               *object);
@@ -61,6 +70,15 @@ ck_inhibit_manager_class_init (CkInhibitManagerClass *klass)
         object_class->finalize = ck_inhibit_manager_finalize;
 
         g_type_class_add_private (klass, sizeof (CkInhibitManagerPrivate));
+
+        __signals[SIG_CHANGED_EVENT] = g_signal_new("changed-event",
+                                                    G_OBJECT_CLASS_TYPE (object_class),
+                                                    G_SIGNAL_RUN_LAST,
+                                                    G_STRUCT_OFFSET (CkInhibitManagerClass, changed_event),
+                                                    NULL, NULL,
+                                                    ck_marshal_VOID__INT_BOOLEAN,
+                                                    G_TYPE_NONE,
+                                                    2, G_TYPE_INT, G_TYPE_BOOLEAN);
 }
 
 static void
@@ -92,11 +110,39 @@ cb_changed_event (CkInhibit *inhibit, gint event, gboolean enabled, gpointer use
                 return;
         }
 
-        priv->inhibitors[event]++;
+        if (enabled) {
+                priv->inhibitors[event]++;
+
+                if (priv->inhibitors[event] == 1) {
+                        /* event is now inhibited, send a notification */
+                        g_signal_emit(G_OBJECT (manager),
+                                      __signals[SIG_CHANGED_EVENT],
+                                      0,
+                                      event,
+                                      TRUE);
+                }
+        } else {
+                priv->inhibitors[event]--;
+                if (priv->inhibitors[event] < 0) {
+                        g_warning ("cb_changed_event: priv->inhibitors[%d] "
+                                   "is negative, that's not supposed to happen",
+                                   event);
+                }
+
+                if (priv->inhibitors[event] == 0) {
+                        /* event is no longer inhibited, send a notification */
+                        g_signal_emit(G_OBJECT (manager),
+                                      __signals[SIG_CHANGED_EVENT],
+                                      0,
+                                      event,
+                                      FALSE);
+                }
+        }
 }
 
 /**
  * ck_inhibit_manager_create_lock:
+ * @manager: The @CkInhibitManager object
  * @who:  A human-readable, descriptive string of who is taking
  *        the lock. Example: "Xfburn"
  * @what: What is a colon-separated list of lock types.
@@ -125,7 +171,7 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
         CkInhibit               *inhibit;
         gint                     fd, signal_id;
 
-        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), -1);
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), CK_INHIBIT_ERROR_GENERAL);
 
         priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
 
@@ -159,6 +205,16 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
         return fd;
 }
 
+/**
+ * ck_inhibit_manager_remove_lock:
+ * @manager: The @CkInhibitManager object
+ * @who:  A human-readable, descriptive string of who has taken
+ *        the lock. Example: "Xfburn"
+ *
+ * Finds the inhibit lock @who and removes it.
+ *
+ * Return value: TRUE on successful removal.
+ **/
 gboolean
 ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
                                 const gchar      *who)
@@ -176,6 +232,10 @@ ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
 
                         /* Found it! Remove it from the list and unref the object */
                         priv->inhibit_list = g_list_remove (priv->inhibit_list, inhibit);
+                        ck_inhibit_remove_lock (inhibit);
+                        g_signal_handlers_disconnect_by_func (inhibit,
+                                                              G_CALLBACK (cb_changed_event),
+                                                              manager);
                         g_object_unref (inhibit);
                         return TRUE;
                 }
@@ -211,6 +271,7 @@ ck_inhibit_manager_get (void)
 
 /**
  * ck_inhibit_manager_is_shutdown_inhibited:
+ * @manager: The @CkInhibitManager object
  *
  * Return value: TRUE is inhibited.
  **/
@@ -224,6 +285,7 @@ ck_inhibit_manager_is_shutdown_inhibited (CkInhibitManager *manager)
 
 /**
  * ck_inhibit_manager_is_suspend_inhibited:
+ * @manager: The @CkInhibitManager object
  *
  * Return value: TRUE is inhibited.
  **/
@@ -237,6 +299,7 @@ ck_inhibit_manager_is_suspend_inhibited (CkInhibitManager *manager)
 
 /**
  * ck_inhibit_manager_is_idle_inhibited:
+ * @manager: The @CkInhibitManager object
  *
  * Return value: TRUE is inhibited.
  **/
@@ -250,6 +313,7 @@ ck_inhibit_manager_is_idle_inhibited (CkInhibitManager *manager)
 
 /**
  * ck_inhibit_manager_is_power_key_inhibited:
+ * @manager: The @CkInhibitManager object
  *
  * Return value: TRUE is inhibited.
  **/
@@ -263,6 +327,7 @@ ck_inhibit_manager_is_power_key_inhibited (CkInhibitManager *manager)
 
 /**
  * ck_inhibit_manager_is_suspend_key_inhibited:
+ * @manager: The @CkInhibitManager object
  *
  * Return value: TRUE is inhibited.
  **/
@@ -276,6 +341,7 @@ ck_inhibit_manager_is_suspend_key_inhibited (CkInhibitManager *manager)
 
 /**
  * ck_inhibit_manager_is_hibernate_key_inhibited:
+ * @manager: The @CkInhibitManager object
  *
  * Return value: TRUE is inhibited.
  **/

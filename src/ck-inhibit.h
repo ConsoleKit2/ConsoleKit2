@@ -82,6 +82,8 @@ gint            ck_inhibit_create_lock                 (CkInhibit   *inhibit,
                                                         const gchar *what,
                                                         const gchar *why);
 
+void            ck_inhibit_remove_lock                 (CkInhibit   *inhibit);
+
 const gchar    *ck_inhibit_get_who                     (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_why                     (CkInhibit   *inhibit);
 

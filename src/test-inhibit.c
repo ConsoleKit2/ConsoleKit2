@@ -43,6 +43,14 @@ CkInhibitManager *manager;
 CkInhibit *inhibit;
 gint fd;
 
+/* Builds the path to the named pipe. Free the returned string when done. */
+static gchar*
+get_named_pipe_path (const char* who)
+{
+    return g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s.pipe",
+                            LOCALSTATEDIR,
+                            who);
+}
 
 static void
 test_create_inhibit (void)
@@ -122,12 +130,12 @@ test_cleanup (void)
 {
     gchar *named_pipe_path;
 
-    named_pipe_path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
-                                       LOCALSTATEDIR,
-                                       WHO);
+    named_pipe_path = get_named_pipe_path (WHO);
 
     /* Verify inhibit cleaned up the inhibit named_pipe_path */
     g_assert_false (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS));
+
+    g_free (named_pipe_path);
 }
 
 static void
@@ -135,12 +143,19 @@ test_cleanup2 (void)
 {
     gchar *named_pipe_path;
 
-    named_pipe_path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
-                                       LOCALSTATEDIR,
-                                       WHO2);
+    named_pipe_path = get_named_pipe_path (WHO2);
 
     /* Verify inhibit cleaned up the inhibit named_pipe_path */
     g_assert_false (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS));
+
+    g_free (named_pipe_path);
+}
+
+static void
+cb_changed_event (CkInhibitManager *manager, gint event, gboolean enabled, gpointer user_data)
+{
+    g_print ("cb_changed_event: event %d is now %s\n", event,
+             enabled ? "TRUE" : "FALSE");
 }
 
 static void
@@ -148,11 +163,14 @@ test_manager_init (void)
 {
     manager = ck_inhibit_manager_get ();
     g_assert (CK_IS_INHIBIT_MANAGER (manager));
+
+    g_signal_connect (manager, "changed-event", G_CALLBACK (cb_changed_event), NULL);
 }
 
 static void
 test_manager_add_lock1 (void)
 {
+    g_print ("\n");
     ck_inhibit_manager_create_lock (manager,
                                     WHO,
                                     WHAT,
@@ -162,6 +180,7 @@ test_manager_add_lock1 (void)
 static void
 test_manager_add_lock2 (void)
 {
+    g_print ("\n");
     ck_inhibit_manager_create_lock (manager,
                                     WHO2,
                                     WHAT2,
@@ -184,12 +203,14 @@ test_manager_which_are_inhibited (void)
 static void
 test_manager_remove_lock1 (void)
 {
+    g_print ("\n");
     ck_inhibit_manager_remove_lock (manager, WHO);
 }
 
 static void
 test_manager_remove_lock2 (void)
 {
+    g_print ("\n");
     ck_inhibit_manager_remove_lock (manager, WHO2);
 }
 
@@ -210,12 +231,8 @@ main (int   argc,
     inhibit = NULL;
     fd = -1;
 
-    path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
-                            LOCALSTATEDIR,
-                            WHO);
-    path2 = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s",
-                            LOCALSTATEDIR,
-                            WHO2);
+    path  = get_named_pipe_path (WHO);
+    path2 = get_named_pipe_path (WHO2);
 
     g_print ("tmp file will be written to: %s\n",
              path);
@@ -255,6 +272,9 @@ main (int   argc,
     /* Ensure the named_pipe_path files were removed */
     g_test_add_func ("/inhibit/cleanup", test_cleanup);
     g_test_add_func ("/inhibit/cleanup2", test_cleanup2);
+
+    g_free (path);
+    g_free (path2);
 
     return g_test_run();
 }

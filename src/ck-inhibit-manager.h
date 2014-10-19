@@ -44,6 +44,9 @@ typedef struct
 typedef struct
 {
         GObjectClass parent_class;
+
+        /*< signals >*/
+        void (*changed_event) (CkInhibitManager *manager, gint event, gboolean enabled);
 } CkInhibitManagerClass;
 
 

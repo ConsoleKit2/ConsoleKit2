@@ -322,7 +322,7 @@ static void
 close_named_pipe (CkInhibit *inhibit)
 {
         CkInhibitPrivate *priv;
-        GError *error;
+        GError *error = NULL;
 
         g_return_if_fail (CK_IS_INHIBIT (inhibit));
 
@@ -342,6 +342,7 @@ close_named_pipe (CkInhibit *inhibit)
                         g_warning ("Failed to remove inhibit file %s, error reported: %s",
                                    priv->named_pipe_path,
                                    g_strerror(errno));
+                        g_error_free (error);
                 }
                 g_free (priv->named_pipe_path);
                 priv->named_pipe_path = NULL;
@@ -475,7 +476,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
 
         priv->who = who;
         priv->why = why;
-        priv->named_pipe_path = g_strdup_printf (LOCALSTATEDIR "/run/ConsoleKit/inhibit/%s", who);
+        priv->named_pipe_path = g_strdup_printf (LOCALSTATEDIR "/run/ConsoleKit/inhibit/%s.pipe", who);
         if (!parse_inhibitors_string(inhibit, what)) {
                 g_error ("Failed to set any inhibitors.");
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
@@ -504,6 +505,12 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
 
         /* return the fd for the user */
         return pipe;
+}
+
+void
+ck_inhibit_remove_lock (CkInhibit   *inhibit)
+{
+        return close_named_pipe (inhibit);
 }
 
 /**
