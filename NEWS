@@ -1,4 +1,33 @@
+==============
+Version 0.9.0
+==============
+[Please note that this is a development release.]
 
+Development release of ConsoleKit2 targeting the 1.0 release.
+Please report all problems to
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+ConsoleKit2 is a fork of ConsoleKit since it is no longer maintained.
+
+Added OpenBSD and DragonFlyBSD backends, pulled in FreeBSD and
+GNU/kFreeBSD provided to the ConsoleKit bugtracker or on distro's
+public repositories. As well as many other patches floating around
+so that distributions no longer have to carry large patchsets.
+Please report any other patches required or currently in use and
+those can be added as well.
+
+The 63 threads issue has been resolved if the Linux kernel has
+support for the notification required.
+
+ConsoleKit2 supports suspending and hibernation for Linux, FreeBSD,
+DragonFlyBSD, and OpenBSD through a DBUS API.
+
+
+ * Add in the logrotate and consolekit xinitrc script and install
+   them to their standard location with configure switches.
+ * Add a new DBUS interfaces for suspend/hibernation of the system
+   as well as the ability to inhibit it and stop/reeboot actions.
+ * Translation support added.
  * Check the return value of sysconf before passing it to calloc.
  * Only close fds that were opened.
  * Fix a resource leak.
@@ -13,7 +42,7 @@
  * Fix for rejected GetAll properties by GDBus. Patch by
    Teodor MICU.
  * Linux: Use /sys/class/tty/tty0/active for VT change
-   notifications (i.e. the 63 threads issue)
+   notifications (the 63 threads issue)
  * Set source id to 0 after calling g_source_remove.
    Patch by Manfred Hampl.
  * Return early when remote DISPLAY variable set.
