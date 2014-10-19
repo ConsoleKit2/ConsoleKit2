@@ -6,6 +6,9 @@ dbusconf_DATA = ConsoleKit.conf
 seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
+logrotatedir = $(LOGROTATE_DIR)
+logrotate_DATA = consolekit.logrotate
+
 if HAVE_POLKIT
 polkit_policydir = $(datadir)/polkit-1/actions
 dist_polkit_policy_DATA =	\
@@ -75,13 +78,13 @@ EXTRA_DIST =						\
 	ck-log-system-stop				\
 	$(dbusconf_DATA)				\
 	$(seat_DATA)					\
+	$(logrotate_DATA)				\
 	$(service_in_files)				\
 	console-kit-daemon.service.in                   \
 	console-kit-log-system-start.service.in         \
 	console-kit-log-system-stop.service.in          \
 	console-kit-log-system-restart.service.in       \
 	90consolekit					\
-	consolekit.logrotate			\
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
