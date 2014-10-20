@@ -49,3 +49,5 @@ po/*.sin
 po/POTFILES
 po/Rules-quot
 m4/*
+autotools/*
+cov-int/*
