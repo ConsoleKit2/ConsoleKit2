@@ -12,6 +12,7 @@ script_SCRIPTS =			\
 	ck-system-restart		\
 	ck-system-suspend		\
 	ck-system-hibernate		\
+	ck-system-hybridsleep		\
 	$(NULL)
 
 EXTRA_DIST =				\

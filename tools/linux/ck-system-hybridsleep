@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#Try for common tools
+if [ -x "/sbin/pm-suspend-hybrid" ] ; then
+	/sbin/pm-suspend-hybrid
+	exit $?
+elif [ -x "/usr/sbin/pm-suspend-hybrid" ] ; then
+	/usr/sbin/pm-suspend-hybrid
+	exit $?
+else
+	exit 1
+fi

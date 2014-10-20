@@ -53,20 +53,16 @@
 
     <method name="CanSuspend">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="can_suspend" type="b" direction="out"/>
+      <arg name="can_suspend" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
-          <doc:para>This method returns whether the computer system is capable of suspending.</doc:para>
-        </doc:description>
-      </doc:doc>
-    </method>
-
-    <method name="AuthSuspend">
-      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="auth_suspend" type="b" direction="out"/>
-      <doc:doc>
-        <doc:description>
-          <doc:para>This method returns whether the user is authorized to suspend the computer system.</doc:para>
+          <doc:para>This method emulates the logind implementation.
+                    Returns whether the system supports suspending and whether the calling user is eligible to hibernate the system.
+                    Returns one of "na", "yes", "no" or "challenge".
+                    If "na" is returned suspending is not available because of hardware support.
+                    If "yes" is returned suspending is supported and the user may suspend without further authentication.
+                    If "no" is returned suspending is available but the user is not allowed to suspend.
+                    If "challenge" is returned suspending is available, but only after authorization.</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -82,20 +78,41 @@
 
     <method name="CanHibernate">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="can_hibernate" type="b" direction="out"/>
+      <arg name="can_hibernate" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
-          <doc:para>This method returns whether the computer system is capable of hibernating.</doc:para>
+          <doc:para>This method emulates the logind implementation.
+                    Returns whether the system supports hibernation and whether the calling user is eligible to hibernate the system.
+                    Returns one of "na", "yes", "no" or "challenge".
+                    If "na" is returned hibernation is not available because of hardware support.
+                    If "yes" is returned hibernation is supported and the user may hibernate without further authentication.
+                    If "no" is returned hibernation is available but the user is not allowed to hibernate.
+                    If "challenge" is returned hibernation is available, but only after authorization.</doc:para>
         </doc:description>
       </doc:doc>
     </method>
 
-    <method name="AuthHibernate">
+    <method name="HybridSleep">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="auth_hibernate" type="b" direction="out"/>
       <doc:doc>
         <doc:description>
-          <doc:para>This method returns whether the user is authorized to hibernate the computer system.</doc:para>
+          <doc:para>This method initiates a request to hybrid sleep (suspend + hibernate) the computer system.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanHybridSleep">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_suspend" type="s" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method emulates the logind implementation.
+                    Returns whether the system supports hybrid sleep (suspend + hibernate) and whether the calling user is eligible to hybrid sleep the system.
+                    Returns one of "na", "yes", "no" or "challenge".
+                    If "na" is returned hybrid sleeping is not available because of hardware support.
+                    If "yes" is returned hybrid sleeping is supported and the user may hybrid sleep without further authentication.
+                    If "no" is returned hybrid sleeping is available but the user is not allowed to hybrid sleep.
+                    If "challenge" is returned hybrid sleeping is available, but only after authorization.</doc:para>
         </doc:description>
       </doc:doc>
     </method>

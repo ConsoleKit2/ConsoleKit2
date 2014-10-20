@@ -89,18 +89,21 @@ gboolean            ck_manager_suspend                        (CkManager        
 gboolean            ck_manager_hibernate                      (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
 
-gboolean            ck_manager_can_stop                       (CkManager *manager,
-                                                                DBusGMethodInvocation *context);
-gboolean            ck_manager_can_restart                    (CkManager *manager,
+gboolean            ck_manager_hybrid_sleep                   (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
-gboolean            ck_manager_can_suspend                    (CkManager *manager,
-                                                                DBusGMethodInvocation *context);
-gboolean            ck_manager_can_hibernate                  (CkManager *manager,
+
+
+gboolean            ck_manager_can_stop                       (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
-gboolean            ck_manager_auth_suspend                   (CkManager *manager,
-                                                                DBusGMethodInvocation *context);
-gboolean            ck_manager_auth_hibernate                 (CkManager *manager,
+gboolean            ck_manager_can_restart                    (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_can_suspend                    (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+gboolean            ck_manager_can_hibernate                  (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+gboolean            ck_manager_can_hybrid_sleep               (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+
 gboolean            ck_manager_inhibit                        (CkManager *manager,
                                                                gchar *what,
                                                                gchar *who,

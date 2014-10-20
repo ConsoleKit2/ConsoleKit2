@@ -75,6 +75,7 @@ gboolean     ck_wait_for_active_console_num   (int             console_fd,
 
 gboolean     ck_system_can_suspend            (void);
 gboolean     ck_system_can_hibernate          (void);
+gboolean     ck_system_can_hybrid_sleep       (void);
 
 #ifdef HAVE_SYS_VT_SIGNAL
 gint         ck_get_vt_signal_fd              (void);

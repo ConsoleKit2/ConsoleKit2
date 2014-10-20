@@ -857,6 +857,59 @@ ready_cb (PolkitAuthority *authority,
 }
 
 static void
+sleep_ready_cb (PolkitAuthority *authority,
+                GAsyncResult    *res,
+                DBusGMethodInvocation *context)
+{
+        PolkitAuthorizationResult *ret;
+        GError *error;
+
+        error = NULL;
+        ret = polkit_authority_check_authorization_finish (authority, res, &error);
+        if (error != NULL) {
+                dbus_g_method_return_error (context, error);
+                g_error_free (error);
+        }
+        else if (polkit_authorization_result_get_is_authorized (ret)) {
+                dbus_g_method_return (context, "yes");
+        }
+        else if (polkit_authorization_result_get_is_challenge (ret)) {
+                dbus_g_method_return (context, "challenge");
+        }
+        else {
+                dbus_g_method_return (context, "no");
+        }
+
+        g_object_unref (ret);
+}
+
+/* We use this and sleep_ready_cb to avoid breaking API compability with
+ * ConsoleKit for Stop and Restart */
+static void
+get_polkit_sleep_permissions (CkManager   *manager,
+                              const char  *action,
+                              DBusGMethodInvocation *context)
+{
+        const char    *sender;
+        PolkitSubject *subject;
+
+        g_debug ("get permissions for action %s", action);
+
+        sender = dbus_g_method_get_sender (context);
+        subject = polkit_system_bus_name_new (sender);
+
+        polkit_authority_check_authorization (manager->priv->pol_ctx,
+                                              subject,
+                                              action,
+                                              NULL,
+                                              0,
+                                              NULL,
+                                              (GAsyncReadyCallback) sleep_ready_cb,
+                                              context);
+        g_object_unref (subject);
+}
+
+static void
 get_polkit_permissions (CkManager   *manager,
                         const char  *action,
                         DBusGMethodInvocation *context)
@@ -1314,38 +1367,55 @@ ck_manager_suspend (CkManager             *manager,
         return TRUE;
 }
 
-gboolean
-ck_manager_auth_suspend (CkManager  *manager,
-                         DBusGMethodInvocation *context)
-
-{
-        const char *action;
-
-        action = "org.freedesktop.consolekit.system.suspend";
-
-#if defined HAVE_POLKIT
-        get_polkit_permissions (manager, action, context);
-#elif defined ENABLE_RBAC_SHUTDOWN
-        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
-                                        NULL)) {
-                dbus_g_method_return (context, TRUE);
-        } else {
-                dbus_g_method_return (context, FALSE);
-        }
-#endif
-
-        return TRUE;
-}
-
+/**
+ * ck_manager_can_suspend:
+ * @manager: the @CkManager object
+ * @context: We return a string here, either:
+ * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
+ * no  - system can and user explicitly unauthorized by polkit or rbac
+ * challenge - system can and user requires elevation via polkit
+ * na - system does not support it (hardware or backend support missing).
+ *
+ * Determines if the system can suspend.
+ * Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.CanSuspend
+ *
+ * Returnes TRUE.
+ **/
 gboolean
 ck_manager_can_suspend (CkManager  *manager,
                         DBusGMethodInvocation *context)
 
 {
-        if (ck_system_can_suspend ()) {
-                dbus_g_method_return (context, TRUE);
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.suspend-multiple-users";
         } else {
-                dbus_g_method_return (context, FALSE);
+                action = "org.freedesktop.consolekit.system.suspend";
+        }
+
+        if (ck_system_can_hibernate ()) {
+#if defined HAVE_POLKIT
+        /* polkit_sleep will return the yes, no, and challenge */
+        get_polkit_sleep_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        /* rbac determines either yes or no. There is no challenge with rbac */
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                dbus_g_method_return (context, "yes");
+        } else {
+                dbus_g_method_return (context, "no");
+        }
+#else
+                /* neither polkit or rbac. assumed single user system */
+                dbus_g_method_return (context, "yes");
+#endif
+        } else {
+                /* not supported by system (or consolekit backend) */
+                dbus_g_method_return (context, "na");
         }
 
         return TRUE;
@@ -1422,38 +1492,180 @@ ck_manager_hibernate (CkManager             *manager,
         return TRUE;
 }
 
-gboolean
-ck_manager_auth_hibernate (CkManager  *manager,
-                           DBusGMethodInvocation *context)
-
-{
-        const char *action;
-
-        action = "org.freedesktop.consolekit.system.hibernate";
-
-#if defined HAVE_POLKIT
-        get_polkit_permissions (manager, action, context);
-#elif defined ENABLE_RBAC_SHUTDOWN
-        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
-                                        NULL)) {
-                dbus_g_method_return (context, TRUE);
-        } else {
-                dbus_g_method_return (context, FALSE);
-        }
-#endif
-
-        return TRUE;
-}
-
+/**
+ * ck_manager_can_hibernate:
+ * @manager: the @CkManager object
+ * @context: We return a string here, either:
+ * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
+ * no  - system can and user explicitly unauthorized by polkit or rbac
+ * challenge - system can and user requires elevation via polkit
+ * na - system does not support it (hardware or backend support missing).
+ *
+ * Determines if the system can hibernate.
+ * Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.CanHibernate
+ *
+ * Returnes TRUE.
+ **/
 gboolean
 ck_manager_can_hibernate (CkManager  *manager,
                           DBusGMethodInvocation *context)
 
 {
-        if (ck_system_can_hibernate ()) {
-                dbus_g_method_return (context, TRUE);
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.hibernate-multiple-users";
         } else {
+                action = "org.freedesktop.consolekit.system.hibernate";
+        }
+
+        if (ck_system_can_hibernate ()) {
+#if defined HAVE_POLKIT
+        /* polkit_sleep will return the yes, no, and challenge */
+        get_polkit_sleep_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        /* rbac determines either yes or no. There is no challenge with rbac */
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                dbus_g_method_return (context, "yes");
+        } else {
+                dbus_g_method_return (context, "no");
+        }
+#else
+                /* neither polkit or rbac. assumed single user system */
+                dbus_g_method_return (context, "yes");
+#endif
+        } else {
+                /* not supported by system (or consolekit backend) */
+                dbus_g_method_return (context, "na");
+        }
+
+        return TRUE;
+}
+
+static void
+do_hybrid_sleep (CkManager             *manager,
+                 DBusGMethodInvocation *context)
+{
+        GError *error;
+        gboolean res;
+
+        g_debug ("ConsoleKit preforming Hybrid Sleep");
+
+        log_system_action_event (manager, CK_LOG_EVENT_SYSTEM_HIBERNATE);
+
+        error = NULL;
+        res = g_spawn_command_line_async (PREFIX "/lib/ConsoleKit/scripts/ck-system-hybridsleep",
+                                          &error);
+        if (! res) {
+                GError *new_error;
+
+                g_warning ("Unable to hybrid sleep system: %s", error->message);
+
+                new_error = g_error_new (CK_MANAGER_ERROR,
+                                         CK_MANAGER_ERROR_GENERAL,
+                                         "Unable to hybrid sleep system: %s", error->message);
+                dbus_g_method_return_error (context, new_error);
+                g_error_free (new_error);
+
+                g_error_free (error);
+        } else {
+                dbus_g_method_return (context);
+        }
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Hibernate
+*/
+gboolean
+ck_manager_hybrid_sleep (CkManager             *manager,
+                         DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("hybrid sleep inhibited");
                 dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.hybridsleep-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.hybridsleep";
+        }
+
+        g_debug ("ConsoleKit Hibernate: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, do_hybrid_sleep);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_hybrid_sleep);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_hybrid_sleep(manager, context);
+#endif
+
+        return TRUE;
+}
+
+/**
+ * ck_manager_can_hybrid_sleep:
+ * @manager: the @CkManager object
+ * @context: We return a string here, either:
+ * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
+ * no  - system can and user explicitly unauthorized by polkit or rbac
+ * challenge - system can and user requires elevation via polkit
+ * na - system does not support it (hardware or backend support missing).
+ *
+ * Determines if the system can hybrid sleep (suspend + hibernate).
+ * Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.CanHibernate
+ *
+ * Returnes TRUE.
+ **/
+gboolean
+ck_manager_can_hybrid_sleep (CkManager  *manager,
+                             DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.hybridsleep-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.hybridsleep";
+        }
+
+        if (ck_system_can_hibernate ()) {
+#if defined HAVE_POLKIT
+        /* polkit_sleep will return the yes, no, and challenge */
+        get_polkit_sleep_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        /* rbac determines either yes or no. There is no challenge with rbac */
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                dbus_g_method_return (context, "yes");
+        } else {
+                dbus_g_method_return (context, "no");
+        }
+#else
+                /* neither polkit or rbac. assumed single user system */
+                dbus_g_method_return (context, "yes");
+#endif
+        } else {
+                /* not supported by system (or consolekit backend) */
+                dbus_g_method_return (context, "na");
         }
 
         return TRUE;

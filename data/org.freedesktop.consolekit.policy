@@ -63,7 +63,7 @@ Policy definitions for ConsoleKit
     </defaults>
   </action>
 
-    <action id="org.freedesktop.consolekit.system.hibernate">
+  <action id="org.freedesktop.consolekit.system.hibernate">
     <description>Hibernate the system</description>
     <message>System policy prevents hibernating the system</message>
     <defaults>
@@ -75,6 +75,24 @@ Policy definitions for ConsoleKit
   <action id="org.freedesktop.consolekit.system.hibernate-multiple-users">
     <description>Hibernate the system when multiple users are logged in</description>
     <message>System policy prevents hibernating the system when other users are logged in</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.consolekit.system.hybridsleep">
+    <description>Hybrid sleep the system (sleep + hibernate)</description>
+    <message>System policy prevents hybrid sleeping the system</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.consolekit.system.hybridsleep-multiple-users">
+    <description>Hybrid sleep the system (sleep + hibernate) when multiple users are logged in</description>
+    <message>System policy prevents hybrid sleeping the system when other users are logged in</message>
     <defaults>
       <allow_inactive>no</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>

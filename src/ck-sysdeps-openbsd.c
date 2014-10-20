@@ -481,3 +481,10 @@ ck_system_can_hibernate (void)
 {
         return TRUE;
 }
+
+gboolean
+ck_system_can_hybrid_sleep (void)
+{
+        /* TODO: not implemented */
+        return FALSE;
+}

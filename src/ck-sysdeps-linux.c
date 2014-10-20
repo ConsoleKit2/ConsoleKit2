@@ -815,6 +815,12 @@ ck_system_can_hibernate (void)
         return linux_supports_sleep_state ("hibernate");
 }
 
+gboolean
+ck_system_can_hybrid_sleep (void)
+{
+        return linux_supports_sleep_state ("suspend-hybrid");
+}
+
 #ifdef HAVE_SYS_VT_SIGNAL
 /* For the moment this is Linux only.
  * Returns the vt file descriptor or < 0 on failure.

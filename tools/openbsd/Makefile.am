@@ -12,6 +12,7 @@ script_SCRIPTS =			\
 	ck-system-restart		\
 	ck-system-suspend		\
 	ck-system-hibernate		\
+	ck-system-hybridsleep		\
 	ck-get-x11-display-device	\
 	ck-get-x11-server-pid		\
 	$(NULL)
