@@ -292,11 +292,11 @@ CanRestart(out'b'can_restart)
 Stop()
 CanStop(out'b'can_stop)
 Suspend()
-CanSuspend(out'b'can_suspend)
-AuthSuspend(out'b'auth_suspend)
+CanSuspend(out's'can_suspend)
 Hibernate()
-CanHibernate(out'b'can_hibernate)
-AuthHibernate(out'b'auth_hibernate)
+CanHibernate(out's'can_hibernate)
+HybridSleep()
+CanHybridSleep(out's'can_suspend)
 Inhibit(in's'what,
         in's'who,
         in's'why,
@@ -384,23 +384,19 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <h3>
 <a name="cansuspend-" class="anchor" href="#cansuspend-"><span class="octicon octicon-link"></span></a>CanSuspend ()</h3>
 
-<pre><code>CanSuspend (out'b'can_suspend)
+<pre><code>CanSuspend (out's'can_suspend)
 </code></pre>
 
-<p>This method returns whether the computer system is capable of suspending.</p>
+<p>This method emulates the logind implementation. Returns whether the system
+supports suspending and whether the calling user is eligible to hibernate the
+system. Returns one of "na", "yes", "no" or "challenge". If "na" is returned
+suspending is not available because of hardware support. If "yes" is returned
+suspending is supported and the user may suspend without further
+authentication. If "no" is returned suspending is available but the user is
+not allowed to suspend. If "challenge" is returned suspending is available,
+but only after authorization.</p>
 
 <p><em><code>can_suspend</code></em>:</p>
-
-<h3>
-<a name="authsuspend-" class="anchor" href="#authsuspend-"><span class="octicon octicon-link"></span></a>AuthSuspend ()</h3>
-
-<pre><code>AuthSuspend (out'b'auth_suspend)
-</code></pre>
-
-<p>This method returns whether the user is authorized to suspend the computer
-system.</p>
-
-<p><em><code>auth_suspend</code></em>:</p>
 
 <h3>
 <a name="hibernate-" class="anchor" href="#hibernate-"><span class="octicon octicon-link"></span></a>Hibernate ()</h3>
@@ -413,23 +409,46 @@ system.</p>
 <h3>
 <a name="canhibernate-" class="anchor" href="#canhibernate-"><span class="octicon octicon-link"></span></a>CanHibernate ()</h3>
 
-<pre><code>CanHibernate (out'b'can_hibernate)
+<pre><code>CanHibernate (out's'can_hibernate)
 </code></pre>
 
-<p>This method returns whether the computer system is capable of hibernating.</p>
+<p>This method emulates the logind implementation. Returns whether the system
+supports hibernation and whether the calling user is eligible to hibernate the
+system. Returns one of "na", "yes", "no" or "challenge". If "na" is returned
+hibernation is not available because of hardware support. If "yes" is returned
+hibernation is supported and the user may hibernate without further
+authentication. If "no" is returned hibernation is available but the user is
+not allowed to hibernate. If "challenge" is returned hibernation is available,
+but only after authorization.</p>
 
 <p><em><code>can_hibernate</code></em>:</p>
 
 <h3>
-<a name="authhibernate-" class="anchor" href="#authhibernate-"><span class="octicon octicon-link"></span></a>AuthHibernate ()</h3>
+<a name="hybridsleep-" class="anchor" href="#hybridsleep-"><span class="octicon octicon-link"></span></a>HybridSleep ()</h3>
 
-<pre><code>AuthHibernate (out'b'auth_hibernate)
+<pre><code>HybridSleep ()
 </code></pre>
 
-<p>This method returns whether the user is authorized to hibernate the computer
-system.</p>
+<p>This method initiates a request to hybrid sleep (suspend + hibernate) the
+computer system.</p>
 
-<p><em><code>auth_hibernate</code></em>:</p>
+<h3>
+<a name="canhybridsleep-" class="anchor" href="#canhybridsleep-"><span class="octicon octicon-link"></span></a>CanHybridSleep ()</h3>
+
+<pre><code>CanHybridSleep (out's'can_suspend)
+</code></pre>
+
+<p>This method emulates the logind implementation. Returns whether the system
+supports hybrid sleep (suspend + hibernate) and whether the calling user is
+eligible to hybrid sleep the system. Returns one of "na", "yes", "no" or
+"challenge". If "na" is returned hybrid sleeping is not available because of
+hardware support. If "yes" is returned hybrid sleeping is supported and the
+user may hybrid sleep without further authentication. If "no" is returned
+hybrid sleeping is available but the user is not allowed to hybrid sleep. If
+"challenge" is returned hybrid sleeping is available, but only after
+authorization.</p>
+
+<p><em><code>can_suspend</code></em>:</p>
 
 <h3>
 <a name="inhibit-" class="anchor" href="#inhibit-"><span class="octicon octicon-link"></span></a>Inhibit ()</h3>
