@@ -1631,7 +1631,7 @@ ck_manager_hybrid_sleep (CkManager             *manager,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Manager \
-  org.freedesktop.ConsoleKit.Manager.CanHibernate
+  org.freedesktop.ConsoleKit.Manager.CanHybridSleep
  *
  * Returnes TRUE.
  **/
