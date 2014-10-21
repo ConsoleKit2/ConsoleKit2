@@ -384,6 +384,29 @@ cb_named_pipe_close (GIOChannel *source,
         return FALSE;
 }
 
+/* Builds the path to the named pipe. Free the returned string when done. */
+static gchar*
+get_named_pipe_path (const char* who)
+{
+        gchar *path, *escaped;
+
+        /* We need to sanatize the string so the user can't specify
+         * something silly like ../../../../etc/passwd */
+        escaped = g_uri_escape_string(who, NULL, TRUE);
+
+        if (escaped == NULL) {
+                return NULL;
+        }
+
+            path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s.pipe",
+                                    LOCALSTATEDIR,
+                                    escaped);
+
+        g_free (escaped);
+
+        return path;
+}
+
 /*
  * Creates the named pipe.
  * Returns the fd if successful (return >= 0) or -1
@@ -476,7 +499,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
 
         priv->who = who;
         priv->why = why;
-        priv->named_pipe_path = g_strdup_printf (LOCALSTATEDIR "/run/ConsoleKit/inhibit/%s.pipe", who);
+        priv->named_pipe_path = get_named_pipe_path (who);
         if (!parse_inhibitors_string(inhibit, what)) {
                 g_error ("Failed to set any inhibitors.");
                 return CK_INHIBIT_ERROR_INVALID_INPUT;

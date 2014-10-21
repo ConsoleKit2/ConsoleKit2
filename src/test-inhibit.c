@@ -27,6 +27,8 @@
 #include <glib-object.h>
 #include <glib-unix.h>
 #include <glib/gstdio.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "ck-inhibit.h"
 #include "ck-inhibit-manager.h"
@@ -36,7 +38,8 @@ static const gchar* WHO  = "test-inhibit";
 static const gchar* WHAT = "sleep:idle";
 static const gchar* WHY  = "for testing";
 
-static const gchar* WHO2  = "test-inhibit2";
+/* If this doesn't get escaped we won't have rights to write here */
+static const gchar* WHO2  = "../../../../../root";
 static const gchar* WHAT2 = "shutdown:sleep";
 
 CkInhibitManager *manager;
@@ -47,9 +50,21 @@ gint fd;
 static gchar*
 get_named_pipe_path (const char* who)
 {
-    return g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s.pipe",
+    gchar *path, *escaped;
+
+    escaped = g_uri_escape_string(who, NULL, TRUE);
+
+    if (escaped == NULL) {
+        return NULL;
+    }
+
+    path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s.pipe",
                             LOCALSTATEDIR,
-                            who);
+                            escaped);
+
+    g_free (escaped);
+
+    return path;
 }
 
 static void
@@ -225,6 +240,12 @@ main (int   argc,
       char *argv[])
 {
     gchar *path, *path2;
+
+    /* do not run these tests as root */
+    if (getuid () == 0) {
+            g_warning ("You must NOT be root to run these tests");
+            exit (1);
+    }
 
     g_test_init (&argc, &argv, NULL);
 
