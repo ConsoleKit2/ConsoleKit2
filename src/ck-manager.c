@@ -799,17 +799,20 @@ static void
 check_polkit_permissions (CkManager             *manager,
                           DBusGMethodInvocation *context,
                           const char            *action,
+                          gboolean               policykit_interactivity,
                           AuthorizedCallback     callback)
 {
         const char    *sender;
         PolkitSubject *subject;
         AuthorizedCallbackData *data;
+        PolkitCheckAuthorizationFlags auth_flag;
 
         g_debug ("constructing polkit data");
 
         /* Check that caller is privileged */
         sender = dbus_g_method_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
+        auth_flag = policykit_interactivity ? POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION : POLKIT_CHECK_AUTHORIZATION_FLAGS_NONE;
 
         g_debug ("checking if caller %s is authorized", sender);
 
@@ -822,7 +825,7 @@ check_polkit_permissions (CkManager             *manager,
                                               subject,
                                               action,
                                               NULL,
-                                              POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
+                                              auth_flag,
                                               NULL,
                                               (GAsyncReadyCallback)auth_ready_callback,
                                               data);
@@ -856,10 +859,13 @@ ready_cb (PolkitAuthority *authority,
         g_object_unref (ret);
 }
 
+/* We use this to avoid breaking API compability with ConsoleKit1 for
+ * CanStop and CanRestart, but this method emulates how logind
+ * presents it's API */
 static void
-sleep_ready_cb (PolkitAuthority *authority,
-                GAsyncResult    *res,
-                DBusGMethodInvocation *context)
+logind_ready_cb (PolkitAuthority *authority,
+                 GAsyncResult    *res,
+                 DBusGMethodInvocation *context)
 {
         PolkitAuthorizationResult *ret;
         GError *error;
@@ -883,12 +889,13 @@ sleep_ready_cb (PolkitAuthority *authority,
         g_object_unref (ret);
 }
 
-/* We use this and sleep_ready_cb to avoid breaking API compability with
- * ConsoleKit for Stop and Restart */
+/* We use this to avoid breaking API compability with ConsoleKit1 for
+ * CanStop and CanRestart, but this method emulates how logind
+ * presents it's API */
 static void
-get_polkit_sleep_permissions (CkManager   *manager,
-                              const char  *action,
-                              DBusGMethodInvocation *context)
+get_polkit_logind_permissions (CkManager   *manager,
+                               const char  *action,
+                               DBusGMethodInvocation *context)
 {
         const char    *sender;
         PolkitSubject *subject;
@@ -904,7 +911,7 @@ get_polkit_sleep_permissions (CkManager   *manager,
                                               NULL,
                                               0,
                                               NULL,
-                                              (GAsyncReadyCallback) sleep_ready_cb,
+                                              (GAsyncReadyCallback) logind_ready_cb,
                                               context);
         g_object_unref (subject);
 }
@@ -1179,7 +1186,7 @@ ck_manager_restart (CkManager             *manager,
         g_debug ("ConsoleKit Restart: %s", action);
 
 #if defined HAVE_POLKIT
-        check_polkit_permissions (manager, context, action, do_restart);
+        check_polkit_permissions (manager, context, action, TRUE, do_restart);
 #elif defined ENABLE_RBAC_SHUTDOWN
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_restart);
 #else
@@ -1263,7 +1270,7 @@ ck_manager_stop (CkManager             *manager,
         }
 
 #if defined HAVE_POLKIT
-        check_polkit_permissions (manager, context, action, do_stop);
+        check_polkit_permissions (manager, context, action, TRUE, do_stop);
 #elif defined  ENABLE_RBAC_SHUTDOWN
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_stop);
 #else
@@ -1291,6 +1298,186 @@ ck_manager_can_stop (CkManager  *manager,
         } else {
                 dbus_g_method_return (context, FALSE);
         }
+#endif
+
+        return TRUE;
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.PowerOff boolean:TRUE
+*/
+gboolean
+ck_manager_power_off (CkManager             *manager,
+                      gboolean               policykit_interactivity,
+                      DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("poweroff inhibited");
+                dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.stop-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.stop";
+        }
+
+        g_debug ("ConsoleKit PowerOff: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, policykit_interactivity, do_stop);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_stop);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_stop(manager, context);
+#endif
+
+        return TRUE;
+}
+
+/**
+ * ck_manager_can_power_off:
+ * @manager: the @CkManager object
+ * @context: We return a string here, either:
+ * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
+ * no  - system can and user explicitly unauthorized by polkit or rbac
+ * challenge - system can and user requires elevation via polkit
+ * na - system does not support it (hardware or backend support missing).
+ *
+ * Determines if the system can shutdown.
+ * Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.CanPowerOff
+ *
+ * Returnes TRUE.
+ **/
+gboolean
+ck_manager_can_power_off (CkManager  *manager,
+                          DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.stop-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.stop";
+        }
+
+#if defined HAVE_POLKIT
+        /* This will return the yes, no, and challenge */
+        get_polkit_logind_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        /* rbac determines either yes or no. There is no challenge with rbac */
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                dbus_g_method_return (context, "yes");
+        } else {
+                dbus_g_method_return (context, "no");
+        }
+#else
+        /* neither polkit or rbac. assumed single user system */
+        dbus_g_method_return (context, "yes");
+#endif
+
+        return TRUE;
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.Reboot boolean:TRUE
+*/
+gboolean
+ck_manager_reboot  (CkManager             *manager,
+                    gboolean               policykit_interactivity,
+                    DBusGMethodInvocation *context)
+{
+        const char *action;
+
+        /* Check if something in inhibiting that action */
+        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+                g_debug ("reboot inhibited");
+                dbus_g_method_return (context, FALSE);
+                return TRUE;
+        }
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.restart-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.restart";
+        }
+
+        g_debug ("ConsoleKit Restart: %s", action);
+
+#if defined HAVE_POLKIT
+        check_polkit_permissions (manager, context, action, policykit_interactivity, do_restart);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_restart);
+#else
+        g_warning ("Compiled without PolicyKit or RBAC support!");
+        do_restart(manager, context);
+#endif
+
+        return TRUE;
+}
+
+/**
+ * ck_manager_can_reboot:
+ * @manager: the @CkManager object
+ * @context: We return a string here, either:
+ * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
+ * no  - system can and user explicitly unauthorized by polkit or rbac
+ * challenge - system can and user requires elevation via polkit
+ * na - system does not support it (hardware or backend support missing).
+ *
+ * Determines if the system can suspend.
+ * Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.CanSuspend
+ *
+ * Returnes TRUE.
+ **/
+gboolean
+ck_manager_can_reboot  (CkManager  *manager,
+                        DBusGMethodInvocation *context)
+
+{
+        const char *action;
+
+        if (get_system_num_users (manager) > 1) {
+                action = "org.freedesktop.consolekit.system.restart-multiple-users";
+        } else {
+                action = "org.freedesktop.consolekit.system.restart";
+        }
+
+#if defined HAVE_POLKIT
+        /* This will return the yes, no, and challenge */
+        get_polkit_logind_permissions (manager, action, context);
+#elif defined ENABLE_RBAC_SHUTDOWN
+        /* rbac determines either yes or no. There is no challenge with rbac */
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                dbus_g_method_return (context, "yes");
+        } else {
+                dbus_g_method_return (context, "no");
+        }
+#else
+        /* neither polkit or rbac. assumed single user system */
+        dbus_g_method_return (context, "yes");
 #endif
 
         return TRUE;
@@ -1332,10 +1519,11 @@ do_suspend (CkManager             *manager,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Manager \
-  org.freedesktop.ConsoleKit.Manager.Suspend
+  org.freedesktop.ConsoleKit.Manager.Suspend boolean:TRUE
 */
 gboolean
 ck_manager_suspend (CkManager             *manager,
+                    gboolean               policykit_interactivity,
                     DBusGMethodInvocation *context)
 {
         const char *action;
@@ -1356,7 +1544,7 @@ ck_manager_suspend (CkManager             *manager,
         g_debug ("ConsoleKit Suspend: %s", action);
 
 #if defined HAVE_POLKIT
-        check_polkit_permissions (manager, context, action, do_suspend);
+        check_polkit_permissions (manager, context, action, policykit_interactivity, do_suspend);
 #elif defined ENABLE_RBAC_SHUTDOWN
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_suspend);
 #else
@@ -1398,10 +1586,10 @@ ck_manager_can_suspend (CkManager  *manager,
                 action = "org.freedesktop.consolekit.system.suspend";
         }
 
-        if (ck_system_can_hibernate ()) {
+        if (ck_system_can_suspend ()) {
 #if defined HAVE_POLKIT
-        /* polkit_sleep will return the yes, no, and challenge */
-        get_polkit_sleep_permissions (manager, action, context);
+        /* This will return the yes, no, and challenge */
+        get_polkit_logind_permissions (manager, action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
         /* rbac determines either yes or no. There is no challenge with rbac */
         if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
@@ -1457,10 +1645,11 @@ do_hibernate (CkManager             *manager,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Manager \
-  org.freedesktop.ConsoleKit.Manager.Hibernate
+  org.freedesktop.ConsoleKit.Manager.Hibernate boolean:TRUE
 */
 gboolean
 ck_manager_hibernate (CkManager             *manager,
+                      gboolean               policykit_interactivity,
                       DBusGMethodInvocation *context)
 {
         const char *action;
@@ -1481,7 +1670,7 @@ ck_manager_hibernate (CkManager             *manager,
         g_debug ("ConsoleKit Hibernate: %s", action);
 
 #if defined HAVE_POLKIT
-        check_polkit_permissions (manager, context, action, do_hibernate);
+        check_polkit_permissions (manager, context, action, policykit_interactivity, do_hibernate);
 #elif defined ENABLE_RBAC_SHUTDOWN
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_hibernate);
 #else
@@ -1525,8 +1714,8 @@ ck_manager_can_hibernate (CkManager  *manager,
 
         if (ck_system_can_hibernate ()) {
 #if defined HAVE_POLKIT
-        /* polkit_sleep will return the yes, no, and challenge */
-        get_polkit_sleep_permissions (manager, action, context);
+        /* this will return the yes, no, and challenge */
+        get_polkit_logind_permissions (manager, action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
         /* rbac determines either yes or no. There is no challenge with rbac */
         if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
@@ -1582,10 +1771,11 @@ do_hybrid_sleep (CkManager             *manager,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Manager \
-  org.freedesktop.ConsoleKit.Manager.Hibernate
+  org.freedesktop.ConsoleKit.Manager.HybridSleep boolean:TRUE
 */
 gboolean
 ck_manager_hybrid_sleep (CkManager             *manager,
+                         gboolean               policykit_interactivity,
                          DBusGMethodInvocation *context)
 {
         const char *action;
@@ -1606,7 +1796,7 @@ ck_manager_hybrid_sleep (CkManager             *manager,
         g_debug ("ConsoleKit Hibernate: %s", action);
 
 #if defined HAVE_POLKIT
-        check_polkit_permissions (manager, context, action, do_hybrid_sleep);
+        check_polkit_permissions (manager, context, action, policykit_interactivity, do_hybrid_sleep);
 #elif defined ENABLE_RBAC_SHUTDOWN
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, do_hybrid_sleep);
 #else
@@ -1648,10 +1838,10 @@ ck_manager_can_hybrid_sleep (CkManager  *manager,
                 action = "org.freedesktop.consolekit.system.hybridsleep";
         }
 
-        if (ck_system_can_hibernate ()) {
+        if (ck_system_can_hybrid_sleep ()) {
 #if defined HAVE_POLKIT
-        /* polkit_sleep will return the yes, no, and challenge */
-        get_polkit_sleep_permissions (manager, action, context);
+        /* this will return the yes, no, and challenge */
+        get_polkit_logind_permissions (manager, action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
         /* rbac determines either yes or no. There is no challenge with rbac */
         if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {

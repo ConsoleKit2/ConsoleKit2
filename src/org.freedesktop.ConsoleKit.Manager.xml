@@ -42,11 +42,77 @@
       </doc:doc>
     </method>
 
+    <method name="Reboot">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="policykit_interactivity" type="b" direction="in">
+        <doc:doc>
+          <doc:summary>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method emulates the logind implementation.
+                    This method initiates a request to reboot the computer system.
+          </doc:para>
+          <doc:para>Since 0.9.2</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanReboot">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_suspend" type="s" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method emulates the logind implementation.
+                    Returns whether the system supports rebooting and whether the calling user is eligible to reboot the system.
+                    Returns one of "na", "yes", "no" or "challenge".
+                    If "na" is returned rebooting is not available because of hardware support.
+                    If "yes" is returned rebooting is supported and the user may suspend without further authentication.
+                    If "no" is returned rebooting is available but the user is not allowed to reboot.
+                    If "challenge" is returned rebooting is available, but only after authorization.
+          </doc:para>
+          <doc:para>Since 0.9.2</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="PowerOff">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="policykit_interactivity" type="b" direction="in"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method initiates a request to shutdown the computer system.</doc:para>
+          <doc:para>Since 0.9.2</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="CanPowerOff">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="can_hibernate" type="s" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method emulates the logind implementation.
+                    Returns whether the system supports shutdown and whether the calling user is eligible to shutdown the system.
+                    Returns one of "na", "yes", "no" or "challenge".
+                    If "na" is returned shutdown is not available because of hardware support.
+                    If "yes" is returned shutdown is supported and the user may hibernate without further authentication.
+                    If "no" is returned shutdown is available but the user is not allowed to shutdown.
+                    If "challenge" is returned shutdown is available, but only after authorization.
+          </doc:para>
+          <doc:para>Since 0.9.2</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="Suspend">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="policykit_interactivity" type="b" direction="in"/>
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to suspend the computer system.</doc:para>
+          <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -62,16 +128,20 @@
                     If "na" is returned suspending is not available because of hardware support.
                     If "yes" is returned suspending is supported and the user may suspend without further authentication.
                     If "no" is returned suspending is available but the user is not allowed to suspend.
-                    If "challenge" is returned suspending is available, but only after authorization.</doc:para>
+                    If "challenge" is returned suspending is available, but only after authorization.
+          </doc:para>
+          <doc:para>Since 0.9.1</doc:para>
         </doc:description>
       </doc:doc>
     </method>
 
     <method name="Hibernate">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="policykit_interactivity" type="b" direction="in"/>
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to hibernate the computer system.</doc:para>
+          <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -87,16 +157,21 @@
                     If "na" is returned hibernation is not available because of hardware support.
                     If "yes" is returned hibernation is supported and the user may hibernate without further authentication.
                     If "no" is returned hibernation is available but the user is not allowed to hibernate.
-                    If "challenge" is returned hibernation is available, but only after authorization.</doc:para>
+                    If "challenge" is returned hibernation is available, but only after authorization.
+          </doc:para>
+          <doc:para>Since 0.9.1</doc:para>
         </doc:description>
       </doc:doc>
     </method>
 
     <method name="HybridSleep">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="policykit_interactivity" type="b" direction="in"/>
       <doc:doc>
         <doc:description>
-          <doc:para>This method initiates a request to hybrid sleep (suspend + hibernate) the computer system.</doc:para>
+          <doc:para>This method initiates a request to hybrid sleep (suspend + hibernate) the computer system.
+          </doc:para>
+          <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -112,7 +187,9 @@
                     If "na" is returned hybrid sleeping is not available because of hardware support.
                     If "yes" is returned hybrid sleeping is supported and the user may hybrid sleep without further authentication.
                     If "no" is returned hybrid sleeping is available but the user is not allowed to hybrid sleep.
-                    If "challenge" is returned hybrid sleeping is available, but only after authorization.</doc:para>
+                    If "challenge" is returned hybrid sleeping is available, but only after authorization.
+          </doc:para>
+          <doc:para>Since 0.9.1</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -143,6 +220,7 @@
         <doc:description>
         <doc:para>Inhibit locks are named pipes used by ConsoleKit2 to prevent the system from performing actions such as suspending, restarting, or going idle. There are various reasons and application would like to prevent one or more of these functions such as a movie player preventing the screen saving from activating or a package manager ensuring an application installs before allowing the computer to shutdown.</doc:para>
         <doc:para>Note: Each application can have only one lock open at any given time. Multiple applications can hold locks to the same thing, for example a media player application and a cd burning application can both prevent the system from being marked idle.</doc:para>
+        <doc:para>Since 0.9.0</doc:para>
         <doc:para>See this simple example:
           <doc:example language="c" title="simple example"><doc:code>
     DBusConnection *bus_connection;

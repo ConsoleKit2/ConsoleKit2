@@ -83,13 +83,24 @@ gboolean            ck_manager_stop                           (CkManager        
 gboolean            ck_manager_restart                        (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
 
+gboolean            ck_manager_power_off                      (CkManager             *manager,
+                                                               gboolean               policykit_interactivity,
+                                                               DBusGMethodInvocation *context);
+
+gboolean            ck_manager_reboot                         (CkManager             *manager,
+                                                               gboolean               policykit_interactivity,
+                                                               DBusGMethodInvocation *context);
+
 gboolean            ck_manager_suspend                        (CkManager             *manager,
+                                                               gboolean               policykit_interactivity,
                                                                DBusGMethodInvocation *context);
 
 gboolean            ck_manager_hibernate                      (CkManager             *manager,
+                                                               gboolean               policykit_interactivity,
                                                                DBusGMethodInvocation *context);
 
 gboolean            ck_manager_hybrid_sleep                   (CkManager             *manager,
+                                                               gboolean               policykit_interactivity,
                                                                DBusGMethodInvocation *context);
 
 
@@ -97,6 +108,11 @@ gboolean            ck_manager_can_stop                       (CkManager        
                                                                DBusGMethodInvocation *context);
 gboolean            ck_manager_can_restart                    (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
+gboolean            ck_manager_can_power_off                  (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+gboolean            ck_manager_can_reboot                     (CkManager             *manager,
+                                                               DBusGMethodInvocation *context);
+
 gboolean            ck_manager_can_suspend                    (CkManager             *manager,
                                                                DBusGMethodInvocation *context);
 gboolean            ck_manager_can_hibernate                  (CkManager             *manager,
