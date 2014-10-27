@@ -291,12 +291,16 @@ concepts.</p>
 CanRestart(out'b'can_restart)
 Stop()
 CanStop(out'b'can_stop)
-Suspend()
+Reboot(in'b'policykit_interactivity)
+CanReboot(out's'can_reboot)
+PowerOff(in'b'policykit_interactivity)
+CanPowerOff(out's'can_poweroff)
+Suspend(in'b'policykit_interactivity)
 CanSuspend(out's'can_suspend)
-Hibernate()
+Hibernate(in'b'policykit_interactivity)
 CanHibernate(out's'can_hibernate)
-HybridSleep()
-CanHybridSleep(out's'can_suspend)
+HybridSleep(in'b'policykit_interactivity)
+CanHybridSleep(out's'can_hybridsleep)
 Inhibit(in's'what,
         in's'who,
         in's'why,
@@ -374,12 +378,103 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <p><em><code>can_stop</code></em>:</p>
 
 <h3>
+<a name="reboot-" class="anchor" href="#reboot-"><span class="octicon octicon-link"></span></a>Reboot ()</h3>
+
+<pre><code>Reboot (in'b'policykit_interactivity)
+</code></pre>
+
+<p>This method emulates the logind implementation. This method initiates a
+request to reboot the computer system.</p>
+
+<p>Since 0.9.2</p>
+
+<p><em><code>policykit_interactivity</code></em>:</p>
+
+<p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
+
+<h3>
+<a name="canreboot-" class="anchor" href="#canreboot-"><span class="octicon octicon-link"></span></a>CanReboot ()</h3>
+
+<pre><code>CanReboot (out's'can_reboot)
+</code></pre>
+
+<p>This method emulates the logind implementation.</p>
+
+<p>Returns whether the system supports rebooting and whether the calling user is
+eligible to reboot the system.</p>
+
+<p>Returns one of "na", "yes", "no" or "challenge".</p>
+
+<p>If "na" is returned rebooting is not available because of hardware support.</p>
+
+<p>If "yes" is returned rebooting is supported and the user may suspend without
+further authentication.</p>
+
+<p>If "no" is returned rebooting is available but the user is not allowed to
+reboot.</p>
+
+<p>If "challenge" is returned rebooting is available, but only after
+authorization.</p>
+
+<p>Since 0.9.2</p>
+
+<p><em><code>can_reboot</code></em>:</p>
+
+<h3>
+<a name="poweroff-" class="anchor" href="#poweroff-"><span class="octicon octicon-link"></span></a>PowerOff ()</h3>
+
+<pre><code>PowerOff (in'b'policykit_interactivity)
+</code></pre>
+
+<p>This method initiates a request to shutdown the computer system.</p>
+
+<p>Since 0.9.2</p>
+
+<p><em><code>policykit_interactivity</code></em>:</p>
+
+<p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
+
+<h3>
+<a name="canpoweroff-" class="anchor" href="#canpoweroff-"><span class="octicon octicon-link"></span></a>CanPowerOff ()</h3>
+
+<pre><code>CanPowerOff (out's'can_poweroff)
+</code></pre>
+
+<p>This method emulates the logind implementation.</p>
+
+<p>Returns whether the system supports shutdown and whether the calling user is
+eligible to shutdown the system.</p>
+
+<p>Returns one of "na", "yes", "no" or "challenge".</p>
+
+<p>If "na" is returned shutdown is not available because of hardware support.</p>
+
+<p>If "yes" is returned shutdown is supported and the user may hibernate without
+further authentication.</p>
+
+<p>If "no" is returned shutdown is available but the user is not allowed to
+shutdown.</p>
+
+<p>If "challenge" is returned shutdown is available, but only after
+authorization.</p>
+
+<p>Since 0.9.2</p>
+
+<p><em><code>can_poweroff</code></em>:</p>
+
+<h3>
 <a name="suspend-" class="anchor" href="#suspend-"><span class="octicon octicon-link"></span></a>Suspend ()</h3>
 
-<pre><code>Suspend ()
+<pre><code>Suspend (in'b'policykit_interactivity)
 </code></pre>
 
 <p>This method initiates a request to suspend the computer system.</p>
+
+<p>Since 0.9.2</p>
+
+<p><em><code>policykit_interactivity</code></em>:</p>
+
+<p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
 <a name="cansuspend-" class="anchor" href="#cansuspend-"><span class="octicon octicon-link"></span></a>CanSuspend ()</h3>
@@ -387,24 +482,41 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <pre><code>CanSuspend (out's'can_suspend)
 </code></pre>
 
-<p>This method emulates the logind implementation. Returns whether the system
-supports suspending and whether the calling user is eligible to hibernate the
-system. Returns one of "na", "yes", "no" or "challenge". If "na" is returned
-suspending is not available because of hardware support. If "yes" is returned
-suspending is supported and the user may suspend without further
-authentication. If "no" is returned suspending is available but the user is
-not allowed to suspend. If "challenge" is returned suspending is available,
-but only after authorization.</p>
+<p>This method emulates the logind implementation.</p>
+
+<p>Returns whether the system supports suspending and whether the calling user is
+eligible to hibernate the system.</p>
+
+<p>Returns one of "na", "yes", "no" or "challenge".</p>
+
+<p>If "na" is returned suspending is not available because of hardware support.</p>
+
+<p>If "yes" is returned suspending is supported and the user may suspend without
+further authentication.</p>
+
+<p>If "no" is returned suspending is available but the user is not allowed to
+suspend.</p>
+
+<p>If "challenge" is returned suspending is available, but only after
+authorization.</p>
+
+<p>Since 0.9.1</p>
 
 <p><em><code>can_suspend</code></em>:</p>
 
 <h3>
 <a name="hibernate-" class="anchor" href="#hibernate-"><span class="octicon octicon-link"></span></a>Hibernate ()</h3>
 
-<pre><code>Hibernate ()
+<pre><code>Hibernate (in'b'policykit_interactivity)
 </code></pre>
 
 <p>This method initiates a request to hibernate the computer system.</p>
+
+<p>Since 0.9.2</p>
+
+<p><em><code>policykit_interactivity</code></em>:</p>
+
+<p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
 <a name="canhibernate-" class="anchor" href="#canhibernate-"><span class="octicon octicon-link"></span></a>CanHibernate ()</h3>
@@ -412,43 +524,71 @@ but only after authorization.</p>
 <pre><code>CanHibernate (out's'can_hibernate)
 </code></pre>
 
-<p>This method emulates the logind implementation. Returns whether the system
-supports hibernation and whether the calling user is eligible to hibernate the
-system. Returns one of "na", "yes", "no" or "challenge". If "na" is returned
-hibernation is not available because of hardware support. If "yes" is returned
-hibernation is supported and the user may hibernate without further
-authentication. If "no" is returned hibernation is available but the user is
-not allowed to hibernate. If "challenge" is returned hibernation is available,
-but only after authorization.</p>
+<p>This method emulates the logind implementation.</p>
+
+<p>Returns whether the system supports hibernation and whether the calling user
+is eligible to hibernate the system.</p>
+
+<p>Returns one of "na", "yes", "no" or "challenge".</p>
+
+<p>If "na" is returned hibernation is not available because of hardware support.</p>
+
+<p>If "yes" is returned hibernation is supported and the user may hibernate
+without further authentication.</p>
+
+<p>If "no" is returned hibernation is available but the user is not allowed to
+hibernate.</p>
+
+<p>If "challenge" is returned hibernation is available, but only after
+authorization.</p>
+
+<p>Since 0.9.1</p>
 
 <p><em><code>can_hibernate</code></em>:</p>
 
 <h3>
 <a name="hybridsleep-" class="anchor" href="#hybridsleep-"><span class="octicon octicon-link"></span></a>HybridSleep ()</h3>
 
-<pre><code>HybridSleep ()
+<pre><code>HybridSleep (in'b'policykit_interactivity)
 </code></pre>
 
 <p>This method initiates a request to hybrid sleep (suspend + hibernate) the
 computer system.</p>
 
+<p>Since 0.9.2</p>
+
+<p><em><code>policykit_interactivity</code></em>:</p>
+
+<p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
+
 <h3>
 <a name="canhybridsleep-" class="anchor" href="#canhybridsleep-"><span class="octicon octicon-link"></span></a>CanHybridSleep ()</h3>
 
-<pre><code>CanHybridSleep (out's'can_suspend)
+<pre><code>CanHybridSleep (out's'can_hybridsleep)
 </code></pre>
 
-<p>This method emulates the logind implementation. Returns whether the system
-supports hybrid sleep (suspend + hibernate) and whether the calling user is
-eligible to hybrid sleep the system. Returns one of "na", "yes", "no" or
-"challenge". If "na" is returned hybrid sleeping is not available because of
-hardware support. If "yes" is returned hybrid sleeping is supported and the
-user may hybrid sleep without further authentication. If "no" is returned
-hybrid sleeping is available but the user is not allowed to hybrid sleep. If
-"challenge" is returned hybrid sleeping is available, but only after
+<p>This method emulates the logind implementation.</p>
+
+<p>Returns whether the system supports hybrid sleep (suspend + hibernate) and
+whether the calling user is eligible to hybrid sleep the system.</p>
+
+<p>Returns one of "na", "yes", "no" or "challenge".</p>
+
+<p>If "na" is returned hybrid sleeping is not available because of hardware
+support.</p>
+
+<p>If "yes" is returned hybrid sleeping is supported and the user may hybrid
+sleep without further authentication.</p>
+
+<p>If "no" is returned hybrid sleeping is available but the user is not allowed
+to hybrid sleep.</p>
+
+<p>If "challenge" is returned hybrid sleeping is available, but only after
 authorization.</p>
 
-<p><em><code>can_suspend</code></em>:</p>
+<p>Since 0.9.1</p>
+
+<p><em><code>can_hybridsleep</code></em>:</p>
 
 <h3>
 <a name="inhibit-" class="anchor" href="#inhibit-"><span class="octicon octicon-link"></span></a>Inhibit ()</h3>
