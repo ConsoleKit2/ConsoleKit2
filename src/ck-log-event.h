@@ -68,6 +68,16 @@ typedef struct
 
 typedef struct
 {
+        gpointer dummy;
+} CkLogSystemSuspendEvent;
+
+typedef struct
+{
+        gpointer dummy;
+} CkLogSystemHibernateEvent;
+
+typedef struct
+{
         char *seat_id;
         int   seat_kind;
 } CkLogSeatAddedEvent;
