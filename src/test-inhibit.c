@@ -46,27 +46,6 @@ CkInhibitManager *manager;
 CkInhibit *inhibit;
 gint fd;
 
-/* Builds the path to the named pipe. Free the returned string when done. */
-static gchar*
-get_named_pipe_path (const char* who)
-{
-    gchar *path, *escaped;
-
-    escaped = g_uri_escape_string(who, NULL, TRUE);
-
-    if (escaped == NULL) {
-        return NULL;
-    }
-
-    path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s.pipe",
-                            LOCALSTATEDIR,
-                            escaped);
-
-    g_free (escaped);
-
-    return path;
-}
-
 static void
 test_create_inhibit (void)
 {
@@ -138,32 +117,6 @@ test_unref_inhibit (void)
 
     g_object_unref (inhibit);
     inhibit = NULL;
-}
-
-static void
-test_cleanup (void)
-{
-    gchar *named_pipe_path;
-
-    named_pipe_path = get_named_pipe_path (WHO);
-
-    /* Verify inhibit cleaned up the inhibit named_pipe_path */
-    g_assert (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS)  == FALSE);
-
-    g_free (named_pipe_path);
-}
-
-static void
-test_cleanup2 (void)
-{
-    gchar *named_pipe_path;
-
-    named_pipe_path = get_named_pipe_path (WHO2);
-
-    /* Verify inhibit cleaned up the inhibit named_pipe_path */
-    g_assert (g_file_test (named_pipe_path, G_FILE_TEST_EXISTS) == FALSE);
-
-    g_free (named_pipe_path);
 }
 
 static void
@@ -239,8 +192,6 @@ int
 main (int   argc,
       char *argv[])
 {
-    gchar *path, *path2;
-
     /* do not run these tests as root */
     if (getuid () == 0) {
             g_warning ("You must NOT be root to run these tests");
@@ -251,20 +202,6 @@ main (int   argc,
 
     inhibit = NULL;
     fd = -1;
-
-    path  = get_named_pipe_path (WHO);
-    path2 = get_named_pipe_path (WHO2);
-
-    g_print ("tmp file will be written to: %s\n",
-             path);
-    g_print ("tmp file will be written to: %s\n",
-             path2);
-
-    /* If there's already a named_pipe_path remove it; don't care if this
-     * fails */
-    g_unlink (path);
-    g_unlink (path2);
-
 
     /* Create the inhibit object */
     g_test_add_func ("/inhibit/create", test_create_inhibit);
@@ -278,9 +215,6 @@ main (int   argc,
     /* Release the inhibit object */
     g_test_add_func ("/inhibit/unref", test_unref_inhibit);
 
-    /* Ensure the named_pipe_path file was removed */
-    g_test_add_func ("/inhibit/cleanup", test_cleanup);
-
     /* Now let's try using the inhibit manager */
     g_test_add_func ("/inhibit/test_manager_init", test_manager_init);
     g_test_add_func ("/inhibit/test_manager_add_lock1", test_manager_add_lock1);
@@ -289,13 +223,6 @@ main (int   argc,
     g_test_add_func ("/inhibit/test_manager_remove_lock1", test_manager_remove_lock1);
     g_test_add_func ("/inhibit/test_manager_remove_lock2", test_manager_remove_lock2);
     g_test_add_func ("/inhibit/test_manager_unref", test_manager_unref);
-
-    /* Ensure the named_pipe_path files were removed */
-    g_test_add_func ("/inhibit/cleanup", test_cleanup);
-    g_test_add_func ("/inhibit/cleanup2", test_cleanup2);
-
-    g_free (path);
-    g_free (path2);
 
     return g_test_run();
 }

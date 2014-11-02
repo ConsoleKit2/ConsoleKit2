@@ -38,8 +38,6 @@ struct CkInhibitPrivate
         /*
          * Who is a human-readable, descriptive string of who is taking
          * the lock. Example: "Xfburn"
-         * We use this as unique identifier for the lock since an app
-         * isn't supposed to have multiple locks.
          */
         const gchar *who;
         /* inhibitors is an array of which events to suppress.
@@ -342,7 +340,6 @@ close_named_pipe (CkInhibit *inhibit)
                         g_warning ("Failed to remove inhibit file %s, error reported: %s",
                                    priv->named_pipe_path,
                                    g_strerror(errno));
-                        g_error_free (error);
                 }
                 g_free (priv->named_pipe_path);
                 priv->named_pipe_path = NULL;
@@ -388,21 +385,35 @@ cb_named_pipe_close (GIOChannel *source,
 static gchar*
 get_named_pipe_path (const char* who)
 {
-        gchar *path, *escaped;
+        char *path;
+        gint tmp_fd;
+        GError *error;
 
-        /* We need to sanatize the string so the user can't specify
-         * something silly like ../../../../etc/passwd */
-        escaped = g_uri_escape_string(who, NULL, TRUE);
+        errno = 0;
 
-        if (escaped == NULL) {
+        path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/inhibit.XXXXXX.pipe",
+                                LOCALSTATEDIR);
+
+        /* check that we got a string */
+        if (path == NULL) {
                 return NULL;
         }
 
-            path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/%s.pipe",
-                                    LOCALSTATEDIR,
-                                    escaped);
+        /* make the file unique */
+        tmp_fd = g_mkstemp (path);
 
-        g_free (escaped);
+        /* failed to get unique filename */
+        if (tmp_fd == -1) {
+                g_warning ("failed to create unique named pipe (%s): %s", path, g_strerror(errno));
+                g_free (path);
+                return NULL;
+        }
+
+        if (!g_close (tmp_fd, &error)) {
+                g_warning ("failed to close unique named pipe: %s", error->message);
+                g_error_free (error);
+                return NULL;
+        }
 
         return path;
 }
@@ -429,6 +440,11 @@ create_named_pipe (CkInhibit *inhibit)
 
         if (priv->named_pipe_path == NULL) {
                 g_warning ("named_pipe_path cannot be NULL");
+                return -1;
+        }
+
+        if (g_unlink (priv->named_pipe_path) == -1) {
+                g_warning ("failed to remove temp inhibit file");
                 return -1;
         }
 
@@ -497,6 +513,12 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
 
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
+        /* always make sure we have a directory to work in */
+        if (create_inhibit_base_directory () < 0) {
+                return CK_INHIBIT_ERROR_GENERAL;
+        }
+
+        /* fill in the inihibt values */
         priv->who = who;
         priv->why = why;
         priv->named_pipe_path = get_named_pipe_path (who);
@@ -508,11 +530,6 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         if(priv->named_pipe_path == NULL) {
                 g_warning ("Failed to allocate memory for inhibit state_file string");
                 return CK_INHIBIT_ERROR_OOM;
-        }
-
-        /* always make sure we have a directory to work in */
-        if (create_inhibit_base_directory () < 0) {
-                return CK_INHIBIT_ERROR_GENERAL;
         }
 
         /* create the named pipe and get the fd to return. */
