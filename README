@@ -38,6 +38,9 @@ Minimum Requirements
 * RBAC (optional)
 * pm-utils (optional, but required for suspend/hibernate on Linux)
 
+Additionally, on Linux CONFIG_AUDITSYSCALL=y is required for
+pam_ck_connector.so to work (PAM support).
+
 More Information
 ================
 
