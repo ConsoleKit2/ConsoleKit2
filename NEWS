@@ -1,4 +1,26 @@
 ==============
+Version 0.9.2
+==============
+[Please note that this is a development release.]
+
+Development release of ConsoleKit2 targeting the 1.0 release.
+Please report all problems to
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+
+Changes to the public DBUS API:
+    - Adds the PowerOff/Reboot and respective Can APIs.
+    - Adds the PolkicyKit interactivity flag to the
+      API calls. Same as logind.
+
+Other minor changes:
+- Default to not building systemd units
+- Add a note about CONFIG_AUDITSYSCALL and PAM
+- Minor autotools changes.
+- Change inhibit locks internally to allow multiple instances
+  of the same application to hold a lock.
+
+==============
 Version 0.9.1
 ==============
 [Please note that this is a development release.]
