@@ -24,6 +24,12 @@ service_DATA = $(service_in_files:.service.in=.service)
 $(service_DATA): $(service_in_files) Makefile
 	$(edit) $< >$@
 
+edit = sed \
+	-e 's|@sbindir[@]|$(sbindir)|g' \
+	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
+	-e 's|@localstatedir[@]|$(localstatedir)|g' \
+	-e 's|@CONSOLE_KIT_PID_FILE[@]|$(CONSOLE_KIT_PID_FILE)|g'
+
 if HAVE_SYSTEMD
 systemdsystemunit_DATA = \
 	console-kit-daemon.service \
@@ -65,13 +71,14 @@ install-data-hook:
 	( cd $(DESTDIR)$(systemdsystemunitdir)/kexec.target.wants && \
 		rm -f console-kit-log-system-restart.service && \
 		$(LN_S) ../console-kit-log-system-restart.service )
+
+edit += \
+	-e 's|@SystemdService[@]|SystemdService=console-kit-daemon.service|g'
+else
+edit += \
+	-e 's|@SystemdService[@]||g'
 endif
 
-edit = sed \
-	-e 's|@sbindir[@]|$(sbindir)|g' \
-	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
-	-e 's|@localstatedir[@]|$(localstatedir)|g' \
-	-e 's|@CONSOLE_KIT_PID_FILE[@]|$(CONSOLE_KIT_PID_FILE)|g'
 
 install-xinitrc:
 	$(INSTALL_PROGRAM) 90-consolekit $(xinitrcdir) && \
