@@ -4,7 +4,7 @@
 #
 # This file is sourced by Xsession(5), not executed.
 
-CK_LAUNCH_SESSION=/usr/bin/ck-launch-session
+@CK_LAUNCH_SESSION@
 
 is_on_console() {
 	session=$(dbus-send --system --dest=org.freedesktop.ConsoleKit \

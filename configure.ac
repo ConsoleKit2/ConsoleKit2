@@ -297,7 +297,7 @@ AC_ARG_WITH(xinitrc-dir,
 if ! test -z "$with_xinitrc_dir"; then
 	XINITRC_DIR="$with_xinitrc_dir"
 else
-	XINITRC_DIR="/etc/X11/xinit/xinitrc.d"
+	XINITRC_DIR="$sysconfdir/X11/xinit/xinitrc.d"
 fi
 AC_SUBST(XINITRC_DIR)
 

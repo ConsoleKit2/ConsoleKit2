@@ -8,7 +8,6 @@ dbusconf_DATA = ConsoleKit.conf
 seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
-xinitrcdir = $(XINITRC_DIR)
 
 if HAVE_POLKIT
 polkit_policydir = $(datadir)/polkit-1/actions
@@ -80,23 +79,30 @@ edit += \
 endif
 
 
-install-xinitrc:
-	$(INSTALL_PROGRAM) 90-consolekit $(xinitrcdir) && \
-	chmod +x $(xinitrcdir)/90-consolekit
-
-install-data-local: install-logrotate
+install-data-local: install-logrotate install-90-consolekit
 	$(MKDIR_P) $(DESTDIR)$(localstatedir)/log/ConsoleKit/
 
-uninstall-local:: uninstall-logrotate
+uninstall-local:: uninstall-logrotate uninstall-90-consolekit
 	rmdir $(DESTDIR)$(localstatedir)/log/ConsoleKit/
 
 LOGROTATE_CONFS = consolekit.logrotate
 
-BUILT_SOURCES += $(LOGROTATE_CONFS)
+XINITRC_CONFS = 90-consolekit
+
+BUILT_SOURCES += \
+	$(LOGROTATE_CONFS)	\
+	$(XINITRC_CONFS)	\
+	$(NULL)
 
 consolekit.logrotate: consolekit.logrotate.in
 	sed							\
 	    -e 's![@]localstatedir[@]!$(localstatedir)!g'	\
+	    < $< > $@-t
+	mv $@-t $@
+
+90-consolekit: 90-consolekit.in
+	sed							\
+	    -e 's![@]CK_LAUNCH_SESSION[@]!CK_LAUNCH_SESSION=$(bindir)/ck-launch-session!g'	\
 	    < $< > $@-t
 	mv $@-t $@
 
@@ -105,9 +111,16 @@ install-logrotate: $(LOGROTATE_CONFS)
 		   $(DESTDIR)$(sysconfdir)/logrotate.d/
 	$(INSTALL_DATA) consolekit.logrotate $(DESTDIR)$(sysconfdir)/logrotate.d/consolekit
 
+install-90-consolekit: $(XINITRC_CONFS)
+	$(MKDIR_P) $(DESTDIR)$(XINITRC_DIR)/
+	$(INSTALL_PROGRAM) 90-consolekit $(DESTDIR)$(XINITRC_DIR) && \
+		chmod +x $(DESTDIR)$(XINITRC_DIR)/90-consolekit
 
 uninstall-logrotate:
 	rm -f $(DESTDIR)$(sysconfdir)/logrotate.d/consolekit
+
+uninstall-90-consolekit:
+	rm -f $(DESTDIR)$(XINITRC_DIR)/90-consolekit
 
 EXTRA_DIST =						\
 	ck-log-system-restart				\
@@ -120,7 +133,7 @@ EXTRA_DIST =						\
 	console-kit-log-system-start.service.in         \
 	console-kit-log-system-stop.service.in          \
 	console-kit-log-system-restart.service.in       \
-	90-consolekit                                   \
+	90-consolekit.in                                \
 	consolekit.logrotate.in                         \
 	$(NULL)
 
