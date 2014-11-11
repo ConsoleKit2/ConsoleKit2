@@ -1,12 +1,13 @@
 NULL =
 
+BUILT_SOURCES =
+
 dbusconfdir = $(DBUS_SYS_DIR)
 dbusconf_DATA = ConsoleKit.conf
 
 seatdir = $(sysconfdir)/ConsoleKit/seats.d
 seat_DATA = 00-primary.seat
 
-logdir = $(LOGROTATE_DIR)
 xinitrcdir = $(XINITRC_DIR)
 
 if HAVE_POLKIT
@@ -72,13 +73,34 @@ edit = sed \
 	-e 's|@localstatedir[@]|$(localstatedir)|g' \
 	-e 's|@CONSOLE_KIT_PID_FILE[@]|$(CONSOLE_KIT_PID_FILE)|g'
 
-
-install-log:
-	$(INSTALL_PROGRAM) consolekit.logrotate $(logdir)
-
 install-xinitrc:
 	$(INSTALL_PROGRAM) 90-consolekit $(xinitrcdir) && \
 	chmod +x $(xinitrcdir)/90-consolekit
+
+install-data-local: install-logrotate
+	$(MKDIR_P) $(DESTDIR)$(localstatedir)/log/ConsoleKit/
+
+uninstall-local:: uninstall-logrotate
+	rmdir $(DESTDIR)$(localstatedir)/log/ConsoleKit/
+
+LOGROTATE_CONFS = consolekit.logrotate
+
+BUILT_SOURCES += $(LOGROTATE_CONFS)
+
+consolekit.logrotate: consolekit.logrotate.in
+	sed							\
+	    -e 's![@]localstatedir[@]!$(localstatedir)!g'	\
+	    < $< > $@-t
+	mv $@-t $@
+
+install-logrotate: $(LOGROTATE_CONFS)
+	$(MKDIR_P) $(DESTDIR)$(localstatedir)/log/ConsoleKit/ \
+		   $(DESTDIR)$(sysconfdir)/logrotate.d/
+	$(INSTALL_DATA) consolekit.logrotate $(DESTDIR)$(sysconfdir)/logrotate.d/consolekit
+
+
+uninstall-logrotate:
+	rm -f $(DESTDIR)$(sysconfdir)/logrotate.d/consolekit
 
 EXTRA_DIST =						\
 	ck-log-system-restart				\
@@ -92,6 +114,7 @@ EXTRA_DIST =						\
 	console-kit-log-system-stop.service.in          \
 	console-kit-log-system-restart.service.in       \
 	90-consolekit                                   \
+	consolekit.logrotate.in                         \
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
@@ -100,6 +123,7 @@ MAINTAINERCLEANFILES =			\
 
 CLEANFILES =                                            \
 	$(service_DATA)                                 \
+	$(BUILT_SOURCES)                                \
 	console-kit-daemon.service                      \
 	console-kit-log-system-start.service        	\
 	console-kit-log-system-stop.service     	\

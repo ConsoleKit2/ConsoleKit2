@@ -51,3 +51,4 @@ po/Rules-quot
 m4/*
 autotools/*
 cov-int/*
+data/consolekit.logrotate

@@ -287,18 +287,6 @@ else
 fi
 AC_SUBST(PAM_MODULE_DIR)
 
-dnl ---------------------------------------------------------------------------
-dnl - Install directory for syslog rotation file
-dnl ---------------------------------------------------------------------------
-
-AC_ARG_WITH(logrotate-dir,
-	[AS_HELP_STRING([--with-logrotate-dir=<dir>],[directory to install syslog rotation file])])
-if ! test -z "$with_logrotate_dir"; then
-	LOGROTATE_DIR="$with_logrotate_dir"
-else
-	LOGROTATE_DIR="/etc/logrotate.d"
-fi
-AC_SUBST(LOGROTATE_DIR)
 
 dnl ---------------------------------------------------------------------------
 dnl - Install directory for xinitrc file
@@ -527,7 +515,6 @@ echo "
         Build PAM module:         ${msg_pam_module}
         Build udev-acl:           ${enable_udev_acl}
         Build docs:               ${enable_docbook_docs}
-        Log rotate dir:           ${LOGROTATE_DIR}
         xinitrc dir:              ${XINITRC_DIR}
 
         PolicyKit support         ${have_polkit}

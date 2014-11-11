@@ -1,4 +1,4 @@
-/var/log/ConsoleKit/history {
+@localstatedir@/log/ConsoleKit/history {
        monthly
        rotate 6
        delaycompress
