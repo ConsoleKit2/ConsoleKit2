@@ -83,7 +83,7 @@ install-data-local: install-logrotate install-90-consolekit
 	$(MKDIR_P) $(DESTDIR)$(localstatedir)/log/ConsoleKit/
 
 uninstall-local:: uninstall-logrotate uninstall-90-consolekit
-	rmdir $(DESTDIR)$(localstatedir)/log/ConsoleKit/
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(localstatedir)/log/ConsoleKit/
 
 LOGROTATE_CONFS = consolekit.logrotate
 
