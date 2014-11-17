@@ -32,10 +32,10 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h1>
-<a name="consolekit2-documentation" class="anchor" href="#consolekit2-documentation"><span class="octicon octicon-link"></span></a>ConsoleKit2 Documentation</h1>
+<a id="consolekit2-documentation" class="anchor" href="#consolekit2-documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>ConsoleKit2 Documentation</h1>
 
 <h2>
-<a name="chapter-1-introduction" class="anchor" href="#chapter-1-introduction"><span class="octicon octicon-link"></span></a>Chapter 1. Introduction</h2>
+<a id="chapter-1-introduction" class="anchor" href="#chapter-1-introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chapter 1. Introduction</h2>
 
 <p><a href="https://scan.coverity.com/projects/3199"><img src="https://scan.coverity.com/projects/3199/badge.svg" alt="Coverity Scan Build Status"></a></p>
 
@@ -49,7 +49,7 @@
 You can easily join the channel by going to <a href="http://webchat.freenode.net/">Freenode Webchat</a></p>
 
 <h2>
-<a name="about" class="anchor" href="#about"><span class="octicon octicon-link"></span></a>About</h2>
+<a id="about" class="anchor" href="#about" aria-hidden="true"><span class="octicon octicon-link"></span></a>About</h2>
 
 <p>ConsoleKit2 is a framework for keeping track of the various users, sessions,
 and seats present on a system. It provides a mechanism for software to react
@@ -64,7 +64,7 @@ primary maintainer of ConsoleKit and most of this documentation was written by
 him for ConsoleKit. It has been adapted for ConsoleKit2.</p>
 
 <h2>
-<a name="defining-the-problem" class="anchor" href="#defining-the-problem"><span class="octicon octicon-link"></span></a>Defining the Problem</h2>
+<a id="defining-the-problem" class="anchor" href="#defining-the-problem" aria-hidden="true"><span class="octicon octicon-link"></span></a>Defining the Problem</h2>
 
 <p>A simple example is two users logging into a computer at the same time. They
 may be sharing the same set of hardware for their graphical session, such as
@@ -73,15 +73,15 @@ resouces and which session is active and should have use of that hardware at a
 given time.</p>
 
 <h2>
-<a name="relevant-art" class="anchor" href="#relevant-art"><span class="octicon octicon-link"></span></a>Relevant art</h2>
+<a id="relevant-art" class="anchor" href="#relevant-art" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant art</h2>
 
 <p>Logind is a Linux daemon providing the similar functionality to ConsoleKit2.</p>
 
 <h2>
-<a name="chapter2terminology" class="anchor" href="#chapter2terminology"><span class="octicon octicon-link"></span></a>Chapter 2. Terminology</h2>
+<a id="chapter2terminology" class="anchor" href="#chapter2terminology" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chapter 2. Terminology</h2>
 
 <h2>
-<a name="session" class="anchor" href="#session"><span class="octicon octicon-link"></span></a>Session</h2>
+<a id="session" class="anchor" href="#session" aria-hidden="true"><span class="octicon octicon-link"></span></a>Session</h2>
 
 <p>A session is a collection of all processes that share knowledge of a secret.
 In the typical (or ideal) case, these processes all originate from a single
@@ -104,7 +104,7 @@ per-user basis. For example, we don't yet have a way to prevent a process from
 moving between sessions owned by the same user.</p>
 
 <h2>
-<a name="session-leader" class="anchor" href="#session-leader"><span class="octicon octicon-link"></span></a>Session leader</h2>
+<a id="session-leader" class="anchor" href="#session-leader" aria-hidden="true"><span class="octicon octicon-link"></span></a>Session leader</h2>
 
 <p>The session leader is the process that requests that a new session be opened.
 It does this by connecting to the D-Bus system bus and using either
@@ -117,7 +117,7 @@ lost or it calls org.freedesktop.ConsoleKit.Manager.CloseSession().</p>
 allowed.</p>
 
 <h2>
-<a name="seat" class="anchor" href="#seat"><span class="octicon octicon-link"></span></a>Seat</h2>
+<a id="seat" class="anchor" href="#seat" aria-hidden="true"><span class="octicon octicon-link"></span></a>Seat</h2>
 
 <p>A seat is a collection of sessions and a set of hardware (usually at least a
 keyboard and mouse). Only one session may be active on a seat at a time.</p>
@@ -129,10 +129,10 @@ Seat.</p>
 <p>True, hardware, multi-seat capabilities will be added in a later release.</p>
 
 <h2>
-<a name="chapter3design" class="anchor" href="#chapter3design"><span class="octicon octicon-link"></span></a>Chapter 3. Design</h2>
+<a id="chapter3design" class="anchor" href="#chapter3design" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chapter 3. Design</h2>
 
 <h2>
-<a name="session-lifecycle" class="anchor" href="#session-lifecycle"><span class="octicon octicon-link"></span></a>Session Lifecycle</h2>
+<a id="session-lifecycle" class="anchor" href="#session-lifecycle" aria-hidden="true"><span class="octicon octicon-link"></span></a>Session Lifecycle</h2>
 
 <p>The session leader process is responsible for asking ConsoleKit2 to open a new
 session. In this respect, it is similar to the traditional POSIX user login
@@ -164,12 +164,12 @@ D-Bus system bus or calls org.freedesktop.ConsoleKit.Manager.CloseSession().
 The session will be removed from its Seat, and deregistered.</p>
 
 <h2>
-<a name="expected-usage" class="anchor" href="#expected-usage"><span class="octicon octicon-link"></span></a>Expected Usage</h2>
+<a id="expected-usage" class="anchor" href="#expected-usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Expected Usage</h2>
 
 <p>Use of this service will usually follow one of the following patterns:</p>
 
 <h3>
-<a name="text-login-manager" class="anchor" href="#text-login-manager"><span class="octicon octicon-link"></span></a>Text Login Manager</h3>
+<a id="text-login-manager" class="anchor" href="#text-login-manager" aria-hidden="true"><span class="octicon octicon-link"></span></a>Text Login Manager</h3>
 
 <p>This pattern operates as the Session Leader for a new Session. This pattern
 needs:</p>
@@ -182,7 +182,7 @@ needs:</p>
 </ol>
 
 <h3>
-<a name="graphical-login-manager" class="anchor" href="#graphical-login-manager"><span class="octicon octicon-link"></span></a>Graphical Login Manager</h3>
+<a id="graphical-login-manager" class="anchor" href="#graphical-login-manager" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graphical Login Manager</h3>
 
 <p>In addition to the requirements for the Text Graphical Login Manager, this
 pattern is typically used to show information about currently open sessions.
@@ -199,7 +199,7 @@ It needs:</p>
 </ol>
 
 <h3>
-<a name="system-daemon" class="anchor" href="#system-daemon"><span class="octicon octicon-link"></span></a>System Daemon</h3>
+<a id="system-daemon" class="anchor" href="#system-daemon" aria-hidden="true"><span class="octicon octicon-link"></span></a>System Daemon</h3>
 
 <p>This is generally a daemon process running outside of a user session as a
 special user. This pattern needs:</p>
@@ -210,7 +210,7 @@ special user. This pattern needs:</p>
 </ol>
 
 <h3>
-<a name="hardware-abstraction-layer" class="anchor" href="#hardware-abstraction-layer"><span class="octicon octicon-link"></span></a>Hardware Abstraction Layer</h3>
+<a id="hardware-abstraction-layer" class="anchor" href="#hardware-abstraction-layer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hardware Abstraction Layer</h3>
 
 <p>This is a special case of System Daemon that provides catalogs and control
 mechanisms for hardware devices. In addition to the requirements of System
@@ -224,7 +224,7 @@ Daemon, this pattern needs:</p>
 </ol>
 
 <h3>
-<a name="fast-user-switching-agent" class="anchor" href="#fast-user-switching-agent"><span class="octicon octicon-link"></span></a>Fast User Switching Agent</h3>
+<a id="fast-user-switching-agent" class="anchor" href="#fast-user-switching-agent" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fast User Switching Agent</h3>
 
 <p>This is related to the Graphical Login Manager and provides a shortcut to
 similar functionality. It is usually a tool available in the user session that
@@ -242,7 +242,7 @@ allows one to quickly switch to another user session. This pattern needs:</p>
 </ol>
 
 <h3>
-<a name="session-daemon-aka-policy-agent" class="anchor" href="#session-daemon-aka-policy-agent"><span class="octicon octicon-link"></span></a>Session Daemon (aka Policy Agent)</h3>
+<a id="session-daemon-aka-policy-agent" class="anchor" href="#session-daemon-aka-policy-agent" aria-hidden="true"><span class="octicon octicon-link"></span></a>Session Daemon (aka Policy Agent)</h3>
 
 <p>This is typically a daemon running in a user session that acts on policy only
 when the session is active. This pattern needs:</p>
@@ -253,7 +253,7 @@ when the session is active. This pattern needs:</p>
 </ol>
 
 <h3>
-<a name="session-application" class="anchor" href="#session-application"><span class="octicon octicon-link"></span></a>Session Application</h3>
+<a id="session-application" class="anchor" href="#session-application" aria-hidden="true"><span class="octicon octicon-link"></span></a>Session Application</h3>
 
 <p>This is typically an application running in a user session that may alter its
 behavior when the session active state changes. This pattern needs:</p>
@@ -264,10 +264,10 @@ behavior when the session active state changes. This pattern needs:</p>
 </ol>
 
 <h1>
-<a name="partiireference" class="anchor" href="#partiireference"><span class="octicon octicon-link"></span></a>Part II. Reference</h1>
+<a id="partiireference" class="anchor" href="#partiireference" aria-hidden="true"><span class="octicon octicon-link"></span></a>Part II. Reference</h1>
 
 <h1>
-<a name="d-bus-api-reference" class="anchor" href="#d-bus-api-reference"><span class="octicon octicon-link"></span></a>D-Bus API Reference</h1>
+<a id="d-bus-api-reference" class="anchor" href="#d-bus-api-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>D-Bus API Reference</h1>
 
 <hr>
 
@@ -280,12 +280,12 @@ concepts.</p>
 <p>This API is not yet stable and is likely to change in the future.</p>
 
 <h2>
-<a name="name" class="anchor" href="#name"><span class="octicon octicon-link"></span></a>Name</h2>
+<a id="name" class="anchor" href="#name" aria-hidden="true"><span class="octicon octicon-link"></span></a>Name</h2>
 
 <p>org.freedesktop.ConsoleKit.Manager — Manager interface</p>
 
 <h2>
-<a name="methods" class="anchor" href="#methods"><span class="octicon octicon-link"></span></a>Methods</h2>
+<a id="methods" class="anchor" href="#methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Methods</h2>
 
 <pre><code>Restart()
 CanRestart(out'b'can_restart)
@@ -326,27 +326,29 @@ GetSystemIdleSinceHint(out's'iso8601_datetime)
 </code></pre>
 
 <h2>
-<a name="signals" class="anchor" href="#signals"><span class="octicon octicon-link"></span></a>Signals</h2>
+<a id="signals" class="anchor" href="#signals" aria-hidden="true"><span class="octicon octicon-link"></span></a>Signals</h2>
 
 <pre><code>SeatAdded('o'sid)
 SeatRemoved('o'sid)
 SystemIdleHintChanged('b'hint)
+PrepareForShutdown('b'active)
+PrepareForSleep('b'active)
 </code></pre>
 
 <h2>
-<a name="implemented-interfaces" class="anchor" href="#implemented-interfaces"><span class="octicon octicon-link"></span></a>Implemented Interfaces</h2>
+<a id="implemented-interfaces" class="anchor" href="#implemented-interfaces" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implemented Interfaces</h2>
 
 <p>Objects implementing org.freedesktop.ConsoleKit.Manager also implements
 org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 
 <h2>
-<a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h2>
+<a id="description" class="anchor" href="#description" aria-hidden="true"><span class="octicon octicon-link"></span></a>Description</h2>
 
 <h2>
-<a name="details" class="anchor" href="#details"><span class="octicon octicon-link"></span></a>Details</h2>
+<a id="details" class="anchor" href="#details" aria-hidden="true"><span class="octicon octicon-link"></span></a>Details</h2>
 
 <h3>
-<a name="restart-" class="anchor" href="#restart-"><span class="octicon octicon-link"></span></a>Restart ()</h3>
+<a id="restart-" class="anchor" href="#restart-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Restart ()</h3>
 
 <pre><code>Restart ()
 </code></pre>
@@ -354,7 +356,7 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <p>This method initiates a request to restart (ie. reboot) the computer system.</p>
 
 <h3>
-<a name="canrestart-" class="anchor" href="#canrestart-"><span class="octicon octicon-link"></span></a>CanRestart ()</h3>
+<a id="canrestart-" class="anchor" href="#canrestart-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanRestart ()</h3>
 
 <pre><code>CanRestart (out'b'can_restart)
 </code></pre>
@@ -362,7 +364,7 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <p><em><code>can_restart</code></em>:</p>
 
 <h3>
-<a name="stop-" class="anchor" href="#stop-"><span class="octicon octicon-link"></span></a>Stop ()</h3>
+<a id="stop-" class="anchor" href="#stop-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stop ()</h3>
 
 <pre><code>Stop ()
 </code></pre>
@@ -370,7 +372,7 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <p>This method initiates a request to stop (ie. shutdown) the computer system.</p>
 
 <h3>
-<a name="canstop-" class="anchor" href="#canstop-"><span class="octicon octicon-link"></span></a>CanStop ()</h3>
+<a id="canstop-" class="anchor" href="#canstop-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanStop ()</h3>
 
 <pre><code>CanStop (out'b'can_stop)
 </code></pre>
@@ -378,7 +380,7 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 <p><em><code>can_stop</code></em>:</p>
 
 <h3>
-<a name="reboot-" class="anchor" href="#reboot-"><span class="octicon octicon-link"></span></a>Reboot ()</h3>
+<a id="reboot-" class="anchor" href="#reboot-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reboot ()</h3>
 
 <pre><code>Reboot (in'b'policykit_interactivity)
 </code></pre>
@@ -393,7 +395,7 @@ request to reboot the computer system.</p>
 <p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
-<a name="canreboot-" class="anchor" href="#canreboot-"><span class="octicon octicon-link"></span></a>CanReboot ()</h3>
+<a id="canreboot-" class="anchor" href="#canreboot-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanReboot ()</h3>
 
 <pre><code>CanReboot (out's'can_reboot)
 </code></pre>
@@ -421,7 +423,7 @@ authorization.</p>
 <p><em><code>can_reboot</code></em>:</p>
 
 <h3>
-<a name="poweroff-" class="anchor" href="#poweroff-"><span class="octicon octicon-link"></span></a>PowerOff ()</h3>
+<a id="poweroff-" class="anchor" href="#poweroff-" aria-hidden="true"><span class="octicon octicon-link"></span></a>PowerOff ()</h3>
 
 <pre><code>PowerOff (in'b'policykit_interactivity)
 </code></pre>
@@ -435,7 +437,7 @@ authorization.</p>
 <p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
-<a name="canpoweroff-" class="anchor" href="#canpoweroff-"><span class="octicon octicon-link"></span></a>CanPowerOff ()</h3>
+<a id="canpoweroff-" class="anchor" href="#canpoweroff-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanPowerOff ()</h3>
 
 <pre><code>CanPowerOff (out's'can_poweroff)
 </code></pre>
@@ -463,7 +465,7 @@ authorization.</p>
 <p><em><code>can_poweroff</code></em>:</p>
 
 <h3>
-<a name="suspend-" class="anchor" href="#suspend-"><span class="octicon octicon-link"></span></a>Suspend ()</h3>
+<a id="suspend-" class="anchor" href="#suspend-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Suspend ()</h3>
 
 <pre><code>Suspend (in'b'policykit_interactivity)
 </code></pre>
@@ -477,7 +479,7 @@ authorization.</p>
 <p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
-<a name="cansuspend-" class="anchor" href="#cansuspend-"><span class="octicon octicon-link"></span></a>CanSuspend ()</h3>
+<a id="cansuspend-" class="anchor" href="#cansuspend-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanSuspend ()</h3>
 
 <pre><code>CanSuspend (out's'can_suspend)
 </code></pre>
@@ -505,7 +507,7 @@ authorization.</p>
 <p><em><code>can_suspend</code></em>:</p>
 
 <h3>
-<a name="hibernate-" class="anchor" href="#hibernate-"><span class="octicon octicon-link"></span></a>Hibernate ()</h3>
+<a id="hibernate-" class="anchor" href="#hibernate-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hibernate ()</h3>
 
 <pre><code>Hibernate (in'b'policykit_interactivity)
 </code></pre>
@@ -519,7 +521,7 @@ authorization.</p>
 <p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
-<a name="canhibernate-" class="anchor" href="#canhibernate-"><span class="octicon octicon-link"></span></a>CanHibernate ()</h3>
+<a id="canhibernate-" class="anchor" href="#canhibernate-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanHibernate ()</h3>
 
 <pre><code>CanHibernate (out's'can_hibernate)
 </code></pre>
@@ -547,7 +549,7 @@ authorization.</p>
 <p><em><code>can_hibernate</code></em>:</p>
 
 <h3>
-<a name="hybridsleep-" class="anchor" href="#hybridsleep-"><span class="octicon octicon-link"></span></a>HybridSleep ()</h3>
+<a id="hybridsleep-" class="anchor" href="#hybridsleep-" aria-hidden="true"><span class="octicon octicon-link"></span></a>HybridSleep ()</h3>
 
 <pre><code>HybridSleep (in'b'policykit_interactivity)
 </code></pre>
@@ -562,7 +564,7 @@ computer system.</p>
 <p>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</p>
 
 <h3>
-<a name="canhybridsleep-" class="anchor" href="#canhybridsleep-"><span class="octicon octicon-link"></span></a>CanHybridSleep ()</h3>
+<a id="canhybridsleep-" class="anchor" href="#canhybridsleep-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanHybridSleep ()</h3>
 
 <pre><code>CanHybridSleep (out's'can_hybridsleep)
 </code></pre>
@@ -591,7 +593,7 @@ authorization.</p>
 <p><em><code>can_hybridsleep</code></em>:</p>
 
 <h3>
-<a name="inhibit-" class="anchor" href="#inhibit-"><span class="octicon octicon-link"></span></a>Inhibit ()</h3>
+<a id="inhibit-" class="anchor" href="#inhibit-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Inhibit ()</h3>
 
 <pre><code>Inhibit (in's'what,
          in's'who,
@@ -674,7 +676,7 @@ Why is a human-readable, descriptive string of why the program is taking the loc
 Returns a file descriptor that encapsulates the lock, or -1 on failure. As soon as the file descriptor is closed (and all its duplicates) the lock is automatically released. If the client dies while the lock is taken it is automatically closed and the lock is released.</p>
 
 <h3>
-<a name="opensession-" class="anchor" href="#opensession-"><span class="octicon octicon-link"></span></a>OpenSession ()</h3>
+<a id="opensession-" class="anchor" href="#opensession-" aria-hidden="true"><span class="octicon octicon-link"></span></a>OpenSession ()</h3>
 
 <pre><code>OpenSession (out's'cookie)
 </code></pre>
@@ -731,7 +733,7 @@ if (message == NULL) {
 <p>See also: <code>OpenSessionWithParameters()</code></p>
 
 <h3>
-<a name="opensessionwithparameters-" class="anchor" href="#opensessionwithparameters-"><span class="octicon octicon-link"></span></a>OpenSessionWithParameters ()</h3>
+<a id="opensessionwithparameters-" class="anchor" href="#opensessionwithparameters-" aria-hidden="true"><span class="octicon octicon-link"></span></a>OpenSessionWithParameters ()</h3>
 
 <pre><code>OpenSessionWithParameters (in'a(sv)'parameters,
                            out's'cookie)
@@ -761,14 +763,14 @@ may be identified as members of this session.</p>
 </code></pre>
 
 <h3>
-<a name="permissions" class="anchor" href="#permissions"><span class="octicon octicon-link"></span></a>Permissions</h3>
+<a id="permissions" class="anchor" href="#permissions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Permissions</h3>
 
 <p>This method is restricted to privileged users by D-Bus policy.</p>
 
 <p>See also: org.freedesktop.ConsoleKit.Session</p>
 
 <h3>
-<a name="closesession-" class="anchor" href="#closesession-"><span class="octicon octicon-link"></span></a>CloseSession ()</h3>
+<a id="closesession-" class="anchor" href="#closesession-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CloseSession ()</h3>
 
 <pre><code>CloseSession (in's'cookie,
               out'b'result)
@@ -789,7 +791,7 @@ may be identified as members of this session.</p>
 </code></pre>
 
 <h3>
-<a name="getseats-" class="anchor" href="#getseats-"><span class="octicon octicon-link"></span></a>GetSeats ()</h3>
+<a id="getseats-" class="anchor" href="#getseats-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSeats ()</h3>
 
 <pre><code>GetSeats (out'ao'seats)
 </code></pre>
@@ -807,7 +809,7 @@ interface.</p>
 <p>See also: org.freedesktop.ConsoleKit.Seat</p>
 
 <h3>
-<a name="getsessions-" class="anchor" href="#getsessions-"><span class="octicon octicon-link"></span></a>GetSessions ()</h3>
+<a id="getsessions-" class="anchor" href="#getsessions-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessions ()</h3>
 
 <pre><code>GetSessions (out'ao'sessions)
 </code></pre>
@@ -825,7 +827,7 @@ Session interface.</p>
 <p>See also: org.freedesktop.ConsoleKit.Session</p>
 
 <h3>
-<a name="getsessionforcookie-" class="anchor" href="#getsessionforcookie-"><span class="octicon octicon-link"></span></a>GetSessionForCookie ()</h3>
+<a id="getsessionforcookie-" class="anchor" href="#getsessionforcookie-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessionForCookie ()</h3>
 
 <pre><code>GetSessionForCookie (in's'cookie,
                      out'o'ssid)
@@ -844,7 +846,7 @@ Session interface.</p>
 </code></pre>
 
 <h3>
-<a name="getsessionforunixprocess-" class="anchor" href="#getsessionforunixprocess-"><span class="octicon octicon-link"></span></a>GetSessionForUnixProcess ()</h3>
+<a id="getsessionforunixprocess-" class="anchor" href="#getsessionforunixprocess-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessionForUnixProcess ()</h3>
 
 <pre><code>GetSessionForUnixProcess (in'u'pid,
                           out'o'ssid)
@@ -863,7 +865,7 @@ Session interface.</p>
 </code></pre>
 
 <h3>
-<a name="getcurrentsession-" class="anchor" href="#getcurrentsession-"><span class="octicon octicon-link"></span></a>GetCurrentSession ()</h3>
+<a id="getcurrentsession-" class="anchor" href="#getcurrentsession-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetCurrentSession ()</h3>
 
 <pre><code>GetCurrentSession (out'o'ssid)
 </code></pre>
@@ -884,7 +886,7 @@ Session interface.</p>
 </code></pre>
 
 <h3>
-<a name="getsessionsforunixuser-" class="anchor" href="#getsessionsforunixuser-"><span class="octicon octicon-link"></span></a>GetSessionsForUnixUser ()</h3>
+<a id="getsessionsforunixuser-" class="anchor" href="#getsessionsforunixuser-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessionsForUnixUser ()</h3>
 
 <pre><code>GetSessionsForUnixUser (in'u'uid,
                         out'ao'sessions)
@@ -907,7 +909,7 @@ Session interface.</p>
 </code></pre>
 
 <h3>
-<a name="getsessionsforuser-" class="anchor" href="#getsessionsforuser-"><span class="octicon octicon-link"></span></a>GetSessionsForUser ()</h3>
+<a id="getsessionsforuser-" class="anchor" href="#getsessionsforuser-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessionsForUser ()</h3>
 
 <pre><code>GetSessionsForUser (in'u'uid,
                     out'ao'sessions)
@@ -930,13 +932,13 @@ Session interface.</p>
 </code></pre>
 
 <h3>
-<a name="warning" class="anchor" href="#warning"><span class="octicon octicon-link"></span></a>Warning</h3>
+<a id="warning" class="anchor" href="#warning" aria-hidden="true"><span class="octicon octicon-link"></span></a>Warning</h3>
 
 <p><code>GetSessionsForUser</code> is deprecated since version 0.1.3 and should not be used
 in newly-written code. Use <code>GetSessionsForUnixUser</code> instead.</p>
 
 <h3>
-<a name="getsystemidlehint-" class="anchor" href="#getsystemidlehint-"><span class="octicon octicon-link"></span></a>GetSystemIdleHint ()</h3>
+<a id="getsystemidlehint-" class="anchor" href="#getsystemidlehint-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSystemIdleHint ()</h3>
 
 <pre><code>GetSystemIdleHint (out'b'idle_hint)
 </code></pre>
@@ -950,7 +952,7 @@ there are no open sessions.</p>
 </code></pre>
 
 <h3>
-<a name="getsystemidlesincehint-" class="anchor" href="#getsystemidlesincehint-"><span class="octicon octicon-link"></span></a>GetSystemIdleSinceHint ()</h3>
+<a id="getsystemidlesincehint-" class="anchor" href="#getsystemidlesincehint-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSystemIdleSinceHint ()</h3>
 
 <pre><code>GetSystemIdleSinceHint (out's'iso8601_datetime)
 </code></pre>
@@ -964,10 +966,10 @@ change of the system-idle-hint.</p>
 </code></pre>
 
 <h2>
-<a name="signal-details" class="anchor" href="#signal-details"><span class="octicon octicon-link"></span></a>Signal Details</h2>
+<a id="signal-details" class="anchor" href="#signal-details" aria-hidden="true"><span class="octicon octicon-link"></span></a>Signal Details</h2>
 
 <h3>
-<a name="the-seatadded-signal" class="anchor" href="#the-seatadded-signal"><span class="octicon octicon-link"></span></a>The SeatAdded signal</h3>
+<a id="the-seatadded-signal" class="anchor" href="#the-seatadded-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The SeatAdded signal</h3>
 
 <pre><code>SeatAdded ('o'sid)
 </code></pre>
@@ -980,7 +982,7 @@ change of the system-idle-hint.</p>
 </code></pre>
 
 <h3>
-<a name="the-seatremoved-signal" class="anchor" href="#the-seatremoved-signal"><span class="octicon octicon-link"></span></a>The SeatRemoved signal</h3>
+<a id="the-seatremoved-signal" class="anchor" href="#the-seatremoved-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The SeatRemoved signal</h3>
 
 <pre><code>SeatRemoved ('o'sid)
 </code></pre>
@@ -993,7 +995,7 @@ change of the system-idle-hint.</p>
 </code></pre>
 
 <h3>
-<a name="the-systemidlehintchanged-signal" class="anchor" href="#the-systemidlehintchanged-signal"><span class="octicon octicon-link"></span></a>The SystemIdleHintChanged signal</h3>
+<a id="the-systemidlehintchanged-signal" class="anchor" href="#the-systemidlehintchanged-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The SystemIdleHintChanged signal</h3>
 
 <pre><code>SystemIdleHintChanged ('b'hint)
 </code></pre>
@@ -1005,15 +1007,44 @@ change of the system-idle-hint.</p>
 <pre><code>The value of the system-idle-hint
 </code></pre>
 
+<h3>
+<a id="the-prepareforshutdown-signal" class="anchor" href="#the-prepareforshutdown-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The PrepareForShutdown signal</h3>
+
+<pre><code>PrepareForShutdown ('b'active)
+</code></pre>
+
+<p>Emitted when the system is halting (active = TRUE). If successful there will
+not be a FALSE signal emitted since the system will poweroff or reboot. It
+will emit a FALSE signal if the shutdown operation failed.</p>
+
+<p><em><code>active</code></em>:</p>
+
+<pre><code>TRUE when the system is starting to halt.
+</code></pre>
+
+<h3>
+<a id="the-prepareforsleep-signal" class="anchor" href="#the-prepareforsleep-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The PrepareForSleep signal</h3>
+
+<pre><code>PrepareForSleep ('b'active)
+</code></pre>
+
+<p>Emitted when the system is starting the sleep process. It will emit with an
+active = FALSE when resuming from sleep or if the sleep operation failed.</p>
+
+<p><em><code>active</code></em>:</p>
+
+<pre><code>TRUE when starting to sleep.
+</code></pre>
+
 <hr>
 
 <h2>
-<a name="name-1" class="anchor" href="#name-1"><span class="octicon octicon-link"></span></a>Name</h2>
+<a id="name-1" class="anchor" href="#name-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Name</h2>
 
 <p>org.freedesktop.ConsoleKit.Seat — Seat interface</p>
 
 <h2>
-<a name="methods-1" class="anchor" href="#methods-1"><span class="octicon octicon-link"></span></a>Methods</h2>
+<a id="methods-1" class="anchor" href="#methods-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Methods</h2>
 
 <pre><code>GetId(out'o'sid)
 GetSessions(out'ao'sessions)
@@ -1024,7 +1055,7 @@ ActivateSession(in'o'ssid)
 </code></pre>
 
 <h2>
-<a name="signals-1" class="anchor" href="#signals-1"><span class="octicon octicon-link"></span></a>Signals</h2>
+<a id="signals-1" class="anchor" href="#signals-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Signals</h2>
 
 <pre><code>ActiveSessionChanged('o'ssid)
 SessionAdded('o'ssid)
@@ -1034,22 +1065,22 @@ DeviceRemoved('(ss)'device)
 </code></pre>
 
 <h2>
-<a name="implemented-interfaces-1" class="anchor" href="#implemented-interfaces-1"><span class="octicon octicon-link"></span></a>Implemented Interfaces</h2>
+<a id="implemented-interfaces-1" class="anchor" href="#implemented-interfaces-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implemented Interfaces</h2>
 
 <p>Objects implementing org.freedesktop.ConsoleKit.Seat also implements
 org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 
 <h2>
-<a name="description-1" class="anchor" href="#description-1"><span class="octicon octicon-link"></span></a>Description</h2>
+<a id="description-1" class="anchor" href="#description-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Description</h2>
 
 <p>A seat is a collection of sessions and a set of hardware (usually at least a
 keyboard and mouse). Only one session may be active on a seat at a time.</p>
 
 <h2>
-<a name="details-1" class="anchor" href="#details-1"><span class="octicon octicon-link"></span></a>Details</h2>
+<a id="details-1" class="anchor" href="#details-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Details</h2>
 
 <h3>
-<a name="getid-" class="anchor" href="#getid-"><span class="octicon octicon-link"></span></a>GetId ()</h3>
+<a id="getid-" class="anchor" href="#getid-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetId ()</h3>
 
 <pre><code>GetId (out'o'sid)
 </code></pre>
@@ -1062,7 +1093,7 @@ keyboard and mouse). Only one session may be active on a seat at a time.</p>
 </code></pre>
 
 <h3>
-<a name="getsessions--1" class="anchor" href="#getsessions--1"><span class="octicon octicon-link"></span></a>GetSessions ()</h3>
+<a id="getsessions--1" class="anchor" href="#getsessions--1" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessions ()</h3>
 
 <pre><code>GetSessions (out'ao'sessions)
 </code></pre>
@@ -1078,7 +1109,7 @@ Session interface.</p>
 </code></pre>
 
 <h3>
-<a name="getdevices-" class="anchor" href="#getdevices-"><span class="octicon octicon-link"></span></a>GetDevices ()</h3>
+<a id="getdevices-" class="anchor" href="#getdevices-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetDevices ()</h3>
 
 <pre><code>GetDevices (out'a(ss)'devices)
 </code></pre>
@@ -1095,7 +1126,7 @@ device id.</p>
 </code></pre>
 
 <h3>
-<a name="getactivesession-" class="anchor" href="#getactivesession-"><span class="octicon octicon-link"></span></a>GetActiveSession ()</h3>
+<a id="getactivesession-" class="anchor" href="#getactivesession-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetActiveSession ()</h3>
 
 <pre><code>GetActiveSession (out'o'ssid)
 </code></pre>
@@ -1110,7 +1141,7 @@ device id.</p>
 </code></pre>
 
 <h3>
-<a name="canactivatesessions-" class="anchor" href="#canactivatesessions-"><span class="octicon octicon-link"></span></a>CanActivateSessions ()</h3>
+<a id="canactivatesessions-" class="anchor" href="#canactivatesessions-" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanActivateSessions ()</h3>
 
 <pre><code>CanActivateSessions (out'b'can_activate)
 </code></pre>
@@ -1123,7 +1154,7 @@ device id.</p>
 </code></pre>
 
 <h3>
-<a name="activatesession-" class="anchor" href="#activatesession-"><span class="octicon octicon-link"></span></a>ActivateSession ()</h3>
+<a id="activatesession-" class="anchor" href="#activatesession-" aria-hidden="true"><span class="octicon octicon-link"></span></a>ActivateSession ()</h3>
 
 <pre><code>ActivateSession (in'o'ssid)
 </code></pre>
@@ -1140,10 +1171,10 @@ is associated with this seat.</p>
 <p>See also: <code>Activate()</code></p>
 
 <h2>
-<a name="signal-details-1" class="anchor" href="#signal-details-1"><span class="octicon octicon-link"></span></a>Signal Details</h2>
+<a id="signal-details-1" class="anchor" href="#signal-details-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Signal Details</h2>
 
 <h3>
-<a name="the-activesessionchanged-signal" class="anchor" href="#the-activesessionchanged-signal"><span class="octicon octicon-link"></span></a>The ActiveSessionChanged signal</h3>
+<a id="the-activesessionchanged-signal" class="anchor" href="#the-activesessionchanged-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The ActiveSessionChanged signal</h3>
 
 <pre><code>ActiveSessionChanged ('o'ssid)
 </code></pre>
@@ -1156,7 +1187,7 @@ is associated with this seat.</p>
 </code></pre>
 
 <h3>
-<a name="the-sessionadded-signal" class="anchor" href="#the-sessionadded-signal"><span class="octicon octicon-link"></span></a>The SessionAdded signal</h3>
+<a id="the-sessionadded-signal" class="anchor" href="#the-sessionadded-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The SessionAdded signal</h3>
 
 <pre><code>SessionAdded ('o'ssid)
 </code></pre>
@@ -1169,7 +1200,7 @@ is associated with this seat.</p>
 </code></pre>
 
 <h3>
-<a name="the-sessionremoved-signal" class="anchor" href="#the-sessionremoved-signal"><span class="octicon octicon-link"></span></a>The SessionRemoved signal</h3>
+<a id="the-sessionremoved-signal" class="anchor" href="#the-sessionremoved-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The SessionRemoved signal</h3>
 
 <pre><code>SessionRemoved ('o'ssid)
 </code></pre>
@@ -1182,7 +1213,7 @@ is associated with this seat.</p>
 </code></pre>
 
 <h3>
-<a name="the-deviceadded-signal" class="anchor" href="#the-deviceadded-signal"><span class="octicon octicon-link"></span></a>The DeviceAdded signal</h3>
+<a id="the-deviceadded-signal" class="anchor" href="#the-deviceadded-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The DeviceAdded signal</h3>
 
 <pre><code>DeviceAdded ('(ss)'device)
 </code></pre>
@@ -1195,7 +1226,7 @@ is associated with this seat.</p>
 </code></pre>
 
 <h3>
-<a name="the-deviceremoved-signal" class="anchor" href="#the-deviceremoved-signal"><span class="octicon octicon-link"></span></a>The DeviceRemoved signal</h3>
+<a id="the-deviceremoved-signal" class="anchor" href="#the-deviceremoved-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The DeviceRemoved signal</h3>
 
 <pre><code>DeviceRemoved ('(ss)'device)
 </code></pre>
@@ -1210,12 +1241,12 @@ is associated with this seat.</p>
 <hr>
 
 <h2>
-<a name="name-2" class="anchor" href="#name-2"><span class="octicon octicon-link"></span></a>Name</h2>
+<a id="name-2" class="anchor" href="#name-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Name</h2>
 
 <p>org.freedesktop.ConsoleKit.Session — Session interface</p>
 
 <h2>
-<a name="methods-2" class="anchor" href="#methods-2"><span class="octicon octicon-link"></span></a>Methods</h2>
+<a id="methods-2" class="anchor" href="#methods-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Methods</h2>
 
 <pre><code>GetId(out'o'ssid)
 GetSeatId(out'o'sid)
@@ -1239,7 +1270,7 @@ SetIdleHint(in'b'idle_hint)
 </code></pre>
 
 <h2>
-<a name="signals-2" class="anchor" href="#signals-2"><span class="octicon octicon-link"></span></a>Signals</h2>
+<a id="signals-2" class="anchor" href="#signals-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Signals</h2>
 
 <pre><code>ActiveChanged('b'is_active)
 IdleHintChanged('b'hint)
@@ -1248,13 +1279,13 @@ Unlock()
 </code></pre>
 
 <h2>
-<a name="implemented-interfaces-2" class="anchor" href="#implemented-interfaces-2"><span class="octicon octicon-link"></span></a>Implemented Interfaces</h2>
+<a id="implemented-interfaces-2" class="anchor" href="#implemented-interfaces-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implemented Interfaces</h2>
 
 <p>Objects implementing org.freedesktop.ConsoleKit.Session also implements
 org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 
 <h2>
-<a name="properties" class="anchor" href="#properties"><span class="octicon octicon-link"></span></a>Properties</h2>
+<a id="properties" class="anchor" href="#properties" aria-hidden="true"><span class="octicon octicon-link"></span></a>Properties</h2>
 
 <pre><code>'unix-user'readwrite'u'
 'user'readwrite'u'
@@ -1269,7 +1300,7 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 </code></pre>
 
 <h2>
-<a name="description-2" class="anchor" href="#description-2"><span class="octicon octicon-link"></span></a>Description</h2>
+<a id="description-2" class="anchor" href="#description-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Description</h2>
 
 <p>Session objects represent and store information related to a user session.</p>
 
@@ -1277,10 +1308,10 @@ org.freedesktop.DBus.Introspectable, org.freedesktop.DBus.Properties</p>
 properties of the "session leader".</p>
 
 <h2>
-<a name="details-2" class="anchor" href="#details-2"><span class="octicon octicon-link"></span></a>Details</h2>
+<a id="details-2" class="anchor" href="#details-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Details</h2>
 
 <h3>
-<a name="getid--1" class="anchor" href="#getid--1"><span class="octicon octicon-link"></span></a>GetId ()</h3>
+<a id="getid--1" class="anchor" href="#getid--1" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetId ()</h3>
 
 <pre><code>GetId (out'o'ssid)
 </code></pre>
@@ -1293,7 +1324,7 @@ properties of the "session leader".</p>
 </code></pre>
 
 <h3>
-<a name="getseatid-" class="anchor" href="#getseatid-"><span class="octicon octicon-link"></span></a>GetSeatId ()</h3>
+<a id="getseatid-" class="anchor" href="#getseatid-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSeatId ()</h3>
 
 <pre><code>GetSeatId (out'o'sid)
 </code></pre>
@@ -1308,7 +1339,7 @@ properties of the "session leader".</p>
 <p>See also: org.freedesktop.ConsoleKit.Seat</p>
 
 <h3>
-<a name="getsessiontype-" class="anchor" href="#getsessiontype-"><span class="octicon octicon-link"></span></a>GetSessionType ()</h3>
+<a id="getsessiontype-" class="anchor" href="#getsessiontype-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetSessionType ()</h3>
 
 <pre><code>GetSessionType (out's'type)
 </code></pre>
@@ -1326,7 +1357,7 @@ probably best to avoid this until we do.</p>
 <p>See also: <code>session-type</code></p>
 
 <h3>
-<a name="getuser-" class="anchor" href="#getuser-"><span class="octicon octicon-link"></span></a>GetUser ()</h3>
+<a id="getuser-" class="anchor" href="#getuser-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetUser ()</h3>
 
 <pre><code>GetUser (out'u'uid)
 </code></pre>
@@ -1339,7 +1370,7 @@ probably best to avoid this until we do.</p>
 </code></pre>
 
 <h3>
-<a name="warning-1" class="anchor" href="#warning-1"><span class="octicon octicon-link"></span></a>Warning</h3>
+<a id="warning-1" class="anchor" href="#warning-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Warning</h3>
 
 <p><code>GetUser</code> is deprecated since version 0.1.3 and should not be used in newly-
 written code. Use <code>GetUnixUser</code> instead.</p>
@@ -1347,7 +1378,7 @@ written code. Use <code>GetUnixUser</code> instead.</p>
 <p>See also: <code>user</code></p>
 
 <h3>
-<a name="getunixuser-" class="anchor" href="#getunixuser-"><span class="octicon octicon-link"></span></a>GetUnixUser ()</h3>
+<a id="getunixuser-" class="anchor" href="#getunixuser-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetUnixUser ()</h3>
 
 <pre><code>GetUnixUser (out'u'uid)
 </code></pre>
@@ -1362,7 +1393,7 @@ written code. Use <code>GetUnixUser</code> instead.</p>
 <p>See also: <code>unix-user</code></p>
 
 <h3>
-<a name="getx11display-" class="anchor" href="#getx11display-"><span class="octicon octicon-link"></span></a>GetX11Display ()</h3>
+<a id="getx11display-" class="anchor" href="#getx11display-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetX11Display ()</h3>
 
 <pre><code>GetX11Display (out's'display)
 </code></pre>
@@ -1377,7 +1408,7 @@ written code. Use <code>GetUnixUser</code> instead.</p>
 <p>See also: <code>x11-display</code></p>
 
 <h3>
-<a name="getx11displaydevice-" class="anchor" href="#getx11displaydevice-"><span class="octicon octicon-link"></span></a>GetX11DisplayDevice ()</h3>
+<a id="getx11displaydevice-" class="anchor" href="#getx11displaydevice-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetX11DisplayDevice ()</h3>
 
 <pre><code>GetX11DisplayDevice (out's'x11_display_device)
 </code></pre>
@@ -1394,7 +1425,7 @@ undefined.</p>
 <p>See also: <code>x11-display-device</code></p>
 
 <h3>
-<a name="getdisplaydevice-" class="anchor" href="#getdisplaydevice-"><span class="octicon octicon-link"></span></a>GetDisplayDevice ()</h3>
+<a id="getdisplaydevice-" class="anchor" href="#getdisplaydevice-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetDisplayDevice ()</h3>
 
 <pre><code>GetDisplayDevice (out's'display_device)
 </code></pre>
@@ -1410,7 +1441,7 @@ connected to.</p>
 <p>See also: <code>display-device</code></p>
 
 <h3>
-<a name="getremotehostname-" class="anchor" href="#getremotehostname-"><span class="octicon octicon-link"></span></a>GetRemoteHostName ()</h3>
+<a id="getremotehostname-" class="anchor" href="#getremotehostname-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetRemoteHostName ()</h3>
 
 <pre><code>GetRemoteHostName (out's'remote_host_name)
 </code></pre>
@@ -1425,7 +1456,7 @@ connected to.</p>
 <p>See also: <code>remote-host-name</code></p>
 
 <h3>
-<a name="getloginsessionid-" class="anchor" href="#getloginsessionid-"><span class="octicon octicon-link"></span></a>GetLoginSessionId ()</h3>
+<a id="getloginsessionid-" class="anchor" href="#getloginsessionid-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetLoginSessionId ()</h3>
 
 <pre><code>GetLoginSessionId (out's'login_session_id)
 </code></pre>
@@ -1440,7 +1471,7 @@ value is an empty string.</p>
 </code></pre>
 
 <h3>
-<a name="isactive-" class="anchor" href="#isactive-"><span class="octicon octicon-link"></span></a>IsActive ()</h3>
+<a id="isactive-" class="anchor" href="#isactive-" aria-hidden="true"><span class="octicon octicon-link"></span></a>IsActive ()</h3>
 
 <pre><code>IsActive (out'b'active)
 </code></pre>
@@ -1457,7 +1488,7 @@ value is an empty string.</p>
 <p>See also: <code>active</code></p>
 
 <h3>
-<a name="islocal-" class="anchor" href="#islocal-"><span class="octicon octicon-link"></span></a>IsLocal ()</h3>
+<a id="islocal-" class="anchor" href="#islocal-" aria-hidden="true"><span class="octicon octicon-link"></span></a>IsLocal ()</h3>
 
 <pre><code>IsLocal (out'b'local)
 </code></pre>
@@ -1476,7 +1507,7 @@ remote system.</p>
 <p>See also: <code>is-local</code></p>
 
 <h3>
-<a name="getcreationtime-" class="anchor" href="#getcreationtime-"><span class="octicon octicon-link"></span></a>GetCreationTime ()</h3>
+<a id="getcreationtime-" class="anchor" href="#getcreationtime-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetCreationTime ()</h3>
 
 <pre><code>GetCreationTime (out's'iso8601_datetime)
 </code></pre>
@@ -1490,7 +1521,7 @@ session was opened.</p>
 </code></pre>
 
 <h3>
-<a name="activate-" class="anchor" href="#activate-"><span class="octicon octicon-link"></span></a>Activate ()</h3>
+<a id="activate-" class="anchor" href="#activate-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Activate ()</h3>
 
 <pre><code>Activate ()
 </code></pre>
@@ -1502,7 +1533,7 @@ attached to.</p>
 <p>See also: <code>Seat.ActivateSession()</code></p>
 
 <h3>
-<a name="lock-" class="anchor" href="#lock-"><span class="octicon octicon-link"></span></a>Lock ()</h3>
+<a id="lock-" class="anchor" href="#lock-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lock ()</h3>
 
 <pre><code>Lock ()
 </code></pre>
@@ -1510,14 +1541,14 @@ attached to.</p>
 <p>This will cause a <code>Lock</code> signal to be emitted for this session.</p>
 
 <h3>
-<a name="permissions-1" class="anchor" href="#permissions-1"><span class="octicon octicon-link"></span></a>Permissions</h3>
+<a id="permissions-1" class="anchor" href="#permissions-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Permissions</h3>
 
 <p>This method is restricted to privileged users by D-Bus policy.</p>
 
 <p>See also: <code>Lock signal</code></p>
 
 <h3>
-<a name="unlock-" class="anchor" href="#unlock-"><span class="octicon octicon-link"></span></a>Unlock ()</h3>
+<a id="unlock-" class="anchor" href="#unlock-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Unlock ()</h3>
 
 <pre><code>Unlock ()
 </code></pre>
@@ -1528,14 +1559,14 @@ attached to.</p>
 activated during fast-user-switching.</p>
 
 <h3>
-<a name="permissions-2" class="anchor" href="#permissions-2"><span class="octicon octicon-link"></span></a>Permissions</h3>
+<a id="permissions-2" class="anchor" href="#permissions-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Permissions</h3>
 
 <p>This method is restricted to privileged users by D-Bus policy.</p>
 
 <p>See also: <code>Unlock signal</code></p>
 
 <h3>
-<a name="getidlehint-" class="anchor" href="#getidlehint-"><span class="octicon octicon-link"></span></a>GetIdleHint ()</h3>
+<a id="getidlehint-" class="anchor" href="#getidlehint-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetIdleHint ()</h3>
 
 <pre><code>GetIdleHint (out'b'idle_hint)
 </code></pre>
@@ -1550,7 +1581,7 @@ activated during fast-user-switching.</p>
 <p>See also: <code>idle-hint</code></p>
 
 <h3>
-<a name="getidlesincehint-" class="anchor" href="#getidlesincehint-"><span class="octicon octicon-link"></span></a>GetIdleSinceHint ()</h3>
+<a id="getidlesincehint-" class="anchor" href="#getidlesincehint-" aria-hidden="true"><span class="octicon octicon-link"></span></a>GetIdleSinceHint ()</h3>
 
 <pre><code>GetIdleSinceHint (out's'iso8601_datetime)
 </code></pre>
@@ -1564,7 +1595,7 @@ change of the idle-hint.</p>
 </code></pre>
 
 <h3>
-<a name="setidlehint-" class="anchor" href="#setidlehint-"><span class="octicon octicon-link"></span></a>SetIdleHint ()</h3>
+<a id="setidlehint-" class="anchor" href="#setidlehint-" aria-hidden="true"><span class="octicon octicon-link"></span></a>SetIdleHint ()</h3>
 
 <pre><code>SetIdleHint (in'b'idle_hint)
 </code></pre>
@@ -1579,10 +1610,10 @@ change of the idle-hint.</p>
 </code></pre>
 
 <h2>
-<a name="signal-details-2" class="anchor" href="#signal-details-2"><span class="octicon octicon-link"></span></a>Signal Details</h2>
+<a id="signal-details-2" class="anchor" href="#signal-details-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Signal Details</h2>
 
 <h3>
-<a name="the-activechanged-signal" class="anchor" href="#the-activechanged-signal"><span class="octicon octicon-link"></span></a>The ActiveChanged signal</h3>
+<a id="the-activechanged-signal" class="anchor" href="#the-activechanged-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The ActiveChanged signal</h3>
 
 <pre><code>ActiveChanged ('b'is_active)
 </code></pre>
@@ -1595,7 +1626,7 @@ change of the idle-hint.</p>
 </code></pre>
 
 <h3>
-<a name="the-idlehintchanged-signal" class="anchor" href="#the-idlehintchanged-signal"><span class="octicon octicon-link"></span></a>The IdleHintChanged signal</h3>
+<a id="the-idlehintchanged-signal" class="anchor" href="#the-idlehintchanged-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The IdleHintChanged signal</h3>
 
 <pre><code>IdleHintChanged ('b'hint)
 </code></pre>
@@ -1608,7 +1639,7 @@ change of the idle-hint.</p>
 </code></pre>
 
 <h3>
-<a name="the-lock-signal" class="anchor" href="#the-lock-signal"><span class="octicon octicon-link"></span></a>The Lock signal</h3>
+<a id="the-lock-signal" class="anchor" href="#the-lock-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Lock signal</h3>
 
 <pre><code>Lock ()
 </code></pre>
@@ -1619,7 +1650,7 @@ change of the idle-hint.</p>
 response to this signal.</p>
 
 <h3>
-<a name="the-unlock-signal" class="anchor" href="#the-unlock-signal"><span class="octicon octicon-link"></span></a>The Unlock signal</h3>
+<a id="the-unlock-signal" class="anchor" href="#the-unlock-signal" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Unlock signal</h3>
 
 <pre><code>Unlock ()
 </code></pre>
@@ -1630,10 +1661,10 @@ response to this signal.</p>
 in response to this signal.</p>
 
 <h2>
-<a name="property-details" class="anchor" href="#property-details"><span class="octicon octicon-link"></span></a>Property Details</h2>
+<a id="property-details" class="anchor" href="#property-details" aria-hidden="true"><span class="octicon octicon-link"></span></a>Property Details</h2>
 
 <h3>
-<a name="the-unix-user-property" class="anchor" href="#the-unix-user-property"><span class="octicon octicon-link"></span></a>The "unix-user" property</h3>
+<a id="the-unix-user-property" class="anchor" href="#the-unix-user-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "unix-user" property</h3>
 
 <pre><code>'unix-user'readwrite'u'
 </code></pre>
@@ -1641,7 +1672,7 @@ in response to this signal.</p>
 <p>The user assigned to the session.</p>
 
 <h3>
-<a name="the-user-property" class="anchor" href="#the-user-property"><span class="octicon octicon-link"></span></a>The "user" property</h3>
+<a id="the-user-property" class="anchor" href="#the-user-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "user" property</h3>
 
 <pre><code>'user'readwrite'u'
 </code></pre>
@@ -1649,13 +1680,13 @@ in response to this signal.</p>
 <p>The user assigned to the session.</p>
 
 <h3>
-<a name="warning-2" class="anchor" href="#warning-2"><span class="octicon octicon-link"></span></a>Warning</h3>
+<a id="warning-2" class="anchor" href="#warning-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Warning</h3>
 
 <p><code>user</code> is deprecated since version 0.1.3 and should not be used in newly-
 written code. Use <code>unix-user</code> instead.</p>
 
 <h3>
-<a name="the-session-type-property" class="anchor" href="#the-session-type-property"><span class="octicon octicon-link"></span></a>The "session-type" property</h3>
+<a id="the-session-type-property" class="anchor" href="#the-session-type-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "session-type" property</h3>
 
 <pre><code>'session-type'readwrite's'
 </code></pre>
@@ -1666,7 +1697,7 @@ written code. Use <code>unix-user</code> instead.</p>
 probably best to avoid this until we do.</p>
 
 <h3>
-<a name="the-remote-host-name-property" class="anchor" href="#the-remote-host-name-property"><span class="octicon octicon-link"></span></a>The "remote-host-name" property</h3>
+<a id="the-remote-host-name-property" class="anchor" href="#the-remote-host-name-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "remote-host-name" property</h3>
 
 <pre><code>'remote-host-name'readwrite's'
 </code></pre>
@@ -1680,7 +1711,7 @@ a remote system.</p>
 XDMCP connection.</p>
 
 <h3>
-<a name="the-display-device-property" class="anchor" href="#the-display-device-property"><span class="octicon octicon-link"></span></a>The "display-device" property</h3>
+<a id="the-display-device-property" class="anchor" href="#the-display-device-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "display-device" property</h3>
 
 <pre><code>'display-device'readwrite's'
 </code></pre>
@@ -1688,7 +1719,7 @@ XDMCP connection.</p>
 <p>The display device (aka TTY) that the session is connected to.</p>
 
 <h3>
-<a name="the-x11-display-property" class="anchor" href="#the-x11-display-property"><span class="octicon octicon-link"></span></a>The "x11-display" property</h3>
+<a id="the-x11-display-property" class="anchor" href="#the-x11-display-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "x11-display" property</h3>
 
 <pre><code>'x11-display'readwrite's'
 </code></pre>
@@ -1696,7 +1727,7 @@ XDMCP connection.</p>
 <p>Value of the X11 DISPLAY for this session if one is present.</p>
 
 <h3>
-<a name="the-x11-display-device-property" class="anchor" href="#the-x11-display-device-property"><span class="octicon octicon-link"></span></a>The "x11-display-device" property</h3>
+<a id="the-x11-display-device-property" class="anchor" href="#the-x11-display-device-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "x11-display-device" property</h3>
 
 <pre><code>'x11-display-device'readwrite's'
 </code></pre>
@@ -1705,7 +1736,7 @@ XDMCP connection.</p>
 to. If there is no x11-display set then this value is undefined.</p>
 
 <h3>
-<a name="the-active-property" class="anchor" href="#the-active-property"><span class="octicon octicon-link"></span></a>The "active" property</h3>
+<a id="the-active-property" class="anchor" href="#the-active-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "active" property</h3>
 
 <pre><code>'active'readwrite'b'
 </code></pre>
@@ -1715,7 +1746,7 @@ to. If there is no x11-display set then this value is undefined.</p>
 <p>If the session is not attached to a seat this value is undefined.</p>
 
 <h3>
-<a name="the-is-local-property" class="anchor" href="#the-is-local-property"><span class="octicon octicon-link"></span></a>The "is-local" property</h3>
+<a id="the-is-local-property" class="anchor" href="#the-is-local-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "is-local" property</h3>
 
 <pre><code>'is-local'readwrite'b'
 </code></pre>
@@ -1727,7 +1758,7 @@ originally used as a way to identify XDMCP sessions that originate from a
 remote system.</p>
 
 <h3>
-<a name="the-idle-hint-property" class="anchor" href="#the-idle-hint-property"><span class="octicon octicon-link"></span></a>The "idle-hint" property</h3>
+<a id="the-idle-hint-property" class="anchor" href="#the-idle-hint-property" aria-hidden="true"><span class="octicon octicon-link"></span></a>The "idle-hint" property</h3>
 
 <pre><code>'idle-hint'readwrite'b'
 </code></pre>
