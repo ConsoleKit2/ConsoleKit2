@@ -86,6 +86,9 @@ struct CkManagerPrivate
         /* How long to delay after emitting the PREPARE_FOR_SHUTDOWN or
          * PREPARE_FOR_SLEEP signal */
         guint            system_action_idle_delay;
+        /* The idle callback id so we can detect multiple attempts to
+         * perform a system action at the same time */
+        guint            system_action_idle_id;
 
         CkInhibitManager *inhibit_manager;
 };
@@ -1239,7 +1242,7 @@ system_action_idle_cb(SystemActionData *data)
 {
         g_return_val_if_fail (data != NULL, FALSE);
 
-        /* Perform the action */
+        /* Perform the action, it will handle the dbus_g_method_return */
         do_system_action (data->manager,
                           data->context,
                           data->command,
@@ -1249,6 +1252,9 @@ system_action_idle_cb(SystemActionData *data)
         /* If we got here the sleep action is done and we're awake again
          * or the operation failed. Either way we can signal to the apps */
         g_signal_emit (data->manager, signals [data->signal], 0, FALSE);
+
+        /* reset this since we'll return FALSE here and kill the cb */
+        data->manager->priv->system_action_idle_id = 0;
 
         g_free (data);
 
@@ -1260,6 +1266,13 @@ do_restart (CkManager             *manager,
             DBusGMethodInvocation *context)
 {
         SystemActionData *data;
+
+        /* Don't allow multiple system actions at the same time */
+        if (manager->priv->system_action_idle_id != 0) {
+                g_error ("attempting to perform a system action while one is in progress");
+                dbus_g_method_return (context, FALSE);
+                return;
+        }
 
         /* Emit the signal */
         g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, TRUE);
@@ -1280,9 +1293,9 @@ do_restart (CkManager             *manager,
         data->signal = PREPARE_FOR_SHUTDOWN;
 
         /* Sleep so user applications have time to respond */
-        g_timeout_add (data->manager->priv->system_action_idle_delay,
-                       (GSourceFunc)system_action_idle_cb,
-                       data);
+        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+                                                              (GSourceFunc)system_action_idle_cb,
+                                                              data);
 }
 
 /*
@@ -1347,6 +1360,13 @@ do_stop (CkManager             *manager,
 {
         SystemActionData *data;
 
+        /* Don't allow multiple system actions at the same time */
+        if (manager->priv->system_action_idle_id != 0) {
+                g_error ("attempting to perform a system action while one is in progress");
+                dbus_g_method_return (context, FALSE);
+                return;
+        }
+
         /* Emit the signal */
         g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, TRUE);
 
@@ -1355,6 +1375,7 @@ do_stop (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform shutdown\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
+                dbus_g_method_return (context, FALSE);
                 return;
         }
 
@@ -1366,9 +1387,9 @@ do_stop (CkManager             *manager,
         data->signal = PREPARE_FOR_SHUTDOWN;
 
         /* Sleep so user applications have time to respond */
-        g_timeout_add (data->manager->priv->system_action_idle_delay,
-                       (GSourceFunc)system_action_idle_cb,
-                       data);
+        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+                                                              (GSourceFunc)system_action_idle_cb,
+                                                              data);
 }
 
 gboolean
@@ -1563,6 +1584,13 @@ do_suspend (CkManager             *manager,
 {
         SystemActionData *data;
 
+        /* Don't allow multiple system actions at the same time */
+        if (manager->priv->system_action_idle_id != 0) {
+                g_error ("attempting to perform a system action while one is in progress");
+                dbus_g_method_return (context, FALSE);
+                return;
+        }
+
         /* Emit the signal */
         g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
 
@@ -1571,6 +1599,7 @@ do_suspend (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform suspend\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                dbus_g_method_return (context, FALSE);
                 return;
         }
 
@@ -1582,9 +1611,9 @@ do_suspend (CkManager             *manager,
         data->signal = PREPARE_FOR_SLEEP;
 
         /* Sleep so user applications have time to respond */
-        g_timeout_add (data->manager->priv->system_action_idle_delay,
-                       (GSourceFunc)system_action_idle_cb,
-                       data);
+        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+                                                              (GSourceFunc)system_action_idle_cb,
+                                                              data);
 }
 
 /*
@@ -1676,6 +1705,7 @@ do_hibernate (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform suspend\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                dbus_g_method_return (context, FALSE);
                 return;
         }
 
@@ -1687,9 +1717,9 @@ do_hibernate (CkManager             *manager,
         data->signal = PREPARE_FOR_SLEEP;
 
         /* Sleep so user applications have time to respond */
-        g_timeout_add (data->manager->priv->system_action_idle_delay,
-                       (GSourceFunc)system_action_idle_cb,
-                       data);
+        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+                                                              (GSourceFunc)system_action_idle_cb,
+                                                              data);
 }
 
 /*
@@ -1781,6 +1811,7 @@ do_hybrid_sleep (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform suspend\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                dbus_g_method_return (context, FALSE);
                 return;
         }
 
@@ -1792,9 +1823,9 @@ do_hybrid_sleep (CkManager             *manager,
         data->signal = PREPARE_FOR_SLEEP;
 
         /* Sleep so user applications have time to respond */
-        g_timeout_add (data->manager->priv->system_action_idle_delay,
-                       (GSourceFunc)system_action_idle_cb,
-                       data);
+        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+                                                              (GSourceFunc)system_action_idle_cb,
+                                                              data);
 }
 
 /*
@@ -3409,6 +3440,7 @@ ck_manager_init (CkManager *manager)
         manager->priv->inhibit_manager = ck_inhibit_manager_get ();
 
         manager->priv->system_action_idle_delay = 4 * 1000;
+        manager->priv->system_action_idle_id = 0;
 
         create_seats (manager);
 }
@@ -3438,6 +3470,10 @@ ck_manager_finalize (GObject *object)
 
         if (manager->priv->inhibit_manager != NULL) {
                 g_object_unref (manager->priv->inhibit_manager);
+        }
+
+        if (manager->priv->system_action_idle_id != 0) {
+                g_source_remove (manager->priv->system_action_idle_id);
         }
 
         G_OBJECT_CLASS (ck_manager_parent_class)->finalize (object);
