@@ -603,5 +603,36 @@
         </doc:description>
       </doc:doc>
     </signal>
+    <signal name="PrepareForShutdown">
+      <arg name="active" type="b">
+        <doc:doc>
+          <doc:summary>TRUE when the system is starting to halt.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when the system is halting (active = TRUE). If
+                    successful there will not be a FALSE signal emitted since
+                    the system will poweroff or reboot. It will emit a FALSE
+                    signal if the shutdown operation failed.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+    <signal name="PrepareForSleep">
+      <arg name="active" type="b">
+        <doc:doc>
+          <doc:summary>TRUE when starting to sleep.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when the system is starting the sleep process.
+                    It will emit with an active = FALSE when resuming from sleep
+                    or if the sleep operation failed.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
   </interface>
 </node>

@@ -54,6 +54,10 @@ typedef struct
                                                     const char *sid);
         void          (* system_idle_hint_changed) (CkManager  *manager,
                                                     gboolean    idle_hint);
+        void          (* prepare_for_shutdown)     (CkManager  *manager,
+                                                    gboolean    active);
+        void          (* prepare_for_sleep)        (CkManager  *manager,
+                                                    gboolean    active);
 } CkManagerClass;
 
 typedef enum

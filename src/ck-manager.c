@@ -83,15 +83,31 @@ struct CkManagerPrivate
         gboolean         system_idle_hint;
         GTimeVal         system_idle_since_hint;
 
+        /* How long to delay after emitting the PREPARE_FOR_SHUTDOWN or
+         * PREPARE_FOR_SLEEP signal */
+        guint            system_action_idle_delay;
+
         CkInhibitManager *inhibit_manager;
 };
 
-enum {
+typedef enum {
         SEAT_ADDED,
         SEAT_REMOVED,
         SYSTEM_IDLE_HINT_CHANGED,
+        PREPARE_FOR_SHUTDOWN,
+        PREPARE_FOR_SLEEP,
         LAST_SIGNAL
-};
+} SIGNALS;
+
+typedef struct
+{
+        CkManager             *manager;
+        DBusGMethodInvocation *context;
+        const gchar           *command;
+        CkLogEventType         event_type;
+        const gchar           *description;
+        SIGNALS                signal;
+} SystemActionData;
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
@@ -1198,7 +1214,7 @@ do_system_action (CkManager             *manager,
         g_debug ("command is %s", command);
 
         error = NULL;
-        res = g_spawn_command_line_async (command, &error);
+        res = g_spawn_command_line_sync (command, NULL, NULL, NULL, &error);
 
         if (! res) {
                 GError *new_error;
@@ -1218,15 +1234,55 @@ do_system_action (CkManager             *manager,
         }
 }
 
+static gboolean
+system_action_idle_cb(SystemActionData *data)
+{
+        g_return_val_if_fail (data != NULL, FALSE);
+
+        /* Perform the action */
+        do_system_action (data->manager,
+                          data->context,
+                          data->command,
+                          data->event_type,
+                          data->description);
+
+        /* If we got here the sleep action is done and we're awake again
+         * or the operation failed. Either way we can signal to the apps */
+        g_signal_emit (data->manager, signals [data->signal], 0, FALSE);
+
+        g_free (data);
+
+        return FALSE;
+}
+
 static void
 do_restart (CkManager             *manager,
             DBusGMethodInvocation *context)
 {
-        do_system_action (manager,
-                          context,
-                          PREFIX "/lib/ConsoleKit/scripts/ck-system-restart",
-                          CK_LOG_EVENT_SYSTEM_RESTART,
-                          "Restart");
+        SystemActionData *data;
+
+        /* Emit the signal */
+        g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, TRUE);
+
+        /* Allocate and fill the data struct to pass to the idle cb */
+        data = g_new0 (SystemActionData, 1);
+        if (data == NULL) {
+                g_critical ("failed to allocate memory to perform shutdown\n");
+                g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
+                return;
+        }
+
+        data->manager = manager;
+        data->context = context;
+        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-restart";
+        data->event_type = CK_LOG_EVENT_SYSTEM_RESTART;
+        data->description = "Restart";
+        data->signal = PREPARE_FOR_SHUTDOWN;
+
+        /* Sleep so user applications have time to respond */
+        g_timeout_add (data->manager->priv->system_action_idle_delay,
+                       (GSourceFunc)system_action_idle_cb,
+                       data);
 }
 
 /*
@@ -1289,11 +1345,30 @@ static void
 do_stop (CkManager             *manager,
          DBusGMethodInvocation *context)
 {
-        do_system_action (manager,
-                          context,
-                          PREFIX "/lib/ConsoleKit/scripts/ck-system-stop",
-                          CK_LOG_EVENT_SYSTEM_STOP,
-                          "Stop");
+        SystemActionData *data;
+
+        /* Emit the signal */
+        g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, TRUE);
+
+        /* Allocate and fill the data struct to pass to the idle cb */
+        data = g_new0 (SystemActionData, 1);
+        if (data == NULL) {
+                g_critical ("failed to allocate memory to perform shutdown\n");
+                g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
+                return;
+        }
+
+        data->manager = manager;
+        data->context = context;
+        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-stop";
+        data->event_type = CK_LOG_EVENT_SYSTEM_STOP;
+        data->description = "Stop";
+        data->signal = PREPARE_FOR_SHUTDOWN;
+
+        /* Sleep so user applications have time to respond */
+        g_timeout_add (data->manager->priv->system_action_idle_delay,
+                       (GSourceFunc)system_action_idle_cb,
+                       data);
 }
 
 gboolean
@@ -1486,11 +1561,30 @@ static void
 do_suspend (CkManager             *manager,
             DBusGMethodInvocation *context)
 {
-        do_system_action (manager,
-                          context,
-                          PREFIX "/lib/ConsoleKit/scripts/ck-system-suspend",
-                          CK_LOG_EVENT_SYSTEM_SUSPEND,
-                          "Suspend");
+        SystemActionData *data;
+
+        /* Emit the signal */
+        g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
+
+        /* Allocate and fill the data struct to pass to the idle cb */
+        data = g_new0 (SystemActionData, 1);
+        if (data == NULL) {
+                g_critical ("failed to allocate memory to perform suspend\n");
+                g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                return;
+        }
+
+        data->manager = manager;
+        data->context = context;
+        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-suspend";
+        data->event_type = CK_LOG_EVENT_SYSTEM_SUSPEND;
+        data->description = "Suspend";
+        data->signal = PREPARE_FOR_SLEEP;
+
+        /* Sleep so user applications have time to respond */
+        g_timeout_add (data->manager->priv->system_action_idle_delay,
+                       (GSourceFunc)system_action_idle_cb,
+                       data);
 }
 
 /*
@@ -1572,11 +1666,30 @@ static void
 do_hibernate (CkManager             *manager,
               DBusGMethodInvocation *context)
 {
-        do_system_action (manager,
-                          context,
-                          PREFIX "/lib/ConsoleKit/scripts/ck-system-hibernate",
-                          CK_LOG_EVENT_SYSTEM_HIBERNATE,
-                          "Hibernate");
+        SystemActionData *data;
+
+        /* Emit the signal */
+        g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
+
+        /* Allocate and fill the data struct to pass to the idle cb */
+        data = g_new0 (SystemActionData, 1);
+        if (data == NULL) {
+                g_critical ("failed to allocate memory to perform suspend\n");
+                g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                return;
+        }
+
+        data->manager = manager;
+        data->context = context;
+        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-hibernate";
+        data->event_type = CK_LOG_EVENT_SYSTEM_HIBERNATE;
+        data->description = "Hibernate";
+        data->signal = PREPARE_FOR_SLEEP;
+
+        /* Sleep so user applications have time to respond */
+        g_timeout_add (data->manager->priv->system_action_idle_delay,
+                       (GSourceFunc)system_action_idle_cb,
+                       data);
 }
 
 /*
@@ -1658,11 +1771,30 @@ static void
 do_hybrid_sleep (CkManager             *manager,
                  DBusGMethodInvocation *context)
 {
-        do_system_action (manager,
-                          context,
-                          PREFIX "/lib/ConsoleKit/scripts/ck-system-hybridsleep",
-                          CK_LOG_EVENT_SYSTEM_HIBERNATE,
-                          "Hybrid Sleep");
+        SystemActionData *data;
+
+        /* Emit the signal */
+        g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
+
+        /* Allocate and fill the data struct to pass to the idle cb */
+        data = g_new0 (SystemActionData, 1);
+        if (data == NULL) {
+                g_critical ("failed to allocate memory to perform suspend\n");
+                g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                return;
+        }
+
+        data->manager = manager;
+        data->context = context;
+        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-hybridsleep";
+        data->event_type = CK_LOG_EVENT_SYSTEM_HIBERNATE;
+        data->description = "Hybrid Sleep";
+        data->signal = PREPARE_FOR_SLEEP;
+
+        /* Sleep so user applications have time to respond */
+        g_timeout_add (data->manager->priv->system_action_idle_delay,
+                       (GSourceFunc)system_action_idle_cb,
+                       data);
 }
 
 /*
@@ -3043,6 +3175,26 @@ ck_manager_class_init (CkManagerClass *klass)
                               g_cclosure_marshal_VOID__BOOLEAN,
                               G_TYPE_NONE,
                               1, G_TYPE_BOOLEAN);
+        signals [PREPARE_FOR_SHUTDOWN] =
+                g_signal_new ("prepare-for-shutdown",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkManagerClass, prepare_for_shutdown),
+                              NULL,
+                              NULL,
+                              g_cclosure_marshal_VOID__BOOLEAN,
+                              G_TYPE_NONE,
+                              1, G_TYPE_BOOLEAN);
+        signals [PREPARE_FOR_SLEEP] =
+                g_signal_new ("prepare-for-sleep",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkManagerClass, prepare_for_sleep),
+                              NULL,
+                              NULL,
+                              g_cclosure_marshal_VOID__BOOLEAN,
+                              G_TYPE_NONE,
+                              1, G_TYPE_BOOLEAN);
 
         dbus_g_object_type_install_info (CK_TYPE_MANAGER, &dbus_glib_ck_manager_object_info);
         dbus_g_error_domain_register (CK_MANAGER_ERROR, NULL, CK_MANAGER_TYPE_ERROR);
@@ -3255,6 +3407,8 @@ ck_manager_init (CkManager *manager)
         manager->priv->logger = ck_event_logger_new (LOG_FILE);
 
         manager->priv->inhibit_manager = ck_inhibit_manager_get ();
+
+        manager->priv->system_action_idle_delay = 4 * 1000;
 
         create_seats (manager);
 }

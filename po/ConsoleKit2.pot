@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2014-11-02 15:43+0300\n"
+"POT-Creation-Date: 2014-11-17 10:15+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,29 +65,29 @@ msgstr ""
 msgid "No consoles available"
 msgstr ""
 
-#: src/ck-manager.c:2516 src/ck-manager.c:2615 src/ck-manager.c:2672
+#: src/ck-manager.c:2648 src/ck-manager.c:2747 src/ck-manager.c:2804
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2529 src/ck-session.c:278
+#: src/ck-manager.c:2661 src/ck-session.c:278
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2553 src/ck-manager.c:2565 src/ck-manager.c:2822
+#: src/ck-manager.c:2685 src/ck-manager.c:2697 src/ck-manager.c:2954
 msgid "Unable to find session for cookie"
 msgstr ""
 
-#: src/ck-manager.c:2629
+#: src/ck-manager.c:2761
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2830
+#: src/ck-manager.c:2962
 msgid "User ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:2840
+#: src/ck-manager.c:2972
 msgid "Process ID does not match the owner of cookie"
 msgstr ""
 
