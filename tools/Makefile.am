@@ -166,20 +166,21 @@ udev_acl_CFLAGS =       \
 	$(AM_CFLAGS)        \
 	$(NULL)
 
+install-exec-hook:
+	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d
+	mkdir -p $(DESTDIR)$(UDEVDIR)
+	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d/udev-acl.ck
+	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(UDEVDIR)/udev-acl
+endif
+
 scriptdir = $(prefix)/lib/ConsoleKit/scripts
 script_SCRIPTS =			\
 	pam-foreground-compat.ck	\
 	$(NULL)
 
-
-install-exec-hook:
-	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d
+install-data-hook:
 	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d
-	mkdir -p $(DESTDIR)$(UDEVDIR)
-	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d/udev-acl.ck
-	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(UDEVDIR)/udev-acl
 	ln -sf $(prefix)/lib/ConsoleKit/scripts/pam-foreground-compat.ck $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d/pam-foreground-compat.ck
-endif
 
 EXTRA_DIST =				\
 	$(script_SCRIPTS)		\
