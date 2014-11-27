@@ -1,12 +1,3 @@
 #!/bin/sh
 
-#Try for common tools
-if [ -x "/sbin/zzz" ] ; then
-	/sbin/zzz
-	exit $?
-elif [ -x "/usr/sbin/zzz" ] ; then
-	/usr/sbin/zzz
-	exit $?
-else
-	exit 1
-fi
+/usr/sbin/zzz
