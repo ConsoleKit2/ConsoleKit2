@@ -14,6 +14,10 @@ if CK_COMPILE_FREEBSD
 SUBDIRS += freebsd
 endif
 
+if CK_COMPILE_OPENBSD
+SUBDIRS += openbsd
+endif
+
 if CK_COMPILE_SOLARIS
 SUBDIRS += solaris
 endif

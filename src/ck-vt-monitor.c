@@ -408,7 +408,7 @@ static void
 vt_add_watches (CkVtMonitor *vt_monitor)
 {
 #if defined (__sun) && !defined (HAVE_SYS_VT_H) || (defined(__OpenBSD__) && (!defined(__i386__) && !defined(__amd64__) && !defined(__powerpc__)))
-        /* On OpenBSD, VT are only available on i386 and amd64 */
+        /* On OpenBSD, VT are only available on i386, amd64 and powerpc */
         /* Best to do nothing if VT is not supported */
 #elif defined (__sun) && defined (HAVE_SYS_VT_H)
         /*
