@@ -435,6 +435,7 @@ ck_event_logger_finalize (GObject *object)
 
         if (event_logger->priv->event_queue != NULL) {
                 g_async_queue_unref (event_logger->priv->event_queue);
+                event_logger->priv->event_queue = NULL;
         }
 
         if (event_logger->priv->file != NULL) {
