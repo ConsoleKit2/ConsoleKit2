@@ -514,9 +514,7 @@ change_active_session (CkSeat    *seat,
          * must be sent when the database dump is finished it is
          * important that the '-full' signalled is emitted first. */
 
-        if (CK_IS_SESSION (old_session)) {
-                g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED_FULL], 0, old_session, session);
-        }
+        g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED_FULL], 0, old_session, session);
         g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED], 0, ssid);
 
         if (old_session != NULL) {
