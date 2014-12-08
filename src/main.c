@@ -186,7 +186,7 @@ delete_inhibit_files (void)
 {
         GDir *dir;
         GError *error = NULL;
-        const gchar *INHIBIT_DIRECTORY = LOCALSTATEDIR "/run/ConsoleKit/inhibit";
+        const gchar *INHIBIT_DIRECTORY = RUNDIR "/ConsoleKit/inhibit";
         const gchar *name;
 
         g_debug ("Cleaning up %s", INHIBIT_DIRECTORY);

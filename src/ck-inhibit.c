@@ -216,19 +216,19 @@ create_inhibit_base_directory (void)
         gint res;
 
         errno = 0;
-        res = g_mkdir_with_parents (LOCALSTATEDIR "/run/ConsoleKit/inhibit",
+        res = g_mkdir_with_parents (RUNDIR "/ConsoleKit/inhibit",
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (res < 0) {
                 g_warning ("Unable to create directory %s (%s)",
-                           LOCALSTATEDIR "/run/ConsoleKit/inhibit",
+                           RUNDIR "/ConsoleKit/inhibit",
                            g_strerror (errno));
 
                 return FALSE;
         }
 
-        if (g_chmod (LOCALSTATEDIR "/run/ConsoleKit/inhibit", 0755) == -1) {
+        if (g_chmod (RUNDIR "/ConsoleKit/inhibit", 0755) == -1) {
                 g_warning ("Failed to change permissions for %s",
-                           LOCALSTATEDIR "/run/ConsoleKit/inhibit");
+                           RUNDIR "/ConsoleKit/inhibit");
         }
 
         return TRUE;
@@ -391,8 +391,8 @@ get_named_pipe_path (const char* who)
 
         errno = 0;
 
-        path = g_strdup_printf ("%s/run/ConsoleKit/inhibit/inhibit.XXXXXX.pipe",
-                                LOCALSTATEDIR);
+        path = g_strdup_printf ("%s/ConsoleKit/inhibit/inhibit.XXXXXX.pipe",
+                                RUNDIR);
 
         /* check that we got a string */
         if (path == NULL) {

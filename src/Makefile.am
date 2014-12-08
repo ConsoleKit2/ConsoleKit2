@@ -20,6 +20,7 @@ AM_CFLAGS =							\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DSYSCONFDIR=\""$(sysconfdir)"\" 			\
 	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
+	-DRUNDIR=\""$(RUNDIR)"\" 				\
 	-DCONSOLE_KIT_PID_FILE=\""$(CONSOLE_KIT_PID_FILE)"\"	\
 	-DLOCALEDIR=\"$(localedir)\"		\
 	$(WARN_CFLAGS)						\
@@ -211,8 +212,8 @@ test_tty_idle_monitor_LDADD =		\
 
 test_inhibit_CFLAGS = \
 	$(AM_CFLAGS)	\
-	-ULOCALSTATEDIR	\
-	-DLOCALSTATEDIR=\"/tmp\" 			\
+	-URUNDIR	\
+	-DRUNDIR=\"/tmp\" 			\
 	$(NULL)
 
 test_inhibit_SOURCES = 	\
@@ -251,5 +252,5 @@ install-data-local:
 	-mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d
 	-mkdir -p $(DESTDIR)$(sysconfdir)/ConsoleKit/run-seat.d
 	-mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d
-	-mkdir -p $(DESTDIR)$(localstatedir)/run/ConsoleKit
+	-mkdir -p $(DESTDIR)$(RUNDIR)/ConsoleKit
 	-mkdir -p $(DESTDIR)$(localstatedir)/log/ConsoleKit

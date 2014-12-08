@@ -202,8 +202,8 @@ ck_manager_dump (CkManager *manager)
 {
         int         fd;
         int         res;
-        const char *filename = LOCALSTATEDIR "/run/ConsoleKit/database";
-        const char *filename_tmp = LOCALSTATEDIR "/run/ConsoleKit/database~";
+        const char *filename = RUNDIR "/ConsoleKit/database";
+        const char *filename_tmp = RUNDIR "/ConsoleKit/database~";
 
         if (manager == NULL) {
                 g_warning ("ck_manager_dump: manager == NULL");
@@ -212,16 +212,16 @@ ck_manager_dump (CkManager *manager)
 
         /* always make sure we have a directory */
         errno = 0;
-        res = g_mkdir_with_parents (LOCALSTATEDIR "/run/ConsoleKit",
+        res = g_mkdir_with_parents (RUNDIR "/ConsoleKit",
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (res < 0) {
                 g_warning ("Unable to create directory %s (%s)",
-                           LOCALSTATEDIR "/run/ConsoleKit",
+                           RUNDIR "/ConsoleKit",
                            g_strerror (errno));
                 return;
         }
 
-        g_debug ("ck_manager_dump: %s/run/ConsoleKit folder created", LOCALSTATEDIR);
+        g_debug ("ck_manager_dump: %s/ConsoleKit folder created", RUNDIR);
 
         fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0644);
         if (fd == -1) {
