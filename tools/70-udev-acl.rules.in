@@ -70,7 +70,7 @@ ENV{DDC_DEVICE}=="*?", TAG+="udev-acl"
 SUBSYSTEM=="usb", ENV{ID_MEDIA_PLAYER}=="?*", TAG+="udev-acl"
 
 # apply ACL for all locally logged in users
-LABEL="acl_apply", TAG=="udev-acl", TEST=="/var/run/ConsoleKit/database", \
+LABEL="acl_apply", TAG=="udev-acl", TEST=="@RUNDIR@/ConsoleKit/database", \
   RUN+="udev-acl --action=$env{ACTION} --device=$env{DEVNAME}"
 
 LABEL="acl_end"

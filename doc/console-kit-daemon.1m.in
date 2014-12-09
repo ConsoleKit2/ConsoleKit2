@@ -49,7 +49,7 @@ used as a utmp/wtmp replacement since it stores a superset of the information
 as in the utmp/wtmp database\&.
 .PP
 The ConsoleKit database is stored in the file
-\fB/var/run/ConsoleKit/database\fR\&.  It stores information about
+\fB@RUNDIR@/ConsoleKit/database\fR\&.  It stores information about
 active Seats, Sessions, and the current SessionLeader\&.
 .SH "OPTIONS"
 .PP

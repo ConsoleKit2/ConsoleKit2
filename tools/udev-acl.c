@@ -132,7 +132,7 @@ static GSList *uids_with_local_active_session(const char *own_id)
         GKeyFile *keyfile;
 
         keyfile = g_key_file_new();
-        if (g_key_file_load_from_file(keyfile, "/var/run/ConsoleKit/database", 0, NULL)) {
+        if (g_key_file_load_from_file(keyfile, RUNDIR "/ConsoleKit/database", 0, NULL)) {
                 gchar **groups;
 
                 groups = g_key_file_get_groups(keyfile, NULL);

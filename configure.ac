@@ -163,6 +163,21 @@ fi
 Z_LIBS="${Z_LIBS} -lz"
 AC_SUBST(Z_LIBS)
 
+
+dnl ---------------------------------------------------------------------------
+dnl - Path to rundir e.g. /var/run
+dnl ---------------------------------------------------------------------------
+
+AC_ARG_WITH(rundir,
+	[AS_HELP_STRING([--with-rundir=<dir>],[run directory location, e.g. /var/run])])
+if ! test -z "$with_rundir" ; then
+        RUNDIR="$with_rundir"
+else
+        RUNDIR="$localstatedir/run"
+fi
+AC_SUBST(RUNDIR)
+
+
 dnl ---------------------------------------------------------------------------
 dnl - PID file
 dnl ---------------------------------------------------------------------------
@@ -173,7 +188,7 @@ AC_ARG_WITH(pid-file,
 if ! test -z "$with_pid_file"; then
    CONSOLE_KIT_PID_FILE=$with_pid_file
 else
-   CONSOLE_KIT_PID_FILE=${localstatedir}/run/ConsoleKit/pid
+   CONSOLE_KIT_PID_FILE=${RUNDIR}/ConsoleKit/pid
 fi
 
 AC_SUBST(CONSOLE_KIT_PID_FILE)
@@ -472,6 +487,7 @@ AC_SUBST(PACKAGE)
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+tools/70-udev-acl.rules
 tools/Makefile
 tools/linux/Makefile
 tools/freebsd/Makefile
@@ -479,6 +495,7 @@ tools/openbsd/Makefile
 tools/solaris/Makefile
 data/Makefile
 doc/Makefile
+doc/console-kit-daemon.1m
 doc/dbus/ConsoleKit.xml
 doc/dbus/Makefile
 libck-connector/Makefile
@@ -500,6 +517,7 @@ echo "
         sbindir:                  ${sbindir}
         sysconfdir:               ${sysconfdir}
         localstatedir:            ${localstatedir}
+        rundir:                   ${RUNDIR}
         datadir:                  ${datadir}
 	source code location:	  ${srcdir}
 	compiler:		  ${CC}
