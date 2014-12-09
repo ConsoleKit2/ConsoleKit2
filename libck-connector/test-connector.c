@@ -29,6 +29,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include "ck-connector.h"
 
 int
@@ -45,9 +48,17 @@ main (int argc, char *argv[])
 
         ret = 1;
 
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
+
         connector = ck_connector_new ();
         if (connector == NULL) {
-                printf ("OOM creating CkConnector\n");
+                printf (_("OOM creating CkConnector\n"));
                 goto out;
         }
 
@@ -69,13 +80,13 @@ main (int argc, char *argv[])
                                 error.message);
                         dbus_error_free (&error);
                 } else {
-                        printf ("cannot open CK session: OOM, D-Bus system bus not available,\n"
-                                "ConsoleKit not available or insufficient privileges.\n");
+                        printf (_("cannot open CK session: OOM, D-Bus system bus not available,\n")
+                                _("ConsoleKit not available or insufficient privileges.\n"));
                 }
                 goto out;
         }
 
-        printf ("Session cookie is '%s'\n", ck_connector_get_cookie (connector));
+        printf (_("Session cookie is '%s'\n"), ck_connector_get_cookie (connector));
         sleep (20);
 
         dbus_error_init (&error);
@@ -85,8 +96,8 @@ main (int argc, char *argv[])
                                 error.message);
                         dbus_error_free (&error);
                 } else {
-                        printf ("Cannot close CK session: OOM, D-Bus system bus not available,\n"
-                                "ConsoleKit not available or insufficient privileges.\n");
+                        printf (_("Cannot close CK session: OOM, D-Bus system bus not available,\n)"
+                                _("ConsoleKit not available or insufficient privileges.\n"));
                 }
                 goto out;
         }

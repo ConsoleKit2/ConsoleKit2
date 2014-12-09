@@ -34,6 +34,9 @@
 #include <sys/types.h>
 #include <dbus/dbus.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include "ck-connector.h"
 
 #define N_ELEMENTS(arr)             (sizeof (arr) / sizeof ((arr)[0]))
@@ -280,7 +283,7 @@ ck_connector_open_session (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to open session: %s",
+                                        _("Unable to open session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                 }
@@ -307,7 +310,7 @@ ck_connector_open_session (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to open session: %s",
+                                        _("Unable to open session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                         goto out;
@@ -322,7 +325,7 @@ ck_connector_open_session (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to open session: %s",
+                                        _("Unable to open session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                         goto out;
@@ -376,7 +379,7 @@ ck_connector_open_session_with_parameters_valist (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to open session: %s",
+                                        _("Unable to open session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                 }
@@ -413,7 +416,7 @@ ck_connector_open_session_with_parameters_valist (CkConnector *connector,
                 if (type == DBUS_TYPE_INVALID) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unknown parameter: %s",
+                                        _("Unknown parameter: %s"),
                                         name);
                         goto out;
                 }
@@ -422,7 +425,7 @@ ck_connector_open_session_with_parameters_valist (CkConnector *connector,
                 if (! res) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Error adding parameter: %s",
+                                        _("Error adding parameter: %s"),
                                         name);
                         goto out;
                 }
@@ -443,7 +446,7 @@ ck_connector_open_session_with_parameters_valist (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to open session: %s",
+                                        _("Unable to open session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                         goto out;
@@ -458,7 +461,7 @@ ck_connector_open_session_with_parameters_valist (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to open session: %s",
+                                        _("Unable to open session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                         goto out;
@@ -619,8 +622,8 @@ ck_connector_close_session (CkConnector *connector,
         if (!connector->session_created || connector->cookie == NULL) {
                 dbus_set_error (error,
                                 CK_CONNECTOR_ERROR,
-                                "Unable to close session: %s",
-                                "no session open");
+                                _("Unable to close session: %s"),
+                                _("no session open"));
                 goto out;
         }
 
@@ -648,7 +651,7 @@ ck_connector_close_session (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to close session: %s",
+                                        _("Unable to close session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                         goto out;
@@ -663,7 +666,7 @@ ck_connector_close_session (CkConnector *connector,
                 if (dbus_error_is_set (&local_error)) {
                         dbus_set_error (error,
                                         CK_CONNECTOR_ERROR,
-                                        "Unable to close session: %s",
+                                        _("Unable to close session: %s"),
                                         local_error.message);
                         dbus_error_free (&local_error);
                         goto out;
