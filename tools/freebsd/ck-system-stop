@@ -2,7 +2,7 @@
 
 unsupported() {
 	echo "org.freedesktop.Hal.Device.SystemPowerManagement.NotSupported" >&2
-	echo "No shutdown command found" >&2
+	echo _("No shutdown command found") >&2
 	exit 1
 }
 

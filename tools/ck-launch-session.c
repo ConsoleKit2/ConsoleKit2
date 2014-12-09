@@ -71,7 +71,7 @@ main (int argc, char **argv)
                         pid = fork ();
                         switch (pid) {
                         case -1:
-                                syslog (LOG_ERR, "error forking child");
+                                syslog (LOG_ERR, _("error forking child"));
                                 break;
                         case 0:
                                 setenv ("XDG_SESSION_COOKIE",
@@ -83,10 +83,10 @@ main (int argc, char **argv)
                                 break;
                         }
                 } else {
-                        syslog (LOG_ERR, "error connecting to ConsoleKit");
+                        syslog (LOG_ERR, _("error connecting to ConsoleKit"));
                 }
         } else {
-                syslog (LOG_ERR, "error setting up to connection to ConsoleKit");
+                syslog (LOG_ERR, _("error setting up to connection to ConsoleKit"));
         }
 
         if (argc > 1) {

@@ -9,7 +9,7 @@ if [ ! -z "${DISPLAY}" ]; then
 fi
 
 if [ ! -f "/tmp/.X${dispnum}-lock" ]; then
-    echo "ERROR: Failed to find X lock file for display ${dispnum}"
+    echo _("ERROR: Failed to find X lock file for display ${dispnum}")
     exit 1
 fi
 pid=$(${CAT} "/tmp/.X${dispnum}-lock")

@@ -71,7 +71,7 @@ retry:
                                      O_CREAT | O_EXCL | O_APPEND,
                                      S_IRUSR | S_IWUSR | S_IRGRP);
                         if (fd < 0) {
-                                g_warning ("Couldn't create log file %s (%s)",
+                                g_warning (_("Couldn't create log file %s (%s)"),
                                            filename,
                                            g_strerror (errno));
                                 goto out;
@@ -84,7 +84,7 @@ retry:
                         goto retry;
                 }
                 if (fd < 0) {
-                        g_warning ("Couldn't open log file %s (%s)",
+                        g_warning (_("Couldn't open log file %s (%s)"),
                                    filename,
                                    g_strerror (errno));
                         goto out;
@@ -93,19 +93,19 @@ retry:
 
         if (fcntl (fd, F_SETFD, FD_CLOEXEC) == -1) {
                 close (fd);
-                g_warning ("Error setting log file CLOEXEC flag (%s)",
+                g_warning (_("Error setting log file CLOEXEC flag (%s)"),
                            g_strerror (errno));
                 goto out;
         }
 
         if (fchown (fd, 0, 0) == -1) {
-                g_warning ("Error changing owner of log file (%s)",
+                g_warning (_("Error changing owner of log file (%s)"),
                            g_strerror (errno));
         }
 
         file = fdopen (fd, "a");
         if (file == NULL) {
-                g_warning ("Error setting up log descriptor (%s)",
+                g_warning (_("Error setting up log descriptor (%s)"),
                            g_strerror (errno));
                 close (fd);
                 goto out;
@@ -148,11 +148,11 @@ write_log_for_event (CkLogEvent *event)
 
                 rc = fprintf (file, "%s\n", str->str);
                 if (rc <= 0) {
-                        g_warning ("Record was not written to disk (%s)",
+                        g_warning (_("Record was not written to disk (%s)"),
                                    g_strerror (errno));
                 }
         } else {
-                g_warning ("Log file not open for writing");
+                g_warning (_("Log file not open for writing"));
         }
 
         g_string_free (str, TRUE);

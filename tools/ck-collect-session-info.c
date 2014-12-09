@@ -70,7 +70,7 @@ setuid_child_setup_func (SessionInfo *si)
         errno = 0;
         pwent = getpwuid (si->uid);
         if (pwent == NULL) {
-                g_warning ("Unable to lookup UID: %s", g_strerror (errno));
+                g_warning (_("Unable to lookup UID: %s"), g_strerror (errno));
                 exit (1);
         }
 
@@ -78,7 +78,7 @@ setuid_child_setup_func (SessionInfo *si)
         errno = 0;
         res = setgid (pwent->pw_gid);
         if (res == -1) {
-                g_warning ("Error performing setgid: %s", g_strerror (errno));
+                g_warning (_("Error performing setgid: %s"), g_strerror (errno));
                 exit (1);
         }
 
@@ -86,7 +86,7 @@ setuid_child_setup_func (SessionInfo *si)
         errno = 0;
         res = setuid (si->uid);
         if (res == -1) {
-                g_warning ("Error performing setuid: %s", g_strerror (errno));
+                g_warning (_("Error performing setuid: %s"), g_strerror (errno));
                 exit (1);
         }
 }
@@ -182,7 +182,7 @@ get_x11_server_pid (SessionInfo *si,
         g_ptr_array_free (env, TRUE);
 
         if (error != NULL) {
-                g_warning ("Unable to PID for x11 server: %s", error->message);
+                g_warning (_("Unable to PID for x11 server: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -273,7 +273,7 @@ fill_x11_info (SessionInfo *si)
         res = ck_process_stat_new_for_unix_pid (xorg_pid, &xorg_stat, &error);
         if (! res) {
                 if (error != NULL) {
-                        g_warning ("stat on pid %d failed: %s", xorg_pid, error->message);
+                        g_warning (_("stat on pid %d failed: %s"), xorg_pid, error->message);
                         g_error_free (error);
                 }
                 /* keep the tty value */
@@ -313,7 +313,7 @@ fill_x11_info (SessionInfo *si)
         g_ptr_array_free (env, TRUE);
 
         if (error != NULL) {
-                g_warning ("Unable to get display device for x11 server: %s", error->message);
+                g_warning (_("Unable to get display device for x11 server: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -346,7 +346,7 @@ fill_session_info (SessionInfo *si)
         res = ck_process_stat_new_for_unix_pid (si->pid, &stat, &error);
         if (! res) {
                 if (error != NULL) {
-                        g_warning ("stat on pid %d failed: %s", si->pid, error->message);
+                        g_warning (_("stat on pid %d failed: %s"), si->pid, error->message);
                         g_error_free (error);
                 }
 
@@ -454,12 +454,12 @@ main (int    argc,
         }
 
         if (user_id < 0) {
-                g_warning ("Invalid UID");
+                g_warning (_("Invalid UID"));
                 exit (1);
         }
 
         if (process_id < 2) {
-                g_warning ("Invalid PID");
+                g_warning (_("Invalid PID"));
                 exit (1);
         }
 
