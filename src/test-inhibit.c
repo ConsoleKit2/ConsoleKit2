@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib-object.h>
 #include <glib-unix.h>
@@ -194,9 +197,17 @@ main (int   argc,
 {
     /* do not run these tests as root */
     if (getuid () == 0) {
-            g_warning ("You must NOT be root to run these tests");
+            g_warning (_("You must NOT be root to run these tests"));
             exit (1);
     }
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
 
     g_test_init (&argc, &argv, NULL);
 

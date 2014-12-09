@@ -30,6 +30,9 @@
 #include <errno.h>
 #include <signal.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib-object.h>
@@ -87,7 +90,7 @@ wait_on_child (int pid)
                 } else if (errno == ECHILD) {
                         ; /* do nothing, child already reaped */
                 } else {
-                        g_debug ("waitpid () should not fail");
+                        g_debug (_("waitpid () should not fail"));
                 }
         }
 
@@ -116,7 +119,7 @@ maybe_complete_job (CkJob *job)
 
                 status = wait_on_job (job);
 
-                g_debug ("Emitting completed");
+                g_debug (_("Emitting completed"));
                 g_signal_emit (job, signals [COMPLETED], 0, status);
         }
 }
@@ -138,7 +141,7 @@ error_watch (GIOChannel   *source,
 
                 switch (status) {
                 case G_IO_STATUS_NORMAL:
-                        g_debug ("command error output: %s", line);
+                        g_debug (_("command error output: %s"), line);
                         g_string_append (job->priv->std_err, line);
                         break;
                 case G_IO_STATUS_EOF:
@@ -146,7 +149,7 @@ error_watch (GIOChannel   *source,
                         break;
                 case G_IO_STATUS_ERROR:
                         finished = TRUE;
-                        g_debug ("Error reading from child: %s\n", error->message);
+                        g_debug (_("Error reading from child: %s\n"), error->message);
                         break;
                 case G_IO_STATUS_AGAIN:
                 default:
@@ -190,7 +193,7 @@ out_watch (GIOChannel   *source,
                         break;
                 case G_IO_STATUS_ERROR:
                         finished = TRUE;
-                        g_debug ("Error reading from child: %s\n", error->message);
+                        g_debug (_("Error reading from child: %s\n"), error->message);
                         break;
                 case G_IO_STATUS_AGAIN:
                 default:
@@ -225,7 +228,7 @@ ck_job_execute (CkJob   *job,
         g_debug ("Executing %s", job->priv->command);
         local_error = NULL;
         if (! g_shell_parse_argv (job->priv->command, &argc, &argv, &local_error)) {
-                g_debug ("Could not parse command: %s", local_error->message);
+                g_debug (_("Could not parse command: %s"), local_error->message);
                 g_propagate_error (error, local_error);
                 return FALSE;
         }
@@ -245,7 +248,7 @@ ck_job_execute (CkJob   *job,
 
         g_strfreev (argv);
         if (! res) {
-                g_debug ("Could not start command '%s': %s",
+                g_debug (_("Could not start command '%s': %s"),
                           job->priv->command,
                           local_error->message);
                 g_propagate_error (error, local_error);

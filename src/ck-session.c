@@ -28,6 +28,9 @@
 #include <errno.h>
 #include <string.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -132,7 +135,7 @@ register_session (CkSession *session)
         session->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
         if (session->priv->connection == NULL) {
                 if (error != NULL) {
-                        g_critical ("error getting system bus: %s", error->message);
+                        g_critical (_("error getting system bus: %s"), error->message);
                         g_error_free (error);
                 }
                 return FALSE;
@@ -159,7 +162,7 @@ ck_session_lock (CkSession             *session,
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        g_debug ("Emitting lock for session %s", session->priv->id);
+        g_debug (_("Emitting lock for session %s"), session->priv->id);
         g_signal_emit (session, signals [LOCK], 0);
 
         dbus_g_method_return (context);
@@ -173,7 +176,7 @@ ck_session_unlock (CkSession             *session,
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        g_debug ("Emitting unlock for session %s", session->priv->id);
+        g_debug (_("Emitting unlock for session %s"), session->priv->id);
         g_signal_emit (session, signals [UNLOCK], 0);
 
         dbus_g_method_return (context);
@@ -237,7 +240,7 @@ session_set_idle_hint_internal (CkSession      *session,
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&session->priv->idle_since_hint);
 
-                g_debug ("Emitting idle-changed for session %s", session->priv->id);
+                g_debug (_("Emitting idle-changed for session %s"), session->priv->id);
                 g_signal_emit (session, signals [IDLE_HINT_CHANGED], 0, idle_hint);
         }
 
@@ -376,7 +379,7 @@ ck_session_activate (CkSession             *session,
                 /* if the signal is not handled then either:
                    a) aren't attached to seat
                    b) seat doesn't support activation changes */
-                g_debug ("Activate signal not handled");
+                g_debug (_("Activate signal not handled"));
 
                 error = g_error_new (CK_SESSION_ERROR,
                                      CK_SESSION_ERROR_GENERAL,
@@ -849,7 +852,7 @@ session_is_text (CkSession *session)
                 ret = TRUE;
         }
 
-        g_debug ("Identified session '%s' as %s",
+        g_debug (_("Identified session '%s' as %s"),
                   session->priv->id,
                   ret ? "text" : "graphical");
 
@@ -1199,18 +1202,18 @@ ck_session_new_with_parameters (const char      *ssid,
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {
-                                g_debug ("Skipping restricted parameter: %s", prop_name);
+                                g_debug (_("Skipping restricted parameter: %s"), prop_name);
                                 goto cont;
                         }
 
                         pspec = g_object_class_find_property (class, prop_name);
                         if (! pspec) {
-                                g_debug ("Skipping unknown parameter: %s", prop_name);
+                                g_debug (_("Skipping unknown parameter: %s"), prop_name);
                                 goto cont;
                         }
 
                         if (!(pspec->flags & G_PARAM_WRITABLE)) {
-                                g_debug ("property '%s' is not writable", pspec->name);
+                                g_debug (_("property '%s' is not writable"), pspec->name);
                                 goto cont;
                         }
 
@@ -1219,7 +1222,7 @@ ck_session_new_with_parameters (const char      *ssid,
                         g_value_init (&params[n_params].value, G_PARAM_SPEC_VALUE_TYPE (pspec));
                         res = g_value_transform (prop_val, &params[n_params].value);
                         if (! res) {
-                                g_debug ("unable to transform property value for '%s'", pspec->name);
+                                g_debug (_("unable to transform property value for '%s'"), pspec->name);
                                 goto cont;
                         }
 

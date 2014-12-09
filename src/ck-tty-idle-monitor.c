@@ -28,6 +28,9 @@
 #include <errno.h>
 #include <string.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -93,7 +96,7 @@ tty_idle_monitor_set_idle_hint_internal (CkTtyIdleMonitor *tty_idle_monitor,
         if (tty_idle_monitor->priv->idle_hint != idle_hint) {
                 tty_idle_monitor->priv->idle_hint = idle_hint;
 
-                g_debug ("Emitting idle-changed for tty_idle_monitor %s: %d", tty_idle_monitor->priv->device, idle_hint);
+                g_debug (_("Emitting idle-changed for tty_idle_monitor %s: %d"), tty_idle_monitor->priv->device, idle_hint);
                 g_signal_emit (tty_idle_monitor, signals [IDLE_HINT_CHANGED], 0, idle_hint);
                 return TRUE;
         }
@@ -182,7 +185,7 @@ file_access_cb (CkFileMonitor      *file_monitor,
                 const char         *path,
                 CkTtyIdleMonitor   *monitor)
 {
-        g_debug ("File access callback for %s", path);
+        g_debug (_("File access callback for %s"), path);
 
         tty_idle_monitor_set_idle_hint_internal (monitor, FALSE);
 
@@ -209,7 +212,7 @@ monitor_remove_watch (CkTtyIdleMonitor *monitor)
 {
         if (monitor->priv->file_monitor != NULL &&
             monitor->priv->file_notify_id > 0) {
-                g_debug ("Removing notify");
+                g_debug (_("Removing notify"));
                 ck_file_monitor_remove_notify (monitor->priv->file_monitor,
                                                monitor->priv->file_notify_id);
         }
@@ -234,7 +237,7 @@ check_tty_idle (CkTtyIdleMonitor *monitor)
         }
 
         if (g_stat (monitor->priv->device, &sb) < 0) {
-                g_debug ("Unable to stat: %s: %s", monitor->priv->device, g_strerror (errno));
+                g_debug (_("Unable to stat: %s: %s"), monitor->priv->device, g_strerror (errno));
                 return FALSE;
         }
 
@@ -253,18 +256,18 @@ check_tty_idle (CkTtyIdleMonitor *monitor)
         if (is_idle) {
                 if (! monitor_add_watch (monitor)) {
                         /* if we can't add a watch just add a new timer */
-                        g_debug ("Couldn't add watch: rescheduling check for %u sec", monitor->priv->threshold);
+                        g_debug (_("Couldn't add watch: rescheduling check for %u sec"), monitor->priv->threshold);
                         schedule_tty_check (monitor, monitor->priv->threshold);
                 }
         } else {
                 guint remaining;
                 remaining = monitor->priv->threshold - idletime;
                 if (remaining > 0) {
-                        g_debug ("Time left, rescheduling check for %u sec", remaining);
+                        g_debug (_("Time left, rescheduling check for %u sec"), remaining);
                         /* reschedule for time left */
                         schedule_tty_check (monitor, remaining);
                 } else {
-                        g_debug ("restarting check for %u sec", monitor->priv->threshold);
+                        g_debug (_("restarting check for %u sec"), monitor->priv->threshold);
                         schedule_tty_check (monitor, monitor->priv->threshold);
 
                 }

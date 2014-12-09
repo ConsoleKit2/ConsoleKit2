@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib-object.h>
 #include <glib-unix.h>
@@ -196,7 +199,7 @@ parse_inhibitors_string (CkInhibit *inhibit,
                         priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] = TRUE;
                         inhibit_set = TRUE;
                 } else {
-                        g_warning ("requested inhibit operation not supported %s",
+                        g_warning (_("requested inhibit operation not supported %s"),
                                    tokens[i]);
                 }
         }
@@ -219,7 +222,7 @@ create_inhibit_base_directory (void)
         res = g_mkdir_with_parents (RUNDIR "/ConsoleKit/inhibit",
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (res < 0) {
-                g_warning ("Unable to create directory %s (%s)",
+                g_warning (_("Unable to create directory %s (%s)"),
                            RUNDIR "/ConsoleKit/inhibit",
                            g_strerror (errno));
 
@@ -227,7 +230,7 @@ create_inhibit_base_directory (void)
         }
 
         if (g_chmod (RUNDIR "/ConsoleKit/inhibit", 0755) == -1) {
-                g_warning ("Failed to change permissions for %s",
+                g_warning (_("Failed to change permissions for %s"),
                            RUNDIR "/ConsoleKit/inhibit");
         }
 
@@ -328,7 +331,7 @@ close_named_pipe (CkInhibit *inhibit)
 
         if (priv->named_pipe) {
                 if (g_close (priv->named_pipe, &error) == -1) {
-                        g_warning ("Failed to close inhibit named pipe, error was %s",
+                        g_warning (_("Failed to close inhibit named pipe, error was %s"),
                                    error->message);
                         g_error_free (error);
                 }
@@ -337,7 +340,7 @@ close_named_pipe (CkInhibit *inhibit)
 
         if (priv->named_pipe_path) {
                 if (g_unlink (priv->named_pipe_path) == -1) {
-                        g_warning ("Failed to remove inhibit file %s, error reported: %s",
+                        g_warning (_("Failed to remove inhibit file %s, error reported: %s"),
                                    priv->named_pipe_path,
                                    g_strerror(errno));
                 }
@@ -363,12 +366,12 @@ cb_named_pipe_close (GIOChannel *source,
 
         /* Sanity checks */
         if (user_data == NULL) {
-                g_warning ("cb_named_pipe_close: user_data == NULL");
+                g_warning (_("cb_named_pipe_close: user_data == NULL"));
                 return FALSE;
         }
 
         if (!CK_IS_INHIBIT (user_data)) {
-                g_warning ("cb_named_pipe_close: !CK_IS_INHIBIT (user_data)");
+                g_warning (_("cb_named_pipe_close: !CK_IS_INHIBIT (user_data)"));
                 return FALSE;
         }
 
@@ -404,13 +407,13 @@ get_named_pipe_path (const char* who)
 
         /* failed to get unique filename */
         if (tmp_fd == -1) {
-                g_warning ("failed to create unique named pipe (%s): %s", path, g_strerror(errno));
+                g_warning (_("failed to create unique named pipe (%s): %s"), path, g_strerror(errno));
                 g_free (path);
                 return NULL;
         }
 
         if (!g_close (tmp_fd, &error)) {
-                g_warning ("failed to close unique named pipe: %s", error->message);
+                g_warning (_("failed to close unique named pipe: %s"), error->message);
                 g_error_free (error);
                 return NULL;
         }
@@ -434,24 +437,24 @@ create_named_pipe (CkInhibit *inhibit)
 
         /* Basic error checking */
         if (priv->named_pipe != -1) {
-                g_warning ("Attempting to create an inhibit fd when one already exists");
+                g_warning (_("Attempting to create an inhibit fd when one already exists"));
                 return -1;
         }
 
         if (priv->named_pipe_path == NULL) {
-                g_warning ("named_pipe_path cannot be NULL");
+                g_warning (_("named_pipe_path cannot be NULL"));
                 return -1;
         }
 
         if (g_unlink (priv->named_pipe_path) == -1) {
-                g_warning ("failed to remove temp inhibit file");
+                g_warning (_("failed to remove temp inhibit file"));
                 return -1;
         }
 
         /* create the named pipe */
         errno = 0;
         if (mknod (priv->named_pipe_path, S_IFIFO | 0600 , 0) == -1) {
-                g_warning ("failed to create named pipe: %s",
+                g_warning (_("failed to create named pipe: %s"),
                            g_strerror(errno));
                 return -1;
         }
@@ -459,7 +462,7 @@ create_named_pipe (CkInhibit *inhibit)
         /* open our side */
         priv->named_pipe = g_open (priv->named_pipe_path, O_RDONLY|O_CLOEXEC|O_NDELAY);
         if (priv->named_pipe < 0) {
-                g_warning ("failed to open the named pipe for reading %s",
+                g_warning (_("failed to open the named pipe for reading %s"),
                            g_strerror(errno));
                 return -1;
         }
@@ -507,7 +510,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
 
         /* These fields only get set here and are mandatory */
         if (!who || !what || !why) {
-                g_warning ("who, what, and why and mandatory for inhibit locks");
+                g_warning (_("who, what, and why and mandatory for inhibit locks"));
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
         }
 
@@ -523,12 +526,12 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         priv->why = why;
         priv->named_pipe_path = get_named_pipe_path (who);
         if (!parse_inhibitors_string(inhibit, what)) {
-                g_error ("Failed to set any inhibitors.");
+                g_error (_("Failed to set any inhibitors."));
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
         }
 
         if(priv->named_pipe_path == NULL) {
-                g_warning ("Failed to allocate memory for inhibit state_file string");
+                g_warning (_("Failed to allocate memory for inhibit state_file string"));
                 return CK_INHIBIT_ERROR_OOM;
         }
 
@@ -536,7 +539,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         pipe = create_named_pipe (inhibit);
 
         if (pipe == -1) {
-                g_warning ("Failed to created named pipe");
+                g_warning (_("Failed to created named pipe"));
                 return CK_INHIBIT_ERROR_GENERAL;
         }
 

@@ -89,20 +89,20 @@ acquire_name_on_proxy (DBusGProxy *bus_proxy)
                                  G_TYPE_INVALID);
         if (! res) {
                 if (error != NULL) {
-                        g_warning ("Failed to acquire %s: %s", CK_DBUS_NAME, error->message);
+                        g_warning (_("Failed to acquire %s: %s"), CK_DBUS_NAME, error->message);
                         g_error_free (error);
                 } else {
-                        g_warning ("Failed to acquire %s", CK_DBUS_NAME);
+                        g_warning (_("Failed to acquire %s"), CK_DBUS_NAME);
                 }
                 goto out;
         }
 
         if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
                 if (error != NULL) {
-                        g_warning ("Failed to acquire %s: %s", CK_DBUS_NAME, error->message);
+                        g_warning (_("Failed to acquire %s: %s"), CK_DBUS_NAME, error->message);
                         g_error_free (error);
                 } else {
-                        g_warning ("Failed to acquire %s", CK_DBUS_NAME);
+                        g_warning (_("Failed to acquire %s"), CK_DBUS_NAME);
                 }
                 goto out;
         }
@@ -123,7 +123,7 @@ get_system_bus (void)
         error = NULL;
         bus = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
         if (bus == NULL) {
-                g_warning ("Couldn't connect to system bus: %s",
+                g_warning (_("Couldn't connect to system bus: %s"),
                            error->message);
                 g_error_free (error);
                 goto out;
@@ -140,7 +140,7 @@ static void
 bus_proxy_destroyed_cb (DBusGProxy *bus_proxy,
                         GMainLoop  *loop)
 {
-        g_debug ("Disconnected from D-Bus");
+        g_debug (_("Disconnected from D-Bus"));
         g_main_loop_quit (loop);
 }
 
@@ -163,7 +163,7 @@ delete_console_tags (void)
 
         dir = g_dir_open (CONSOLE_TAGS_DIR, 0, &error);
         if (dir == NULL) {
-                g_debug ("Couldn't open directory %s: %s", CONSOLE_TAGS_DIR,
+                g_debug (_("Couldn't open directory %s: %s"), CONSOLE_TAGS_DIR,
                          error->message);
                 g_error_free (error);
                 return;
@@ -172,9 +172,9 @@ delete_console_tags (void)
                 gchar *file;
                 file = g_build_filename (CONSOLE_TAGS_DIR, name, NULL);
 
-                g_debug ("Removing tag file: %s", file);
+                g_debug (_("Removing tag file: %s"), file);
                 if (unlink (file) == -1) {
-                        g_warning ("Couldn't delete tag file: %s", file);
+                        g_warning (_("Couldn't delete tag file: %s"), file);
                 }
                 g_free (file);
         }
@@ -189,11 +189,11 @@ delete_inhibit_files (void)
         const gchar *INHIBIT_DIRECTORY = RUNDIR "/ConsoleKit/inhibit";
         const gchar *name;
 
-        g_debug ("Cleaning up %s", INHIBIT_DIRECTORY);
+        g_debug (_("Cleaning up %s"), INHIBIT_DIRECTORY);
 
         dir = g_dir_open (INHIBIT_DIRECTORY, 0, &error);
         if (dir == NULL) {
-                g_debug ("Couldn't open directory %s: %s", INHIBIT_DIRECTORY,
+                g_debug (_("Couldn't open directory %s: %s"), INHIBIT_DIRECTORY,
                          error->message);
                 g_error_free (error);
                 return;
@@ -208,9 +208,9 @@ delete_inhibit_files (void)
 
                 file = g_build_filename (INHIBIT_DIRECTORY, name, NULL);
 
-                g_debug ("Removing inhibit file: %s", file);
+                g_debug (_("Removing inhibit file: %s"), file);
                 if (unlink (file) == -1) {
-                        g_warning ("Couldn't delete inhibit file: %s", file);
+                        g_warning (_("Couldn't delete inhibit file: %s"), file);
                 }
                 g_free (file);
         }
@@ -272,7 +272,7 @@ setup_debug_log_signals (void)
         GIOChannel      *io;
 
         if (pipe (debug_log_pipes) == -1) {
-                g_error ("Could not create pipe() for debug log");
+                g_error (_("Could not create pipe() for debug log"));
         }
 
         io = g_io_channel_unix_new (debug_log_pipes[0]);
@@ -309,7 +309,7 @@ create_pid_file (void)
         res = g_mkdir_with_parents (dirname,
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (res < 0) {
-                g_warning ("Unable to create directory %s (%s)",
+                g_warning (_("Unable to create directory %s (%s)"),
                            dirname,
                            g_strerror (errno));
         }
@@ -320,14 +320,14 @@ create_pid_file (void)
                 snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
                 written = write (pf, pid, strlen (pid));
                 if (written != strlen(pid)) {
-                        g_warning ("unable to write pid file %s: %s",
+                        g_warning (_("unable to write pid file %s: %s"),
                                    CONSOLE_KIT_PID_FILE,
                                    g_strerror (errno));
                 }
                 atexit (cleanup);
                 close (pf);
         } else {
-                g_warning ("Unable to write pid file %s: %s",
+                g_warning (_("Unable to write pid file %s: %s"),
                            CONSOLE_KIT_PID_FILE,
                            g_strerror (errno));
         }
@@ -404,14 +404,14 @@ main (int    argc,
         }
 
         if (! no_daemon && daemon (0, 0)) {
-                g_error ("Could not daemonize: %s", g_strerror (errno));
+                g_error (_("Could not daemonize: %s"), g_strerror (errno));
         }
 
         setup_debug_log (debug);
 
         setup_termination_signals ();
 
-        g_debug ("initializing console-kit-daemon %s", VERSION);
+        g_debug (_("initializing console-kit-daemon %s"), VERSION);
 
         connection = get_system_bus ();
         if (connection == NULL) {
@@ -426,12 +426,12 @@ main (int    argc,
 
         bus_proxy = get_bus_proxy (connection);
         if (bus_proxy == NULL) {
-                g_warning ("Could not construct bus_proxy object; bailing out");
+                g_warning (_("Could not construct bus_proxy object; bailing out"));
                 goto out;
         }
 
         if (! acquire_name_on_proxy (bus_proxy) ) {
-                g_warning ("Could not acquire name; bailing out");
+                g_warning (_("Could not acquire name; bailing out"));
                 goto out;
         }
 

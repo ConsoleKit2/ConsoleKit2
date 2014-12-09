@@ -26,6 +26,9 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib-object.h>
@@ -131,7 +134,7 @@ ck_seat_get_active_session (CkSeat         *seat,
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        g_debug ("CkSeat: get active session");
+        g_debug (_("CkSeat: get active session"));
         session_id = NULL;
         ret = FALSE;
         if (seat->priv->active_session != NULL) {
@@ -141,14 +144,14 @@ ck_seat_get_active_session (CkSeat         *seat,
                         ret = TRUE;
                 }
         } else {
-                g_debug ("CkSeat: seat has no active session");
+                g_debug (_("CkSeat: seat has no active session"));
         }
 
         if (! ret) {
                 g_set_error (error,
                              CK_SEAT_ERROR,
                              CK_SEAT_ERROR_GENERAL,
-                             "%s", "Seat has no active session");
+                             "%s", _("Seat has no active session"));
         } else {
                 if (ssid != NULL) {
                         *ssid = g_strdup (session_id);
@@ -252,12 +255,12 @@ _seat_activate_session (CkSeat                *seat,
                                                    0);
 
 
-        g_debug ("Attempting to activate VT %u", num);
+        g_debug (_("Attempting to activate VT %u"), num);
 
         vt_error = NULL;
         ret = ck_vt_monitor_set_active (seat->priv->vt_monitor, num, &vt_error);
         if (! ret) {
-                g_debug ("Unable to activate session: %s", vt_error->message);
+                g_debug (_("Unable to activate session: %s"), vt_error->message);
                 dbus_g_method_return_error (context, vt_error);
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
                 g_error_free (vt_error);
@@ -291,7 +294,7 @@ ck_seat_activate_session (CkSeat                *seat,
 
         session = NULL;
 
-        g_debug ("Trying to activate session: %s", ssid);
+        g_debug (_("Trying to activate session: %s"), ssid);
 
         if (ssid != NULL) {
                 session = g_hash_table_lookup (seat->priv->sessions, ssid);
@@ -322,7 +325,7 @@ match_session_display_device (const char *key,
         if (device != NULL
             && display_device != NULL
             && strcmp (device, display_device) == 0) {
-                g_debug ("Matched display-device %s to %s", display_device, key);
+                g_debug (_("Matched display-device %s to %s"), display_device, key);
                 ret = TRUE;
         }
 out:
@@ -352,7 +355,7 @@ match_session_x11_display_device (const char *key,
         if (device != NULL
             && x11_display_device != NULL
             && strcmp (device, x11_display_device) == 0) {
-                g_debug ("Matched x11-display-device %s to %s", x11_display_device, key);
+                g_debug (_("Matched x11-display-device %s to %s"), x11_display_device, key);
                 ret = TRUE;
         }
 out:
@@ -504,7 +507,7 @@ change_active_session (CkSeat    *seat,
                 ck_session_set_active (session, TRUE, NULL);
         }
 
-        g_debug ("Active session changed: %s", ssid ? ssid : "(null)");
+        g_debug (_("Active session changed: %s"), ssid ? ssid : "(null)");
 
         /* The order of signal emission matters here. The manager
          * dumps the database when receiving the
@@ -533,7 +536,7 @@ update_active_vt (CkSeat *seat,
 
         device = ck_get_console_device_for_num (num);
 
-        g_debug ("Active device: %s", device);
+        g_debug (_("Active device: %s"), device);
 
         session = find_session_for_display_device (seat, device);
         change_active_session (seat, session);
@@ -589,7 +592,7 @@ ck_seat_remove_session (CkSeat         *seat,
                                             (gpointer *)&orig_ssid,
                                             (gpointer *)&orig_session);
         if (! res) {
-                g_debug ("Session %s is not attached to seat %s", ssid, seat->priv->id);
+                g_debug (_("Session %s is not attached to seat %s"), ssid, seat->priv->id);
                 g_set_error (error,
                              CK_SEAT_ERROR,
                              CK_SEAT_ERROR_GENERAL,
@@ -603,7 +606,7 @@ ck_seat_remove_session (CkSeat         *seat,
          * unref until the signal is emitted */
         g_hash_table_steal (seat->priv->sessions, ssid);
 
-        g_debug ("Emitting session-removed: %s", ssid);
+        g_debug (_("Emitting session-removed: %s"), ssid);
 
         /* The order of signal emission matters here, too, for similar
          * reasons as for 'session-added'/'session-added-full'. See
@@ -645,7 +648,7 @@ ck_seat_add_session (CkSeat         *seat,
         g_signal_connect_object (session, "activate", G_CALLBACK (session_activate), seat, 0);
         /* FIXME: attach to property notify signals? */
 
-        g_debug ("Emitting added signal: %s", ssid);
+        g_debug (_("Emitting added signal: %s"), ssid);
 
         /* The order of signal emission matters here, too. See
          * above. */
@@ -704,7 +707,7 @@ ck_seat_add_device (CkSeat         *seat,
 
         g_ptr_array_add (seat->priv->devices, g_boxed_copy (CK_TYPE_DEVICE, device));
 
-        g_debug ("Emitting device added signal");
+        g_debug (_("Emitting device added signal"));
         g_signal_emit (seat, signals [DEVICE_ADDED], 0, device);
 
         return TRUE;
@@ -719,7 +722,7 @@ ck_seat_remove_device (CkSeat         *seat,
 
         /* FIXME: check if already present */
         if (0) {
-                g_debug ("Emitting device removed signal");
+                g_debug (_("Emitting device removed signal"));
                 g_signal_emit (seat, signals [DEVICE_REMOVED], 0, device);
         }
 
@@ -759,7 +762,7 @@ active_vt_changed (CkVtMonitor    *vt_monitor,
                    guint           num,
                    CkSeat         *seat)
 {
-        g_debug ("Active vt changed: %u", num);
+        g_debug (_("Active vt changed: %u"), num);
 
         update_active_vt (seat, num);
 }
@@ -775,7 +778,7 @@ ck_seat_register (CkSeat *seat)
         seat->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
         if (seat->priv->connection == NULL) {
                 if (error != NULL) {
-                        g_critical ("error getting system bus: %s", error->message);
+                        g_critical (_("error getting system bus: %s"), error->message);
                         g_error_free (error);
                 }
                 return FALSE;
@@ -1126,26 +1129,26 @@ ck_seat_new_from_file (const char *sid,
                                          G_KEY_FILE_NONE,
                                          &error);
         if (! res) {
-                g_warning ("Unable to load seats from file %s: %s", path, error->message);
+                g_warning (_("Unable to load seats from file %s: %s"), path, error->message);
                 g_error_free (error);
                 goto out;
         }
 
         group = g_key_file_get_start_group (key_file);
         if (group == NULL || strcmp (group, "Seat Entry") != 0) {
-                g_warning ("Not a seat file: %s", path);
+                g_warning (_("Not a seat file: %s"), path);
                 goto out;
         }
 
         hidden = g_key_file_get_boolean (key_file, group, "Hidden", NULL);
         if (hidden) {
-                g_debug ("Seat is hidden");
+                g_debug (_("Seat is hidden"));
                 goto out;
         }
 
         device_list = g_key_file_get_string_list (key_file, group, "Devices", &ndevices, NULL);
 
-        g_debug ("Creating seat %s with %zd devices", sid, ndevices);
+        g_debug (_("Creating seat %s with %zd devices"), sid, ndevices);
 
         devices = g_ptr_array_sized_new (ndevices);
 
@@ -1159,7 +1162,7 @@ ck_seat_new_from_file (const char *sid,
                         continue;
                 }
 
-                g_debug ("Adding device: %s %s", split[0], split[1]);
+                g_debug (_("Adding device: %s %s"), split[0], split[1]);
 
                 g_value_init (&device_val, CK_TYPE_DEVICE);
                 g_value_take_boxed (&device_val,
@@ -1293,7 +1296,7 @@ dump_seat_session_iter (char      *id,
 
         error = NULL;
         if (! ck_session_get_id (session, &session_id, &error)) {
-                g_warning ("Cannot get session id from seat: %s", error->message);
+                g_warning (_("Cannot get session id from seat: %s"), error->message);
                 g_error_free (error);
         } else {
                 if (str->len > 0) {
@@ -1353,7 +1356,7 @@ ck_seat_dump (CkSeat   *seat,
 
                 error = NULL;
                 if (! ck_session_get_id (seat->priv->active_session, &session_id, &error)) {
-                        g_warning ("Cannot get session id for active session on seat %s: %s",
+                        g_warning (_("Cannot get session id for active session on seat %s: %s"),
                                    seat->priv->id,
                                    error->message);
                         g_error_free (error);

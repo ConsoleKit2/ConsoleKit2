@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <signal.h>
 
+#include <libintl.h>
 #include <locale.h>
 
 #include <glib.h>
@@ -45,7 +46,7 @@ activated_cb (CkVtMonitor *monitor,
               guint        num,
               gpointer     data)
 {
-        g_message ("VT %u activated", num);
+        g_message (_("VT %u activated"), num);
 }
 
 int
@@ -57,6 +58,14 @@ main (int argc, char **argv)
         guint             num;
         gboolean          res;
         struct sigaction  sa;
+
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
 
 #if !GLIB_CHECK_VERSION(2, 32, 0)
         if (! g_thread_supported ()) {
@@ -78,21 +87,21 @@ main (int argc, char **argv)
         sigaction (SIGHUP,  &sa, NULL);
 
         if (! ck_is_root_user ()) {
-                g_warning ("Must be run as root");
+                g_warning (_("Must be run as root"));
                 exit (1);
         }
 
-        g_message ("Testing the VT monitor.\n  Should print messages when VT is switched.");
+        g_message (_("Testing the VT monitor.\n  Should print messages when VT is switched."));
 
         monitor = ck_vt_monitor_new ();
 
         res = ck_vt_monitor_get_active (monitor, &num, &error);
         if (! res) {
-                g_warning ("Couldn't determine active VT: %s", error->message);
+                g_warning (_("Couldn't determine active VT: %s"), error->message);
                 exit (1);
         }
 
-        g_message ("VT %u is currently active", num);
+        g_message (_("VT %u is currently active"), num);
 
         g_signal_connect (monitor,
                           "active-changed",

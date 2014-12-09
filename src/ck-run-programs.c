@@ -30,6 +30,9 @@
 #include <sys/types.h>
 #include <signal.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -105,7 +108,7 @@ static gboolean
 _child_timeout (ChildData *cd)
 {
         /* The program we ran timed out; this is a bug in the program */
-        g_warning ("The program %s didn't exit within %d seconds; killing it", cd->path, TIMEOUT_SECONDS);
+        g_warning (_("The program %s didn't exit within %d seconds; killing it"), cd->path, TIMEOUT_SECONDS);
 
         kill (cd->pid, SIGTERM);
 
@@ -139,7 +142,7 @@ ck_run_programs (const char *dirpath,
         g_return_if_fail (dirpath != NULL);
         g_return_if_fail (action != NULL);
 
-        g_debug ("Running programs in %s for action %s", dirpath, action);
+        g_debug (_("Running programs in %s for action %s"), dirpath, action);
 
         /* Construct an environment consisting of the existing and the given environment */
         environ_len = environ != NULL ? g_strv_length (environ) : 0;
@@ -159,7 +162,7 @@ ck_run_programs (const char *dirpath,
         dir = g_dir_open (dirpath, 0, &error);
         if (dir == NULL) {
                 /* This is unexpected; it means ConsoleKit isn't properly installed */
-                g_warning ("Unable to open directory %s: %s", dirpath, error->message);
+                g_warning (_("Unable to open directory %s: %s"), dirpath, error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -196,7 +199,7 @@ ck_run_programs (const char *dirpath,
                                      &error);
                 if (! res) {
                         /* This is unexpected; it means the program to run isn't installed correctly  */
-                        g_warning ("Unable to spawn %s: %s", child_argv[0], error->message);
+                        g_warning (_("Unable to spawn %s: %s"), child_argv[0], error->message);
                         g_error_free (error);
                         _child_data_unref (cd);
                         _child_data_unref (cd);
@@ -204,7 +207,7 @@ ck_run_programs (const char *dirpath,
                 }
                 cd->child_is_running = TRUE;
 
-                g_debug ("Waiting for child with pid %d", cd->pid);
+                g_debug (_("Waiting for child with pid %d"), cd->pid);
 
                 cd->watch_id = g_child_watch_add (cd->pid,
                                                   (GChildWatchFunc)_child_watch,
@@ -220,7 +223,7 @@ ck_run_programs (const char *dirpath,
                         g_main_context_iteration (NULL, TRUE);
                 }
 
-                g_debug ("Done waiting for child with pid %d", cd->pid);
+                g_debug (_("Done waiting for child with pid %d"), cd->pid);
                 _child_data_unref (cd);
 
         out_loop:

@@ -39,6 +39,9 @@
 #include <sys/user.h>
 #include <sys/ioctl.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #ifdef __OpenBSD__
 #include <sys/stdint.h>
 #endif
@@ -254,18 +257,18 @@ ck_unix_pid_get_env_hash (pid_t pid)
 
         kd = kvm_openfiles (NULL, NULL, NULL, O_RDONLY, errbuf);
         if (kd == NULL) {
-		g_warning ("kvm_openfiles failed: %s", errbuf);
+		g_warning (_("kvm_openfiles failed: %s"), errbuf);
                 return NULL;
         }
 
         if (! get_kinfo_proc (pid, &p)) {
-		g_warning ("get_kinfo_proc failed: %s", g_strerror (errno));
+		g_warning (_("get_kinfo_proc failed: %s"), g_strerror (errno));
 		goto fail;
         }
 
         penv = kvm_getenvv (kd, &p, 0);
         if (penv == NULL) {
-		g_warning ("kvm_getenvv failed: %s", kvm_geterr (kd));
+		g_warning (_("kvm_getenvv failed: %s"), kvm_geterr (kd));
 		goto fail;
         }
 
@@ -455,10 +458,10 @@ ck_get_active_console_num (int    console_fd,
                 goto out;
         }
 
-        g_debug ("Active VT is: %d (ttyC%d)", active, active - 1);
+        g_debug (_("Active VT is: %d (ttyC%d)"), active, active - 1);
 #else
        res = 0;
-       g_debug ("Active console is: ttyC%d", active);
+       g_debug (_("Active console is: ttyC%d"), active);
 #endif
         ret = TRUE;
 

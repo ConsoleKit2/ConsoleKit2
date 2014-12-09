@@ -32,6 +32,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <libintl.h>
 #include <locale.h>
 
 #include <glib.h>
@@ -55,7 +56,7 @@ write_to_log (CkEventLogger    *logger)
         error = NULL;
         res = ck_event_logger_queue_event (logger, &event, &error);
         if (! res) {
-                g_warning ("Unable to queue event: %s", error->message);
+                g_warning (_("Unable to queue event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -69,6 +70,14 @@ main (int argc, char **argv)
         CkEventLogger    *logger;
         char             *filename;
 
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
+
 #if !GLIB_CHECK_VERSION(2, 32, 0)
         if (! g_thread_supported ()) {
                 g_thread_init (NULL);
@@ -81,7 +90,7 @@ main (int argc, char **argv)
 
         filename = g_build_filename (g_get_tmp_dir (), "ck-logger-test.log", NULL);
 
-        g_message ("Testing the event logger.\n  Should write messages to: %s", filename);
+        g_message (_("Testing the event logger.\n  Should write messages to: %s"), filename);
         logger = ck_event_logger_new (filename);
         g_free (filename);
 

@@ -28,6 +28,9 @@
 #include <errno.h>
 #include <sys/inotify.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -203,7 +206,7 @@ file_monitor_add_watch_for_path (CkFileMonitor *monitor,
         imask = our_event_mask_to_inotify_mask (mask);
 
         mask_str = imask_to_string (imask);
-        g_debug ("adding inotify watch %s", mask_str);
+        g_debug (_("adding inotify watch %s"), mask_str);
         g_free (mask_str);
 
         wd = inotify_add_watch (monitor->priv->inotify_fd, path, IN_MASK_ADD | imask);
@@ -436,7 +439,7 @@ handle_inotify_event (CkFileMonitor        *monitor,
         }
 
         mask_str = imask_to_string (ievent->mask);
-        g_debug ("handing inotify event %s for %s", mask_str, path);
+        g_debug (_("handing inotify event %s for %s"), mask_str, path);
         g_free (mask_str);
 
         event = CK_FILE_MONITOR_EVENT_NONE;
@@ -468,7 +471,7 @@ inotify_data_pending (GIOChannel    *source,
         int len;
         int i;
 
-        g_debug ("Inotify data pending");
+        g_debug (_("Inotify data pending"));
 
         g_assert (monitor->priv->inotify_fd > 0);
         g_assert (monitor->priv->buffer != NULL);
@@ -479,7 +482,7 @@ inotify_data_pending (GIOChannel    *source,
                 if (len > 0) {
                         break;
                 } else if (len < 0) {
-                        g_warning ("Error reading inotify event: %s",
+                        g_warning (_("Error reading inotify event: %s"),
                                    g_strerror (errno));
                         goto error_cancel;
                 }
@@ -487,18 +490,18 @@ inotify_data_pending (GIOChannel    *source,
                 g_assert (len == 0);
 
                 if ((monitor->priv->buflen << 1) > MAX_NOTIFY_BUFLEN) {
-                        g_warning ("Error reading inotify event: Exceded maximum buffer size");
+                        g_warning (_("Error reading inotify event: Exceded maximum buffer size"));
                         goto error_cancel;
                 }
 
-                g_debug ("Buffer size %u too small, trying again at %u\n",
+                g_debug (_("Buffer size %u too small, trying again at %u\n"),
                          monitor->priv->buflen, monitor->priv->buflen << 1);
 
                 monitor->priv->buflen <<= 1;
                 monitor->priv->buffer = g_realloc (monitor->priv->buffer, monitor->priv->buflen);
         } while (TRUE);
 
-        g_debug ("Inotify buffer filled");
+        g_debug (_("Inotify buffer filled"));
 
         i = 0;
         while (i < len) {
@@ -552,7 +555,7 @@ file_monitor_add_notify_for_path (CkFileMonitor          *monitor,
                 notify->watch = watch;
                 notify->mask = mask;
 
-                g_debug ("Adding notify for %s mask:%d", path, mask);
+                g_debug (_("Adding notify for %s mask:%d"), path, mask);
 
                 g_hash_table_insert (monitor->priv->notifies, GUINT_TO_POINTER (notify->id), notify);
                 watch->notifies = g_slist_prepend (watch->notifies, GUINT_TO_POINTER (notify->id));
@@ -567,7 +570,7 @@ file_monitor_remove_notify (CkFileMonitor *monitor,
 {
         FileMonitorNotify *notify;
 
-        g_debug ("removing notify for %u", id);
+        g_debug (_("removing notify for %u"), id);
 
         notify = g_hash_table_lookup (monitor->priv->notifies,
                                       GUINT_TO_POINTER (id));
@@ -609,7 +612,7 @@ ck_file_monitor_add_notify (CkFileMonitor          *monitor,
                                                    notify_func,
                                                    data);
         if (notify == NULL) {
-                g_warning ("Failed to add monitor on '%s': %s",
+                g_warning (_("Failed to add monitor on '%s': %s"),
                            path,
                            g_strerror (errno));
                 return 0;
@@ -651,7 +654,7 @@ setup_inotify (CkFileMonitor *monitor)
         }
 
         if ((fd = inotify_init ()) < 0) {
-                g_warning ("Failed to initialize inotify: %s",
+                g_warning (_("Failed to initialize inotify: %s"),
                            g_strerror (errno));
                 return;
         }
