@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2014-11-17 10:15+0300\n"
+"POT-Creation-Date: 2014-12-11 13:58-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,18 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: src/ck-seat.c:134
+msgid "CkSeat: get active session"
+msgstr ""
+
+#: src/ck-seat.c:144
+msgid "CkSeat: seat has no active session"
+msgstr ""
+
+#: src/ck-seat.c:151
+msgid "Seat has no active session"
+msgstr ""
 
 #: src/ck-seat.c:182
 msgid "Another session was activated while waiting"
@@ -33,8 +45,179 @@ msgstr ""
 msgid "Unable to activate session"
 msgstr ""
 
-#: src/ck-seat.c:598
+#: src/ck-seat.c:255
+#, c-format
+msgid "Attempting to activate VT %u"
+msgstr ""
+
+#: src/ck-seat.c:260
+#, c-format
+msgid "Unable to activate session: %s"
+msgstr ""
+
+#: src/ck-seat.c:294
+#, c-format
+msgid "Trying to activate session: %s"
+msgstr ""
+
+#: src/ck-seat.c:325
+#, c-format
+msgid "Matched display-device %s to %s"
+msgstr ""
+
+#: src/ck-seat.c:355
+#, c-format
+msgid "Matched x11-display-device %s to %s"
+msgstr ""
+
+#: src/ck-seat.c:507
+#, c-format
+msgid "Active session changed: %s"
+msgstr ""
+
+#: src/ck-seat.c:536
+#, c-format
+msgid "Active device: %s"
+msgstr ""
+
+#: src/ck-seat.c:592
+#, c-format
+msgid "Session %s is not attached to seat %s"
+msgstr ""
+
+#: src/ck-seat.c:596
 msgid "Session is not attached to this seat"
+msgstr ""
+
+#: src/ck-seat.c:606
+#, c-format
+msgid "Emitting session-removed: %s"
+msgstr ""
+
+#: src/ck-seat.c:648
+#, c-format
+msgid "Emitting added signal: %s"
+msgstr ""
+
+#: src/ck-seat.c:707
+msgid "Emitting device added signal"
+msgstr ""
+
+#: src/ck-seat.c:722
+msgid "Emitting device removed signal"
+msgstr ""
+
+#: src/ck-seat.c:762
+#, c-format
+msgid "Active vt changed: %u"
+msgstr ""
+
+#: src/ck-seat.c:778 src/ck-manager.c:3145 src/ck-session.c:135
+#, c-format
+msgid "error getting system bus: %s"
+msgstr ""
+
+#: src/ck-seat.c:1129
+#, c-format
+msgid "Unable to load seats from file %s: %s"
+msgstr ""
+
+#: src/ck-seat.c:1136
+#, c-format
+msgid "Not a seat file: %s"
+msgstr ""
+
+#: src/ck-seat.c:1142
+msgid "Seat is hidden"
+msgstr ""
+
+#: src/ck-seat.c:1148
+#, c-format
+msgid "Creating seat %s with %zd devices"
+msgstr ""
+
+#: src/ck-seat.c:1162
+#, c-format
+msgid "Adding device: %s %s"
+msgstr ""
+
+#: src/ck-seat.c:1296
+#, c-format
+msgid "Cannot get session id from seat: %s"
+msgstr ""
+
+#: src/ck-seat.c:1356
+#, c-format
+msgid "Cannot get session id for active session on seat %s: %s"
+msgstr ""
+
+#: src/main.c:92 src/main.c:102
+#, c-format
+msgid "Failed to acquire %s: %s"
+msgstr ""
+
+#: src/main.c:95 src/main.c:105
+#, c-format
+msgid "Failed to acquire %s"
+msgstr ""
+
+#: src/main.c:126
+#, c-format
+msgid "Couldn't connect to system bus: %s"
+msgstr ""
+
+#: src/main.c:143
+msgid "Disconnected from D-Bus"
+msgstr ""
+
+#: src/main.c:166 src/main.c:196
+#, c-format
+msgid "Couldn't open directory %s: %s"
+msgstr ""
+
+#: src/main.c:175
+#, c-format
+msgid "Removing tag file: %s"
+msgstr ""
+
+#: src/main.c:177
+#, c-format
+msgid "Couldn't delete tag file: %s"
+msgstr ""
+
+#: src/main.c:192
+#, c-format
+msgid "Cleaning up %s"
+msgstr ""
+
+#: src/main.c:211
+#, c-format
+msgid "Removing inhibit file: %s"
+msgstr ""
+
+#: src/main.c:213
+#, c-format
+msgid "Couldn't delete inhibit file: %s"
+msgstr ""
+
+#: src/main.c:275
+msgid "Could not create pipe() for debug log"
+msgstr ""
+
+#: src/main.c:312 src/ck-event-logger.c:119 src/ck-manager.c:218
+#: tools/ck-log-system-start.c:81
+#, c-format
+msgid "Unable to create directory %s (%s)"
+msgstr ""
+
+#: src/main.c:323
+#, c-format
+msgid "unable to write pid file %s: %s"
+msgstr ""
+
+#: src/main.c:330
+#, c-format
+msgid "Unable to write pid file %s: %s"
 msgstr ""
 
 #: src/main.c:352
@@ -57,6 +240,332 @@ msgstr ""
 msgid "Console kit daemon"
 msgstr ""
 
+#: src/main.c:407
+#, c-format
+msgid "Could not daemonize: %s"
+msgstr ""
+
+#: src/main.c:414
+#, c-format
+msgid "initializing console-kit-daemon %s"
+msgstr ""
+
+#: src/main.c:429
+msgid "Could not construct bus_proxy object; bailing out"
+msgstr ""
+
+#: src/main.c:434
+msgid "Could not acquire name; bailing out"
+msgstr ""
+
+#: src/ck-log-event.c:790
+#, c-format
+msgid "Unable to parse seat added event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:850
+#, c-format
+msgid "Unable to parse seat removed event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:950
+#, c-format
+msgid "Unable to parse system start event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:1004
+#, c-format
+msgid "Unable to parse session added event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:1079
+#, c-format
+msgid "Unable to parse session removed event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:1153
+#, c-format
+msgid "Unable to parse session changed event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:1205
+#, c-format
+msgid "Unable to parse device added event: %s"
+msgstr ""
+
+#: src/ck-log-event.c:1258
+#, c-format
+msgid "Unable to parse device removed event: %s"
+msgstr ""
+
+#: src/ck-job.c:90
+msgid "waitpid () should not fail"
+msgstr ""
+
+#: src/ck-job.c:119
+msgid "Emitting completed"
+msgstr ""
+
+#: src/ck-job.c:141
+#, c-format
+msgid "command error output: %s"
+msgstr ""
+
+#: src/ck-job.c:149 src/ck-job.c:193
+#, c-format
+msgid "Error reading from child: %s\n"
+msgstr ""
+
+#: src/ck-job.c:228
+#, c-format
+msgid "Could not parse command: %s"
+msgstr ""
+
+#: src/ck-job.c:248
+#, c-format
+msgid "Could not start command '%s': %s"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:91
+#, c-format
+msgid "Failed to getsockopt() credentials, returned len %d/%d: %s\n"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:105
+#, c-format
+msgid "Failed to getpeerucred() credentials: %s\n"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:117
+#, c-format
+msgid "Failed to getpeereid() credentials: %s\n"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:121
+msgid "Socket credentials not supported on this OS\n"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:318
+#, c-format
+msgid "VT_WAITACTIVE for vt %d"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:320
+#, c-format
+msgid "VT_WAITACTIVE for vt %d returned %d"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:332
+#, c-format
+msgid "Interrupted waiting for native console %d activation: %s"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:337 src/ck-sysdeps-unix.c:375
+msgid "Console activation not supported on this system"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:339
+#, c-format
+msgid "Error waiting for native console %d activation: %s"
+msgstr ""
+
+#: src/ck-sysdeps-unix.c:377
+#, c-format
+msgid "Unable to activate console: %s"
+msgstr ""
+
+#: src/ck-event-logger.c:136
+#, c-format
+msgid "Could not create log file %s (%s)"
+msgstr ""
+
+#: src/ck-event-logger.c:149
+#, c-format
+msgid "Could not open log file %s (%s)"
+msgstr ""
+
+#: src/ck-event-logger.c:158 tools/ck-log-system-stop.c:96
+#: tools/ck-log-system-restart.c:97 tools/ck-log-system-start.c:120
+#, c-format
+msgid "Error setting log file CLOEXEC flag (%s)"
+msgstr ""
+
+#: src/ck-event-logger.c:165
+#, c-format
+msgid "Error setting owner of log file (%s)"
+msgstr ""
+
+#: src/ck-event-logger.c:172 tools/ck-log-system-stop.c:108
+#: tools/ck-log-system-restart.c:109 tools/ck-log-system-start.c:132
+#, c-format
+msgid "Error setting up log descriptor (%s)"
+msgstr ""
+
+#: src/ck-event-logger.c:207
+#, c-format
+msgid "Unable to stat file: %s"
+msgstr ""
+
+#: src/ck-event-logger.c:220
+#, c-format
+msgid "Unable to open or stat %s - will try to reopen"
+msgstr ""
+
+#: src/ck-event-logger.c:227
+#, c-format
+msgid "File %s has been replaced; writing to end of new file"
+msgstr ""
+
+#: src/ck-event-logger.c:243
+#, c-format
+msgid "Writing log for event: %s"
+msgstr ""
+
+#: src/ck-event-logger.c:251 tools/ck-log-system-stop.c:151
+#: tools/ck-log-system-restart.c:152 tools/ck-log-system-start.c:175
+#, c-format
+msgid "Record was not written to disk (%s)"
+msgstr ""
+
+#: src/ck-event-logger.c:255 tools/ck-log-system-stop.c:155
+#: tools/ck-log-system-restart.c:156 tools/ck-log-system-start.c:179
+msgid "Log file not open for writing"
+msgstr ""
+
+#: src/ck-event-logger.c:277
+msgid "Writer thread received None event - exiting"
+msgstr ""
+
+#: src/ck-event-logger.c:286
+msgid "Creating thread for log writing"
+msgstr ""
+
+#: src/ck-event-logger.c:306 src/ck-vt-monitor.c:400
+#, c-format
+msgid "Unable to create thread: %s"
+msgstr ""
+
+#: src/ck-event-logger.c:318
+msgid "Destroying writer thread"
+msgstr ""
+
+#: src/ck-event-logger.c:322
+msgid "Joining writer thread"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:96
+#, c-format
+msgid "Emitting idle-changed for tty_idle_monitor %s: %d"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:185
+#, c-format
+msgid "File access callback for %s"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:212
+msgid "Removing notify"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:237
+#, c-format
+msgid "Unable to stat: %s: %s"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:256
+#, c-format
+msgid "Couldn't add watch: rescheduling check for %u sec"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:263
+#, c-format
+msgid "Time left, rescheduling check for %u sec"
+msgstr ""
+
+#: src/ck-tty-idle-monitor.c:267
+#, c-format
+msgid "restarting check for %u sec"
+msgstr ""
+
+#: src/ck-session-leader.c:92
+#, c-format
+msgid "Removing pending job: %s"
+msgstr ""
+
+#: src/ck-session-leader.c:335 src/ck-manager.c:2404
+msgid "Unable to extract parameter input"
+msgstr ""
+
+#: src/ck-session-leader.c:341 src/ck-manager.c:2409
+msgid "Skipping NULL parameter"
+msgstr ""
+
+#: src/ck-session-leader.c:348 src/ck-session.c:1202
+#, c-format
+msgid "Skipping restricted parameter: %s"
+msgstr ""
+
+#: src/ck-session-leader.c:353
+#, c-format
+msgid "Setting override parameters for: %s"
+msgstr ""
+
+#: src/test-event-logger.c:58
+#, c-format
+msgid "Unable to queue event: %s"
+msgstr ""
+
+#: src/test-event-logger.c:84
+#, c-format
+msgid ""
+"Testing the event logger.\n"
+"  Should write messages to: %s"
+msgstr ""
+
+#: src/ck-log.c:141
+msgid ""
+"\n"
+"aborting...\n"
+msgstr ""
+
+#: src/ck-log.c:157 src/ck-log.c:172
+msgid "Debugging disabled"
+msgstr ""
+
+#: src/ck-log.c:161 src/ck-log.c:170
+msgid "Debugging enabled"
+msgstr ""
+
+#: src/ck-run-programs.c:108
+#, c-format
+msgid "The program %s didn't exit within %d seconds; killing it"
+msgstr ""
+
+#: src/ck-run-programs.c:142
+#, c-format
+msgid "Running programs in %s for action %s"
+msgstr ""
+
+#: src/ck-run-programs.c:162
+#, c-format
+msgid "Unable to open directory %s: %s"
+msgstr ""
+
+#: src/ck-run-programs.c:199
+#, c-format
+msgid "Unable to spawn %s: %s"
+msgstr ""
+
+#: src/ck-run-programs.c:207
+#, c-format
+msgid "Waiting for child with pid %d"
+msgstr ""
+
+#: src/ck-run-programs.c:223
+#, c-format
+msgid "Done waiting for child with pid %d"
+msgstr ""
+
 #: src/ck-vt-monitor.c:113
 msgid "Session is already active"
 msgstr ""
@@ -65,34 +574,572 @@ msgstr ""
 msgid "No consoles available"
 msgstr ""
 
-#: src/ck-manager.c:2648 src/ck-manager.c:2747 src/ck-manager.c:2804
+#: src/ck-vt-monitor.c:188
+msgid "Fails to ioctl VT_GETSTATE"
+msgstr ""
+
+#: src/ck-vt-monitor.c:192
+#, c-format
+msgid "Changing active VT: %d"
+msgstr ""
+
+#: src/ck-vt-monitor.c:198 src/ck-vt-monitor.c:218
+#, c-format
+msgid "VT activated but already active: %d"
+msgstr ""
+
+#: src/ck-vt-monitor.c:261
+msgid "Processing VT event queue"
+msgstr ""
+
+#: src/ck-vt-monitor.c:277
+#, c-format
+msgid "Compressing queue; skipping event for VT %d"
+msgstr ""
+
+#: src/ck-vt-monitor.c:334 src/ck-vt-monitor.c:355
+#, c-format
+msgid "Pushing activation event for VT %d onto queue"
+msgstr ""
+
+#: src/ck-vt-monitor.c:389
+#, c-format
+msgid "Creating thread for vt %d"
+msgstr ""
+
+#: src/ck-vt-monitor.c:504
+#, c-format
+msgid "Unable to open a console: %s"
+msgstr ""
+
+#: src/ck-vt-monitor.c:512
+msgid "Could not determine active console"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:206
+#, c-format
+msgid "adding inotify watch %s"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:439
+#, c-format
+msgid "handing inotify event %s for %s"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:471
+msgid "Inotify data pending"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:482
+#, c-format
+msgid "Error reading inotify event: %s"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:490
+msgid "Error reading inotify event: Exceded maximum buffer size"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:494
+#, c-format
+msgid "Buffer size %u too small, trying again at %u\n"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:501
+msgid "Inotify buffer filled"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:555
+#, c-format
+msgid "Adding notify for %s mask:%d"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:570
+#, c-format
+msgid "removing notify for %u"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:612
+#, c-format
+msgid "Failed to add monitor on '%s': %s"
+msgstr ""
+
+#: src/ck-file-monitor-inotify.c:654
+#, c-format
+msgid "Failed to initialize inotify: %s"
+msgstr ""
+
+#: src/ck-manager.c:182
+#, c-format
+msgid "Error writing state file: %s"
+msgstr ""
+
+#: src/ck-manager.c:189
+#, c-format
+msgid "Could not construct state file: %s"
+msgstr ""
+
+#: src/ck-manager.c:224
+#, c-format
+msgid "ck_manager_dump: %s/ConsoleKit folder created"
+msgstr ""
+
+#: src/ck-manager.c:228
+#, c-format
+msgid "Cannot create file %s: %s"
+msgstr ""
+
+#: src/ck-manager.c:232
+#, c-format
+msgid "ck_manager_dump: %s created"
+msgstr ""
+
+#: src/ck-manager.c:235
+#, c-format
+msgid "Cannot write to file %s"
+msgstr ""
+
+#: src/ck-manager.c:240
+#, c-format
+msgid "ck_manager_dump: wrote database to %s"
+msgstr ""
+
+#: src/ck-manager.c:247
+#, c-format
+msgid "Cannot close fd for %s: %s"
+msgstr ""
+
+#: src/ck-manager.c:253
+#, c-format
+msgid "Cannot rename %s to %s: %s"
+msgstr ""
+
+#: src/ck-manager.c:257
+#, c-format
+msgid "ck_manager_dump: renamed %s to %s, operation successful"
+msgstr ""
+
+#: src/ck-manager.c:264
+#, c-format
+msgid "Cannot unlink %s: %s"
+msgstr ""
+
+#: src/ck-manager.c:441 src/ck-manager.c:473 src/ck-manager.c:498
+#: src/ck-manager.c:600 src/ck-manager.c:638 src/ck-manager.c:684
+#: src/ck-manager.c:732
+#, c-format
+msgid "Unable to log event: %s"
+msgstr ""
+
+#: src/ck-manager.c:594
+#, c-format
+msgid "Got uid: %u"
+msgstr ""
+
+#: src/ck-manager.c:789
+#, c-format
+msgid "Not Authorized: %s"
+msgstr ""
+
+#: src/ck-manager.c:800
+msgid "Authorization is required"
+msgstr ""
+
+#: src/ck-manager.c:807
+msgid "Not Authorized"
+msgstr ""
+
+#: src/ck-manager.c:829
+msgid "constructing polkit data"
+msgstr ""
+
+#: src/ck-manager.c:836
+#, c-format
+msgid "checking if caller %s is authorized"
+msgstr ""
+
+#: src/ck-manager.c:922 src/ck-manager.c:946
+#, c-format
+msgid "get permissions for action %s"
+msgstr ""
+
+#: src/ck-manager.c:984
+#, c-format
+msgid "GetConnectionUnixUser() failed: %s"
+msgstr ""
+
+#: src/ck-manager.c:994
+#, c-format
+msgid "GetConnectionUnixProcessID() failed: %s"
+msgstr ""
+
+#: src/ck-manager.c:1094
+#, c-format
+msgid "found %u unique users"
+msgstr ""
+
+#: src/ck-manager.c:1133
+#, c-format
+msgid "User %s has RBAC permission to stop/restart"
+msgstr ""
+
+#: src/ck-manager.c:1135
+#, c-format
+msgid "User %s does not have RBAC permission to stop/restart"
+msgstr ""
+
+#: src/ck-manager.c:1168
+msgid "Compiled without PolicyKit or RBAC support!"
+msgstr ""
+
+#: src/ck-manager.c:1213
+#, c-format
+msgid "ConsoleKit preforming %s"
+msgstr ""
+
+#: src/ck-manager.c:1217
+#, c-format
+msgid "command is %s"
+msgstr ""
+
+#: src/ck-manager.c:1225 src/ck-manager.c:1229
+#, c-format
+msgid "Unable to %s system: %s"
+msgstr ""
+
+#: src/ck-manager.c:1272 src/ck-manager.c:1365 src/ck-manager.c:1589
+msgid "attempting to perform a system action while one is in progress"
+msgstr ""
+
+#: src/ck-manager.c:1283 src/ck-manager.c:1376
+msgid "failed to allocate memory to perform shutdown\n"
+msgstr ""
+
+#: src/ck-manager.c:1316
+msgid "restart inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1403
+msgid "shutdown inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1457
+msgid "poweroff inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1527
+msgid "reboot inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1600 src/ck-manager.c:1706 src/ck-manager.c:1812
+msgid "failed to allocate memory to perform suspend\n"
+msgstr ""
+
+#: src/ck-manager.c:1635
+msgid "suspend inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1741
+msgid "hibernate inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1847
+msgid "hybrid sleep inhibited"
+msgstr ""
+
+#: src/ck-manager.c:2056
+#, c-format
+msgid "Added seat: %s kind:%d"
+msgstr ""
+
+#: src/ck-manager.c:2061 src/ck-manager.c:3370
+#, c-format
+msgid "Emitting seat-added: %s"
+msgstr ""
+
+#: src/ck-manager.c:2087
+#, c-format
+msgid "Seat %s is not attached"
+msgstr ""
+
+#: src/ck-manager.c:2104
+#, c-format
+msgid "Emitting seat-removed: %s"
+msgstr ""
+
+#: src/ck-manager.c:2109
+#, c-format
+msgid "Removed seat: %s"
+msgstr ""
+
+#: src/ck-manager.c:2187
+msgid "idle inhibited, forcing idle_hint to FALSE"
+msgstr ""
+
+#: src/ck-manager.c:2197
+#, c-format
+msgid "Emitting system-idle-hint-changed: %d"
+msgstr ""
+
+#: src/ck-manager.c:2329 src/ck-manager.c:2332
+msgid "Unable to create new session"
+msgstr ""
+
+#: src/ck-manager.c:2460
+#, c-format
+msgid "Looking for local sessions for login-session-id=%s"
+msgstr ""
+
+#: src/ck-manager.c:2475
+#, c-format
+msgid "CkManager: found is-local=true on %s"
+msgstr ""
+
+#: src/ck-manager.c:2516
+msgid "CkManager: verifying session for leader"
+msgstr ""
+
+#: src/ck-manager.c:2522
+msgid ""
+"CkManager: is-local has not been set, will inherit from existing login-"
+"session-id if available"
+msgstr ""
+
+#: src/ck-manager.c:2528
+#, c-format
+msgid "CkManager: found is-local=%s"
+msgstr ""
+
+#: src/ck-manager.c:2550 src/ck-manager.c:2577 src/ck-manager.c:2606
+#: src/ck-manager.c:2679 src/ck-manager.c:2778 src/ck-manager.c:2835
+#: src/ck-manager.c:3034
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2661 src/ck-session.c:278
+#: src/ck-manager.c:2596
+#, c-format
+msgid "CkManager: create session for sender: %s"
+msgstr ""
+
+#: src/ck-manager.c:2615
+#, c-format
+msgid "Creating new session ssid: %s"
+msgstr ""
+
+#: src/ck-manager.c:2665
+msgid "CkManager: get session for cookie"
+msgstr ""
+
+#: src/ck-manager.c:2682
+msgid "CkManager: Unable to lookup caller info - failing"
+msgstr ""
+
+#: src/ck-manager.c:2692 src/ck-session.c:278
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2685 src/ck-manager.c:2697 src/ck-manager.c:2954
+#: src/ck-manager.c:2695 tools/ck-get-x11-display-device.c:50
+#: tools/ck-collect-session-info.c:276 tools/ck-collect-session-info.c:349
+#, c-format
+msgid "stat on pid %d failed: %s"
+msgstr ""
+
+#: src/ck-manager.c:2702
+msgid "CkManager: Unable to lookup info for caller - failing"
+msgstr ""
+
+#: src/ck-manager.c:2716 src/ck-manager.c:2728 src/ck-manager.c:2899
+#: src/ck-manager.c:2912 src/ck-manager.c:2985
 msgid "Unable to find session for cookie"
 msgstr ""
 
-#: src/ck-manager.c:2761
+#: src/ck-manager.c:2719
+msgid "CkManager: Unable to lookup cookie for caller - failing"
+msgstr ""
+
+#: src/ck-manager.c:2731
+msgid "CkManager: Unable to lookup session for cookie - failing"
+msgstr ""
+
+#: src/ck-manager.c:2737
+#, c-format
+msgid "CkManager: Found session '%s'"
+msgstr ""
+
+#: src/ck-manager.c:2766
+#, c-format
+msgid "CkManager: get session for unix process: %u"
+msgstr ""
+
+#: src/ck-manager.c:2788
+#, c-format
+msgid "CkManager: unable to lookup session for unix process: %u"
+msgstr ""
+
+#: src/ck-manager.c:2792
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2962
+#: src/ck-manager.c:2823
+msgid "CkManager: get current session"
+msgstr ""
+
+#: src/ck-manager.c:2891
+#, c-format
+msgid "Removing session for cookie: %s"
+msgstr ""
+
+#: src/ck-manager.c:2976
+msgid "No cookie specified"
+msgstr ""
+
+#: src/ck-manager.c:2993
 msgid "User ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:2972
+#: src/ck-manager.c:3003
 msgid "Process ID does not match the owner of cookie"
+msgstr ""
+
+#: src/ck-manager.c:3022
+#, c-format
+msgid "Closing session for cookie: %s"
+msgstr ""
+
+#: src/ck-manager.c:3099
+#, c-format
+msgid "Removing sessions for service name: %s"
+msgstr ""
+
+#: src/ck-manager.c:3365
+#, c-format
+msgid "Added seat: %s"
+msgstr ""
+
+#: src/ck-manager.c:3388
+#, c-format
+msgid "Could not open seat dir: %s"
+msgstr ""
+
+#: src/ck-session.c:162
+#, c-format
+msgid "Emitting lock for session %s"
+msgstr ""
+
+#: src/ck-session.c:176
+#, c-format
+msgid "Emitting unlock for session %s"
+msgstr ""
+
+#: src/ck-session.c:240
+#, c-format
+msgid "Emitting idle-changed for session %s"
 msgstr ""
 
 #: src/ck-session.c:291
 msgid "Only session owner may set idle hint state"
+msgstr ""
+
+#: src/ck-session.c:379
+msgid "Activate signal not handled"
+msgstr ""
+
+#: src/ck-session.c:852
+#, c-format
+msgid "Identified session '%s' as %s"
+msgstr ""
+
+#: src/ck-session.c:1208
+#, c-format
+msgid "Skipping unknown parameter: %s"
+msgstr ""
+
+#: src/ck-session.c:1213
+#, c-format
+msgid "property '%s' is not writable"
+msgstr ""
+
+#: src/ck-session.c:1222
+#, c-format
+msgid "unable to transform property value for '%s'"
+msgstr ""
+
+#: src/test-vt-monitor.c:48
+#, c-format
+msgid "VT %u activated"
+msgstr ""
+
+#: src/test-vt-monitor.c:81
+msgid "Must be run as root"
+msgstr ""
+
+#: src/test-vt-monitor.c:85
+msgid ""
+"Testing the VT monitor.\n"
+"  Should print messages when VT is switched."
+msgstr ""
+
+#: src/test-vt-monitor.c:91
+#, c-format
+msgid "Couldn't determine active VT: %s"
+msgstr ""
+
+#: src/test-vt-monitor.c:95
+#, c-format
+msgid "VT %u is currently active"
+msgstr ""
+
+#: src/test-tty-idle-monitor.c:87
+msgid "Device is not a console"
+msgstr ""
+
+#: src/test-tty-idle-monitor.c:91
+msgid ""
+"Testing the TTY idle monitor.\n"
+"1. Wait for idleness to be detected.\n"
+"2. Hit keys on the keyboard to see if activity is noticed."
+msgstr ""
+
+#: src/ck-sysdeps-openbsd.c:257 src/ck-sysdeps-freebsd.c:311
+#, c-format
+msgid "kvm_openfiles failed: %s"
+msgstr ""
+
+#: src/ck-sysdeps-openbsd.c:262 src/ck-sysdeps-freebsd.c:316
+#, c-format
+msgid "get_kinfo_proc failed: %s"
+msgstr ""
+
+#: src/ck-sysdeps-openbsd.c:268 src/ck-sysdeps-freebsd.c:322
+#, c-format
+msgid "kvm_getenvv failed: %s"
+msgstr ""
+
+#: src/ck-sysdeps-openbsd.c:458
+#, c-format
+msgid "Active VT is: %d (ttyC%d)"
+msgstr ""
+
+#: src/ck-sysdeps-openbsd.c:461
+#, c-format
+msgid "Active console is: ttyC%d"
+msgstr ""
+
+#: tools/ck-history.c:95 tools/ck-history.c:129
+msgid "Log line truncated"
+msgstr ""
+
+#: tools/ck-history.c:165 tools/ck-history.c:177
+#, c-format
+msgid "Error opening %s (%s)\n"
+msgstr ""
+
+#: tools/ck-history.c:671 tools/ck-history.c:716
+#, c-format
+msgid ""
+"\n"
+"Log begins %s"
 msgstr ""
 
 #: tools/ck-history.c:903 tools/list-sessions.c:372
@@ -147,8 +1194,106 @@ msgstr ""
 msgid "DATETIME"
 msgstr ""
 
+#: tools/ck-history.c:944
+msgid "Invalid ISO 8601 time value"
+msgstr ""
+
+#: tools/ck-history.c:964
+#, c-format
+msgid "Unknown username: %s"
+msgstr ""
+
+#: tools/list-sessions.c:64 tools/list-sessions.c:87 tools/list-sessions.c:110
+#: tools/list-sessions.c:133
+#, c-format
+msgid "%s failed: %s"
+msgstr ""
+
+#: tools/list-sessions.c:293
+#, c-format
+msgid "Failed to get list of sessions for %s: %s"
+msgstr ""
+
+#: tools/list-sessions.c:341
+#, c-format
+msgid "Failed to get list of seats: %s"
+msgstr ""
+
+#: tools/list-sessions.c:408
+#, c-format
+msgid "Failed to connect to the D-Bus daemon: %s"
+msgstr ""
+
+#: tools/ck-log-system-stop.c:74 tools/ck-log-system-restart.c:75
+#: tools/ck-log-system-start.c:98
+#, c-format
+msgid "Couldn't create log file %s (%s)"
+msgstr ""
+
+#: tools/ck-log-system-stop.c:87 tools/ck-log-system-restart.c:88
+#: tools/ck-log-system-start.c:111
+#, c-format
+msgid "Couldn't open log file %s (%s)"
+msgstr ""
+
+#: tools/ck-log-system-stop.c:102 tools/ck-log-system-restart.c:103
+#: tools/ck-log-system-start.c:126
+#, c-format
+msgid "Error changing owner of log file (%s)"
+msgstr ""
+
+#: tools/ck-get-x11-server-pid.c:48 tools/ck-get-x11-display-device.c:72
+msgid "DISPLAY is not set"
+msgstr ""
+
+#: tools/ck-get-x11-server-pid.c:53
+msgid "DISPLAY is not a UNIX domain socket, can't get PID"
+msgstr ""
+
+#: tools/ck-get-x11-server-pid.c:59 tools/ck-get-x11-display-device.c:78
+#, c-format
+msgid "cannot open display: %s"
+msgstr ""
+
+#: tools/ck-launch-session.c:74
+msgid "error forking child"
+msgstr ""
+
+#: tools/ck-launch-session.c:86
+msgid "error connecting to ConsoleKit"
+msgstr ""
+
+#: tools/ck-launch-session.c:89
+msgid "error setting up to connection to ConsoleKit"
+msgstr ""
+
 #: tools/ck-get-x11-display-device.c:162
 msgid "display name"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:73
+#, c-format
+msgid "Unable to lookup UID: %s"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:81
+#, c-format
+msgid "Error performing setgid: %s"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:89
+#, c-format
+msgid "Error performing setuid: %s"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:185
+#, c-format
+msgid "Unable to PID for x11 server: %s"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:316
+#, c-format
+msgid "Unable to get display device for x11 server: %s"
 msgstr ""
 
 #: tools/ck-collect-session-info.c:425
@@ -157,4 +1302,12 @@ msgstr ""
 
 #: tools/ck-collect-session-info.c:426
 msgid "Process ID"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:457
+msgid "Invalid UID"
+msgstr ""
+
+#: tools/ck-collect-session-info.c:462
+msgid "Invalid PID"
 msgstr ""
