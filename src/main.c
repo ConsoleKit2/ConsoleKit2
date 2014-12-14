@@ -150,7 +150,7 @@ delete_pid (void)
         unlink (CONSOLE_KIT_PID_FILE);
 }
 
-#define CONSOLE_TAGS_DIR "/var/run/console"
+#define CONSOLE_TAGS_DIR RUNDIR "/console"
 
 static void
 delete_console_tags (void)
