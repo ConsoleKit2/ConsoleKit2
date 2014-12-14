@@ -32,6 +32,9 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #ifdef __linux__
 #include <linux/kd.h>
 #endif
@@ -88,7 +91,7 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                 uid_read = cr.uid;
                 ret = TRUE;
         } else {
-                g_warning ("Failed to getsockopt() credentials, returned len %d/%d: %s\n",
+                g_warning (_("Failed to getsockopt() credentials, returned len %d/%d: %s\n"),
                            cr_len,
                            (int) sizeof (cr),
                            g_strerror (errno));
@@ -102,7 +105,7 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                 uid_read = ucred_geteuid (ucred);
                 ret = TRUE;
         } else {
-                g_warning ("Failed to getpeerucred() credentials: %s\n",
+                g_warning (_("Failed to getpeerucred() credentials: %s\n"),
                            g_strerror (errno));
         }
         if (ucred != NULL) {
@@ -114,11 +117,11 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         if (getpeereid (socket_fd, &uid_read, &dummy) == 0) {
                 ret = TRUE;
         } else {
-                g_warning ("Failed to getpeereid() credentials: %s\n",
+                g_warning (_("Failed to getpeereid() credentials: %s\n"),
                            g_strerror (errno));
         }
 #else /* !SO_PEERCRED && !HAVE_GETPEERUCRED */
-        g_warning ("Socket credentials not supported on this OS\n");
+        g_warning (_("Socket credentials not supported on this OS\n"));
 #endif
 
         if (pid != NULL) {
@@ -315,9 +318,9 @@ ck_wait_for_active_console_num (int   console_fd,
 
         errno = 0;
 #ifdef VT_WAITACTIVE
-        g_debug ("VT_WAITACTIVE for vt %d", num);
+        g_debug (_("VT_WAITACTIVE for vt %d"), num);
         res = ioctl (console_fd, VT_WAITACTIVE, num);
-        g_debug ("VT_WAITACTIVE for vt %d returned %d", num, res);
+        g_debug (_("VT_WAITACTIVE for vt %d returned %d"), num, res);
 #else
         res = ERROR;
         errno = ENOTSUP;
@@ -329,14 +332,14 @@ ck_wait_for_active_console_num (int   console_fd,
                 errmsg = g_strerror (errno);
 
                 if (errno == EINTR) {
-                        g_debug ("Interrupted waiting for native console %d activation: %s",
+                        g_debug (_("Interrupted waiting for native console %d activation: %s"),
                                   num,
                                   errmsg);
                        goto again;
                 } else if (errno == ENOTSUP) {
-                        g_debug ("Console activation not supported on this system");
+                        g_debug (_("Console activation not supported on this system"));
                 } else {
-                        g_warning ("Error waiting for native console %d activation: %s",
+                        g_warning (_("Error waiting for native console %d activation: %s"),
                                    num,
                                    errmsg);
                 }
@@ -372,9 +375,9 @@ ck_activate_console_num (int   console_fd,
                 ret = TRUE;
         } else {
                 if (errno == ENOTSUP) {
-                        g_debug ("Console activation not supported on this system");
+                        g_debug (_("Console activation not supported on this system"));
                 } else {
-                        g_warning ("Unable to activate console: %s", g_strerror (errno));
+                        g_warning (_("Unable to activate console: %s"), g_strerror (errno));
                 }
         }
 

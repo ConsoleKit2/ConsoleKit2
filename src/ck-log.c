@@ -27,6 +27,9 @@
 #include <stdarg.h>
 #include <unistd.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <syslog.h>
 
 #include <glib.h>
@@ -138,7 +141,7 @@ ck_log_default_handler (const gchar   *log_domain,
                 g_string_append (gstring, message);
         }
         if (is_fatal) {
-                g_string_append (gstring, "\naborting...\n");
+                g_string_append (gstring, _("\naborting...\n"));
         } else {
                 g_string_append (gstring, "\n");
         }
@@ -154,11 +157,11 @@ void
 ck_log_toggle_debug (void)
 {
         if (syslog_levels & G_LOG_LEVEL_DEBUG) {
-                g_debug ("Debugging disabled");
+                g_debug (_("Debugging disabled"));
                 syslog_levels &= ~G_LOG_LEVEL_DEBUG;
         } else {
                 syslog_levels |= G_LOG_LEVEL_DEBUG;
-                g_debug ("Debugging enabled");
+                g_debug (_("Debugging enabled"));
         }
 }
 
@@ -167,9 +170,9 @@ ck_log_set_debug (gboolean debug)
 {
         if (debug) {
                 syslog_levels |= G_LOG_LEVEL_DEBUG;
-                g_debug ("Debugging enabled");
+                g_debug (_("Debugging enabled"));
         } else {
-                g_debug ("Debugging disabled");
+                g_debug (_("Debugging disabled"));
                 syslog_levels &= ~G_LOG_LEVEL_DEBUG;
         }
 }

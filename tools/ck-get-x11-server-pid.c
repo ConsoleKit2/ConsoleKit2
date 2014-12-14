@@ -45,18 +45,18 @@ display_init (int *argc, char ***argv)
         display_name = g_getenv ("DISPLAY");
 
         if (display_name == NULL) {
-                g_warning ("DISPLAY is not set");
+                g_warning (_("DISPLAY is not set"));
                 exit (1);
         }
 
         if (display_name[0] != ':' && g_strrstr(display_name, ":") != NULL) {
-                g_warning ("DISPLAY is not a UNIX domain socket, can't get PID");
+                g_warning (_("DISPLAY is not a UNIX domain socket, can't get PID"));
                 exit (1);
         }
 
         xdisplay = XOpenDisplay (display_name);
         if (xdisplay == NULL) {
-                g_warning ("cannot open display: %s", display_name ? display_name : "");
+                g_warning (_("cannot open display: %s"), display_name ? display_name : "");
                 exit (1);
         }
 

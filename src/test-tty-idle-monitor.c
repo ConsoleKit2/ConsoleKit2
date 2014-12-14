@@ -31,6 +31,8 @@
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
+
+#include <libintl.h>
 #include <locale.h>
 
 #include <glib.h>
@@ -73,6 +75,14 @@ main (int argc, char **argv)
         CkTtyIdleMonitor *monitor;
         char             *device;
 
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
+
 #if !GLIB_CHECK_VERSION(2, 36, 0)
         g_type_init ();
 #endif
@@ -84,11 +94,11 @@ main (int argc, char **argv)
         }
 
         if (! is_console (device)) {
-                g_warning ("Device is not a console");
+                g_warning (_("Device is not a console"));
                 exit (1);
         }
 
-        g_message ("Testing the TTY idle monitor.\n1. Wait for idleness to be detected.\n2. Hit keys on the keyboard to see if activity is noticed.");
+        g_message (_("Testing the TTY idle monitor.\n1. Wait for idleness to be detected.\n2. Hit keys on the keyboard to see if activity is noticed."));
 
         monitor = ck_tty_idle_monitor_new (device);
 

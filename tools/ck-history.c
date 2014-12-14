@@ -92,7 +92,7 @@ process_log_gzstream (gzFile   fstream,
                 CkLogEvent *event;
 
                 if (strlen (line) == sizeof (line) - 1) {
-                        g_warning ("Log line truncated");
+                        g_warning (_("Log line truncated"));
                 }
 
                 event = parse_event_line (line);
@@ -126,7 +126,7 @@ process_log_stream (FILE     *fstream,
                 CkLogEvent *event;
 
                 if (strlen (line) == sizeof (line) - 1) {
-                        g_warning ("Log line truncated");
+                        g_warning (_("Log line truncated"));
                 }
 
                 event = parse_event_line (line);
@@ -162,7 +162,7 @@ process_log_file (const char *filename,
                         if (errnum == Z_ERRNO) {
                                 errmsg = g_strerror (errno);
                         }
-                        g_warning ("Error opening %s (%s)\n",
+                        g_warning (_("Error opening %s (%s)\n"),
                                    filename,
                                    errmsg);
                         return FALSE;
@@ -174,7 +174,7 @@ process_log_file (const char *filename,
 
                 f = g_fopen (filename, "r");
                 if (f == NULL) {
-                        g_warning ("Error opening %s (%s)\n",
+                        g_warning (_("Error opening %s (%s)\n"),
                                    filename,
                                    g_strerror (errno));
                         return FALSE;
@@ -668,7 +668,7 @@ generate_report_last (int         uid,
         if (oldest != NULL) {
                 oldest_event = oldest->data;
                 oldest_e = oldest_event->timestamp.tv_sec;
-                g_print ("\nLog begins %s", ctime (&oldest_e));
+                g_print (_("\nLog begins %s"), ctime (&oldest_e));
         }
 }
 
@@ -713,7 +713,7 @@ generate_report_last_compat (int         uid,
         if (oldest != NULL) {
                 oldest_event = oldest->data;
                 oldest_e = oldest_event->timestamp.tv_sec;
-                g_print ("\nLog begins %s", ctime (&oldest_e));
+                g_print (_("\nLog begins %s"), ctime (&oldest_e));
         }
 }
 
@@ -941,7 +941,7 @@ main (int    argc,
         if (since != NULL) {
                 use_since = g_time_val_from_iso8601 (since, &timestamp);
                 if (! use_since) {
-                        g_warning ("Invalid ISO 8601 time value");
+                        g_warning (_("Invalid ISO 8601 time value"));
                         exit (1);
                 }
         }
@@ -961,7 +961,7 @@ main (int    argc,
         if (username != NULL) {
                 uid = get_uid_for_username (username);
                 if (uid == -1) {
-                        g_warning ("Unknown username: %s", username);
+                        g_warning (_("Unknown username: %s"), username);
                         exit (1);
                 }
         } else {

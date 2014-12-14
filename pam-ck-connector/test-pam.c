@@ -30,6 +30,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
 
@@ -66,9 +69,17 @@ main (int argc, char *argv[])
         hostname = NULL;
         tty_name = NULL;
 
+        /* Setup for i18n */
+        setlocale(LC_ALL, "");
+
+#ifdef ENABLE_NLS
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
+
         retcode = pam_start ("login", username, &conv, &pamh);
         if (retcode != PAM_SUCCESS) {
-                fprintf (stderr, "login: PAM Failure, aborting: %s\n",
+                fprintf (stderr, _("login: PAM Failure, aborting: %s\n"),
                          pam_strerror (pamh, retcode));
                 exit (99);
         }
@@ -87,7 +98,7 @@ main (int argc, char *argv[])
         PAM_FAIL_CHECK;
         pam_set_item (pamh, PAM_USER, NULL);
 
-        retcode = pam_set_item (pamh, PAM_USER_PROMPT, "Username: ");
+        retcode = pam_set_item (pamh, PAM_USER_PROMPT, _("Username: "));
         PAM_FAIL_CHECK;
 
         failcount = 0;
@@ -99,13 +110,13 @@ main (int argc, char *argv[])
                 (retcode == PAM_AUTHINFO_UNAVAIL))) {
                 pam_get_item (pamh, PAM_USER, (const void **) &username);
 
-                fprintf (stderr, "Login incorrect\n\n");
+                fprintf (stderr, _("Login incorrect\n\n"));
                 pam_set_item (pamh, PAM_USER, NULL);
                 retcode = pam_authenticate (pamh, 0);
         }
 
         if (retcode != PAM_SUCCESS) {
-                fprintf (stderr, "\nLogin incorrect\n");
+                fprintf (stderr, _("\nLogin incorrect\n"));
                 pam_end (pamh, retcode);
                 exit (0);
         }
@@ -128,14 +139,14 @@ main (int argc, char *argv[])
 
         pam_get_item (pamh, PAM_USER, (const void **) &username);
 
-        printf ("Session opened for %s\n", username);
+        printf (_("Session opened for %s\n"), username);
 
-        printf ("sleeping for 20 seconds...");
+        printf (_("sleeping for 20 seconds..."));
         sleep (20);
 
         PAM_END;
 
-        printf ("\nSession closed\n");
+        printf (_("\nSession closed\n"));
 
         return ret;
 }

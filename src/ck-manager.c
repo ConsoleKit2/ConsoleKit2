@@ -31,6 +31,9 @@
 #include <errno.h>
 #include <pwd.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -179,14 +182,14 @@ do_dump (CkManager *manager,
                                 if (errno == EAGAIN || errno == EINTR) {
                                         continue;
                                 } else {
-                                        g_warning ("Error writing state file: %s", strerror (errno));
+                                        g_warning (_("Error writing state file: %s"), strerror (errno));
                                         goto out;
                                 }
                         }
                         written += ret;
                 }
         } else {
-                g_warning ("Couldn't construct state file: %s", error->message);
+                g_warning (_("Could not construct state file: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -215,53 +218,53 @@ ck_manager_dump (CkManager *manager)
         res = g_mkdir_with_parents (RUNDIR "/ConsoleKit",
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (res < 0) {
-                g_warning ("Unable to create directory %s (%s)",
+                g_warning (_("Unable to create directory %s (%s)"),
                            RUNDIR "/ConsoleKit",
                            g_strerror (errno));
                 return;
         }
 
-        g_debug ("ck_manager_dump: %s/ConsoleKit folder created", RUNDIR);
+        g_debug (_("ck_manager_dump: %s/ConsoleKit folder created"), RUNDIR);
 
         fd = g_open (filename_tmp, O_CREAT | O_WRONLY, 0644);
         if (fd == -1) {
-                g_warning ("Cannot create file %s: %s", filename_tmp, g_strerror (errno));
+                g_warning (_("Cannot create file %s: %s"), filename_tmp, g_strerror (errno));
                 goto error;
         }
 
-        g_debug ("ck_manager_dump: %s created", filename_tmp);
+        g_debug (_("ck_manager_dump: %s created"), filename_tmp);
 
         if (! do_dump (manager, fd)) {
-                g_warning ("Cannot write to file %s", filename_tmp);
+                g_warning (_("Cannot write to file %s"), filename_tmp);
                 close (fd);
                 goto error;
         }
 
-        g_debug ("ck_manager_dump: wrote database to %s", filename_tmp);
+        g_debug (_("ck_manager_dump: wrote database to %s"), filename_tmp);
 
  again:
         if (close (fd) != 0) {
                 if (errno == EINTR)
                         goto again;
                 else {
-                        g_warning ("Cannot close fd for %s: %s", filename_tmp, g_strerror (errno));
+                        g_warning (_("Cannot close fd for %s: %s"), filename_tmp, g_strerror (errno));
                         goto error;
                 }
         }
 
         if (g_rename (filename_tmp, filename) != 0) {
-                g_warning ("Cannot rename %s to %s: %s", filename_tmp, filename, g_strerror (errno));
+                g_warning (_("Cannot rename %s to %s: %s"), filename_tmp, filename, g_strerror (errno));
                 goto error;
         }
 
-        g_debug ("ck_manager_dump: renamed %s to %s, operation successful", filename_tmp, filename);
+        g_debug (_("ck_manager_dump: renamed %s to %s, operation successful"), filename_tmp, filename);
 
         return;
 error:
         /* For security reasons; unlink the existing file since it
            contains outdated information */
         if (g_unlink (filename) != 0) {
-                g_warning ("Cannot unlink %s: %s", filename, g_strerror (errno));
+                g_warning (_("Cannot unlink %s: %s"), filename, g_strerror (errno));
         }
 }
 
@@ -438,7 +441,7 @@ log_seat_added_event (CkManager  *manager,
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -470,7 +473,7 @@ log_seat_removed_event (CkManager  *manager,
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -495,7 +498,7 @@ log_system_action_event (CkManager *manager,
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -591,13 +594,13 @@ log_seat_session_removed_event (CkManager  *manager,
                               "unix-user", &event.event.seat_session_removed.session_unix_user,
                               NULL);
                 ck_session_get_creation_time (session, &event.event.seat_session_removed.session_creation_time, NULL);
-                g_debug ("Got uid: %u", event.event.seat_session_removed.session_unix_user);
+                g_debug (_("Got uid: %u"), event.event.seat_session_removed.session_unix_user);
         }
 
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -635,7 +638,7 @@ log_seat_active_session_changed_event (CkManager  *manager,
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -681,7 +684,7 @@ log_seat_device_added_event (CkManager   *manager,
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -729,7 +732,7 @@ log_seat_device_removed_event (CkManager   *manager,
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
         if (! res) {
-                g_debug ("Unable to log event: %s", error->message);
+                g_debug (_("Unable to log event: %s"), error->message);
                 g_error_free (error);
         }
 
@@ -786,7 +789,7 @@ auth_ready_callback (PolkitAuthority        *authority,
         if (error != NULL) {
                 error2 = g_error_new (CK_MANAGER_ERROR,
                                       CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                      "Not Authorized: %s", error->message);
+                                      _("Not Authorized: %s"), error->message);
                 dbus_g_method_return_error (data->context, error2);
                 g_error_free (error2);
                 g_error_free (error);
@@ -797,14 +800,14 @@ auth_ready_callback (PolkitAuthority        *authority,
         else if (polkit_authorization_result_get_is_challenge (result)) {
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                     "Authorization is required");
+                                     _("Authorization is required"));
                 dbus_g_method_return_error (data->context, error);
                 g_error_free (error);
         }
         else {
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                     "Not Authorized");
+                                     _("Not Authorized"));
                 dbus_g_method_return_error (data->context, error);
                 g_error_free (error);
         }
@@ -826,14 +829,14 @@ check_polkit_permissions (CkManager             *manager,
         AuthorizedCallbackData *data;
         PolkitCheckAuthorizationFlags auth_flag;
 
-        g_debug ("constructing polkit data");
+        g_debug (_("constructing polkit data"));
 
         /* Check that caller is privileged */
         sender = dbus_g_method_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
         auth_flag = policykit_interactivity ? POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION : POLKIT_CHECK_AUTHORIZATION_FLAGS_NONE;
 
-        g_debug ("checking if caller %s is authorized", sender);
+        g_debug (_("checking if caller %s is authorized"), sender);
 
         data = g_new0 (AuthorizedCallbackData, 1);
         data->manager = g_object_ref (manager);
@@ -919,7 +922,7 @@ get_polkit_logind_permissions (CkManager   *manager,
         const char    *sender;
         PolkitSubject *subject;
 
-        g_debug ("get permissions for action %s", action);
+        g_debug (_("get permissions for action %s"), action);
 
         sender = dbus_g_method_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
@@ -943,7 +946,7 @@ get_polkit_permissions (CkManager   *manager,
         const char    *sender;
         PolkitSubject *subject;
 
-        g_debug ("get permissions for action %s", action);
+        g_debug (_("get permissions for action %s"), action);
 
         sender = dbus_g_method_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
@@ -981,7 +984,7 @@ get_caller_info (CkManager   *manager,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_uid,
                                  G_TYPE_INVALID)) {
-                g_debug ("GetConnectionUnixUser() failed: %s", error->message);
+                g_debug (_("GetConnectionUnixUser() failed: %s"), error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -991,7 +994,7 @@ get_caller_info (CkManager   *manager,
                                  G_TYPE_INVALID,
                                  G_TYPE_UINT, calling_pid,
                                  G_TYPE_INVALID)) {
-                g_debug ("GetConnectionUnixProcessID() failed: %s", error->message);
+                g_debug (_("GetConnectionUnixProcessID() failed: %s"), error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -1091,7 +1094,7 @@ get_system_num_users (CkManager *manager)
 
         g_hash_table_destroy (hash);
 
-        g_debug ("found %u unique users", num_users);
+        g_debug (_("found %u unique users"), num_users);
 
         return num_users;
 }
@@ -1130,9 +1133,9 @@ check_rbac_permissions (CkManager             *manager,
 out:
 
         if (res == TRUE) {
-                g_debug ("User %s has RBAC permission to stop/restart", username);
+                g_debug (_("User %s has RBAC permission to stop/restart"), username);
         } else {
-                g_debug ("User %s does not have RBAC permission to stop/restart", username);
+                g_debug (_("User %s does not have RBAC permission to stop/restart"), username);
         }
 
         g_free (username);
@@ -1165,7 +1168,7 @@ check_system_action (CkManager             *manager,
 #elif defined ENABLE_RBAC_SHUTDOWN
         check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, callback);
 #else
-        g_warning ("Compiled without PolicyKit or RBAC support!");
+        g_warning (_("Compiled without PolicyKit or RBAC support!"));
         callback(manager, context);
 #endif
 }
@@ -1210,11 +1213,11 @@ do_system_action (CkManager             *manager,
         GError *error;
         gboolean res;
 
-        g_debug ("ConsoleKit preforming %s", description);
+        g_debug (_("ConsoleKit preforming %s"), description);
 
         log_system_action_event (manager, event_type);
 
-        g_debug ("command is %s", command);
+        g_debug (_("command is %s"), command);
 
         error = NULL;
         res = g_spawn_command_line_sync (command, NULL, NULL, NULL, &error);
@@ -1222,11 +1225,11 @@ do_system_action (CkManager             *manager,
         if (! res) {
                 GError *new_error;
 
-                g_warning ("Unable to %s system: %s", description, error->message);
+                g_warning (_("Unable to %s system: %s"), description, error->message);
 
                 new_error = g_error_new (CK_MANAGER_ERROR,
                                          CK_MANAGER_ERROR_GENERAL,
-                                         "Unable to %s system: %s", description, error->message);
+                                         _("Unable to %s system: %s"), description, error->message);
 
                 dbus_g_method_return_error (context, new_error);
                 g_error_free (new_error);
@@ -1269,7 +1272,7 @@ do_restart (CkManager             *manager,
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
-                g_error ("attempting to perform a system action while one is in progress");
+                g_error (_("attempting to perform a system action while one is in progress"));
                 dbus_g_method_return (context, FALSE);
                 return;
         }
@@ -1280,7 +1283,7 @@ do_restart (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform shutdown\n");
+                g_critical (_("failed to allocate memory to perform shutdown\n"));
                 g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
                 return;
         }
@@ -1313,7 +1316,7 @@ ck_manager_restart (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("restart inhibited");
+                g_debug (_("restart inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -1362,7 +1365,7 @@ do_stop (CkManager             *manager,
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
-                g_error ("attempting to perform a system action while one is in progress");
+                g_error (_("attempting to perform a system action while one is in progress"));
                 dbus_g_method_return (context, FALSE);
                 return;
         }
@@ -1373,7 +1376,7 @@ do_stop (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform shutdown\n");
+                g_critical (_("failed to allocate memory to perform shutdown\n"));
                 g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
                 dbus_g_method_return (context, FALSE);
                 return;
@@ -1400,7 +1403,7 @@ ck_manager_stop (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("shutdown inhibited");
+                g_debug (_("shutdown inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -1454,7 +1457,7 @@ ck_manager_power_off (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("poweroff inhibited");
+                g_debug (_("poweroff inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -1524,7 +1527,7 @@ ck_manager_reboot  (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("reboot inhibited");
+                g_debug (_("reboot inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -1586,7 +1589,7 @@ do_suspend (CkManager             *manager,
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
-                g_error ("attempting to perform a system action while one is in progress");
+                g_error (_("attempting to perform a system action while one is in progress"));
                 dbus_g_method_return (context, FALSE);
                 return;
         }
@@ -1597,7 +1600,7 @@ do_suspend (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform suspend\n");
+                g_critical (_("failed to allocate memory to perform suspend\n"));
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
                 dbus_g_method_return (context, FALSE);
                 return;
@@ -1632,7 +1635,7 @@ ck_manager_suspend (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("suspend inhibited");
+                g_debug (_("suspend inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -1703,7 +1706,7 @@ do_hibernate (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform suspend\n");
+                g_critical (_("failed to allocate memory to perform suspend\n"));
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
                 dbus_g_method_return (context, FALSE);
                 return;
@@ -1738,7 +1741,7 @@ ck_manager_hibernate (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("hibernate inhibited");
+                g_debug (_("hibernate inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -1809,7 +1812,7 @@ do_hybrid_sleep (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform suspend\n");
+                g_critical (_("failed to allocate memory to perform suspend\n"));
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
                 dbus_g_method_return (context, FALSE);
                 return;
@@ -1844,7 +1847,7 @@ ck_manager_hybrid_sleep (CkManager             *manager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("hybrid sleep inhibited");
+                g_debug (_("hybrid sleep inhibited"));
                 dbus_g_method_return (context, FALSE);
                 return TRUE;
         }
@@ -2053,12 +2056,12 @@ add_new_seat (CkManager *manager,
 
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
-        g_debug ("Added seat: %s kind:%d", sid, kind);
+        g_debug (_("Added seat: %s kind:%d"), sid, kind);
 
         ck_manager_dump (manager);
         ck_seat_run_programs (seat, NULL, NULL, "seat_added");
 
-        g_debug ("Emitting seat-added: %s", sid);
+        g_debug (_("Emitting seat-added: %s"), sid);
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
 
         log_seat_added_event (manager, seat);
@@ -2084,7 +2087,7 @@ remove_seat (CkManager *manager,
                                             (gpointer *)&orig_sid,
                                             (gpointer *)&orig_seat);
         if (! res) {
-                g_debug ("Seat %s is not attached", sid);
+                g_debug (_("Seat %s is not attached"), sid);
                 goto out;
         }
 
@@ -2101,12 +2104,12 @@ remove_seat (CkManager *manager,
         ck_manager_dump (manager);
         ck_seat_run_programs (seat, NULL, NULL, "seat_removed");
 
-        g_debug ("Emitting seat-removed: %s", sid);
+        g_debug (_("Emitting seat-removed: %s"), sid);
         g_signal_emit (manager, signals [SEAT_REMOVED], 0, sid);
 
         log_seat_removed_event (manager, orig_seat);
 
-        g_debug ("Removed seat: %s", sid);
+        g_debug (_("Removed seat: %s"), sid);
 
         if (orig_seat != NULL) {
                 g_object_unref (orig_seat);
@@ -2184,7 +2187,7 @@ manager_set_system_idle_hint (CkManager *manager,
 {
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_idle_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("idle inhibited, forcing idle_hint to FALSE");
+                g_debug (_("idle inhibited, forcing idle_hint to FALSE"));
                 idle_hint = FALSE;
         }
 
@@ -2194,7 +2197,7 @@ manager_set_system_idle_hint (CkManager *manager,
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&manager->priv->system_idle_since_hint);
 
-                g_debug ("Emitting system-idle-hint-changed: %d", idle_hint);
+                g_debug (_("Emitting system-idle-hint-changed: %d"), idle_hint);
                 g_signal_emit (manager, signals [SYSTEM_IDLE_HINT_CHANGED], 0, idle_hint);
         }
 
@@ -2326,10 +2329,10 @@ open_session_for_leader (CkManager             *manager,
 
         if (session == NULL) {
                 GError *error;
-                g_debug ("Unable to create new session");
+                g_debug (_("Unable to create new session"));
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to create new session");
+                                     _("Unable to create new session"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
 
@@ -2401,12 +2404,12 @@ _get_parameter (GPtrArray  *parameters,
                                               1, &prop_val,
                                               G_MAXUINT);
                 if (! res) {
-                        g_debug ("Unable to extract parameter input");
+                        g_debug (_("Unable to extract parameter input"));
                         goto cont;
                 }
 
                 if (prop_name == NULL) {
-                        g_debug ("Skipping NULL parameter");
+                        g_debug (_("Skipping NULL parameter"));
                         goto cont;
                 }
 
@@ -2457,7 +2460,7 @@ _verify_login_session_id_is_local (CkManager  *manager,
            then that means a trusted party has vouched for the
            original login */
 
-        g_debug ("Looking for local sessions for login-session-id=%s", login_session_id);
+        g_debug (_("Looking for local sessions for login-session-id=%s"), login_session_id);
 
         session = NULL;
         g_hash_table_iter_init (&iter, manager->priv->sessions);
@@ -2472,7 +2475,7 @@ _verify_login_session_id_is_local (CkManager  *manager,
                                       "is-local", &is_local,
                                       NULL);
                         if (g_strcmp0 (sessid, login_session_id) == 0 && is_local) {
-                                g_debug ("CkManager: found is-local=true on %s", id);
+                                g_debug (_("CkManager: found is-local=true on %s"), id);
                                 return TRUE;
                         }
                 }
@@ -2513,19 +2516,19 @@ verify_and_open_session_for_leader (CkManager             *manager,
            local session.  Effectively this means that only trusted
            parties can create local sessions. */
 
-        g_debug ("CkManager: verifying session for leader");
+        g_debug (_("CkManager: verifying session for leader"));
 
         if (parameters != NULL && ! _get_parameter (parameters, "is-local", PROP_BOOLEAN, NULL)) {
                 gboolean is_local;
                 char    *login_session_id;
 
-                g_debug ("CkManager: is-local has not been set, will inherit from existing login-session-id if available");
+                g_debug (_("CkManager: is-local has not been set, will inherit from existing login-session-id if available"));
 
                 is_local = FALSE;
 
                 if (_get_parameter (parameters, "login-session-id", PROP_STRING, (gpointer *) &login_session_id)) {
                         is_local = _verify_login_session_id_is_local (manager, login_session_id);
-                        g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
+                        g_debug (_("CkManager: found is-local=%s"), is_local ? "true" : "false");
                 }
 
                 add_param_boolean (parameters, "is-local", is_local);
@@ -2547,7 +2550,7 @@ collect_parameters_cb (CkSessionLeader       *leader,
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
+                                     _("Unable to get information about the calling process"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
                 return;
@@ -2574,7 +2577,7 @@ generate_session_for_leader (CkManager             *manager,
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
+                                     _("Unable to get information about the calling process"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
         }
@@ -2593,7 +2596,7 @@ create_session_for_sender (CkManager             *manager,
         char            *ssid;
         CkSessionLeader *leader;
 
-        g_debug ("CkManager: create session for sender: %s", sender);
+        g_debug (_("CkManager: create session for sender: %s"), sender);
 
         res = get_caller_info (manager,
                                sender,
@@ -2603,7 +2606,7 @@ create_session_for_sender (CkManager             *manager,
                 GError *error;
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
+                                     _("Unable to get information about the calling process"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
                 return FALSE;
@@ -2612,7 +2615,7 @@ create_session_for_sender (CkManager             *manager,
         cookie = generate_session_cookie (manager);
         ssid = generate_session_id (manager);
 
-        g_debug ("Creating new session ssid: %s", ssid);
+        g_debug (_("Creating new session ssid: %s"), ssid);
 
         leader = ck_session_leader_new ();
         ck_session_leader_set_uid (leader, uid);
@@ -2662,7 +2665,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
 
         ssid = NULL;
 
-        g_debug ("CkManager: get session for cookie");
+        g_debug (_("CkManager: get session for cookie"));
 
         sender = dbus_g_method_get_sender (context);
 
@@ -2679,7 +2682,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to get information about the calling process"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
-                g_debug ("CkManager: Unable to lookup caller info - failing");
+                g_debug (_("CkManager: Unable to lookup caller info - failing"));
                 return FALSE;
         }
 
@@ -2692,14 +2695,14 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to lookup information about calling process '%d'"),
                                      calling_pid);
                 if (local_error != NULL) {
-                        g_debug ("stat on pid %d failed: %s", calling_pid, local_error->message);
+                        g_debug (_("stat on pid %d failed: %s"), calling_pid, local_error->message);
                         g_error_free (local_error);
                 }
 
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
 
-                g_debug ("CkManager: Unable to lookup info for caller - failing");
+                g_debug (_("CkManager: Unable to lookup info for caller - failing"));
 
                 return FALSE;
         }
@@ -2716,7 +2719,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to find session for cookie"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
-                g_debug ("CkManager: Unable to lookup cookie for caller - failing");
+                g_debug (_("CkManager: Unable to lookup cookie for caller - failing"));
                 return FALSE;
         }
 
@@ -2728,13 +2731,13 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
                                      _("Unable to find session for cookie"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
-                g_debug ("CkManager: Unable to lookup session for cookie - failing");
+                g_debug (_("CkManager: Unable to lookup session for cookie - failing"));
                 return FALSE;
         }
 
         ck_session_get_id (session, &ssid, NULL);
 
-        g_debug ("CkManager: Found session '%s'", ssid);
+        g_debug (_("CkManager: Found session '%s'"), ssid);
 
         dbus_g_method_return (context, ssid);
 
@@ -2763,7 +2766,7 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
 
         sender = dbus_g_method_get_sender (context);
 
-        g_debug ("CkManager: get session for unix process: %u", pid);
+        g_debug (_("CkManager: get session for unix process: %u"), pid);
 
         res = get_caller_info (manager,
                                sender,
@@ -2785,7 +2788,7 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
         if (cookie == NULL) {
                 GError *error;
 
-                g_debug ("CkManager: unable to lookup session for unix process: %u", pid);
+                g_debug (_("CkManager: unable to lookup session for unix process: %u"), pid);
 
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
@@ -2820,7 +2823,7 @@ ck_manager_get_current_session (CkManager             *manager,
 
         sender = dbus_g_method_get_sender (context);
 
-        g_debug ("CkManager: get current session");
+        g_debug (_("CkManager: get current session"));
 
         res = get_caller_info (manager,
                                sender,
@@ -2888,7 +2891,7 @@ remove_session_for_cookie (CkManager  *manager,
         orig_ssid = NULL;
         orig_session = NULL;
 
-        g_debug ("Removing session for cookie: %s", cookie);
+        g_debug (_("Removing session for cookie: %s"), cookie);
 
         leader = g_hash_table_lookup (manager->priv->leaders, cookie);
 
@@ -2896,7 +2899,7 @@ remove_session_for_cookie (CkManager  *manager,
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
-                             "Unable to find session for cookie");
+                             _("Unable to find session for cookie"));
                 goto out;
         }
 
@@ -2909,7 +2912,7 @@ remove_session_for_cookie (CkManager  *manager,
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
-                             "Unable to find session for cookie");
+                             _("Unable to find session for cookie"));
                 goto out;
         }
 
@@ -2973,7 +2976,7 @@ paranoia_check_is_cookie_owner (CkManager  *manager,
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
-                             "No cookie specified");
+                             _("No cookie specified"));
                 return FALSE;
         }
 
@@ -3019,7 +3022,7 @@ ck_manager_close_session (CkManager             *manager,
         pid_t    calling_pid;
         GError  *error;
 
-        g_debug ("Closing session for cookie: %s", cookie);
+        g_debug (_("Closing session for cookie: %s"), cookie);
 
         sender = dbus_g_method_get_sender (context);
         res = get_caller_info (manager,
@@ -3031,7 +3034,7 @@ ck_manager_close_session (CkManager             *manager,
         if (! res) {
                 error = g_error_new (CK_MANAGER_ERROR,
                                      CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
+                                     _("Unable to get information about the calling process"));
                 dbus_g_method_return_error (context, error);
                 g_error_free (error);
 
@@ -3096,7 +3099,7 @@ remove_sessions_for_connection (CkManager  *manager,
         data.service_name = service_name;
         data.manager = manager;
 
-        g_debug ("Removing sessions for service name: %s", service_name);
+        g_debug (_("Removing sessions for service name: %s"), service_name);
 
         g_hash_table_foreach_remove (manager->priv->leaders,
                                      (GHRFunc)remove_leader_for_connection,
@@ -3142,7 +3145,7 @@ register_manager (CkManager *manager)
         manager->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
         if (manager->priv->connection == NULL) {
                 if (error != NULL) {
-                        g_critical ("error getting system bus: %s", error->message);
+                        g_critical (_("error getting system bus: %s"), error->message);
                         g_error_free (error);
                 }
                 exit (1);
@@ -3362,12 +3365,12 @@ add_seat_for_file (CkManager  *manager,
 
         g_hash_table_insert (manager->priv->seats, sid, seat);
 
-        g_debug ("Added seat: %s", sid);
+        g_debug (_("Added seat: %s"), sid);
 
         ck_manager_dump (manager);
         ck_seat_run_programs (seat, NULL, NULL, "seat_added");
 
-        g_debug ("Emitting seat-added: %s", sid);
+        g_debug (_("Emitting seat-added: %s"), sid);
         g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
 
         log_seat_added_event (manager, seat);
@@ -3385,7 +3388,7 @@ load_seats_from_dir (CkManager *manager)
                         0,
                         &error);
         if (d == NULL) {
-                g_warning ("Couldn't open seat dir: %s", error->message);
+                g_warning (_("Could not open seat dir: %s"), error->message);
                 g_error_free (error);
                 return FALSE;
         }

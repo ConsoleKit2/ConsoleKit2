@@ -29,6 +29,9 @@
 #include <string.h>
 #include <errno.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -116,7 +119,7 @@ open_log_file (CkEventLogger *event_logger)
         res = g_mkdir_with_parents (dirname,
                                     S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (res < 0) {
-                g_warning ("Unable to create directory %s (%s)",
+                g_warning (_("Unable to create directory %s (%s)"),
                            dirname,
                            g_strerror (errno));
                 g_free (dirname);
@@ -133,7 +136,7 @@ retry:
                                      O_CREAT | O_EXCL | O_APPEND,
                                      S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
                         if (fd < 0) {
-                                g_warning ("Couldn't create log file %s (%s)",
+                                g_warning (_("Could not create log file %s (%s)"),
                                            event_logger->priv->log_filename,
                                            g_strerror (errno));
                                 return FALSE;
@@ -146,7 +149,7 @@ retry:
                         goto retry;
                 }
                 if (fd < 0) {
-                        g_warning ("Couldn't open log file %s (%s)",
+                        g_warning (_("Could not open log file %s (%s)"),
                                    event_logger->priv->log_filename,
                                    g_strerror (errno));
                         return FALSE;
@@ -155,21 +158,21 @@ retry:
 
         if (fcntl (fd, F_SETFD, FD_CLOEXEC) == -1) {
                 close (fd);
-                g_warning ("Error setting log file CLOEXEC flag (%s)",
+                g_warning (_("Error setting log file CLOEXEC flag (%s)"),
                            g_strerror (errno));
                 return FALSE;
         }
 
         if (fchown (fd, 0, 0) == -1) {
                 close (fd);
-                g_warning ("Error setting owner of log file (%s)",
+                g_warning (_("Error setting owner of log file (%s)"),
                            g_strerror (errno));
                 return FALSE;
         }
 
         event_logger->priv->file = fdopen (fd, "a");
         if (event_logger->priv->file == NULL) {
-                g_warning ("Error setting up log descriptor (%s)",
+                g_warning (_("Error setting up log descriptor (%s)"),
                            g_strerror (errno));
                 close (fd);
                 return FALSE;
@@ -204,7 +207,7 @@ check_file_stream (CkEventLogger *event_logger)
 
         old_fd = event_logger->priv->fd;
         if (fstat (old_fd, &old_stats) != 0) {
-                g_warning ("Unable to stat file: %s",
+                g_warning (_("Unable to stat file: %s"),
                            g_strerror (errno));
                 reopen_file_stream (event_logger);
                 return;
@@ -217,14 +220,14 @@ check_file_stream (CkEventLogger *event_logger)
                          * opening */
                         g_close (new_fd, NULL);
                 }
-                g_debug ("Unable to open or stat %s - will try to reopen", event_logger->priv->log_filename);
+                g_debug (_("Unable to open or stat %s - will try to reopen"), event_logger->priv->log_filename);
                 reopen_file_stream (event_logger);
                 return;
         }
         close (new_fd);
 
         if (old_stats.st_ino != new_stats.st_ino || old_stats.st_dev != new_stats.st_dev) {
-                g_debug ("File %s has been replaced; writing to end of new file", event_logger->priv->log_filename);
+                g_debug (_("File %s has been replaced; writing to end of new file"), event_logger->priv->log_filename);
                 reopen_file_stream (event_logger);
                 return;
         }
@@ -240,7 +243,7 @@ write_log_for_event (CkEventLogger *event_logger,
 
         ck_log_event_to_string (event, str);
 
-        g_debug ("Writing log for event: %s", str->str);
+        g_debug (_("Writing log for event: %s"), str->str);
         check_file_stream (event_logger);
 
         if (event_logger->priv->file != NULL) {
@@ -248,11 +251,11 @@ write_log_for_event (CkEventLogger *event_logger,
 
                 rc = fprintf (event_logger->priv->file, "%s\n", str->str);
                 if (rc <= 0) {
-                        g_warning ("Record was not written to disk (%s)",
+                        g_warning (_("Record was not written to disk (%s)"),
                                    g_strerror (errno));
                 }
         } else {
-                g_warning ("Log file not open for writing");
+                g_warning (_("Log file not open for writing"));
         }
 
         g_string_free (str, TRUE);
@@ -274,7 +277,7 @@ writer_thread_start (CkEventLogger *event_logger)
                 ck_log_event_free (event);
         }
 
-        g_debug ("Writer thread received None event - exiting");
+        g_debug (_("Writer thread received None event - exiting"));
         return NULL;
 }
 
@@ -283,7 +286,7 @@ create_writer_thread (CkEventLogger *event_logger)
 {
         GError *error;
 
-        g_debug ("Creating thread for log writing");
+        g_debug (_("Creating thread for log writing"));
 
         error = NULL;
 
@@ -303,7 +306,7 @@ create_writer_thread (CkEventLogger *event_logger)
 #endif
 
         if (event_logger->priv->writer_thread == NULL) {
-                g_debug ("Unable to create thread: %s", error->message);
+                g_debug (_("Unable to create thread: %s"), error->message);
                 g_error_free (error);
         }
 }
@@ -315,11 +318,11 @@ destroy_writer_thread (CkEventLogger *event_logger)
 
         event.type = CK_LOG_EVENT_NONE;
 
-        g_debug ("Destroying writer thread");
+        g_debug (_("Destroying writer thread"));
         g_async_queue_push (event_logger->priv->event_queue,
                             &event);
 #if 1
-        g_debug ("Joining writer thread");
+        g_debug (_("Joining writer thread"));
         g_thread_join (event_logger->priv->writer_thread);
 #endif
 }

@@ -47,7 +47,7 @@ get_tty_for_pid (int pid)
         res = ck_process_stat_new_for_unix_pid (pid, &xorg_stat, &error);
         if (! res) {
                 if (error != NULL) {
-                        g_warning ("stat on pid %d failed: %s", pid, error->message);
+                        g_warning (_("stat on pid %d failed: %s"), pid, error->message);
                         g_error_free (error);
                 }
                 /* keep the tty value */
@@ -69,13 +69,13 @@ display_init (const char *display_name)
         }
 
         if (display_name == NULL) {
-                g_warning ("DISPLAY is not set");
+                g_warning (_("DISPLAY is not set"));
                 exit (1);
         }
 
         xdisplay = XOpenDisplay (display_name);
         if (xdisplay == NULL) {
-                g_warning ("cannot open display: %s", display_name ? display_name : "");
+                g_warning (_("cannot open display: %s"), display_name ? display_name : "");
                 exit (1);
         }
 

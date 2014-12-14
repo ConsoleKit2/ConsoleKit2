@@ -61,7 +61,7 @@ get_uint (DBusGProxy *proxy,
                                  G_TYPE_UINT, val,
                                  G_TYPE_INVALID);
         if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
+                g_warning (_("%s failed: %s"), method, error->message);
                 g_error_free (error);
         }
 
@@ -84,7 +84,7 @@ get_path (DBusGProxy *proxy,
                                  DBUS_TYPE_G_OBJECT_PATH, str,
                                  G_TYPE_INVALID);
         if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
+                g_warning (_("%s failed: %s"), method, error->message);
                 g_error_free (error);
         }
 
@@ -107,7 +107,7 @@ get_string (DBusGProxy *proxy,
                                  G_TYPE_STRING, str,
                                  G_TYPE_INVALID);
         if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
+                g_warning (_("%s failed: %s"), method, error->message);
                 g_error_free (error);
         }
 
@@ -130,7 +130,7 @@ get_boolean (DBusGProxy *proxy,
                                  G_TYPE_BOOLEAN, value,
                                  G_TYPE_INVALID);
         if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
+                g_warning (_("%s failed: %s"), method, error->message);
                 g_error_free (error);
         }
 
@@ -290,7 +290,7 @@ list_sessions (DBusGConnection *connection,
                                  &sessions,
                                  G_TYPE_INVALID);
         if (! res) {
-                g_warning ("Failed to get list of sessions for %s: %s", sid, error->message);
+                g_warning (_("Failed to get list of sessions for %s: %s"), sid, error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -338,7 +338,7 @@ list_seats (DBusGConnection *connection)
                                  &seats,
                                  G_TYPE_INVALID);
         if (! res) {
-                g_warning ("Failed to get list of seats: %s", error->message);
+                g_warning (_("Failed to get list of seats: %s"), error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -405,7 +405,7 @@ main (int    argc,
         error = NULL;
         connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
         if (connection == NULL) {
-                g_message ("Failed to connect to the D-Bus daemon: %s", error->message);
+                g_message (_("Failed to connect to the D-Bus daemon: %s"), error->message);
                 g_error_free (error);
                 exit (1);
         }

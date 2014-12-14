@@ -45,6 +45,9 @@
 #endif
 #include <sys/consio.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #define DEV_ENCODE(M,m) ( \
   ( (M&0xfff) << 8) | ( (m&0xfff00) << 12) | (m&0xff) \
 )
@@ -308,18 +311,18 @@ ck_unix_pid_get_env_hash (pid_t pid)
 
         kd = kvm_openfiles (_PATH_DEVNULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
         if (kd == NULL) {
-                g_warning ("kvm_openfiles failed: %s", errbuf);
+                g_warning (_("kvm_openfiles failed: %s"), errbuf);
                 return NULL;
         }
 
         if (! get_kinfo_proc (pid, &p)) {
-                g_warning ("get_kinfo_proc failed: %s", g_strerror (errno));
+                g_warning (_("get_kinfo_proc failed: %s"), g_strerror (errno));
                 goto fail;
         }
 
         penv = kvm_getenvv (kd, &p, 0);
         if (penv == NULL) {
-                g_warning ("kvm_getenvv failed: %s", kvm_geterr (kd));
+                g_warning (_("kvm_getenvv failed: %s"), kvm_geterr (kd));
                 goto fail;
         }
 

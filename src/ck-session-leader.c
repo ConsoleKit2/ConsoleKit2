@@ -28,6 +28,9 @@
 #include <errno.h>
 #include <string.h>
 
+#include <libintl.h>
+#include <locale.h>
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
@@ -89,7 +92,7 @@ remove_pending_job (CkJob *job)
 
                 command = NULL;
                 ck_job_get_command (job, &command);
-                g_debug ("Removing pending job: %s", command);
+                g_debug (_("Removing pending job: %s"), command);
                 g_free (command);
 
                 ck_job_cancel (job);
@@ -332,25 +335,25 @@ save_parameters (CkSessionLeader *leader,
                                                       0, &prop_name,
                                                       G_MAXUINT);
                         if (! res) {
-                                g_debug ("Unable to extract parameter input");
+                                g_debug (_("Unable to extract parameter input"));
                                 g_free (prop_name);
                                 continue;
                         }
 
                         if (prop_name == NULL) {
-                                g_debug ("Skipping NULL parameter");
+                                g_debug (_("Skipping NULL parameter"));
                                 g_free (prop_name);
                                 continue;
                         }
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {
-                                g_debug ("Skipping restricted parameter: %s", prop_name);
+                                g_debug (_("Skipping restricted parameter: %s"), prop_name);
                                 g_free (prop_name);
                                 continue;
                         }
 
-                        g_debug ("Setting override parameters for: %s", prop_name);
+                        g_debug (_("Setting override parameters for: %s"), prop_name);
 
                         data_copy = g_boxed_copy (CK_TYPE_PARAMETER_STRUCT, data);
 
