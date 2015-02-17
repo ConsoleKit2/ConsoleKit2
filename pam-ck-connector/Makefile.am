@@ -23,7 +23,7 @@ pam_ck_connector_la_LIBADD =  			\
 
 man_MANS = pam_ck_connector.8
 
-if CK_COMPILE_LINUX
+if HAVE_LINUXPAM
 noinst_PROGRAMS = 				\
 	test-pam				\
 	$(NULL)
