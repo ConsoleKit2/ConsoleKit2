@@ -244,6 +244,7 @@ dnl Check for PAM
 dnl ---------------------------------------------------------------------------
 
 have_pam=no
+have_linuxpam=no
 AC_CHECK_LIB(pam, pam_getenv, have_pam=yes)
 AM_CONDITIONAL(HAVE_PAM, test x$have_pam = xyes)
 if test "x$have_pam" = "xyes"; then
@@ -268,6 +269,10 @@ if test "x$enable_pam_module" = "xyes"; then
 	msg_pam_module=yes
 fi
 AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
+
+#Check if we can build an optional test program
+AC_CHECK_LIB(pam_misc, misc_conv, have_linuxpam=yes)
+AM_CONDITIONAL(HAVE_LINUXPAM, test "x$have_linuxpam" = "xyes")
 
 dnl ------------------------------------------------------------------------------
 dnl udev-acl - apply ACLs for users with local forground sessions
