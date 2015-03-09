@@ -53,3 +53,12 @@ autotools/*
 cov-int/*
 data/consolekit.logrotate
 data/90-consolekit
+src/ck-manager-generated.c
+src/ck-manager-generated.h
+src/ck-seat-generated.c
+src/ck-seat-generated.h
+src/ck-session-generated.c
+src/ck-session-generated.h
+src/test-session
+tools/pam-foreground-compat.ck
+tools/70-udev-acl.rules

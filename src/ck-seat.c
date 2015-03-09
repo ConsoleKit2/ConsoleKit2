@@ -195,7 +195,7 @@ _seat_activate_session (CkSeat                *seat,
         gboolean      res;
         gboolean      ret;
         guint         num;
-        char         *device;
+        const char   *device;
         ActivateData *adata;
         GError       *vt_error;
 
@@ -225,9 +225,9 @@ _seat_activate_session (CkSeat                *seat,
         }
 
         device = NULL;
-        ck_session_get_x11_display_device (session, &device, NULL);
+        device = console_kit_session_get_x11_display_device (CONSOLE_KIT_SESSION (session));
         if (device == NULL) {
-                ck_session_get_display_device (session, &device, NULL);
+                device = console_kit_session_get_display_device (CONSOLE_KIT_SESSION (session));
         }
         res = ck_get_console_num_from_device (device, &num);
         if (! res) {
@@ -265,7 +265,6 @@ _seat_activate_session (CkSeat                *seat,
         }
 
  out:
-        g_free (device);
 
         return ret;
 }
@@ -307,8 +306,8 @@ match_session_display_device (const char *key,
                               CkSession  *session,
                               const char *display_device)
 {
-        char    *device;
-        gboolean ret;
+        const char *device;
+        gboolean    ret;
 
         device = NULL;
         ret = FALSE;
@@ -317,7 +316,7 @@ match_session_display_device (const char *key,
                 goto out;
         }
 
-        ck_session_get_display_device (session, &device, NULL);
+        device = console_kit_session_get_display_device (CONSOLE_KIT_SESSION (session));
 
         if (device != NULL
             && display_device != NULL
@@ -327,8 +326,6 @@ match_session_display_device (const char *key,
         }
 out:
 
-        g_free (device);
-
         return ret;
 }
 
@@ -337,8 +334,8 @@ match_session_x11_display_device (const char *key,
                                   CkSession  *session,
                                   const char *x11_display_device)
 {
-        char    *device;
-        gboolean ret;
+        const char *device;
+        gboolean    ret;
 
         device = NULL;
         ret = FALSE;
@@ -347,7 +344,7 @@ match_session_x11_display_device (const char *key,
                 goto out;
         }
 
-        ck_session_get_x11_display_device (session, &device, NULL);
+        device = console_kit_session_get_x11_display_device (CONSOLE_KIT_SESSION (session));
 
         if (device != NULL
             && x11_display_device != NULL
@@ -356,8 +353,6 @@ match_session_x11_display_device (const char *key,
                 ret = TRUE;
         }
 out:
-
-        g_free (device);
 
         return ret;
 }
@@ -492,7 +487,7 @@ change_active_session (CkSeat    *seat,
         old_session = seat->priv->active_session;
 
         if (old_session != NULL) {
-                ck_session_set_active (old_session, FALSE, NULL);
+                console_kit_session_set_active (CONSOLE_KIT_SESSION (old_session), FALSE);
         }
 
         seat->priv->active_session = session;
@@ -501,7 +496,7 @@ change_active_session (CkSeat    *seat,
         if (session != NULL) {
                 g_object_ref (session);
                 ck_session_get_id (session, &ssid, NULL);
-                ck_session_set_active (session, TRUE, NULL);
+                console_kit_session_set_active (CONSOLE_KIT_SESSION (session), TRUE);
         }
 
         g_debug ("Active session changed: %s", ssid ? ssid : "(null)");
@@ -1192,53 +1187,51 @@ env_add_session_info (CkSession  *session,
                       char      **extra_env,
                       int        *n)
 {
-        char     *s;
-        gboolean  b;
-        guint     u;
+        ConsoleKitSession *cksession;
+        const char *s;
+        char       *c;
+        gboolean    b;
+        guint       u;
 
         if (session == NULL) {
                 return;
         }
 
-        s = NULL;
-        if (ck_session_get_id (session, &s, NULL) && s != NULL && *s != '\0') {
-                extra_env[(*n)++] = g_strdup_printf ("%sID=%s", prefix, s);
-        }
-        g_free (s);
+        cksession = CONSOLE_KIT_SESSION (session);
 
-        s = NULL;
-        if (ck_session_get_session_type (session, &s, NULL) && s != NULL && *s != '\0') {
+        c = NULL;
+        if (ck_session_get_id (session, &c, NULL) && c != NULL && *c != '\0') {
+                extra_env[(*n)++] = g_strdup_printf ("%sID=%s", prefix, c);
+        }
+        g_free (c);
+
+        s = console_kit_session_get_session_type (cksession);
+        if (s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sTYPE=%s", prefix, s);
         }
-        g_free (s);
 
-        if (ck_session_get_unix_user (session, &u, NULL)) {
-                extra_env[(*n)++] = g_strdup_printf ("%sUSER_UID=%u", prefix, u);
-        }
+        u = console_kit_session_get_unix_user (cksession);
+        extra_env[(*n)++] = g_strdup_printf ("%sUSER_UID=%u", prefix, u);
 
-        s = NULL;
-        if (ck_session_get_display_device (session, &s, NULL) && s != NULL && *s != '\0') {
+        s = console_kit_session_get_display_device (cksession);
+        if (s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sDISPLAY_DEVICE=%s", prefix, s);
         }
-        g_free (s);
 
-        s = NULL;
-        if (ck_session_get_x11_display_device (session, &s, NULL) && s != NULL && *s != '\0') {
+        s = console_kit_session_get_x11_display_device (cksession);
+        if (s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sX11_DISPLAY_DEVICE=%s", prefix, s);
         }
-        g_free (s);
 
-        s = NULL;
-        if (ck_session_get_x11_display (session, &s, NULL) && s != NULL && *s != '\0') {
+        s = console_kit_session_get_x11_display (cksession);
+        if (s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sX11_DISPLAY=%s", prefix, s);
         }
-        g_free (s);
 
-        s = NULL;
-        if (ck_session_get_remote_host_name (session, &s, NULL) && s != NULL && *s != '\0') {
+        s = console_kit_session_get_remote_host_name (cksession);
+        if (s != NULL && *s != '\0') {
                 extra_env[(*n)++] = g_strdup_printf ("%sREMOTE_HOST_NAME=%s", prefix, s);
         }
-        g_free (s);
 
         if (ck_session_is_local (session, &b, NULL)) {
                 extra_env[(*n)++] = g_strdup_printf ("%sIS_LOCAL=%s", prefix, b ? "true" : "false");

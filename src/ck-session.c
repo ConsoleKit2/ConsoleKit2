@@ -31,20 +31,16 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
-#include <glib-object.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
+#include <gio/gio.h>
 
 #include "ck-tty-idle-monitor.h"
 #include "ck-session.h"
-#include "ck-session-glue.h"
 #include "ck-marshal.h"
 #include "ck-run-programs.h"
 
 #define CK_SESSION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SESSION, CkSessionPrivate))
 
-#define CK_DBUS_PATH "/org/freedesktop/ConsoleKit"
-#define CK_DBUS_NAME "org.freedesktop.ConsoleKit"
+#define CK_SESSION_DBUS_NAME "org.freedesktop.ConsoleKit.Session"
 
 #define NONULL_STRING(x) ((x) != NULL ? (x) : "")
 
@@ -56,80 +52,113 @@ struct CkSessionPrivate
         char            *cookie;
         char            *seat_id;
 
-        char            *session_type;
         char            *login_session_id;
-        char            *display_device;
-        char            *x11_display_device;
-        char            *x11_display;
-        char            *remote_host_name;
         guint            uid;
-
-        gboolean         active;
-        gboolean         is_local;
 
         GTimeVal         creation_time;
 
         CkTtyIdleMonitor *idle_monitor;
 
-        gboolean         idle_hint;
         GTimeVal         idle_since_hint;
 
-        DBusGConnection *connection;
-        DBusGProxy      *bus_proxy;
+        GDBusConnection *connection;
+        GDBusProxy      *bus_proxy;
 };
 
-enum {
-        ACTIVATE,
-        LOCK,
-        UNLOCK,
-        ACTIVE_CHANGED,
-        IDLE_HINT_CHANGED,
-        LAST_SIGNAL
-};
-
+/* Private properties not exported over D-BUS */
 enum {
         PROP_0,
         PROP_ID,
         PROP_COOKIE,
-        PROP_USER,
-        PROP_UNIX_USER,
-        PROP_X11_DISPLAY,
-        PROP_X11_DISPLAY_DEVICE,
-        PROP_DISPLAY_DEVICE,
-        PROP_SESSION_TYPE,
-        PROP_REMOTE_HOST_NAME,
         PROP_LOGIN_SESSION_ID,
-        PROP_IS_LOCAL,
-        PROP_ACTIVE,
-        PROP_IDLE_HINT,
 };
 
-static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_session_class_init  (CkSessionClass *klass);
-static void     ck_session_init        (CkSession      *session);
-static void     ck_session_finalize    (GObject        *object);
+static void     ck_session_class_init  (CkSessionClass         *klass);
+static void     ck_session_init        (CkSession              *session);
+static void     ck_session_iface_init  (ConsoleKitSessionIface *iface);
+static void     ck_session_finalize    (GObject                *object);
 
-G_DEFINE_TYPE (CkSession, ck_session, G_TYPE_OBJECT)
+
+G_DEFINE_TYPE_WITH_CODE (CkSession, ck_session, CONSOLE_KIT_TYPE_SESSION_SKELETON, G_IMPLEMENT_INTERFACE (CONSOLE_KIT_TYPE_SESSION, ck_session_iface_init));
+
+static const GDBusErrorEntry ck_session_error_entries[] =
+{
+        { CK_SESSION_ERROR_FAILED,                  CK_SESSION_DBUS_NAME ".Error.Failed" },
+        { CK_SESSION_ERROR_GENERAL,                 CK_SESSION_DBUS_NAME ".Error.General" },
+        { CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, CK_SESSION_DBUS_NAME ".Error.InsufficientPermission" },
+        { CK_SESSION_ERROR_NOT_SUPPORTED,           CK_SESSION_DBUS_NAME ".Error.NotSupported" }
+};
 
 GQuark
 ck_session_error_quark (void)
 {
-        static GQuark ret = 0;
-        if (ret == 0) {
-                ret = g_quark_from_static_string ("ck_session_error");
-        }
+        static volatile gsize quark_volatile = 0;
 
-        return ret;
+        g_dbus_error_register_error_domain ("ck_session_error",
+                                            &quark_volatile,
+                                            ck_session_error_entries,
+                                            G_N_ELEMENTS (ck_session_error_entries));
+
+        return (GQuark) quark_volatile;
+}
+#define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
+
+GType
+ck_session_error_get_type (void)
+{
+  static GType etype = 0;
+
+  if (etype == 0)
+    {
+      static const GEnumValue values[] =
+        {
+          ENUM_ENTRY (CK_SESSION_ERROR_FAILED,                  "Failed"),
+          ENUM_ENTRY (CK_SESSION_ERROR_GENERAL,                 "General"),
+          ENUM_ENTRY (CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, "InsufficientPermission"),
+          ENUM_ENTRY (CK_SESSION_ERROR_NOT_SUPPORTED,           "NotSupported"),
+          { 0, 0, 0 }
+        };
+      g_assert (NUM_ERRORS == G_N_ELEMENTS (values) - 1);
+      etype = g_enum_register_static ("Error", values);
+    }
+  return etype;
+}
+
+static void
+throw_error (GDBusMethodInvocation *context,
+             gint                   error_code,
+             const gchar           *format,
+             ...)
+{
+        va_list args;
+        gchar *message;
+
+        va_start (args, format);
+        message = g_strdup_vprintf (format, args);
+        va_end (args);
+
+        g_dbus_method_invocation_return_error (context, CK_SESSION_ERROR, error_code, "%s", message);
+
+        g_free (message);
 }
 
 static gboolean
-register_session (CkSession *session)
+register_session (CkSession *session, GDBusConnection *connection)
 {
-        GError *error = NULL;
+        GError   *error = NULL;
+
+        g_debug ("register session");
 
         error = NULL;
-        session->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
+
+        if (connection == NULL) {
+                session->priv->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
+        } else {
+                session->priv->connection = connection;
+        }
+
+
         if (session->priv->connection == NULL) {
                 if (error != NULL) {
                         g_critical ("error getting system bus: %s", error->message);
@@ -138,45 +167,35 @@ register_session (CkSession *session)
                 return FALSE;
         }
 
-        session->priv->bus_proxy = dbus_g_proxy_new_for_name (session->priv->connection,
-                                                              DBUS_SERVICE_DBUS,
-                                                              DBUS_PATH_DBUS,
-                                                              DBUS_INTERFACE_DBUS);
+        g_debug ("exporting path %s", session->priv->id);
 
-        dbus_g_connection_register_g_object (session->priv->connection, session->priv->id, G_OBJECT (session));
+        if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_SESSION (session)),
+                                               session->priv->connection,
+                                               session->priv->id,
+                                               &error)) {
+                if (error != NULL) {
+                        g_critical ("error exporting interface: %s", error->message);
+                        g_error_free (error);
+                        return FALSE;
+                }
+        }
 
-        return TRUE;
-}
+        g_debug ("exported on %s", g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_SESSION (session))));
 
-/*
-  lock and unlock are separate functions because:
-   1. we don't maintain state for locked
-   2. so security policy can be handled separately
-*/
-gboolean
-ck_session_lock (CkSession             *session,
-                 DBusGMethodInvocation *context)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_debug ("Emitting lock for session %s", session->priv->id);
-        g_signal_emit (session, signals [LOCK], 0);
-
-        dbus_g_method_return (context);
-
-        return TRUE;
-}
-
-gboolean
-ck_session_unlock (CkSession             *session,
-                   DBusGMethodInvocation *context)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_debug ("Emitting unlock for session %s", session->priv->id);
-        g_signal_emit (session, signals [UNLOCK], 0);
-
-        dbus_g_method_return (context);
+        /* connect to DBus for get_caller_info */
+        session->priv->bus_proxy = g_dbus_proxy_new_sync (session->priv->connection,
+                                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+                                                          G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                                          NULL,
+                                                          "org.freedesktop.DBus",
+                                                          "/org/freedesktop/DBus/Bus",
+                                                          "org.freedesktop.DBus",
+                                                          NULL,
+                                                          &error);
+        if (session->priv->bus_proxy == NULL) {
+                g_warning ("cannot connect to DBus: %s", error->message);
+                g_error_free (error);
+        }
 
         return TRUE;
 }
@@ -188,34 +207,41 @@ get_caller_info (CkSession   *session,
                  uid_t       *calling_uid,
                  pid_t       *calling_pid)
 {
-        gboolean res;
-        GError  *error = NULL;
-
-        res = FALSE;
+        gboolean  res   = FALSE;
+        GVariant *value = NULL;
+        GError   *error = NULL;
 
         if (sender == NULL) {
                 goto out;
         }
 
-        if (! dbus_g_proxy_call (session->priv->bus_proxy, "GetConnectionUnixUser", &error,
-                                 G_TYPE_STRING, sender,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_UINT, calling_uid,
-                                 G_TYPE_INVALID)) {
+        value = g_dbus_proxy_call_sync (session->priv->bus_proxy, "GetConnectionUnixUser",
+                                        g_variant_new ("(s)", sender),
+                                        G_DBUS_CALL_FLAGS_NONE,
+                                        2000,
+                                        NULL,
+                                        &error);
+
+        if (value == NULL) {
                 g_warning ("GetConnectionUnixUser() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
+        g_variant_get (value, "(u)", &calling_uid);
 
-        if (! dbus_g_proxy_call (session->priv->bus_proxy, "GetConnectionUnixProcessID", &error,
-                                 G_TYPE_STRING, sender,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_UINT, calling_pid,
-                                 G_TYPE_INVALID)) {
+        value = g_dbus_proxy_call_sync (session->priv->bus_proxy, "GetConnectionUnixProcessID",
+                                        g_variant_new ("(s)", sender),
+                                        G_DBUS_CALL_FLAGS_NONE,
+                                        2000,
+                                        NULL,
+                                        &error);
+
+        if (value == NULL) {
                 g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
+        g_variant_get (value, "(u)", &calling_pid);
 
         res = TRUE;
 
@@ -230,15 +256,16 @@ static gboolean
 session_set_idle_hint_internal (CkSession      *session,
                                 gboolean        idle_hint)
 {
-        if (session->priv->idle_hint != idle_hint) {
-                session->priv->idle_hint = idle_hint;
-                g_object_notify (G_OBJECT (session), "idle-hint");
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (session);
+
+        if (console_kit_session_get_idle_hint (cksession) != idle_hint) {
+                console_kit_session_set_idle_hint (cksession, idle_hint);
 
                 /* FIXME: can we get a time from the dbus message? */
                 g_get_current_time (&session->priv->idle_since_hint);
 
                 g_debug ("Emitting idle-changed for session %s", session->priv->id);
-                g_signal_emit (session, signals [IDLE_HINT_CHANGED], 0, idle_hint);
+                console_kit_session_emit_idle_hint_changed (cksession, idle_hint);
         }
 
         return TRUE;
@@ -251,141 +278,43 @@ session_set_idle_hint_internal (CkSession      *session,
   /org/freedesktop/ConsoleKit/Session1 \
   org.freedesktop.ConsoleKit.Session.SetIdleHint boolean:TRUE
 */
-gboolean
-ck_session_set_idle_hint (CkSession             *session,
-                          gboolean               idle_hint,
-                          DBusGMethodInvocation *context)
+static gboolean
+dbus_set_idle_hint (ConsoleKitSession     *cksession,
+                    GDBusMethodInvocation *context,
+                    gboolean               idle_hint)
 {
-        char       *sender;
+        const char *sender;
         uid_t       calling_uid;
         pid_t       calling_pid;
         gboolean    res;
+        CkSession *session;
 
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+        g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
-        sender = dbus_g_method_get_sender (context);
+        session = CK_SESSION(cksession);
+
+        sender = g_dbus_method_invocation_get_sender (context);
 
         res = get_caller_info (session,
                                sender,
                                &calling_uid,
                                &calling_pid);
-        g_free (sender);
 
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_SESSION_ERROR,
-                                     CK_SESSION_ERROR_GENERAL,
-                                     _("Unable to lookup information about calling process '%d'"),
-                                     calling_pid);
                 g_warning ("stat on pid %d failed", calling_pid);
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_SESSION_ERROR_FAILED, _("Unable to lookup information about calling process '%d'"), calling_pid);
                 return FALSE;
         }
 
         /* only restrict this by UID for now */
         if (session->priv->uid != calling_uid) {
-                GError *error;
-                error = g_error_new (CK_SESSION_ERROR,
-                                     CK_SESSION_ERROR_GENERAL,
-                                     _("Only session owner may set idle hint state"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, _("Only session owner may set idle hint state"));
                 return FALSE;
         }
 
         session_set_idle_hint_internal (session, idle_hint);
-        dbus_g_method_return (context);
 
-        return TRUE;
-}
-
-gboolean
-ck_session_get_idle_hint (CkSession *session,
-                          gboolean  *idle_hint,
-                          GError   **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        if (idle_hint != NULL) {
-                *idle_hint = session->priv->idle_hint;
-        }
-
-        return TRUE;
-}
-
-#if GLIB_CHECK_VERSION(2,12,0)
-#define _g_time_val_to_iso8601(t) g_time_val_to_iso8601(t)
-#else
-/* copied from GLib */
-static gchar *
-_g_time_val_to_iso8601 (GTimeVal *time_)
-{
-  gchar *retval;
-
-  g_return_val_if_fail (time_->tv_usec >= 0 && time_->tv_usec < G_USEC_PER_SEC, NULL);
-
-#define ISO_8601_LEN    21
-#define ISO_8601_FORMAT "%Y-%m-%dT%H:%M:%SZ"
-  retval = g_new0 (gchar, ISO_8601_LEN + 1);
-
-  strftime (retval, ISO_8601_LEN,
-            ISO_8601_FORMAT,
-            gmtime (&(time_->tv_sec)));
-
-  return retval;
-}
-#endif
-
-gboolean
-ck_session_get_idle_since_hint (CkSession *session,
-                                char     **iso8601_datetime,
-                                GError   **error)
-{
-        char *date_str;
-
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        date_str = NULL;
-        if (session->priv->idle_hint) {
-                date_str = _g_time_val_to_iso8601 (&session->priv->idle_since_hint);
-        }
-
-        if (iso8601_datetime != NULL) {
-                *iso8601_datetime = g_strdup (date_str);
-        }
-
-        g_free (date_str);
-
-        return TRUE;
-}
-
-gboolean
-ck_session_activate (CkSession             *session,
-                     DBusGMethodInvocation *context)
-{
-        gboolean res;
-
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        res = FALSE;
-        g_signal_emit (session, signals [ACTIVATE], 0, context, &res);
-        if (! res) {
-                GError *error;
-
-                /* if the signal is not handled then either:
-                   a) aren't attached to seat
-                   b) seat doesn't support activation changes */
-                g_debug ("Activate signal not handled");
-
-                error = g_error_new (CK_SESSION_ERROR,
-                                     CK_SESSION_ERROR_GENERAL,
-                                     _("Unable to activate session"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-                return FALSE;
-        }
-
+        console_kit_session_complete_set_idle_hint (cksession, context);
         return TRUE;
 }
 
@@ -394,34 +323,34 @@ ck_session_set_active (CkSession      *session,
                        gboolean        active,
                        GError        **error)
 {
+        ConsoleKitSession *cksession;
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (session->priv->active != active) {
-                session->priv->active = active;
-                g_signal_emit (session, signals [ACTIVE_CHANGED], 0, active);
+        cksession = CONSOLE_KIT_SESSION (session);
+
+        if (console_kit_session_get_active (cksession) != active) {
+                console_kit_session_set_active (cksession, active);
+                console_kit_session_emit_active_changed (cksession, active);
         }
 
         return TRUE;
 }
 
-gboolean
-ck_session_set_is_local (CkSession      *session,
-                         gboolean        is_local,
-                         GError        **error)
+static gboolean
+dbus_activate (ConsoleKitSession     *cksession,
+               GDBusMethodInvocation *context)
 {
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+        ck_session_set_active (CK_SESSION (cksession), TRUE, NULL);
 
-        if (session->priv->is_local != is_local) {
-                session->priv->is_local = is_local;
-        }
-
+        console_kit_session_complete_activate (cksession, context);
         return TRUE;
 }
 
 gboolean
-ck_session_get_id (CkSession      *session,
-                   char          **id,
-                   GError        **error)
+ck_session_get_id (CkSession *session,
+                   char **id,
+                   GError **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
@@ -447,94 +376,73 @@ ck_session_get_seat_id (CkSession      *session,
 }
 
 gboolean
-ck_session_get_unix_user (CkSession      *session,
-                          guint          *uid,
+ck_session_set_unix_user (CkSession      *session,
+                          guint           uid,
                           GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (uid != NULL) {
-                *uid = session->priv->uid;
-        }
+        console_kit_session_set_unix_user (CONSOLE_KIT_SESSION (session), uid);
 
         return TRUE;
 }
 
-/* deprecated */
 gboolean
-ck_session_get_user (CkSession      *session,
-                     guint          *uid,
-                     GError        **error)
-{
-        return ck_session_get_unix_user (session, uid, error);
-}
-
-gboolean
-ck_session_get_x11_display (CkSession      *session,
-                            char          **x11_display,
+ck_session_set_x11_display (CkSession      *session,
+                            const char     *x11_display,
                             GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (x11_display != NULL) {
-                *x11_display = g_strdup (session->priv->x11_display);
-        }
+        console_kit_session_set_x11_display (CONSOLE_KIT_SESSION (session), x11_display);
 
         return TRUE;
 }
 
 gboolean
-ck_session_get_display_device (CkSession      *session,
-                               char          **display_device,
+ck_session_set_display_device (CkSession      *session,
+                               const char     *display_device,
                                GError        **error)
 {
+        ConsoleKitSession *cksession;
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (display_device != NULL) {
-                *display_device = g_strdup (session->priv->display_device);
-        }
+        cksession = CONSOLE_KIT_SESSION (session);
+
+        console_kit_session_set_display_device (cksession, display_device);
 
         return TRUE;
 }
 
 gboolean
-ck_session_get_login_session_id (CkSession      *session,
-                                 char          **login_session_id,
-                                 GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        if (login_session_id != NULL) {
-                *login_session_id = g_strdup (session->priv->login_session_id);
-        }
-
-        return TRUE;
-}
-
-gboolean
-ck_session_get_x11_display_device (CkSession      *session,
-                                   char          **x11_display_device,
+ck_session_set_x11_display_device (CkSession      *session,
+                                   const char     *x11_display_device,
                                    GError        **error)
 {
+        ConsoleKitSession *cksession;
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (x11_display_device != NULL) {
-                *x11_display_device = g_strdup (session->priv->x11_display_device);
-        }
+        cksession = CONSOLE_KIT_SESSION (session);
+
+        console_kit_session_set_x11_display_device (cksession, x11_display_device);
 
         return TRUE;
 }
 
 gboolean
-ck_session_get_remote_host_name (CkSession      *session,
-                                 char          **remote_host_name,
+ck_session_set_remote_host_name (CkSession      *session,
+                                 const char     *remote_host_name,
                                  GError        **error)
 {
+        ConsoleKitSession *cksession;
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (remote_host_name != NULL) {
-                *remote_host_name = g_strdup (session->priv->remote_host_name);
-        }
+        cksession = CONSOLE_KIT_SESSION (session);
+
+        console_kit_session_set_remote_host_name (cksession, remote_host_name);
 
         return TRUE;
 }
@@ -547,49 +455,33 @@ ck_session_get_creation_time (CkSession      *session,
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         if (iso8601_datetime != NULL) {
-                *iso8601_datetime = _g_time_val_to_iso8601 (&session->priv->creation_time);
+                *iso8601_datetime = g_time_val_to_iso8601 (&session->priv->creation_time);
         }
 
         return TRUE;
 }
 
 gboolean
-ck_session_get_session_type (CkSession      *session,
-                             char          **type,
-                             GError        **error)
+ck_session_set_is_local (CkSession      *session,
+                         gboolean        is_local,
+                         GError        **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        if (type != NULL) {
-                *type = g_strdup (session->priv->session_type);
-        }
+        console_kit_session_set_is_local (CONSOLE_KIT_SESSION (session), is_local);
 
         return TRUE;
 }
 
 gboolean
-ck_session_is_active (CkSession      *session,
-                      gboolean       *active,
-                      GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        if (active != NULL) {
-                *active = session->priv->active;
-        }
-
-        return TRUE;
-}
-
-gboolean
-ck_session_is_local (CkSession      *session,
-                     gboolean       *local,
-                     GError        **error)
+ck_session_is_local (CkSession *session,
+                     gboolean *local,
+                     GError **error)
 {
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         if (local != NULL) {
-                *local = session->priv->is_local;
+                *local = console_kit_session_get_is_local (CONSOLE_KIT_SESSION (session));
         }
 
         return TRUE;
@@ -635,57 +527,6 @@ ck_session_set_seat_id (CkSession      *session,
 }
 
 gboolean
-ck_session_set_unix_user (CkSession      *session,
-                          guint           uid,
-                          GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        session->priv->uid = uid;
-
-        return TRUE;
-}
-
-gboolean
-ck_session_set_x11_display (CkSession      *session,
-                            const char     *x11_display,
-                            GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_free (session->priv->x11_display);
-        session->priv->x11_display = g_strdup (x11_display);
-
-        return TRUE;
-}
-
-gboolean
-ck_session_set_display_device (CkSession      *session,
-                               const char     *display_device,
-                               GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_free (session->priv->display_device);
-        session->priv->display_device = g_strdup (display_device);
-
-        return TRUE;
-}
-
-gboolean
-ck_session_set_x11_display_device (CkSession      *session,
-                                   const char     *x11_display_device,
-                                   GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_free (session->priv->x11_display_device);
-        session->priv->x11_display_device = g_strdup (x11_display_device);
-
-        return TRUE;
-}
-
-gboolean
 ck_session_set_login_session_id (CkSession      *session,
                                  const char     *login_session_id,
                                  GError        **error)
@@ -699,27 +540,15 @@ ck_session_set_login_session_id (CkSession      *session,
 }
 
 gboolean
-ck_session_set_remote_host_name (CkSession      *session,
-                                 const char     *remote_host_name,
-                                 GError        **error)
-{
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_free (session->priv->remote_host_name);
-        session->priv->remote_host_name = g_strdup (remote_host_name);
-
-        return TRUE;
-}
-
-gboolean
 ck_session_set_session_type (CkSession      *session,
                              const char     *type,
                              GError        **error)
 {
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (session);
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        g_free (session->priv->session_type);
-        session->priv->session_type = g_strdup (type);
+        console_kit_session_set_session_type (cksession, type);
 
         return TRUE;
 }
@@ -735,44 +564,14 @@ ck_session_set_property (GObject            *object,
         self = CK_SESSION (object);
 
         switch (prop_id) {
-        case PROP_ACTIVE:
-                ck_session_set_active (self, g_value_get_boolean (value), NULL);
-                break;
-        case PROP_IS_LOCAL:
-                ck_session_set_is_local (self, g_value_get_boolean (value), NULL);
-                break;
         case PROP_ID:
                 ck_session_set_id (self, g_value_get_string (value), NULL);
                 break;
         case PROP_COOKIE:
                 ck_session_set_cookie (self, g_value_get_string (value), NULL);
                 break;
-        case PROP_SESSION_TYPE:
-                ck_session_set_session_type (self, g_value_get_string (value), NULL);
-                break;
-        case PROP_X11_DISPLAY:
-                ck_session_set_x11_display (self, g_value_get_string (value), NULL);
-                break;
-        case PROP_X11_DISPLAY_DEVICE:
-                ck_session_set_x11_display_device (self, g_value_get_string (value), NULL);
-                break;
-        case PROP_DISPLAY_DEVICE:
-                ck_session_set_display_device (self, g_value_get_string (value), NULL);
-                break;
         case PROP_LOGIN_SESSION_ID:
                 ck_session_set_login_session_id (self, g_value_get_string (value), NULL);
-                break;
-        case PROP_UNIX_USER:
-                ck_session_set_unix_user (self, g_value_get_uint (value), NULL);
-                break;
-        case PROP_USER: /* deprecated */
-                ck_session_set_unix_user (self, g_value_get_uint (value), NULL);
-                break;
-        case PROP_REMOTE_HOST_NAME:
-                ck_session_set_remote_host_name (self, g_value_get_string (value), NULL);
-                break;
-        case PROP_IDLE_HINT:
-                session_set_idle_hint_internal (self, g_value_get_boolean (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -791,61 +590,34 @@ ck_session_get_property (GObject    *object,
         self = CK_SESSION (object);
 
         switch (prop_id) {
-        case PROP_ACTIVE:
-                g_value_set_boolean (value, self->priv->active);
-                break;
-        case PROP_IS_LOCAL:
-                g_value_set_boolean (value, self->priv->is_local);
-                break;
         case PROP_ID:
                 g_value_set_string (value, self->priv->id);
                 break;
         case PROP_COOKIE:
                 g_value_set_string (value, self->priv->cookie);
                 break;
-        case PROP_SESSION_TYPE:
-                g_value_set_string (value, self->priv->session_type);
-                break;
-        case PROP_X11_DISPLAY:
-                g_value_set_string (value, self->priv->x11_display);
-                break;
-        case PROP_X11_DISPLAY_DEVICE:
-                g_value_set_string (value, self->priv->x11_display_device);
-                break;
-        case PROP_DISPLAY_DEVICE:
-                g_value_set_string (value, self->priv->display_device);
-                break;
         case PROP_LOGIN_SESSION_ID:
                 g_value_set_string (value, self->priv->login_session_id);
-                break;
-        case PROP_UNIX_USER:
-                g_value_set_uint (value, self->priv->uid);
-                break;
-        case PROP_USER: /* deprecated */
-                g_value_set_uint (value, self->priv->uid);
-                break;
-        case PROP_REMOTE_HOST_NAME:
-                g_value_set_string (value, self->priv->remote_host_name);
-                break;
-        case PROP_IDLE_HINT:
-                g_value_set_boolean (value, self->priv->idle_hint);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
                 break;
         }
 }
+
 #define IS_STR_SET(x) (x != NULL && x[0] != '\0')
 static gboolean
 session_is_text (CkSession *session)
 {
+        ConsoleKitSession *cksession;
         gboolean ret;
 
         ret = FALSE;
+        cksession = CONSOLE_KIT_SESSION (session);
 
-        if (! IS_STR_SET (session->priv->x11_display_device)
-            && ! IS_STR_SET (session->priv->x11_display)
-            && IS_STR_SET (session->priv->display_device)) {
+        if (! IS_STR_SET (console_kit_session_get_x11_display_device (cksession))
+            && ! IS_STR_SET (console_kit_session_get_x11_display (cksession))
+            && IS_STR_SET (console_kit_session_get_display_device (cksession))) {
                 ret = TRUE;
         }
 
@@ -868,7 +640,7 @@ static void
 session_add_activity_watch (CkSession *session)
 {
         if (session->priv->idle_monitor == NULL) {
-                session->priv->idle_monitor = ck_tty_idle_monitor_new (session->priv->display_device);
+                session->priv->idle_monitor = ck_tty_idle_monitor_new (console_kit_session_get_display_device (CONSOLE_KIT_SESSION (session)));
                 g_signal_connect (session->priv->idle_monitor,
                                   "idle-hint-changed",
                                   G_CALLBACK (tty_idle_changed_cb),
@@ -917,71 +689,8 @@ ck_session_class_init (CkSessionClass *klass)
         object_class->set_property = ck_session_set_property;
         object_class->finalize = ck_session_finalize;
 
-        signals [ACTIVE_CHANGED] =
-                g_signal_new ("active-changed",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, active_changed),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOOLEAN,
-                              G_TYPE_NONE,
-                              1, G_TYPE_BOOLEAN);
-        signals [ACTIVATE] =
-                g_signal_new ("activate",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, activate),
-                              NULL,
-                              NULL,
-                              ck_marshal_BOOLEAN__POINTER,
-                              G_TYPE_BOOLEAN,
-                              1, G_TYPE_POINTER);
-        signals [LOCK] =
-                g_signal_new ("lock",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, lock),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__VOID,
-                              G_TYPE_NONE,
-                              0);
-        signals [UNLOCK] =
-                g_signal_new ("unlock",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, unlock),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__VOID,
-                              G_TYPE_NONE,
-                              0);
-        signals [IDLE_HINT_CHANGED] =
-                g_signal_new ("idle-hint-changed",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, idle_hint_changed),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOOLEAN,
-                              G_TYPE_NONE,
-                              1, G_TYPE_BOOLEAN);
 
-        g_object_class_install_property (object_class,
-                                         PROP_ACTIVE,
-                                         g_param_spec_boolean ("active",
-                                                               NULL,
-                                                               NULL,
-                                                               FALSE,
-                                                               G_PARAM_READWRITE));
-        g_object_class_install_property (object_class,
-                                         PROP_IS_LOCAL,
-                                         g_param_spec_boolean ("is-local",
-                                                               NULL,
-                                                               NULL,
-                                                               TRUE,
-                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+        /* Install private properties we're not exporting over D-BUS */
         g_object_class_install_property (object_class,
                                          PROP_ID,
                                          g_param_spec_string ("id",
@@ -996,14 +705,6 @@ ck_session_class_init (CkSessionClass *klass)
                                                               "cookie",
                                                               NULL,
                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-
-        g_object_class_install_property (object_class,
-                                         PROP_SESSION_TYPE,
-                                         g_param_spec_string ("session-type",
-                                                              "session-type",
-                                                              "session type",
-                                                              NULL,
-                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
         g_object_class_install_property (object_class,
                                          PROP_LOGIN_SESSION_ID,
                                          g_param_spec_string ("login-session-id",
@@ -1011,65 +712,8 @@ ck_session_class_init (CkSessionClass *klass)
                                                               "login session id",
                                                               NULL,
                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-        g_object_class_install_property (object_class,
-                                         PROP_X11_DISPLAY,
-                                         g_param_spec_string ("x11-display",
-                                                              "x11-display",
-                                                              "X11 Display",
-                                                              NULL,
-                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-        g_object_class_install_property (object_class,
-                                         PROP_X11_DISPLAY_DEVICE,
-                                         g_param_spec_string ("x11-display-device",
-                                                              "x11-display-device",
-                                                              "X11 Display device",
-                                                              NULL,
-                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-        g_object_class_install_property (object_class,
-                                         PROP_DISPLAY_DEVICE,
-                                         g_param_spec_string ("display-device",
-                                                              "display-device",
-                                                              "Display device",
-                                                              NULL,
-                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-        g_object_class_install_property (object_class,
-                                         PROP_REMOTE_HOST_NAME,
-                                         g_param_spec_string ("remote-host-name",
-                                                              "remote-host-name",
-                                                              "Remote host name",
-                                                              NULL,
-                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-
-        g_object_class_install_property (object_class,
-                                         PROP_UNIX_USER,
-                                         g_param_spec_uint ("unix-user",
-                                                            "POSIX User Id",
-                                                            "POSIX User Id",
-                                                            0,
-                                                            G_MAXINT,
-                                                            0,
-                                                            G_PARAM_READWRITE));
-        /* deprecated */
-        g_object_class_install_property (object_class,
-                                         PROP_USER,
-                                         g_param_spec_uint ("user",
-                                                            "User Id",
-                                                            "User Id",
-                                                            0,
-                                                            G_MAXINT,
-                                                            0,
-                                                            G_PARAM_READWRITE));
-        g_object_class_install_property (object_class,
-                                         PROP_IDLE_HINT,
-                                         g_param_spec_boolean ("idle-hint",
-                                                               NULL,
-                                                               NULL,
-                                                               FALSE,
-                                                               G_PARAM_READWRITE));
 
         g_type_class_add_private (klass, sizeof (CkSessionPrivate));
-
-        dbus_g_object_type_install_info (CK_TYPE_SESSION, &dbus_glib_ck_session_object_info);
 }
 
 static void
@@ -1082,9 +726,18 @@ ck_session_init (CkSession *session)
 }
 
 static void
+ck_session_iface_init (ConsoleKitSessionIface *iface)
+{
+        iface->handle_activate      = dbus_activate;
+        iface->handle_set_idle_hint = dbus_set_idle_hint;
+}
+
+static void
 ck_session_finalize (GObject *object)
 {
         CkSession *session;
+
+        g_debug ("ck_session_finalize");
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_SESSION (object));
@@ -1095,24 +748,17 @@ ck_session_finalize (GObject *object)
 
         session_remove_activity_watch (session);
 
-        g_object_unref (session->priv->bus_proxy);
-
         g_free (session->priv->id);
         g_free (session->priv->cookie);
-        g_free (session->priv->seat_id);
-        g_free (session->priv->session_type);
         g_free (session->priv->login_session_id);
-        g_free (session->priv->display_device);
-        g_free (session->priv->x11_display_device);
-        g_free (session->priv->x11_display);
-        g_free (session->priv->remote_host_name);
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
 }
 
 CkSession *
-ck_session_new (const char *ssid,
-                const char *cookie)
+ck_session_new (const char      *ssid,
+                const char      *cookie,
+                GDBusConnection *connection)
 {
         GObject *object;
         gboolean res;
@@ -1121,7 +767,7 @@ ck_session_new (const char *ssid,
                                "id", ssid,
                                "cookie", cookie,
                                NULL);
-        res = register_session (CK_SESSION (object));
+        res = register_session (CK_SESSION (object), connection);
         if (! res) {
                 g_object_unref (object);
                 return NULL;
@@ -1138,7 +784,8 @@ ck_session_new (const char *ssid,
 CkSession *
 ck_session_new_with_parameters (const char      *ssid,
                                 const char      *cookie,
-                                const GPtrArray *parameters)
+                                const GPtrArray *parameters,
+                                GDBusConnection *connection)
 {
         GObject      *object;
         gboolean      res;
@@ -1242,7 +889,7 @@ ck_session_new_with_parameters (const char      *ssid,
         g_free (params);
         g_type_class_unref (class);
 
-        res = register_session (CK_SESSION (object));
+        res = register_session (CK_SESSION (object), connection);
         if (! res) {
                 g_object_unref (object);
                 return NULL;
@@ -1255,30 +902,32 @@ void
 ck_session_run_programs (CkSession  *session,
                          const char *action)
 {
+        ConsoleKitSession *cksession;
         int   n;
         char *extra_env[11]; /* be sure to adjust this as needed */
 
         n = 0;
+        cksession = CONSOLE_KIT_SESSION (session);
 
         extra_env[n++] = g_strdup_printf ("CK_SESSION_ID=%s", session->priv->id);
-        if (session->priv->session_type != NULL) {
-                extra_env[n++] = g_strdup_printf ("CK_SESSION_TYPE=%s", session->priv->session_type);
+        if (console_kit_session_get_session_type (cksession) != NULL) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_TYPE=%s", console_kit_session_get_session_type (cksession));
         }
         extra_env[n++] = g_strdup_printf ("CK_SESSION_SEAT_ID=%s", session->priv->seat_id);
         extra_env[n++] = g_strdup_printf ("CK_SESSION_USER_UID=%d", session->priv->uid);
-        if (session->priv->display_device != NULL && strlen (session->priv->display_device) > 0) {
-                extra_env[n++] = g_strdup_printf ("CK_SESSION_DISPLAY_DEVICE=%s", session->priv->display_device);
+        if (console_kit_session_get_display_device (cksession) != NULL && strlen (console_kit_session_get_display_device (cksession)) > 0) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_DISPLAY_DEVICE=%s", console_kit_session_get_display_device (cksession));
         }
-        if (session->priv->x11_display_device != NULL && strlen (session->priv->x11_display_device) > 0) {
-                extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY_DEVICE=%s", session->priv->x11_display_device);
+        if (console_kit_session_get_x11_display_device (cksession) != NULL && strlen (console_kit_session_get_x11_display_device (cksession) ) > 0) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY_DEVICE=%s", console_kit_session_get_x11_display_device (cksession) );
         }
         extra_env[n++] = g_strdup_printf ("CK_SESSION_X11_DISPLAY=%s",
-                session->priv->x11_display ? session->priv->x11_display : "");
-        if (session->priv->remote_host_name != NULL && strlen (session->priv->remote_host_name) > 0) {
-                extra_env[n++] = g_strdup_printf ("CK_SESSION_REMOTE_HOST_NAME=%s", session->priv->remote_host_name);
+                console_kit_session_get_x11_display (cksession)  ? console_kit_session_get_x11_display (cksession)  : "");
+        if (console_kit_session_get_remote_host_name (cksession)  != NULL && strlen (console_kit_session_get_remote_host_name (cksession)) > 0) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_REMOTE_HOST_NAME=%s", console_kit_session_get_remote_host_name (cksession));
         }
-        extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_ACTIVE=%s", session->priv->active ? "true" : "false");
-        extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_LOCAL=%s", session->priv->is_local ? "true" : "false");
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_ACTIVE=%s", console_kit_session_get_active (cksession) ? "true" : "false");
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_IS_LOCAL=%s", console_kit_session_get_is_local (cksession) ? "true" : "false");
         extra_env[n++] = NULL;
 
         g_assert(n <= G_N_ELEMENTS(extra_env));
@@ -1297,6 +946,9 @@ ck_session_dump (CkSession *session,
 {
         char *s;
         char *group_name;
+        ConsoleKitSession *cksession;
+
+        cksession = CONSOLE_KIT_SESSION (session);
 
         group_name = g_strdup_printf ("Session %s", session->priv->id);
         g_key_file_set_integer (key_file, group_name, "uid", session->priv->uid);
@@ -1304,11 +956,11 @@ ck_session_dump (CkSession *session,
                                group_name,
                                "seat",
                                NONULL_STRING (session->priv->seat_id));
-        if (session->priv->session_type != NULL) {
+        if (console_kit_session_get_session_type (cksession) != NULL) {
                 g_key_file_set_string (key_file,
                                        group_name,
                                        "type",
-                                       NONULL_STRING (session->priv->session_type));
+                                       NONULL_STRING (console_kit_session_get_session_type (cksession)));
         }
         if (session->priv->login_session_id != NULL && strlen (session->priv->login_session_id) > 0) {
                 g_key_file_set_string (key_file,
@@ -1316,36 +968,37 @@ ck_session_dump (CkSession *session,
                                        "login_session_id",
                                        NONULL_STRING (session->priv->login_session_id));
         }
-        if (session->priv->display_device != NULL && strlen (session->priv->display_device) > 0) {
+        if (console_kit_session_get_display_device (cksession) != NULL && strlen (console_kit_session_get_display_device (cksession)) > 0) {
                 g_key_file_set_string (key_file,
                                        group_name,
                                        "display_device",
-                                       NONULL_STRING (session->priv->display_device));
+                                       NONULL_STRING (console_kit_session_get_display_device (cksession)));
         }
-        if (session->priv->x11_display_device != NULL && strlen (session->priv->x11_display_device) > 0) {
+        if (console_kit_session_get_x11_display_device (cksession) != NULL && strlen (console_kit_session_get_x11_display_device (cksession)) > 0) {
                 g_key_file_set_string (key_file,
                                        group_name,
                                        "x11_display_device",
-                                       NONULL_STRING (session->priv->x11_display_device));
+                                       NONULL_STRING (console_kit_session_get_x11_display_device (cksession)));
         }
-        if (session->priv->x11_display != NULL && strlen (session->priv->x11_display) > 0) {
+        if (console_kit_session_get_x11_display (cksession) != NULL && strlen (console_kit_session_get_x11_display (cksession)) > 0) {
                 g_key_file_set_string (key_file,
                                        group_name,
                                        "x11_display",
-                                       NONULL_STRING (session->priv->x11_display));
+                                       NONULL_STRING (console_kit_session_get_x11_display (cksession)));
         }
-        if (session->priv->remote_host_name != NULL && strlen (session->priv->remote_host_name) > 0) {
+        if (console_kit_session_get_remote_host_name (cksession) != NULL && strlen (console_kit_session_get_remote_host_name (cksession)) > 0) {
                 g_key_file_set_string (key_file,
                                        group_name,
                                        "remote_host_name",
-                                       NONULL_STRING (session->priv->remote_host_name));
+                                       NONULL_STRING (console_kit_session_get_remote_host_name (cksession)));
         }
         g_key_file_set_string (key_file,
                                group_name,
                                "remote_host_name",
-                               NONULL_STRING (session->priv->remote_host_name));
-        g_key_file_set_boolean (key_file, group_name, "is_active", session->priv->active);
-        g_key_file_set_boolean (key_file, group_name, "is_local", session->priv->is_local);
+                               NONULL_STRING (console_kit_session_get_remote_host_name (cksession)));
+
+        console_kit_session_set_active (cksession, g_key_file_get_boolean (key_file, group_name, "is_active", NULL));
+        console_kit_session_set_is_local (cksession, g_key_file_get_boolean (key_file, group_name, "is_local", NULL));
 
         s = g_time_val_to_iso8601 (&(session->priv->creation_time));
         g_key_file_set_string (key_file,

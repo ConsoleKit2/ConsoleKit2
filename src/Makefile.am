@@ -87,7 +87,8 @@ sbin_PROGRAMS = 		\
 BUILT_SOURCES = 		\
 	ck-manager-glue.h	\
 	ck-seat-glue.h		\
-	ck-session-glue.h	\
+	ck-session-generated.h	\
+	ck-session-generated.c	\
 	ck-marshal.c 		\
 	ck-marshal.h		\
 	$(NULL)
@@ -103,8 +104,13 @@ ck-manager-glue.h: org.freedesktop.ConsoleKit.Manager.xml Makefile.am
 	dbus-binding-tool --prefix=ck_manager --mode=glib-server --output=ck-manager-glue.h org.freedesktop.ConsoleKit.Manager.xml
 ck-seat-glue.h: org.freedesktop.ConsoleKit.Seat.xml Makefile.am
 	dbus-binding-tool --prefix=ck_seat --mode=glib-server --output=ck-seat-glue.h org.freedesktop.ConsoleKit.Seat.xml
-ck-session-glue.h: org.freedesktop.ConsoleKit.Session.xml Makefile.am
-	dbus-binding-tool --prefix=ck_session --mode=glib-server --output=ck-session-glue.h org.freedesktop.ConsoleKit.Session.xml
+
+ck-session-generated.c ck-session-generated.h : org.freedesktop.ConsoleKit.Session.xml Makefile.am
+	gdbus-codegen \
+		--c-namespace=ConsoleKit \
+		--interface-prefix=org.freedesktop.ConsoleKit. \
+		--generate-c-code=ck-session-generated \
+		$(srcdir)/org.freedesktop.ConsoleKit.Session.xml
 
 ck-marshal.c: ck-marshal.list
 	echo "#include \"ck-marshal.h\"" > $@ && \
@@ -169,6 +175,7 @@ noinst_PROGRAMS = 			\
 	test-tty-idle-monitor		\
 	test-vt-monitor			\
 	test-inhibit			\
+	test-session			\
 	$(NULL)
 
 test_event_logger_SOURCES = 		\
@@ -232,6 +239,31 @@ test_inhibit_LDADD =		\
 	libck.la			\
 	$(NULL)
 
+test_session_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-URUNDIR	\
+	-DRUNDIR=\"/tmp\" 			\
+	$(NULL)
+
+test_session_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	ck-run-programs.c	\
+	ck-run-programs.h	\
+	ck-file-monitor.h	\
+	ck-file-monitor-dummy.c \
+	ck-tty-idle-monitor.h \
+	ck-tty-idle-monitor.c \
+	ck-session.c		\
+	ck-session.h		\
+	test-session.c		\
+	$(NULL)
+
+test_session_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	libck.la			\
+	$(NULL)
+
 
 EXTRA_DIST =			\
 	ck-marshal.list		\
@@ -239,6 +271,7 @@ EXTRA_DIST =			\
 	valgrind.sh		\
 	test-open-session	\
 	test-open-session-with-parameters	\
+	test-session	\
 	$(NULL)
 
 CLEANFILES = $(BUILT_SOURCES)

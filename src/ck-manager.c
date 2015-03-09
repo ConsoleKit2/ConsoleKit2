@@ -51,6 +51,7 @@
 #include "ck-seat.h"
 #include "ck-session-leader.h"
 #include "ck-session.h"
+#include "ck-session-generated.h"
 #include "ck-marshal.h"
 #include "ck-event-logger.h"
 #include "ck-inhibit-manager.h"
@@ -2125,12 +2126,13 @@ find_seat_for_session (CkManager *manager,
                        CkSession *session)
 {
         CkSeat  *seat;
+        ConsoleKitSession *cksession;
         gboolean is_static_x11;
         gboolean is_static_text;
-        char    *display_device;
-        char    *x11_display_device;
-        char    *x11_display;
-        char    *remote_host_name;
+        const char    *display_device;
+        const char    *x11_display_device;
+        const char    *x11_display;
+        const char    *remote_host_name;
         gboolean is_local;
 
         is_static_text = FALSE;
@@ -2142,13 +2144,14 @@ find_seat_for_session (CkManager *manager,
         x11_display = NULL;
         remote_host_name = NULL;
         is_local = FALSE;
+        cksession = CONSOLE_KIT_SESSION (session);
 
         /* FIXME: use matching to group entries? */
 
-        ck_session_get_display_device (session, &display_device, NULL);
-        ck_session_get_x11_display_device (session, &x11_display_device, NULL);
-        ck_session_get_x11_display (session, &x11_display, NULL);
-        ck_session_get_remote_host_name (session, &remote_host_name, NULL);
+        display_device     = console_kit_session_get_display_device (cksession);
+        x11_display_device = console_kit_session_get_x11_display_device (cksession);
+        x11_display        = console_kit_session_get_x11_display (cksession);
+        remote_host_name   = console_kit_session_get_remote_host_name (cksession);
         ck_session_is_local (session, &is_local, NULL);
 
         if (IS_STR_SET (x11_display)
@@ -2170,11 +2173,6 @@ find_seat_for_session (CkManager *manager,
                 seat = g_hash_table_lookup (manager->priv->seats, sid);
                 g_free (sid);
         }
-
-        g_free (display_device);
-        g_free (x11_display_device);
-        g_free (x11_display);
-        g_free (remote_host_name);
 
         return seat;
 }
@@ -2207,14 +2205,8 @@ is_session_busy (char      *id,
                  CkSession *session,
                  gpointer   data)
 {
-        gboolean idle_hint;
-
-        idle_hint = FALSE;
-
-        ck_session_get_idle_hint (session, &idle_hint, NULL);
-
         /* return TRUE to stop search */
-        return !idle_hint;
+        return !console_kit_session_get_idle_hint (CONSOLE_KIT_SESSION (session));
 }
 
 static void
@@ -2323,7 +2315,8 @@ open_session_for_leader (CkManager             *manager,
 
         session = ck_session_new_with_parameters (ssid,
                                                   cookie,
-                                                  parameters);
+                                                  parameters,
+                                                  NULL);
 
         if (session == NULL) {
                 GError *error;
@@ -3246,12 +3239,9 @@ get_sessions_for_unix_user_iter (char            *id,
                                  CkSession       *session,
                                  GetSessionsData *data)
 {
-        guint    uid;
-        gboolean res;
+        guint uid = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION (session));
 
-        res = ck_session_get_unix_user (session, &uid, NULL);
-
-        if (res && uid == data->uid) {
+        if (uid == data->uid) {
                 g_ptr_array_add (data->sessions, g_strdup (id));
         }
 }
