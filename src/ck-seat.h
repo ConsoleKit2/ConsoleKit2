@@ -25,6 +25,7 @@
 #include <dbus/dbus-glib.h>
 
 #include "ck-session.h"
+#include "ck-seat-generated.h"
 
 G_BEGIN_DECLS
 
@@ -39,24 +40,13 @@ typedef struct CkSeatPrivate CkSeatPrivate;
 
 typedef struct
 {
-        GObject        parent;
-        CkSeatPrivate *priv;
+        ConsoleKitSeatSkeleton parent;
+        CkSeatPrivate         *priv;
 } CkSeat;
 
 typedef struct
 {
-        GObjectClass   parent_class;
-
-        void          (* active_session_changed) (CkSeat      *seat,
-                                                  const char  *ssid);
-        void          (* session_added)          (CkSeat      *seat,
-                                                  const char  *ssid);
-        void          (* session_removed)        (CkSeat      *seat,
-                                                  const char  *ssid);
-        void          (* device_added)           (CkSeat      *seat,
-                                                  GValueArray *device);
-        void          (* device_removed)         (CkSeat      *seat,
-                                                  GValueArray *device);
+        ConsoleKitSessionSkeletonClass parent_class;
 } CkSeatClass;
 
 typedef enum
@@ -70,7 +60,10 @@ GType ck_seat_kind_get_type (void);
 
 typedef enum
 {
-        CK_SEAT_ERROR_GENERAL
+        CK_SEAT_ERROR_GENERAL,
+        CK_SEAT_ERROR_FAILED,
+        CK_SEAT_ERROR_INSUFFICIENT_PERMISSION,
+        CK_SEAT_ERROR_NOT_SUPPORTED,
 } CkSeatError;
 
 #define CK_SEAT_ERROR ck_seat_error_quark ()
@@ -82,14 +75,18 @@ typedef enum
                                                 G_TYPE_INVALID))
 
 GQuark              ck_seat_error_quark         (void);
+GType               ck_seat_error_get_type      (void);
 GType               ck_seat_get_type            (void);
 CkSeat            * ck_seat_new                 (const char            *sid,
-                                                 CkSeatKind             kind);
+                                                 CkSeatKind             kind,
+                                                 GDBusConnection       *connection);
 CkSeat            * ck_seat_new_from_file       (const char            *sid,
-                                                 const char            *path);
+                                                 const char            *path,
+                                                 GDBusConnection       *connection);
 CkSeat            * ck_seat_new_with_devices    (const char            *sid,
                                                  CkSeatKind             kind,
-                                                 GPtrArray             *devices);
+                                                 GPtrArray             *devices,
+                                                 GDBusConnection       *connection);
 
 gboolean            ck_seat_register            (CkSeat                *seat);
 
@@ -134,9 +131,6 @@ gboolean            ck_seat_get_active_session    (CkSeat                *seat,
 gboolean            ck_seat_can_activate_sessions (CkSeat                *seat,
                                                    gboolean              *can_activate,
                                                    GError               **error);
-gboolean            ck_seat_activate_session      (CkSeat                *seat,
-                                                   const char            *ssid,
-                                                   DBusGMethodInvocation *context);
 
 G_END_DECLS
 

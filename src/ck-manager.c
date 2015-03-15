@@ -2009,22 +2009,28 @@ static void
 connect_seat_signals (CkManager *manager,
                       CkSeat    *seat)
 {
+        ConsoleKitSeat *ckseat = CONSOLE_KIT_SEAT (seat);
+
+        /* Private signals on CkSeat */
         g_signal_connect (seat, "active-session-changed-full", G_CALLBACK (on_seat_active_session_changed_full), manager);
         g_signal_connect (seat, "session-added-full", G_CALLBACK (on_seat_session_added_full), manager);
         g_signal_connect (seat, "session-removed-full", G_CALLBACK (on_seat_session_removed_full), manager);
-        g_signal_connect (seat, "device-added", G_CALLBACK (on_seat_device_added), manager);
-        g_signal_connect (seat, "device-removed", G_CALLBACK (on_seat_device_removed), manager);
+        /* Public dbus signals on ConsoleKitSeat */
+        g_signal_connect (ckseat, "device-added", G_CALLBACK (on_seat_device_added), manager);
+        g_signal_connect (ckseat, "device-removed", G_CALLBACK (on_seat_device_removed), manager);
 }
 
 static void
 disconnect_seat_signals (CkManager *manager,
                          CkSeat    *seat)
 {
+        ConsoleKitSeat *ckseat = CONSOLE_KIT_SEAT (seat);
+
         g_signal_handlers_disconnect_by_func (seat, on_seat_active_session_changed_full, manager);
         g_signal_handlers_disconnect_by_func (seat, on_seat_session_added_full, manager);
         g_signal_handlers_disconnect_by_func (seat, on_seat_session_removed_full, manager);
-        g_signal_handlers_disconnect_by_func (seat, on_seat_device_added, manager);
-        g_signal_handlers_disconnect_by_func (seat, on_seat_device_removed, manager);
+        g_signal_handlers_disconnect_by_func (ckseat, on_seat_device_added, manager);
+        g_signal_handlers_disconnect_by_func (ckseat, on_seat_device_removed, manager);
 }
 
 static CkSeat *
@@ -2036,7 +2042,7 @@ add_new_seat (CkManager *manager,
 
         sid = generate_seat_id (manager);
 
-        seat = ck_seat_new (sid, kind);
+        seat = ck_seat_new (sid, kind, NULL);
 
         /* First we connect our own signals to the seat, followed by
          * the D-Bus signal hookup to make sure we can first dump the
@@ -2347,7 +2353,7 @@ open_session_for_leader (CkManager             *manager,
         /* FIXME: add weak ref */
 
         manager_update_system_idle_hint (manager);
-        g_signal_connect (session, "idle-hint-changed",
+        g_signal_connect (CONSOLE_KIT_SESSION (session), "idle-hint-changed",
                           G_CALLBACK (session_idle_hint_changed),
                           manager);
 
@@ -3338,7 +3344,7 @@ add_seat_for_file (CkManager  *manager,
 
         sid = generate_seat_id (manager);
 
-        seat = ck_seat_new_from_file (sid, filename);
+        seat = ck_seat_new_from_file (sid, filename, NULL);
 
         if (seat == NULL) {
                 return;

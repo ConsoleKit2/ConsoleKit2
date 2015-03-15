@@ -86,7 +86,8 @@ sbin_PROGRAMS = 		\
 
 BUILT_SOURCES = 		\
 	ck-manager-glue.h	\
-	ck-seat-glue.h		\
+	ck-seat-generated.h	\
+	ck-seat-generated.c	\
 	ck-session-generated.h	\
 	ck-session-generated.c	\
 	ck-marshal.c 		\
@@ -102,8 +103,13 @@ dbusif_DATA = 					\
 
 ck-manager-glue.h: org.freedesktop.ConsoleKit.Manager.xml Makefile.am
 	dbus-binding-tool --prefix=ck_manager --mode=glib-server --output=ck-manager-glue.h org.freedesktop.ConsoleKit.Manager.xml
-ck-seat-glue.h: org.freedesktop.ConsoleKit.Seat.xml Makefile.am
-	dbus-binding-tool --prefix=ck_seat --mode=glib-server --output=ck-seat-glue.h org.freedesktop.ConsoleKit.Seat.xml
+
+ck-seat-generated.c ck-seat-generated.h : org.freedesktop.ConsoleKit.Seat.xml Makefile.am
+	gdbus-codegen \
+		--c-namespace=ConsoleKit \
+		--interface-prefix=org.freedesktop.ConsoleKit. \
+		--generate-c-code=ck-seat-generated \
+		$(srcdir)/org.freedesktop.ConsoleKit.Seat.xml
 
 ck-session-generated.c ck-session-generated.h : org.freedesktop.ConsoleKit.Session.xml Makefile.am
 	gdbus-codegen \

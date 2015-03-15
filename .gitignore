@@ -62,3 +62,4 @@ src/ck-session-generated.h
 src/test-session
 tools/pam-foreground-compat.ck
 tools/70-udev-acl.rules
+doc/console-kit-daemon.1m
