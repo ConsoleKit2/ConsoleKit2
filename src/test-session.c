@@ -340,6 +340,9 @@ main (int   argc,
             exit (1);
     }
 
+    g_setenv ("G_DEBUG", "fatal_criticals", FALSE);
+              g_log_set_always_fatal (G_LOG_LEVEL_CRITICAL);
+
     loop = g_main_loop_new (NULL, FALSE);
 
     session = NULL;

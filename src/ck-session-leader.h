@@ -23,7 +23,7 @@
 #define __CK_SESSION_LEADER_H
 
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -56,8 +56,8 @@ typedef enum
 #define CK_SESSION_LEADER_ERROR ck_session_leader_error_quark ()
 
 typedef void  (* CkSessionLeaderDoneFunc) (CkSessionLeader       *session_leader,
-                                           GPtrArray             *parameters,
-                                           DBusGMethodInvocation *context,
+                                           GVariant              *parameters,
+                                           GDBusMethodInvocation *context,
                                            gpointer               data);
 
 GQuark              ck_session_leader_error_quark             (void);
@@ -76,7 +76,7 @@ void                ck_session_leader_set_service_name        (CkSessionLeader  
                                                                const char             *sender);
 
 void                ck_session_leader_set_override_parameters (CkSessionLeader       *session_leader,
-                                                               const GPtrArray       *parameters);
+                                                               const GVariant        *parameters);
 
 const char *        ck_session_leader_peek_session_id         (CkSessionLeader        *session_leader);
 const char *        ck_session_leader_peek_cookie             (CkSessionLeader        *session_leader);
@@ -86,7 +86,7 @@ pid_t               ck_session_leader_get_pid                 (CkSessionLeader  
 
 
 gboolean            ck_session_leader_collect_parameters      (CkSessionLeader        *session_leader,
-                                                               DBusGMethodInvocation  *context,
+                                                               GDBusMethodInvocation  *context,
                                                                CkSessionLeaderDoneFunc done_cb,
                                                                gpointer                data);
 void                ck_session_leader_cancel                  (CkSessionLeader        *session_leader);

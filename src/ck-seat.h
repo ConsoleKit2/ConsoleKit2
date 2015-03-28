@@ -64,6 +64,7 @@ typedef enum
         CK_SEAT_ERROR_FAILED,
         CK_SEAT_ERROR_INSUFFICIENT_PERMISSION,
         CK_SEAT_ERROR_NOT_SUPPORTED,
+        CK_SEAT_NUM_ERRORS
 } CkSeatError;
 
 #define CK_SEAT_ERROR ck_seat_error_quark ()

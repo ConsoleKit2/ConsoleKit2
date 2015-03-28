@@ -32,8 +32,6 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
 
 #include "ck-session-leader.h"
 #include "ck-job.h"
@@ -46,6 +44,36 @@
                                                           G_TYPE_INVALID))
 #define CK_TYPE_PARAMETER_LIST (dbus_g_type_get_collection ("GPtrArray", \
                                                             CK_TYPE_PARAMETER_STRUCT))
+
+static struct {
+        const char *name;
+        const char *variant_type;
+        GType       gtype;
+} parameter_lookup[] = {
+        { "display-device",     "s", G_TYPE_STRING },
+        { "x11-display-device", "s", G_TYPE_STRING },
+        { "x11-display",        "s", G_TYPE_STRING },
+        { "remote-host-name",   "s", G_TYPE_STRING },
+        { "session-type",       "s", G_TYPE_STRING },
+        { "is-local",           "b", G_TYPE_BOOLEAN },
+        { "unix-user",          "i", G_TYPE_INT },
+};
+
+static void
+lookup_parameter_type (const char *name, const char **variant_type, GType *gtype)
+{
+        int i;
+
+        *gtype = G_TYPE_INVALID;
+
+        for (i = 0; i < G_N_ELEMENTS (parameter_lookup); i++) {
+                if (strcmp (name, parameter_lookup[i].name) == 0) {
+                        *variant_type = parameter_lookup[i].variant_type;
+                        *gtype = parameter_lookup[i].gtype;
+                        break;
+                }
+        }
+}
 
 struct CkSessionLeaderPrivate
 {
@@ -309,8 +337,9 @@ parameters_free (GPtrArray *parameters)
 
 static void
 save_parameters (CkSessionLeader *leader,
-                 const GPtrArray *parameters)
+                 const GVariant  *parameters)
 {
+        GVariantIter *iter;
         int i;
 
         for (i = 0; i < parameters->len; i++) {
@@ -366,7 +395,7 @@ typedef struct {
         CkSessionLeader        *leader;
         CkSessionLeaderDoneFunc done_cb;
         gpointer                user_data;
-        DBusGMethodInvocation  *context;
+        GDBusMethodInvocation  *context;
 } JobData;
 
 static void
@@ -414,7 +443,7 @@ job_data_free (JobData *data)
 
 gboolean
 ck_session_leader_collect_parameters (CkSessionLeader        *session_leader,
-                                      DBusGMethodInvocation  *context,
+                                      GDBusMethodInvocation  *context,
                                       CkSessionLeaderDoneFunc done_cb,
                                       gpointer                user_data)
 {

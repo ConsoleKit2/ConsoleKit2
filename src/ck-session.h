@@ -53,7 +53,7 @@ typedef enum
         CK_SESSION_ERROR_GENERAL,
         CK_SESSION_ERROR_INSUFFICIENT_PERMISSION,
         CK_SESSION_ERROR_NOT_SUPPORTED,
-        NUM_ERRORS
+        CK_SESSION_NUM_ERRORS
 } CkSessionError;
 
 #define CK_SESSION_ERROR ck_session_error_quark ()

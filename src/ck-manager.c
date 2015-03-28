@@ -35,8 +35,6 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
 #include <gio/gio.h>
 
 #if defined HAVE_POLKIT
@@ -47,11 +45,9 @@
 #endif
 
 #include "ck-manager.h"
-#include "ck-manager-glue.h"
 #include "ck-seat.h"
 #include "ck-session-leader.h"
 #include "ck-session.h"
-#include "ck-session-generated.h"
 #include "ck-marshal.h"
 #include "ck-event-logger.h"
 #include "ck-inhibit-manager.h"
@@ -75,8 +71,8 @@ struct CkManagerPrivate
         GHashTable      *sessions;
         GHashTable      *leaders;
 
-        DBusGProxy      *bus_proxy;
-        DBusGConnection *connection;
+        GDBusProxy      *bus_proxy;
+        GDBusConnection *connection;
         CkEventLogger   *logger;
 
         guint32          session_serial;
@@ -107,7 +103,7 @@ typedef enum {
 typedef struct
 {
         CkManager             *manager;
-        DBusGMethodInvocation *context;
+        GDBusMethodInvocation *context;
         const gchar           *command;
         CkLogEventType         event_type;
         const gchar           *description;
@@ -116,13 +112,18 @@ typedef struct
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_manager_class_init  (CkManagerClass *klass);
-static void     ck_manager_init        (CkManager      *manager);
-static void     ck_manager_finalize    (GObject        *object);
+static void     ck_manager_class_init  (CkManagerClass         *klass);
+static void     ck_manager_init        (CkManager              *manager);
+static void     ck_manager_iface_init  (ConsoleKitManagerIface *iface);
+static void     ck_manager_finalize    (GObject                *object);
+
+static void     remove_sessions_for_connection (GDBusConnection *connection,
+                                                const gchar     *service_name,
+                                                gpointer         user_data);
 
 static gpointer manager_object = NULL;
 
-G_DEFINE_TYPE (CkManager, ck_manager, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_CODE (CkManager, ck_manager, CONSOLE_KIT_TYPE_MANAGER_SKELETON, G_IMPLEMENT_INTERFACE (CONSOLE_KIT_TYPE_MANAGER, ck_manager_iface_init));
 
 static void
 dump_state_seat_iter (char     *id,
@@ -267,37 +268,70 @@ error:
         }
 }
 
-GQuark
-ck_manager_error_quark (void)
+
+static const GDBusErrorEntry ck_manager_error_entries[] =
 {
-        static GQuark ret = 0;
-        if (ret == 0) {
-                ret = g_quark_from_static_string ("ck_manager_error");
-        }
+        { CK_MANAGER_ERROR_FAILED,                  CK_MANAGER_DBUS_NAME ".Error.Failed" },
+        { CK_MANAGER_ERROR_GENERAL,                 CK_MANAGER_DBUS_NAME ".Error.General" },
+        { CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_DBUS_NAME ".Error.InsufficientPermission" },
+        { CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,  CK_MANAGER_DBUS_NAME ".Error.AuthorizationRequired" },
+        { CK_MANAGER_ERROR_BUSY,                    CK_MANAGER_DBUS_NAME ".Error.Busy" },
+        { CK_MANAGER_ERROR_NOT_SUPPORTED,           CK_MANAGER_DBUS_NAME ".Error.NotSupported" }
+};
 
-        return ret;
+GQuark
+ck_session_error_quark (void)
+{
+        static volatile gsize quark_volatile = 0;
+
+        g_dbus_error_register_error_domain ("ck_manager_error",
+                                            &quark_volatile,
+                                            ck_manager_error_entries,
+                                            G_N_ELEMENTS (ck_manager_error_entries));
+
+        return (GQuark) quark_volatile;
 }
-
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GType
-ck_manager_error_get_type (void)
+ck_session_error_get_type (void)
 {
-        static GType etype = 0;
+  static GType etype = 0;
 
-        if (etype == 0) {
-                static const GEnumValue values[] = {
-                        ENUM_ENTRY (CK_MANAGER_ERROR_GENERAL, "GeneralError"),
-                        ENUM_ENTRY (CK_MANAGER_ERROR_NOT_PRIVILEGED, "NotPrivileged"),
-                        { 0, 0, 0 }
-                };
+  if (etype == 0)
+    {
+      static const GEnumValue values[] =
+        {
+          ENUM_ENTRY (CK_MANAGER_ERROR_FAILED,                  "Failed"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_GENERAL,                 "General"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, "InsufficientPermission"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,  "AuthorizationRequired" ),
+          ENUM_ENTRY (CK_MANAGER_ERROR_BUSY,                    "Busy" ),
+          ENUM_ENTRY (CK_MANAGER_ERROR_NOT_SUPPORTED,           "NotSupported"),
+          { 0, 0, 0 }
+        };
+      g_assert (CK_MANAGER_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
+      etype = g_enum_register_static ("Error", values);
+    }
+  return etype;
+}
 
-                g_assert (CK_MANAGER_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
+static void
+throw_error (GDBusMethodInvocation *context,
+             gint                   error_code,
+             const gchar           *format,
+             ...)
+{
+        va_list args;
+        gchar *message;
 
-                etype = g_enum_register_static ("CkManagerError", values);
-        }
+        va_start (args, format);
+        message = g_strdup_vprintf (format, args);
+        va_end (args);
 
-        return etype;
+        g_dbus_method_invocation_return_error (context, CK_MANAGER_ERROR, error_code, "%s", message);
+
+        g_free (message);
 }
 
 static guint32
@@ -336,10 +370,7 @@ generate_session_cookie (CkManager *manager)
         GTimeVal tv;
         char    *uuid;
 
-        uuid = dbus_get_local_machine_id ();
-        if (uuid == NULL) {
-                uuid = g_strdup (g_get_host_name ());
-        }
+        uuid = g_strdup (g_get_host_name ());
 
         /* We want this to be globally unique
            or at least such that it won't cycle when there
@@ -754,12 +785,12 @@ get_cookie_for_pid (CkManager *manager,
 }
 
 typedef void (*AuthorizedCallback) (CkManager             *manager,
-                                    DBusGMethodInvocation *context);
+                                    GDBusMethodInvocation *context);
 
 typedef struct
 {
         CkManager             *manager;
-        DBusGMethodInvocation *context;
+        GDBusMethodInvocation *context;
         AuthorizedCallback     callback;
 } AuthorizedCallbackData;
 
@@ -777,7 +808,6 @@ auth_ready_callback (PolkitAuthority        *authority,
                      AuthorizedCallbackData *data)
 {
         GError *error;
-        GError *error2;
         PolkitAuthorizationResult *result;
 
         error = NULL;
@@ -786,29 +816,17 @@ auth_ready_callback (PolkitAuthority        *authority,
                                                               res,
                                                               &error);
         if (error != NULL) {
-                error2 = g_error_new (CK_MANAGER_ERROR,
-                                      CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                      "Not Authorized: %s", error->message);
-                dbus_g_method_return_error (data->context, error2);
-                g_error_free (error2);
-                g_error_free (error);
+                throw_error (data->context, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, _("Not Authorized: %s"), error->message);
+                g_clear_error (&error);
         }
         else if (polkit_authorization_result_get_is_authorized (result)) {
                 data->callback (data->manager, data->context);
         }
         else if (polkit_authorization_result_get_is_challenge (result)) {
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                     "Authorization is required");
-                dbus_g_method_return_error (data->context, error);
-                g_error_free (error);
+                throw_error (data->context, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED, _("Authorization is required"));
         }
         else {
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_NOT_PRIVILEGED,
-                                     "Not Authorized");
-                dbus_g_method_return_error (data->context, error);
-                g_error_free (error);
+                throw_error (data->context, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, _("Not Authorized"));
         }
 
         g_object_unref (result);
@@ -818,7 +836,7 @@ auth_ready_callback (PolkitAuthority        *authority,
 
 static void
 check_polkit_permissions (CkManager             *manager,
-                          DBusGMethodInvocation *context,
+                          GDBusMethodInvocation *context,
                           const char            *action,
                           gboolean               policykit_interactivity,
                           AuthorizedCallback     callback)
@@ -831,7 +849,7 @@ check_polkit_permissions (CkManager             *manager,
         g_debug ("constructing polkit data");
 
         /* Check that caller is privileged */
-        sender = dbus_g_method_get_sender (context);
+        sender = g_dbus_method_invocation_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
         auth_flag = policykit_interactivity ? POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION : POLKIT_CHECK_AUTHORIZATION_FLAGS_NONE;
 
@@ -856,7 +874,7 @@ check_polkit_permissions (CkManager             *manager,
 static void
 ready_cb (PolkitAuthority *authority,
           GAsyncResult    *res,
-          DBusGMethodInvocation *context)
+          GDBusMethodInvocation *context)
 {
         PolkitAuthorizationResult *ret;
         GError *error;
@@ -864,17 +882,17 @@ ready_cb (PolkitAuthority *authority,
         error = NULL;
         ret = polkit_authority_check_authorization_finish (authority, res, &error);
         if (error != NULL) {
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, error->message);
+                g_clear_error (&error);
         }
         else if (polkit_authorization_result_get_is_authorized (ret)) {
-                dbus_g_method_return (context, TRUE);
+                g_dbus_method_invocation_return_value (context, g_variant_new_boolean (TRUE));
         }
         else if (polkit_authorization_result_get_is_challenge (ret)) {
-                dbus_g_method_return (context, TRUE);
+                g_dbus_method_invocation_return_value (context, g_variant_new_boolean (TRUE));
         }
         else {
-                dbus_g_method_return (context, FALSE);
+                g_dbus_method_invocation_return_value (context, g_variant_new_boolean (FALSE));
         }
 
         g_object_unref (ret);
@@ -886,7 +904,7 @@ ready_cb (PolkitAuthority *authority,
 static void
 logind_ready_cb (PolkitAuthority *authority,
                  GAsyncResult    *res,
-                 DBusGMethodInvocation *context)
+                 GDBusMethodInvocation *context)
 {
         PolkitAuthorizationResult *ret;
         GError *error;
@@ -894,17 +912,17 @@ logind_ready_cb (PolkitAuthority *authority,
         error = NULL;
         ret = polkit_authority_check_authorization_finish (authority, res, &error);
         if (error != NULL) {
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, error->message);
+                g_clear_error (&error);
         }
         else if (polkit_authorization_result_get_is_authorized (ret)) {
-                dbus_g_method_return (context, "yes");
+                g_dbus_method_invocation_return_value (context, g_variant_new_string ("yes"));
         }
         else if (polkit_authorization_result_get_is_challenge (ret)) {
-                dbus_g_method_return (context, "challenge");
+                g_dbus_method_invocation_return_value (context, g_variant_new_string ("challenge"));
         }
         else {
-                dbus_g_method_return (context, "no");
+                g_dbus_method_invocation_return_value (context, g_variant_new_string ("no"));
         }
 
         g_object_unref (ret);
@@ -916,14 +934,14 @@ logind_ready_cb (PolkitAuthority *authority,
 static void
 get_polkit_logind_permissions (CkManager   *manager,
                                const char  *action,
-                               DBusGMethodInvocation *context)
+                               GDBusMethodInvocation *context)
 {
         const char    *sender;
         PolkitSubject *subject;
 
         g_debug ("get permissions for action %s", action);
 
-        sender = dbus_g_method_get_sender (context);
+        sender = g_dbus_method_invocation_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
 
         polkit_authority_check_authorization (manager->priv->pol_ctx,
@@ -940,14 +958,14 @@ get_polkit_logind_permissions (CkManager   *manager,
 static void
 get_polkit_permissions (CkManager   *manager,
                         const char  *action,
-                        DBusGMethodInvocation *context)
+                        GDBusMethodInvocation *context)
 {
         const char    *sender;
         PolkitSubject *subject;
 
         g_debug ("get permissions for action %s", action);
 
-        sender = dbus_g_method_get_sender (context);
+        sender = g_dbus_method_invocation_get_sender (context);
         subject = polkit_system_bus_name_new (sender);
 
         polkit_authority_check_authorization (manager->priv->pol_ctx,
@@ -969,34 +987,41 @@ get_caller_info (CkManager   *manager,
                  uid_t       *calling_uid,
                  pid_t       *calling_pid)
 {
-        gboolean res;
-        GError  *error = NULL;
-
-        res = FALSE;
+        gboolean  res   = FALSE;
+        GVariant *value = NULL;
+        GError   *error = NULL;
 
         if (sender == NULL) {
                 goto out;
         }
 
-        if (! dbus_g_proxy_call (manager->priv->bus_proxy, "GetConnectionUnixUser", &error,
-                                 G_TYPE_STRING, sender,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_UINT, calling_uid,
-                                 G_TYPE_INVALID)) {
-                g_debug ("GetConnectionUnixUser() failed: %s", error->message);
-                g_error_free (error);
-                goto out;
-        }
+        value = g_dbus_proxy_call_sync (manager->priv->bus_proxy, "GetConnectionUnixUser",
+                                        g_variant_new ("(s)", sender),
+                                        G_DBUS_CALL_FLAGS_NONE,
+                                        2000,
+                                        NULL,
+                                        &error);
 
-        if (! dbus_g_proxy_call (manager->priv->bus_proxy, "GetConnectionUnixProcessID", &error,
-                                 G_TYPE_STRING, sender,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_UINT, calling_pid,
-                                 G_TYPE_INVALID)) {
-                g_debug ("GetConnectionUnixProcessID() failed: %s", error->message);
+        if (value == NULL) {
+                g_warning ("GetConnectionUnixUser() failed: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
+        g_variant_get (value, "(u)", &calling_uid);
+
+        value = g_dbus_proxy_call_sync (manager->priv->bus_proxy, "GetConnectionUnixProcessID",
+                                        g_variant_new ("(s)", sender),
+                                        G_DBUS_CALL_FLAGS_NONE,
+                                        2000,
+                                        NULL,
+                                        &error);
+
+        if (value == NULL) {
+                g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
+                g_error_free (error);
+                goto out;
+        }
+        g_variant_get (value, "(u)", &calling_pid);
 
         res = TRUE;
 
@@ -1101,7 +1126,7 @@ get_system_num_users (CkManager *manager)
 #ifdef ENABLE_RBAC_SHUTDOWN
 static gboolean
 check_rbac_permissions (CkManager             *manager,
-                        DBusGMethodInvocation *context,
+                        GDBusMethodInvocation *context,
                         const char            *action,
                         AuthorizedCallback     callback)
 {
@@ -1112,7 +1137,7 @@ check_rbac_permissions (CkManager             *manager,
         pid_t       pid;
 
         username = NULL;
-        sender   = dbus_g_method_get_sender (context);
+        sender   = g_dbus_method_invocation_get_sender (context);
         res      = get_caller_info (manager,
                                     sender,
                                     &uid,
@@ -1155,7 +1180,7 @@ out:
 static void
 check_system_action (CkManager             *manager,
                      gboolean               policykit_interactivity,
-                     DBusGMethodInvocation *context,
+                     GDBusMethodInvocation *context,
                      const char            *action,
                      AuthorizedCallback     callback)
 {
@@ -1179,7 +1204,7 @@ check_system_action (CkManager             *manager,
  */
 static void
 check_can_action (CkManager             *manager,
-                  DBusGMethodInvocation *context,
+                  GDBusMethodInvocation *context,
                   const char            *action)
 {
 #if defined HAVE_POLKIT
@@ -1188,13 +1213,13 @@ check_can_action (CkManager             *manager,
 #elif defined ENABLE_RBAC_SHUTDOWN
         /* rbac determines either yes or no. There is no challenge with rbac */
         if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
-                dbus_g_method_return (context, "yes");
+                g_dbus_method_invocation_return_value (context, g_variant_new_string ("yes"));
         } else {
-                dbus_g_method_return (context, "no");
+                g_dbus_method_invocation_return_value (context, g_variant_new_string ("no"));
         }
 #else
         /* neither polkit or rbac. assumed single user system */
-        dbus_g_method_return (context, "yes");
+        g_dbus_method_invocation_return_value (context, g_variant_new_string ("yes"));
 #endif
 }
 
@@ -1204,7 +1229,7 @@ check_can_action (CkManager             *manager,
  */
 static void
 do_system_action (CkManager             *manager,
-                  DBusGMethodInvocation *context,
+                  GDBusMethodInvocation *context,
                   const gchar           *command,
                   CkLogEventType         event_type,
                   const gchar           *description)
@@ -1222,20 +1247,13 @@ do_system_action (CkManager             *manager,
         res = g_spawn_command_line_sync (command, NULL, NULL, NULL, &error);
 
         if (! res) {
-                GError *new_error;
-
                 g_warning ("Unable to %s system: %s", description, error->message);
 
-                new_error = g_error_new (CK_MANAGER_ERROR,
-                                         CK_MANAGER_ERROR_GENERAL,
-                                         "Unable to %s system: %s", description, error->message);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to %s system: %s"), description, error->message);
 
-                dbus_g_method_return_error (context, new_error);
-                g_error_free (new_error);
-
-                g_error_free (error);
+                g_clear_error (&error);
         } else {
-                dbus_g_method_return (context);
+                g_dbus_method_invocation_return_value (context, NULL);
         }
 }
 
@@ -1244,7 +1262,7 @@ system_action_idle_cb(SystemActionData *data)
 {
         g_return_val_if_fail (data != NULL, FALSE);
 
-        /* Perform the action, it will handle the dbus_g_method_return */
+        /* Perform the action, it will handle the g_dbus_method_return */
         do_system_action (data->manager,
                           data->context,
                           data->command,
@@ -1265,14 +1283,13 @@ system_action_idle_cb(SystemActionData *data)
 
 static void
 do_restart (CkManager             *manager,
-            DBusGMethodInvocation *context)
+            GDBusMethodInvocation *context)
 {
         SystemActionData *data;
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
-                g_error ("attempting to perform a system action while one is in progress");
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
                 return;
         }
 
@@ -1284,6 +1301,7 @@ do_restart (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform shutdown\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform restart"));
                 return;
         }
 
@@ -1307,17 +1325,19 @@ do_restart (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.Restart
 */
-gboolean
-ck_manager_restart (CkManager             *manager,
-                    DBusGMethodInvocation *context)
+static gboolean
+dbus_restart (ConsoleKitManager     *ckmanager,
+              GDBusMethodInvocation *context)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("restart inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1333,23 +1353,25 @@ ck_manager_restart (CkManager             *manager,
         return TRUE;
 }
 
-gboolean
-ck_manager_can_restart (CkManager  *manager,
-                    DBusGMethodInvocation *context)
+static gboolean
+dbus_can_restart (ConsoleKitManager     *ckmanager,
+                  GDBusMethodInvocation *context)
 
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         action = "org.freedesktop.consolekit.system.restart";
 
 #if defined HAVE_POLKIT
         get_polkit_permissions (manager, action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
-        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
-                                        NULL)) {
-                dbus_g_method_return (context, TRUE);
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                console_kit_manager_complete_can_restart (ckmanager, context , TRUE);
         } else {
-                dbus_g_method_return (context, FALSE);
+                console_kit_manager_complete_can_restart (ckmanager, context , FALSE);
         }
 #endif
 
@@ -1358,14 +1380,13 @@ ck_manager_can_restart (CkManager  *manager,
 
 static void
 do_stop (CkManager             *manager,
-         DBusGMethodInvocation *context)
+         GDBusMethodInvocation *context)
 {
         SystemActionData *data;
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
-                g_error ("attempting to perform a system action while one is in progress");
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
                 return;
         }
 
@@ -1377,7 +1398,7 @@ do_stop (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform shutdown\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform shutdown"));
                 return;
         }
 
@@ -1394,17 +1415,19 @@ do_stop (CkManager             *manager,
                                                               data);
 }
 
-gboolean
-ck_manager_stop (CkManager             *manager,
-                 DBusGMethodInvocation *context)
+static gboolean
+dbus_stop (ConsoleKitManager     *ckmanager,
+           GDBusMethodInvocation *context)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("shutdown inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1418,22 +1441,24 @@ ck_manager_stop (CkManager             *manager,
         return TRUE;
 }
 
-gboolean
-ck_manager_can_stop (CkManager  *manager,
-                    DBusGMethodInvocation *context)
+static gboolean
+dbus_can_stop (ConsoleKitManager     *ckmanager,
+               GDBusMethodInvocation *context)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         action = "org.freedesktop.consolekit.system.stop";
 
 #if defined HAVE_POLKIT
         get_polkit_permissions (manager, action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
-        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY,
-                                        NULL)) {
-                dbus_g_method_return (context, TRUE);
+        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+                console_kit_manager_complete_can_stop (ckmanager, context, TRUE);
         } else {
-                dbus_g_method_return (context, FALSE);
+                console_kit_manager_complete_can_stop (ckmanager, context, FALSE);
         }
 #endif
 
@@ -1447,18 +1472,20 @@ ck_manager_can_stop (CkManager  *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.PowerOff boolean:TRUE
 */
-gboolean
-ck_manager_power_off (CkManager             *manager,
-                      gboolean               policykit_interactivity,
-                      DBusGMethodInvocation *context)
+static gboolean
+dbus_power_off (ConsoleKitManager     *ckmanager,
+                GDBusMethodInvocation *context,
+                gboolean               policykit_interactivity)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("poweroff inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1475,8 +1502,8 @@ ck_manager_power_off (CkManager             *manager,
 }
 
 /**
- * ck_manager_can_power_off:
- * @manager: the @CkManager object
+ * dbus_can_power_off:
+ * @ckmanager: the @ConsoleKitManager object
  * @context: We return a string here, either:
  * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
  * no  - system can and user explicitly unauthorized by polkit or rbac
@@ -1492,12 +1519,15 @@ ck_manager_power_off (CkManager             *manager,
  *
  * Returnes TRUE.
  **/
-gboolean
-ck_manager_can_power_off (CkManager  *manager,
-                          DBusGMethodInvocation *context)
+static gboolean
+dbus_can_power_off (ConsoleKitManager     *ckmanager,
+                    GDBusMethodInvocation *context)
 
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.stop-multiple-users";
@@ -1517,18 +1547,20 @@ ck_manager_can_power_off (CkManager  *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.Reboot boolean:TRUE
 */
-gboolean
-ck_manager_reboot  (CkManager             *manager,
-                    gboolean               policykit_interactivity,
-                    DBusGMethodInvocation *context)
+static gboolean
+dbus_reboot (ConsoleKitManager     *ckmanager,
+             GDBusMethodInvocation *context,
+             gboolean               policykit_interactivity)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("reboot inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1545,8 +1577,8 @@ ck_manager_reboot  (CkManager             *manager,
 }
 
 /**
- * ck_manager_can_reboot:
- * @manager: the @CkManager object
+ * dbus_can_reboot:
+ * @ckmanager: the @ConsoleKitManager object
  * @context: We return a string here, either:
  * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
  * no  - system can and user explicitly unauthorized by polkit or rbac
@@ -1562,12 +1594,15 @@ ck_manager_reboot  (CkManager             *manager,
  *
  * Returnes TRUE.
  **/
-gboolean
-ck_manager_can_reboot  (CkManager  *manager,
-                        DBusGMethodInvocation *context)
+static gboolean
+dbus_can_reboot (ConsoleKitManager     *ckmanager,
+                 GDBusMethodInvocation *context)
 
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.restart-multiple-users";
@@ -1582,14 +1617,13 @@ ck_manager_can_reboot  (CkManager  *manager,
 
 static void
 do_suspend (CkManager             *manager,
-            DBusGMethodInvocation *context)
+            GDBusMethodInvocation *context)
 {
         SystemActionData *data;
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
-                g_error ("attempting to perform a system action while one is in progress");
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
                 return;
         }
 
@@ -1601,7 +1635,7 @@ do_suspend (CkManager             *manager,
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform suspend\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform suspend"));
                 return;
         }
 
@@ -1625,18 +1659,20 @@ do_suspend (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.Suspend boolean:true
 */
-gboolean
-ck_manager_suspend (CkManager             *manager,
-                    gboolean               policykit_interactivity,
-                    DBusGMethodInvocation *context)
+static gboolean
+dbus_suspend (ConsoleKitManager     *ckmanager,
+              GDBusMethodInvocation *context,
+              gboolean               policykit_interactivity)
 {
+        CkManager *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("suspend inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1653,8 +1689,8 @@ ck_manager_suspend (CkManager             *manager,
 }
 
 /**
- * ck_manager_can_suspend:
- * @manager: the @CkManager object
+ * dbus_can_suspend:
+ * @ckmanager: the @ConsoleKitManager object
  * @context: We return a string here, either:
  * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
  * no  - system can and user explicitly unauthorized by polkit or rbac
@@ -1670,12 +1706,15 @@ ck_manager_suspend (CkManager             *manager,
  *
  * Returnes TRUE.
  **/
-gboolean
-ck_manager_can_suspend (CkManager  *manager,
-                        DBusGMethodInvocation *context)
+static gboolean
+dbus_can_suspend (ConsoleKitManager     *ckmanager,
+                  GDBusMethodInvocation *context)
 
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.suspend-multiple-users";
@@ -1687,7 +1726,7 @@ ck_manager_can_suspend (CkManager  *manager,
                 check_can_action (manager, context, action);
         } else {
                 /* not supported by system (or consolekit backend) */
-                dbus_g_method_return (context, "na");
+                console_kit_manager_complete_can_suspend (ckmanager, context, "na");
         }
 
         return TRUE;
@@ -1695,7 +1734,7 @@ ck_manager_can_suspend (CkManager  *manager,
 
 static void
 do_hibernate (CkManager             *manager,
-              DBusGMethodInvocation *context)
+              GDBusMethodInvocation *context)
 {
         SystemActionData *data;
 
@@ -1705,9 +1744,9 @@ do_hibernate (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform suspend\n");
+                g_critical ("failed to allocate memory to perform hibernate\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform hibernate"));
                 return;
         }
 
@@ -1731,18 +1770,20 @@ do_hibernate (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.Hibernate boolean:true
 */
-gboolean
-ck_manager_hibernate (CkManager             *manager,
-                      gboolean               policykit_interactivity,
-                      DBusGMethodInvocation *context)
+static gboolean
+dbus_hibernate (ConsoleKitManager     *ckmanager,
+                GDBusMethodInvocation *context,
+                gboolean               policykit_interactivity)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("hibernate inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1759,8 +1800,8 @@ ck_manager_hibernate (CkManager             *manager,
 }
 
 /**
- * ck_manager_can_hibernate:
- * @manager: the @CkManager object
+ * dbus_can_hibernate:
+ * @ckmanager: the @ConsoleKitManager object
  * @context: We return a string here, either:
  * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
  * no  - system can and user explicitly unauthorized by polkit or rbac
@@ -1776,12 +1817,15 @@ ck_manager_hibernate (CkManager             *manager,
  *
  * Returnes TRUE.
  **/
-gboolean
-ck_manager_can_hibernate (CkManager  *manager,
-                          DBusGMethodInvocation *context)
+static gboolean
+dbus_can_hibernate (ConsoleKitManager     *ckmanager,
+                    GDBusMethodInvocation *context)
 
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.hibernate-multiple-users";
@@ -1793,7 +1837,7 @@ ck_manager_can_hibernate (CkManager  *manager,
                 check_can_action (manager, context, action);
         } else {
                 /* not supported by system (or consolekit backend) */
-                dbus_g_method_return (context, "na");
+                console_kit_manager_complete_can_hibernate (ckmanager, context, "na");
         }
 
         return TRUE;
@@ -1801,7 +1845,7 @@ ck_manager_can_hibernate (CkManager  *manager,
 
 static void
 do_hybrid_sleep (CkManager             *manager,
-                 DBusGMethodInvocation *context)
+                 GDBusMethodInvocation *context)
 {
         SystemActionData *data;
 
@@ -1811,9 +1855,9 @@ do_hybrid_sleep (CkManager             *manager,
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
-                g_critical ("failed to allocate memory to perform suspend\n");
+                g_critical ("failed to allocate memory to perform hybrid sleep\n");
                 g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
-                dbus_g_method_return (context, FALSE);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform hybrid sleep"));
                 return;
         }
 
@@ -1837,18 +1881,20 @@ do_hybrid_sleep (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.HybridSleep boolean:true
 */
-gboolean
-ck_manager_hybrid_sleep (CkManager             *manager,
-                         gboolean               policykit_interactivity,
-                         DBusGMethodInvocation *context)
+static gboolean
+dbus_hybrid_sleep (ConsoleKitManager     *ckmanager,
+                   GDBusMethodInvocation *context,
+                   gboolean               policykit_interactivity)
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                g_debug ("hybrid sleep inhibited");
-                dbus_g_method_return (context, FALSE);
-                return TRUE;
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+                return FALSE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1857,7 +1903,7 @@ ck_manager_hybrid_sleep (CkManager             *manager,
                 action = "org.freedesktop.consolekit.system.hybridsleep";
         }
 
-        g_debug ("ConsoleKit Hibernate: %s", action);
+        g_debug ("ConsoleKit Hybrid Sleep: %s", action);
 
         check_system_action (manager, policykit_interactivity, context, action, do_hybrid_sleep);
 
@@ -1865,8 +1911,8 @@ ck_manager_hybrid_sleep (CkManager             *manager,
 }
 
 /**
- * ck_manager_can_hybrid_sleep:
- * @manager: the @CkManager object
+ * dbus_can_hybrid_sleep:
+ * @ckmanager: the @ConsoleKitManager object
  * @context: We return a string here, either:
  * yes - system can and user explicitly authorized by polkit, rbac, or neither is running
  * no  - system can and user explicitly unauthorized by polkit or rbac
@@ -1882,12 +1928,15 @@ ck_manager_hybrid_sleep (CkManager             *manager,
  *
  * Returnes TRUE.
  **/
-gboolean
-ck_manager_can_hybrid_sleep (CkManager  *manager,
-                             DBusGMethodInvocation *context)
+static gboolean
+dbus_can_hybrid_sleep (ConsoleKitManager     *ckmanager,
+                       GDBusMethodInvocation *context)
 
 {
+        CkManager  *manager;
         const char *action;
+
+        manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
                 action = "org.freedesktop.consolekit.system.hybridsleep-multiple-users";
@@ -1899,25 +1948,26 @@ ck_manager_can_hybrid_sleep (CkManager  *manager,
                 check_can_action (manager, context, action);
         } else {
                 /* not supported by system (or consolekit backend) */
-                dbus_g_method_return (context, "na");
+                console_kit_manager_complete_can_hybrid_sleep (ckmanager, context, "na");
         }
 
         return TRUE;
 }
 
-gboolean
-ck_manager_inhibit (CkManager *manager,
-                    gchar *what,
-                    gchar *who,
-                    gchar *why,
-                    DBusGMethodInvocation *context)
+static gboolean
+dbus_inhibit (ConsoleKitManager     *ckmanager,
+              GDBusMethodInvocation *context,
+              const gchar *what,
+              const gchar *who,
+              const gchar *why)
 {
         CkManagerPrivate *priv;
         gint              fd = -1;
+        GVariant         *var_fd;
 
-        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+        g_return_val_if_fail (CK_IS_MANAGER (ckmanager), FALSE);
 
-        priv = CK_MANAGER_GET_PRIVATE (manager);
+        priv = CK_MANAGER_GET_PRIVATE (CK_MANAGER (ckmanager));
 
         if (priv->inhibit_manager == NULL) {
                 priv->inhibit_manager = ck_inhibit_manager_get ();
@@ -1928,8 +1978,9 @@ ck_manager_inhibit (CkManager *manager,
                                              what,
                                              why);
 
-        dbus_g_method_return (context, fd);
+        var_fd = g_variant_new ("h", fd);
 
+        console_kit_manager_complete_inhibit (ckmanager, context, var_fd);
         return TRUE;
 }
 
@@ -2245,63 +2296,33 @@ session_idle_hint_changed (CkSession  *session,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetSystemIdleHint
 */
-gboolean
-ck_manager_get_system_idle_hint (CkManager *manager,
-                                 gboolean  *idle_hint,
-                                 GError   **error)
+static gboolean
+dbus_get_system_idle_hint (ConsoleKitManager     *ckmanager,
+                           GDBusMethodInvocation *context)
 {
+        CkManager *manager = CK_MANAGER (ckmanager);
+
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        if (idle_hint != NULL) {
-                *idle_hint = manager->priv->system_idle_hint;
-        }
-
+        console_kit_manager_complete_get_system_idle_hint (ckmanager, context, manager->priv->system_idle_hint);
         return TRUE;
 }
 
-#if GLIB_CHECK_VERSION(2,12,0)
-#define _g_time_val_to_iso8601(t) g_time_val_to_iso8601(t)
-#else
-/* copied from GLib */
-static gchar *
-_g_time_val_to_iso8601 (GTimeVal *time_)
+static gboolean
+dbus_get_system_idle_since_hint (ConsoleKitManager     *ckmanager,
+                                 GDBusMethodInvocation *context)
 {
-  gchar *retval;
-
-  g_return_val_if_fail (time_->tv_usec >= 0 && time_->tv_usec < G_USEC_PER_SEC, NULL);
-
-#define ISO_8601_LEN    21
-#define ISO_8601_FORMAT "%Y-%m-%dT%H:%M:%SZ"
-  retval = g_new0 (gchar, ISO_8601_LEN + 1);
-
-  strftime (retval, ISO_8601_LEN,
-            ISO_8601_FORMAT,
-            gmtime (&(time_->tv_sec)));
-
-  return retval;
-}
-#endif
-
-gboolean
-ck_manager_get_system_idle_since_hint (CkManager *manager,
-                                       char    **iso8601_datetime,
-                                       GError  **error)
-{
+        CkManager *manager = CK_MANAGER (ckmanager);
         char *date_str;
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
         date_str = NULL;
         if (manager->priv->system_idle_hint) {
-                date_str = _g_time_val_to_iso8601 (&manager->priv->system_idle_since_hint);
+                date_str = g_time_val_to_iso8601 (&manager->priv->system_idle_since_hint);
         }
 
-        if (iso8601_datetime != NULL) {
-                *iso8601_datetime = g_strdup (date_str);
-        }
-
-        g_free (date_str);
-
+        console_kit_manager_complete_get_system_idle_since_hint (ckmanager, context, date_str);
         return TRUE;
 }
 
@@ -2309,7 +2330,7 @@ static void
 open_session_for_leader (CkManager             *manager,
                          CkSessionLeader       *leader,
                          const GPtrArray       *parameters,
-                         DBusGMethodInvocation *context)
+                         GDBusMethodInvocation *context)
 {
         CkSession   *session;
         CkSeat      *seat;
@@ -2325,16 +2346,17 @@ open_session_for_leader (CkManager             *manager,
                                                   NULL);
 
         if (session == NULL) {
-                GError *error;
-                g_debug ("Unable to create new session");
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to create new session");
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to create new session");
                 return;
         }
+
+        g_bus_watch_name_on_connection (manager->priv->connection,
+                                        ssid,
+                                        G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                        NULL,
+                                        remove_sessions_for_connection,
+                                        manager,
+                                        NULL);
 
         g_hash_table_insert (manager->priv->sessions,
                              g_strdup (ssid),
@@ -2359,7 +2381,7 @@ open_session_for_leader (CkManager             *manager,
 
         g_object_unref (session);
 
-        dbus_g_method_return (context, cookie);
+        g_dbus_method_invocation_return_value (context , g_variant_new_string (cookie));
 }
 
 enum {
@@ -2507,7 +2529,7 @@ static void
 verify_and_open_session_for_leader (CkManager             *manager,
                                     CkSessionLeader       *leader,
                                     GPtrArray             *parameters,
-                                    DBusGMethodInvocation *context)
+                                    GDBusMethodInvocation *context)
 {
         /* Only allow a local session if originating from an existing
            local session.  Effectively this means that only trusted
@@ -2540,16 +2562,11 @@ verify_and_open_session_for_leader (CkManager             *manager,
 static void
 collect_parameters_cb (CkSessionLeader       *leader,
                        GPtrArray             *parameters,
-                       DBusGMethodInvocation *context,
+                       GDBusMethodInvocation *context,
                        CkManager             *manager)
 {
         if (parameters == NULL) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to get information about the calling process");
                 return;
         }
 
@@ -2562,7 +2579,7 @@ collect_parameters_cb (CkSessionLeader       *leader,
 static void
 generate_session_for_leader (CkManager             *manager,
                              CkSessionLeader       *leader,
-                             DBusGMethodInvocation *context)
+                             GDBusMethodInvocation *context)
 {
         gboolean res;
 
@@ -2571,20 +2588,15 @@ generate_session_for_leader (CkManager             *manager,
                                                     (CkSessionLeaderDoneFunc)collect_parameters_cb,
                                                     manager);
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to get information about the calling process");
         }
 }
 
 static gboolean
 create_session_for_sender (CkManager             *manager,
                            const char            *sender,
-                           const GPtrArray       *parameters,
-                           DBusGMethodInvocation *context)
+                           const GVariant        *parameters,
+                           GDBusMethodInvocation *context)
 {
         pid_t           pid;
         uid_t           uid;
@@ -2600,12 +2612,7 @@ create_session_for_sender (CkManager             *manager,
                                &uid,
                                &pid);
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to get information about the calling process");
                 return FALSE;
         }
 
@@ -2645,13 +2652,14 @@ create_session_for_sender (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetSessionForCookie string:$XDG_SESSION_COOKIE
 */
-gboolean
-ck_manager_get_session_for_cookie (CkManager             *manager,
-                                   const char            *cookie,
-                                   DBusGMethodInvocation *context)
+static gboolean
+dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
+                             GDBusMethodInvocation *context,
+                             const char            *cookie)
 {
+        CkManager       *manager;
         gboolean         res;
-        char            *sender;
+        const char      *sender;
         uid_t            calling_uid;
         pid_t            calling_pid;
         CkProcessStat   *stat;
@@ -2661,46 +2669,34 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
         GError          *local_error;
 
         ssid = NULL;
+        manager = CK_MANAGER (ckmanager);
 
         g_debug ("CkManager: get session for cookie");
 
-        sender = dbus_g_method_get_sender (context);
+        sender = g_dbus_method_invocation_get_sender (context);
 
         res = get_caller_info (manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
-        g_free (sender);
 
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to get information about the calling process"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
                 g_debug ("CkManager: Unable to lookup caller info - failing");
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to get information about the calling process"));
                 return FALSE;
         }
 
         local_error = NULL;
         res = ck_process_stat_new_for_unix_pid (calling_pid, &stat, &local_error);
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to lookup information about calling process '%d'"),
-                                     calling_pid);
                 if (local_error != NULL) {
                         g_debug ("stat on pid %d failed: %s", calling_pid, local_error->message);
-                        g_error_free (local_error);
+                        g_clear_error (&local_error);
                 }
-
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
 
                 g_debug ("CkManager: Unable to lookup info for caller - failing");
 
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to lookup information about calling process '%d'"), calling_pid);
                 return FALSE;
         }
 
@@ -2710,25 +2706,15 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
 
         leader = g_hash_table_lookup (manager->priv->leaders, cookie);
         if (leader == NULL) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to find session for cookie"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
                 g_debug ("CkManager: Unable to lookup cookie for caller - failing");
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to find session for cookie"));
                 return FALSE;
         }
 
         session = g_hash_table_lookup (manager->priv->sessions, ck_session_leader_peek_session_id (leader));
         if (session == NULL) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to find session for cookie"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
                 g_debug ("CkManager: Unable to lookup session for cookie - failing");
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to find session for cookie"));
                 return FALSE;
         }
 
@@ -2736,7 +2722,7 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
 
         g_debug ("CkManager: Found session '%s'", ssid);
 
-        dbus_g_method_return (context, ssid);
+        console_kit_manager_complete_get_session_for_cookie (ckmanager, context, ssid);
 
         g_free (ssid);
 
@@ -2750,18 +2736,21 @@ ck_manager_get_session_for_cookie (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetSessionForUnixProcess uint32:`/sbin/pidof -s bash`
 */
-gboolean
-ck_manager_get_session_for_unix_process (CkManager             *manager,
-                                         guint                  pid,
-                                         DBusGMethodInvocation *context)
+static gboolean
+dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
+                                   GDBusMethodInvocation *context,
+                                   guint                  pid)
 {
+        CkManager     *manager;
         gboolean       res;
-        char          *sender;
+        const char    *sender;
         uid_t          calling_uid;
         pid_t          calling_pid;
         char          *cookie;
 
-        sender = dbus_g_method_get_sender (context);
+        manager = CK_MANAGER (ckmanager);
+
+        sender = g_dbus_method_invocation_get_sender (context);
 
         g_debug ("CkManager: get session for unix process: %u", pid);
 
@@ -2769,34 +2758,21 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
-        g_free (sender);
 
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to get information about the calling process"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to get information about the calling process"));
                 return FALSE;
         }
 
         cookie = get_cookie_for_pid (manager, pid);
         if (cookie == NULL) {
-                GError *error;
-
                 g_debug ("CkManager: unable to lookup session for unix process: %u", pid);
 
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to lookup session information for process '%d'"),
-                                     pid);
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to lookup session information for process '%d'"), pid);
                 return FALSE;
         }
 
-        res = ck_manager_get_session_for_cookie (manager, cookie, context);
+        res = dbus_get_session_for_cookie (ckmanager, context, cookie);
         g_free (cookie);
 
         return res;
@@ -2809,16 +2785,18 @@ ck_manager_get_session_for_unix_process (CkManager             *manager,
   /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetCurrentSession
 */
-gboolean
-ck_manager_get_current_session (CkManager             *manager,
-                                DBusGMethodInvocation *context)
+static gboolean
+dbus_get_current_session (ConsoleKitManager     *ckmanager,
+                          GDBusMethodInvocation *context)
 {
+        CkManager  *manager;
         gboolean    res;
-        char       *sender;
+        const char *sender;
         uid_t       calling_uid;
         pid_t       calling_pid;
 
-        sender = dbus_g_method_get_sender (context);
+        manager = CK_MANAGER (ckmanager);
+        sender = g_dbus_method_invocation_get_sender (context);
 
         g_debug ("CkManager: get current session");
 
@@ -2826,48 +2804,41 @@ ck_manager_get_current_session (CkManager             *manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
-        g_free (sender);
 
         if (! res) {
-                GError *error;
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     _("Unable to get information about the calling process"));
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to get information about the calling process"));
                 return FALSE;
         }
 
-        res = ck_manager_get_session_for_unix_process (manager, calling_pid, context);
+        res = dbus_get_session_for_unix_process (ckmanager, context, calling_pid);
 
         return res;
 }
 
-gboolean
-ck_manager_open_session (CkManager             *manager,
-                         DBusGMethodInvocation *context)
+static gboolean
+dbus_open_session (ConsoleKitManager     *ckmanager,
+                   GDBusMethodInvocation *context)
 {
-        char    *sender;
-        gboolean ret;
+        const char *sender;
+        gboolean    ret;
 
-        sender = dbus_g_method_get_sender (context);
-        ret = create_session_for_sender (manager, sender, NULL, context);
-        g_free (sender);
+        sender = g_dbus_method_invocation_get_sender (context);
+        ret = create_session_for_sender (CK_MANAGER (ckmanager), sender, NULL, context);
 
         return ret;
 }
 
-gboolean
-ck_manager_open_session_with_parameters (CkManager             *manager,
-                                         const GPtrArray       *parameters,
-                                         DBusGMethodInvocation *context)
+/* privileged method - should be protected by D-Bus policy */
+static gboolean
+dbus_open_session_with_parameters (ConsoleKitManager     *ckmanager,
+                                   GDBusMethodInvocation *context,
+                                   GVariant              *parameters)
 {
-        char    *sender;
-        gboolean ret;
+        const char *sender;
+        gboolean    ret;
 
-        sender = dbus_g_method_get_sender (context);
-        ret = create_session_for_sender (manager, sender, parameters, context);
-        g_free (sender);
+        sender = g_dbus_method_invocation_get_sender (context);
+        ret = create_session_for_sender (CK_MANAGER (ckmanager), sender, parameters, context);
 
         return ret;
 }
@@ -3008,40 +2979,37 @@ paranoia_check_is_cookie_owner (CkManager  *manager,
         return TRUE;
 }
 
-gboolean
-ck_manager_close_session (CkManager             *manager,
-                          const char            *cookie,
-                          DBusGMethodInvocation *context)
+static gboolean
+dbus_close_session (ConsoleKitManager     *ckmanager,
+                    GDBusMethodInvocation *context,
+                    const char            *cookie)
 {
-        gboolean res;
-        char    *sender;
-        uid_t    calling_uid;
-        pid_t    calling_pid;
-        GError  *error;
+        CkManager  *manager;
+        gboolean    res;
+        const char *sender;
+        uid_t       calling_uid;
+        pid_t       calling_pid;
+        GError     *error;
 
         g_debug ("Closing session for cookie: %s", cookie);
 
-        sender = dbus_g_method_get_sender (context);
+        manager = CK_MANAGER (ckmanager);
+
+        sender = g_dbus_method_invocation_get_sender (context);
         res = get_caller_info (manager,
                                sender,
                                &calling_uid,
                                &calling_pid);
-        g_free (sender);
 
         if (! res) {
-                error = g_error_new (CK_MANAGER_ERROR,
-                                     CK_MANAGER_ERROR_GENERAL,
-                                     "Unable to get information about the calling process");
-                dbus_g_method_return_error (context, error);
-                g_error_free (error);
-
+                throw_error (context, CK_MANAGER_ERROR_FAILED, _("Unable to lookup information about calling process '%d'"), calling_pid);
                 return FALSE;
         }
 
         error = NULL;
         res = paranoia_check_is_cookie_owner (manager, cookie, calling_uid, calling_pid, &error);
         if (! res) {
-                dbus_g_method_return_error (context, error);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, "%s", error->message);
                 g_error_free (error);
 
                 return FALSE;
@@ -3050,15 +3018,14 @@ ck_manager_close_session (CkManager             *manager,
         error = NULL;
         res = remove_session_for_cookie (manager, cookie, &error);
         if (! res) {
-                dbus_g_method_return_error (context, error);
+                throw_error (context, CK_MANAGER_ERROR_FAILED, "%s", error->message);
                 g_error_free (error);
                 return FALSE;
         } else {
                 g_hash_table_remove (manager->priv->leaders, cookie);
         }
 
-        dbus_g_method_return (context, res);
-
+        console_kit_manager_complete_close_session (ckmanager, context, TRUE);
         return TRUE;
 }
 
@@ -3088,10 +3055,16 @@ remove_leader_for_connection (const char       *cookie,
 }
 
 static void
-remove_sessions_for_connection (CkManager  *manager,
-                                const char *service_name)
+remove_sessions_for_connection (GDBusConnection *connection,
+                                const gchar     *service_name,
+                                gpointer         user_data)
 {
+        CkManager  *manager;
         RemoveLeaderData data;
+
+        manager = CK_MANAGER (user_data);
+
+        g_return_if_fail (CK_IS_MANAGER (manager));
 
         data.service_name = service_name;
         data.manager = manager;
@@ -3102,21 +3075,6 @@ remove_sessions_for_connection (CkManager  *manager,
                                      (GHRFunc)remove_leader_for_connection,
                                      &data);
 
-}
-
-static void
-bus_name_owner_changed (DBusGProxy  *bus_proxy,
-                        const char  *service_name,
-                        const char  *old_service_name,
-                        const char  *new_service_name,
-                        CkManager   *manager)
-{
-        if (strlen (new_service_name) == 0) {
-                remove_sessions_for_connection (manager, old_service_name);
-        }
-
-        g_debug ("NameOwnerChanged: service_name='%s', old_service_name='%s' new_service_name='%s'",
-                   service_name, old_service_name, new_service_name);
 }
 
 static void
@@ -3132,41 +3090,45 @@ polkit_authority_get_cb (GObject *source_object,
 }
 
 static gboolean
-register_manager (CkManager *manager)
+register_manager (CkManager *manager, GDBusConnection *connection)
 {
         GError *error = NULL;
+
+        manager->priv->connection = connection;
 
 #ifdef HAVE_POLKIT
         polkit_authority_get_async (NULL, polkit_authority_get_cb, manager);
 #endif
 
-        error = NULL;
-        manager->priv->connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
-        if (manager->priv->connection == NULL) {
+        g_debug ("exporting path %s", DBUS_PATH_DBUS);
+
+        if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_MANAGER (manager)),
+                                               manager->priv->connection,
+                                               CK_MANAGER_DBUS_PATH,
+                                               &error)) {
                 if (error != NULL) {
-                        g_critical ("error getting system bus: %s", error->message);
+                        g_critical ("error exporting interface: %s", error->message);
                         g_error_free (error);
+                        return FALSE;
                 }
-                exit (1);
         }
 
-        manager->priv->bus_proxy = dbus_g_proxy_new_for_name (manager->priv->connection,
-                                                              DBUS_SERVICE_DBUS,
-                                                              DBUS_PATH_DBUS,
-                                                              DBUS_INTERFACE_DBUS);
-        dbus_g_proxy_add_signal (manager->priv->bus_proxy,
-                                 "NameOwnerChanged",
-                                 G_TYPE_STRING,
-                                 G_TYPE_STRING,
-                                 G_TYPE_STRING,
-                                 G_TYPE_INVALID);
-        dbus_g_proxy_connect_signal (manager->priv->bus_proxy,
-                                     "NameOwnerChanged",
-                                     G_CALLBACK (bus_name_owner_changed),
-                                     manager,
-                                     NULL);
+        g_debug ("exported on %s", g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_MANAGER (manager))));
 
-        dbus_g_connection_register_g_object (manager->priv->connection, CK_MANAGER_DBUS_PATH, G_OBJECT (manager));
+        /* connect to DBus for get_caller_info */
+        manager->priv->bus_proxy = g_dbus_proxy_new_sync (manager->priv->connection,
+                                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+                                                          G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                                          NULL,
+                                                          "org.freedesktop.DBus",
+                                                          "/org/freedesktop/DBus/Bus",
+                                                          "org.freedesktop.DBus",
+                                                          NULL,
+                                                          &error);
+        if (manager->priv->bus_proxy == NULL) {
+                g_warning ("cannot connect to DBus: %s", error->message);
+                g_error_free (error);
+        }
 
         return TRUE;
 }
@@ -3177,60 +3139,6 @@ ck_manager_class_init (CkManagerClass *klass)
         GObjectClass   *object_class = G_OBJECT_CLASS (klass);
 
         object_class->finalize = ck_manager_finalize;
-
-        signals [SEAT_ADDED] =
-                g_signal_new ("seat-added",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkManagerClass, seat_added),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOXED,
-                              G_TYPE_NONE,
-                              1, DBUS_TYPE_G_OBJECT_PATH);
-        signals [SEAT_REMOVED] =
-                g_signal_new ("seat-removed",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkManagerClass, seat_removed),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOXED,
-                              G_TYPE_NONE,
-                              1, DBUS_TYPE_G_OBJECT_PATH);
-        signals [SYSTEM_IDLE_HINT_CHANGED] =
-                g_signal_new ("system-idle-hint-changed",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkManagerClass, system_idle_hint_changed),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOOLEAN,
-                              G_TYPE_NONE,
-                              1, G_TYPE_BOOLEAN);
-        signals [PREPARE_FOR_SHUTDOWN] =
-                g_signal_new ("prepare-for-shutdown",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkManagerClass, prepare_for_shutdown),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOOLEAN,
-                              G_TYPE_NONE,
-                              1, G_TYPE_BOOLEAN);
-        signals [PREPARE_FOR_SLEEP] =
-                g_signal_new ("prepare-for-sleep",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkManagerClass, prepare_for_sleep),
-                              NULL,
-                              NULL,
-                              g_cclosure_marshal_VOID__BOOLEAN,
-                              G_TYPE_NONE,
-                              1, G_TYPE_BOOLEAN);
-
-        dbus_g_object_type_install_info (CK_TYPE_MANAGER, &dbus_glib_ck_manager_object_info);
-        dbus_g_error_domain_register (CK_MANAGER_ERROR, NULL, CK_MANAGER_TYPE_ERROR);
 
         g_type_class_add_private (klass, sizeof (CkManagerPrivate));
 }
@@ -3252,12 +3160,15 @@ get_sessions_for_unix_user_iter (char            *id,
         }
 }
 
-gboolean
-ck_manager_get_sessions_for_unix_user (CkManager             *manager,
-                                       guint                  uid,
-                                       DBusGMethodInvocation *context)
+static gboolean
+dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
+                                 GDBusMethodInvocation *context,
+                                 guint                  uid)
 {
+        CkManager       *manager;
         GetSessionsData *data;
+
+        manager = CK_MANAGER (ckmanager);
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
@@ -3267,7 +3178,7 @@ ck_manager_get_sessions_for_unix_user (CkManager             *manager,
 
         g_hash_table_foreach (manager->priv->sessions, (GHFunc)get_sessions_for_unix_user_iter, data);
 
-        dbus_g_method_return (context, data->sessions);
+        g_dbus_method_invocation_return_value (context, g_variant_new ("(^ao)", data->sessions));
 
         g_ptr_array_foreach (data->sessions, (GFunc)g_free, NULL);
         g_ptr_array_free (data->sessions, TRUE);
@@ -3277,12 +3188,12 @@ ck_manager_get_sessions_for_unix_user (CkManager             *manager,
 }
 
 /* This is deprecated */
-gboolean
-ck_manager_get_sessions_for_user (CkManager             *manager,
-                                  guint                  uid,
-                                  DBusGMethodInvocation *context)
+static gboolean
+dbus_get_sessions_for_user (ConsoleKitManager     *ckmanager,
+                            GDBusMethodInvocation *context,
+                            guint                  uid)
 {
-        return ck_manager_get_sessions_for_unix_user (manager, uid, context);
+        return dbus_get_sessions_for_unix_user (ckmanager, context, uid);
 }
 
 static void
@@ -3293,20 +3204,21 @@ listify_seat_ids (char       *id,
         g_ptr_array_add (*array, g_strdup (id));
 }
 
-gboolean
-ck_manager_get_seats (CkManager  *manager,
-                      GPtrArray **seats,
-                      GError    **error)
+static gboolean
+dbus_get_seats (ConsoleKitManager     *ckmanager,
+                GDBusMethodInvocation *context)
 {
+        CkManager *manager;
+        GPtrArray *seats;
+
+        manager = CK_MANAGER (ckmanager);
+
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        if (seats == NULL) {
-                return FALSE;
-        }
-
-        *seats = g_ptr_array_new ();
+        seats = g_ptr_array_new ();
         g_hash_table_foreach (manager->priv->seats, (GHFunc)listify_seat_ids, seats);
 
+        g_dbus_method_invocation_return_value (context, g_variant_new ("(^ao)", seats));
         return TRUE;
 }
 
@@ -3318,20 +3230,21 @@ listify_session_ids (char       *id,
         g_ptr_array_add (*array, g_strdup (id));
 }
 
-gboolean
-ck_manager_get_sessions (CkManager  *manager,
-                         GPtrArray **sessions,
-                         GError    **error)
+static gboolean
+dbus_get_sessions (ConsoleKitManager     *ckmanager,
+                   GDBusMethodInvocation *context)
 {
+        CkManager *manager;
+        GPtrArray *sessions;
+
+        manager = CK_MANAGER (ckmanager);
+
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        if (sessions == NULL) {
-                return FALSE;
-        }
-
-        *sessions = g_ptr_array_new ();
+        sessions = g_ptr_array_new ();
         g_hash_table_foreach (manager->priv->sessions, (GHFunc)listify_session_ids, sessions);
 
+        g_dbus_method_invocation_return_value (context, g_variant_new ("(^ao)", sessions));
         return TRUE;
 }
 
@@ -3367,7 +3280,7 @@ add_seat_for_file (CkManager  *manager,
         ck_seat_run_programs (seat, NULL, NULL, "seat_added");
 
         g_debug ("Emitting seat-added: %s", sid);
-        g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
+        console_kit_manager_emit_seat_added (CONSOLE_KIT_MANAGER (manager), sid);
 
         log_seat_added_event (manager, seat);
 }
@@ -3479,7 +3392,7 @@ ck_manager_finalize (GObject *object)
 }
 
 CkManager *
-ck_manager_new (void)
+ck_manager_new (GDBusConnection *connection)
 {
         if (manager_object != NULL) {
                 g_object_ref (manager_object);
@@ -3489,7 +3402,7 @@ ck_manager_new (void)
                 manager_object = g_object_new (CK_TYPE_MANAGER, NULL);
                 g_object_add_weak_pointer (manager_object,
                                            (gpointer *) &manager_object);
-                res = register_manager (manager_object);
+                res = register_manager (manager_object, connection);
                 if (! res) {
                         g_object_unref (manager_object);
                         return NULL;
@@ -3497,4 +3410,36 @@ ck_manager_new (void)
         }
 
         return CK_MANAGER (manager_object);
+}
+
+static void
+ck_manager_iface_init (ConsoleKitManagerIface *iface)
+{
+        iface->handle_can_hibernate                = dbus_can_hibernate;
+        iface->handle_can_hybrid_sleep             = dbus_can_hybrid_sleep;
+        iface->handle_can_power_off                = dbus_can_power_off;
+        iface->handle_can_reboot                   = dbus_can_reboot;
+        iface->handle_can_restart                  = dbus_can_restart;
+        iface->handle_can_stop                     = dbus_can_stop;
+        iface->handle_can_suspend                  = dbus_can_suspend;
+        iface->handle_hibernate                    = dbus_hibernate;
+        iface->handle_hybrid_sleep                 = dbus_hybrid_sleep;
+        iface->handle_inhibit                      = dbus_inhibit;
+        iface->handle_power_off                    = dbus_power_off;
+        iface->handle_reboot                       = dbus_reboot;
+        iface->handle_restart                      = dbus_restart;
+        iface->handle_stop                         = dbus_stop;
+        iface->handle_suspend                      = dbus_suspend;
+        iface->handle_close_session                = dbus_close_session;
+        iface->handle_get_seats                    = dbus_get_seats;
+        iface->handle_get_sessions                 = dbus_get_sessions;
+        iface->handle_get_sessions_for_unix_user   = dbus_get_sessions_for_unix_user;
+        iface->handle_get_sessions_for_user        = dbus_get_sessions_for_user;
+        iface->handle_get_session_for_cookie       = dbus_get_session_for_cookie;
+        iface->handle_get_session_for_unix_process = dbus_get_session_for_unix_process;
+        iface->handle_get_current_session          = dbus_get_current_session;
+        iface->handle_open_session                 = dbus_open_session;
+        iface->handle_open_session_with_parameters = dbus_open_session_with_parameters;
+        iface->handle_get_system_idle_hint         = dbus_get_system_idle_hint;
+        iface->handle_get_system_idle_since_hint   = dbus_get_system_idle_since_hint;
 }

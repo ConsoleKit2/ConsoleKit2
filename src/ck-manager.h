@@ -23,7 +23,7 @@
 #define __CK_MANAGER_H
 
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
+#include "ck-manager-generated.h"
 
 #include "ck-seat.h"
 
@@ -40,136 +40,37 @@ typedef struct CkManagerPrivate CkManagerPrivate;
 
 typedef struct
 {
-        GObject           parent;
+        ConsoleKitManagerSkeleton  parent;
         CkManagerPrivate *priv;
 } CkManager;
 
 typedef struct
 {
-        GObjectClass   parent_class;
-
-        void          (* seat_added)               (CkManager  *manager,
-                                                    const char *sid);
-        void          (* seat_removed)             (CkManager  *manager,
-                                                    const char *sid);
-        void          (* system_idle_hint_changed) (CkManager  *manager,
-                                                    gboolean    idle_hint);
-        void          (* prepare_for_shutdown)     (CkManager  *manager,
-                                                    gboolean    active);
-        void          (* prepare_for_sleep)        (CkManager  *manager,
-                                                    gboolean    active);
+        ConsoleKitManagerSkeletonClass parent_class;
 } CkManagerClass;
 
 typedef enum
 {
+        CK_MANAGER_ERROR_FAILED,
         CK_MANAGER_ERROR_GENERAL,
-        CK_MANAGER_ERROR_NOT_PRIVILEGED,
+        CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION,
+        CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+        CK_MANAGER_ERROR_NOT_SUPPORTED,
+        CK_MANAGER_ERROR_BUSY,
+        CK_MANAGER_ERROR_INHIBITED,
         CK_MANAGER_NUM_ERRORS
 } CkManagerError;
 
+
 #define CK_MANAGER_ERROR ck_manager_error_quark ()
 
-GType               ck_manager_error_get_type                 (void);
-#define CK_MANAGER_TYPE_ERROR (ck_manager_error_get_type ())
 
 GQuark              ck_manager_error_quark                    (void);
+GType               ck_manager_error_get_type                 (void);
 GType               ck_manager_get_type                       (void);
 
-CkManager         * ck_manager_new                            (void);
+CkManager         * ck_manager_new                            (GDBusConnection *connection);
 
-/* unprivileged methods */
-
-
-/* System actions */
-gboolean            ck_manager_stop                           (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_restart                        (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_power_off                      (CkManager             *manager,
-                                                               gboolean               policykit_interactivity,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_reboot                         (CkManager             *manager,
-                                                               gboolean               policykit_interactivity,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_suspend                        (CkManager             *manager,
-                                                               gboolean               policykit_interactivity,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_hibernate                      (CkManager             *manager,
-                                                               gboolean               policykit_interactivity,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_hybrid_sleep                   (CkManager             *manager,
-                                                               gboolean               policykit_interactivity,
-                                                               DBusGMethodInvocation *context);
-
-
-gboolean            ck_manager_can_stop                       (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_can_restart                    (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_can_power_off                  (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_can_reboot                     (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_can_suspend                    (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_can_hibernate                  (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_can_hybrid_sleep               (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-
-gboolean            ck_manager_inhibit                        (CkManager *manager,
-                                                               gchar *what,
-                                                               gchar *who,
-                                                               gchar *why,
-                                                               DBusGMethodInvocation *context);
-
-/* Authoritative properties */
-gboolean            ck_manager_open_session                   (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_get_sessions                   (CkManager             *manager,
-                                                               GPtrArray            **sessions,
-                                                               GError               **error);
-gboolean            ck_manager_get_seats                      (CkManager             *manager,
-                                                               GPtrArray            **seats,
-                                                               GError               **error);
-gboolean            ck_manager_close_session                  (CkManager             *manager,
-                                                               const char            *cookie,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_get_current_session            (CkManager             *manager,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_get_session_for_cookie         (CkManager             *manager,
-                                                               const char            *cookie,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_get_session_for_unix_process   (CkManager             *manager,
-                                                               guint                  pid,
-                                                               DBusGMethodInvocation *context);
-gboolean            ck_manager_get_sessions_for_unix_user     (CkManager             *manager,
-                                                               guint                  uid,
-                                                               DBusGMethodInvocation *context);
-/* deprecated */
-gboolean            ck_manager_get_sessions_for_user          (CkManager             *manager,
-                                                               guint                  uid,
-                                                               DBusGMethodInvocation *context);
-
-/* Non-authoritative properties */
-gboolean            ck_manager_get_system_idle_hint           (CkManager             *manager,
-                                                               gboolean              *idle_hint,
-                                                               GError               **error);
-gboolean            ck_manager_get_system_idle_since_hint     (CkManager             *manager,
-                                                               char                 **iso8601_datetime,
-                                                               GError               **error);
-
-/* privileged methods - should be protected by D-Bus policy */
-gboolean            ck_manager_open_session_with_parameters   (CkManager             *manager,
-                                                               const GPtrArray       *parameters,
-                                                               DBusGMethodInvocation *context);
 
 G_END_DECLS
 

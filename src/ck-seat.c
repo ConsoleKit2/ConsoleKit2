@@ -124,7 +124,7 @@ ck_seat_error_get_type (void)
           ENUM_ENTRY (CK_SEAT_ERROR_NOT_SUPPORTED,           "NotSupported"),
           { 0, 0, 0 }
         };
-      g_assert (NUM_ERRORS == G_N_ELEMENTS (values) - 1);
+      g_assert (CK_SEAT_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
       etype = g_enum_register_static ("Error", values);
     }
   return etype;
