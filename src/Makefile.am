@@ -187,6 +187,8 @@ noinst_PROGRAMS = 			\
 	test-vt-monitor			\
 	test-inhibit			\
 	test-session			\
+	ck-collect-session-info	\
+	test-session-leader		\
 	$(NULL)
 
 test_event_logger_SOURCES = 		\
@@ -275,6 +277,40 @@ test_session_LDADD =		\
 	libck.la			\
 	$(NULL)
 
+ck_collect_session_info_CFLAGS = \
+	$(AM_CFLAGS)	\
+	$(NULL)
+
+ck_collect_session_info_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	mock-ck-collect-session-info.c		\
+	$(NULL)
+
+ck_collect_session_info_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(NULL)
+
+
+test_session_leader_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-ULIBEXECDIR	\
+	-DLIBEXECDIR=\".\" 			\
+	$(NULL)
+
+test_session_leader_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	ck-job.h		\
+	ck-job.c		\
+	ck-session-leader.c		\
+	ck-session-leader.h		\
+	test-session-leader.c		\
+	$(NULL)
+
+test_session_leader_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	libck.la			\
+	$(NULL)
+
 
 EXTRA_DIST =			\
 	ck-marshal.list		\
@@ -283,6 +319,8 @@ EXTRA_DIST =			\
 	test-open-session	\
 	test-open-session-with-parameters	\
 	test-session	\
+	test-session-leader	\
+	ck-collect-session-info	\
 	$(NULL)
 
 CLEANFILES = $(BUILT_SOURCES)

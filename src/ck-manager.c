@@ -280,7 +280,7 @@ static const GDBusErrorEntry ck_manager_error_entries[] =
 };
 
 GQuark
-ck_session_error_quark (void)
+ck_manager_error_quark (void)
 {
         static volatile gsize quark_volatile = 0;
 
@@ -294,7 +294,7 @@ ck_session_error_quark (void)
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GType
-ck_session_error_get_type (void)
+ck_manager_error_get_type (void)
 {
   static GType etype = 0;
 
