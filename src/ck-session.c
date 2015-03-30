@@ -65,6 +65,11 @@ struct CkSessionPrivate
         GDBusProxy      *bus_proxy;
 };
 
+enum {
+        ACTIVATE,
+        LAST_SIGNAL
+};
+
 /* Private properties not exported over D-BUS */
 enum {
         PROP_0,
@@ -73,6 +78,7 @@ enum {
         PROP_LOGIN_SESSION_ID,
 };
 
+static guint signals [LAST_SIGNAL] = { 0, };
 
 static void     ck_session_class_init  (CkSessionClass         *klass);
 static void     ck_session_init        (CkSession              *session);
@@ -318,6 +324,21 @@ dbus_set_idle_hint (ConsoleKitSession     *cksession,
         return TRUE;
 }
 
+static gboolean
+dbus_get_session_type (ConsoleKitSession     *cksession,
+                       GDBusMethodInvocation *context)
+{
+        const gchar *session_type = console_kit_session_get_session_type (cksession);
+
+        if (session_type == NULL) {
+                /* GDBus/GVariant doesn't like NULL strings */
+                session_type = "";
+        }
+
+        console_kit_session_complete_get_session_type (cksession, context, session_type);
+        return TRUE;
+}
+
 gboolean
 ck_session_set_active (CkSession      *session,
                        gboolean        active,
@@ -332,6 +353,29 @@ ck_session_set_active (CkSession      *session,
         if (console_kit_session_get_active (cksession) != active) {
                 console_kit_session_set_active (cksession, active);
                 console_kit_session_emit_active_changed (cksession, active);
+        }
+
+        return TRUE;
+}
+
+static gboolean
+activate (CkSession             *session,
+          GDBusMethodInvocation *context)
+{
+        gboolean res;
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        res = FALSE;
+        g_signal_emit (session, signals [ACTIVATE], 0, context, &res);
+        if (! res) {
+                /* if the signal is not handled then either:
+                   a) aren't attached to seat
+                   b) seat doesn't support activation changes */
+                g_debug ("Activate signal not handled");
+
+                throw_error (context, CK_SESSION_ERROR_GENERAL, _("Unable to activate session"));
+                return FALSE;
         }
 
         return TRUE;
@@ -361,6 +405,18 @@ ck_session_get_id (CkSession *session,
         return TRUE;
 }
 
+static gboolean
+dbus_get_seat_id (ConsoleKitSession     *cksession,
+                  GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION (cksession);
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_id);
+        return TRUE;
+}
+
 gboolean
 ck_session_get_seat_id (CkSession      *session,
                         char          **id,
@@ -372,6 +428,14 @@ ck_session_get_seat_id (CkSession      *session,
                 *id = g_strdup (session->priv->seat_id);
         }
 
+        return TRUE;
+}
+
+static gboolean
+dbus_get_unix_user (ConsoleKitSession     *cksession,
+                    GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_get_unix_user (cksession, context, console_kit_session_get_unix_user (cksession));
         return TRUE;
 }
 
@@ -387,6 +451,14 @@ ck_session_set_unix_user (CkSession      *session,
         return TRUE;
 }
 
+static gboolean
+dbus_get_x11_display (ConsoleKitSession     *cksession,
+                      GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_get_x11_display (cksession, context, console_kit_session_get_x11_display (cksession));
+        return TRUE;
+}
+
 gboolean
 ck_session_set_x11_display (CkSession      *session,
                             const char     *x11_display,
@@ -396,6 +468,14 @@ ck_session_set_x11_display (CkSession      *session,
 
         console_kit_session_set_x11_display (CONSOLE_KIT_SESSION (session), x11_display);
 
+        return TRUE;
+}
+
+static gboolean
+dbus_get_display_device (ConsoleKitSession     *cksession,
+                             GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_get_x11_display_device (cksession, context, console_kit_session_get_display_device (cksession));
         return TRUE;
 }
 
@@ -412,6 +492,14 @@ ck_session_set_display_device (CkSession      *session,
 
         console_kit_session_set_display_device (cksession, display_device);
 
+        return TRUE;
+}
+
+static gboolean
+dbus_get_x11_display_device (ConsoleKitSession     *cksession,
+                             GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_get_x11_display_device (cksession, context, console_kit_session_get_x11_display_device (cksession));
         return TRUE;
 }
 
@@ -523,6 +611,18 @@ ck_session_set_seat_id (CkSession      *session,
         g_free (session->priv->seat_id);
         session->priv->seat_id = g_strdup (id);
 
+        return TRUE;
+}
+
+static gboolean
+dbus_get_login_session_id (ConsoleKitSession     *cksession,
+                           GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION(cksession);
+
+        g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
+
+        console_kit_session_complete_get_login_session_id (cksession, context, session->priv->login_session_id);
         return TRUE;
 }
 
@@ -689,6 +789,16 @@ ck_session_class_init (CkSessionClass *klass)
         object_class->set_property = ck_session_set_property;
         object_class->finalize = ck_session_finalize;
 
+        signals [ACTIVATE] =
+                g_signal_new ("activate",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkSessionClass, activate),
+                              NULL,
+                              NULL,
+                              ck_marshal_BOOLEAN__POINTER,
+                              G_TYPE_BOOLEAN,
+                              1, G_TYPE_POINTER);
 
         /* Install private properties we're not exporting over D-BUS */
         g_object_class_install_property (object_class,
@@ -728,8 +838,15 @@ ck_session_init (CkSession *session)
 static void
 ck_session_iface_init (ConsoleKitSessionIface *iface)
 {
-        iface->handle_activate      = dbus_activate;
-        iface->handle_set_idle_hint = dbus_set_idle_hint;
+        iface->handle_activate               = dbus_activate;
+        iface->handle_set_idle_hint          = dbus_set_idle_hint;
+        iface->handle_get_unix_user          = dbus_get_unix_user;
+        iface->handle_get_seat_id            = dbus_get_seat_id;
+        iface->handle_get_login_session_id   = dbus_get_login_session_id;
+        iface->handle_get_session_type       = dbus_get_session_type;
+        iface->handle_get_x11_display_device = dbus_get_x11_display_device;
+        iface->handle_get_display_device     = dbus_get_display_device;
+        iface->handle_get_x11_display        = dbus_get_x11_display;
 }
 
 static void
@@ -775,11 +892,6 @@ ck_session_new (const char      *ssid,
 
         return CK_SESSION (object);
 }
-
-#define CK_TYPE_PARAMETER_STRUCT (dbus_g_type_get_struct ("GValueArray", \
-                                                          G_TYPE_STRING,  \
-                                                          G_TYPE_VALUE, \
-                                                          G_TYPE_INVALID))
 
 CkSession *
 ck_session_new_with_parameters (const char      *ssid,
