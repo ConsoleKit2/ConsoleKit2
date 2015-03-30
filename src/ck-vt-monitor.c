@@ -32,9 +32,6 @@
 #include <glib/gstdio.h>
 #include <glib-object.h>
 
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-
 #include "ck-vt-monitor.h"
 #include "ck-sysdeps.h"
 #include "ck-marshal.h"

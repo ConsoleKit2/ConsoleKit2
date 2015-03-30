@@ -201,6 +201,22 @@ ck_seat_get_active_session (CkSeat         *seat,
         return ret;
 }
 
+static gboolean
+dbus_get_active_session (ConsoleKitSeat        *ckseat,
+                         GDBusMethodInvocation *context)
+{
+        CkSeat *seat = CK_SEAT (ckseat);
+        gboolean ret;
+        char    *session_id;
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        ret = ck_seat_get_active_session (seat, &session_id, NULL);
+
+        console_kit_seat_complete_get_active_session (ckseat, context, session_id);
+        return ret;
+}
+
 typedef struct
 {
         gulong                 handler_id;
@@ -695,6 +711,18 @@ ck_seat_can_activate_sessions (CkSeat   *seat,
 }
 
 static gboolean
+dbus_can_activate_sessions (ConsoleKitSeat        *ckseat,
+                            GDBusMethodInvocation *context)
+{
+        CkSeat *seat = CK_SEAT (ckseat);
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        console_kit_seat_complete_can_activate_sessions (ckseat, context, seat->priv->kind == CK_SEAT_KIND_STATIC);
+        return TRUE;
+}
+
+static gboolean
 ck_seat_has_device (CkSeat      *seat,
                     GVariant    *device,
                     gboolean    *result,
@@ -785,6 +813,18 @@ ck_seat_get_id (CkSeat         *seat,
         return TRUE;
 }
 
+static gboolean
+dbus_get_id (ConsoleKitSeat        *ckseat,
+             GDBusMethodInvocation *context)
+{
+        CkSeat *seat = CK_SEAT (ckseat);
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        console_kit_seat_complete_get_id (ckseat, context, seat->priv->id);
+        return TRUE;
+}
+
 static void
 active_vt_changed (CkVtMonitor    *vt_monitor,
                    guint           num,
@@ -805,12 +845,7 @@ ck_seat_register (CkSeat *seat)
         error = NULL;
 
         if (seat->priv->connection == NULL) {
-                seat->priv->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
-
-                if (error != NULL) {
-                        g_critical ("error getting system bus: %s", error->message);
-                        g_error_free (error);
-                }
+                g_critical ("seat->priv->connection == NULL");
                 return FALSE;
         }
 
@@ -857,6 +892,46 @@ ck_seat_get_sessions (CkSeat         *seat,
         return TRUE;
 }
 
+static gboolean
+dbus_get_sessions (ConsoleKitSeat        *ckseat,
+                   GDBusMethodInvocation *context)
+{
+        CkSeat       *seat;
+        const gchar  *sessions[32768];
+        GList        *keys;
+        gint          i;
+
+        g_debug ("entering dbus_get_sessions");
+
+        seat = CK_SEAT (ckseat);
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        keys = g_hash_table_get_keys (seat->priv->sessions);
+
+        i = 0;
+        for (; keys != NULL; keys = g_list_next (keys)) {
+                sessions[i] = keys->data;
+                i++;
+                if (i == 32767) {
+                        g_warning ("excedded max number of sessions");
+                        break;
+                }
+        }
+        sessions[i] = NULL;
+
+        console_kit_seat_complete_get_sessions (ckseat, context, sessions);
+        g_list_free (keys);
+        return TRUE;
+}
+
+static void
+fill_variant (gpointer         data,
+              GVariantBuilder *devices)
+{
+        g_variant_builder_add (devices, "(ss)", (gchar*)data);
+}
+
 static void
 copy_devices (gpointer    data,
               GPtrArray **array)
@@ -886,6 +961,22 @@ ck_seat_get_devices (CkSeat         *seat,
         *devices = g_ptr_array_sized_new (seat->priv->devices->len);
         g_ptr_array_foreach (seat->priv->devices, (GFunc)copy_devices, devices);
 
+        return TRUE;
+}
+
+static gboolean
+dbus_get_devices (ConsoleKitSeat        *ckseat,
+                  GDBusMethodInvocation *context)
+{
+        CkSeat          *seat = CK_SEAT (ckseat);
+        GVariantBuilder  devices;
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        g_variant_builder_init (&devices, G_VARIANT_TYPE ("(@a(ss))"));
+        g_ptr_array_foreach (seat->priv->devices, (GFunc)fill_variant, &devices);
+
+        console_kit_seat_complete_get_devices (ckseat, context, g_variant_builder_end (&devices));
         return TRUE;
 }
 
@@ -923,6 +1014,8 @@ ck_seat_set_property (GObject            *object,
                 break;
         case PROP_CONNECTION:
                 self->priv->connection = g_value_get_pointer (value);
+                if (self->priv->connection == NULL)
+                        g_debug ("PROP_CONNECTION was NULL");
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1081,7 +1174,12 @@ ck_seat_finalize (GObject *object)
 static void
 ck_seat_iface_init (ConsoleKitSeatIface *iface)
 {
-        iface->handle_activate_session = dbus_activate_session;
+        iface->handle_activate_session      = dbus_activate_session;
+        iface->handle_can_activate_sessions = dbus_can_activate_sessions;
+        iface->handle_get_active_session    = dbus_get_active_session;
+        iface->handle_get_devices           = dbus_get_devices;
+        iface->handle_get_id                = dbus_get_id;
+        iface->handle_get_sessions          = dbus_get_sessions;
 }
 
 CkSeat *
