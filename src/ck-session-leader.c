@@ -166,11 +166,11 @@ add_to_parameters (gpointer         key,
 
 /* Allocates and returns a GVariantBuilder holding all the parameters,
  * free with g_variant_builder_unref when done using it */
-static GVariantBuilder *
+static GVariant *
 parse_output (CkSessionLeader *leader,
               const char      *output)
 {
-        GVariantBuilder *ck_parameters;
+        GVariantBuilder ck_parameters;
         char     **lines;
         int        i;
 
@@ -179,7 +179,7 @@ parse_output (CkSessionLeader *leader,
                 return NULL;
         }
 
-        ck_parameters = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
+        g_variant_builder_init (&ck_parameters, G_VARIANT_TYPE ("a{sv}"));
 
         /* first add generated params */
         for (i = 0; lines[i] != NULL; i++) {
@@ -208,7 +208,7 @@ parse_output (CkSessionLeader *leader,
 
                 element = g_variant_new (variant_type, vals[1]);
 
-                g_variant_builder_add (ck_parameters, "{sv}", vals[0], element);
+                g_variant_builder_add (&ck_parameters, "{sv}", vals[0], element);
 
                 g_strfreev (vals);
         }
@@ -217,9 +217,9 @@ parse_output (CkSessionLeader *leader,
         /* now overlay the overrides */
         g_hash_table_foreach (leader->priv->override_parameters,
                               (GHFunc)add_to_parameters,
-                              ck_parameters);
+                              &ck_parameters);
 
-        return ck_parameters;
+        return g_variant_builder_end (&ck_parameters);
 }
 
 static void
@@ -286,8 +286,8 @@ job_completed (CkJob     *job,
 {
         g_debug ("Job status: %d", status);
         if (status == 0) {
-                char             *output;
-                GVariantBuilder  *parameters;
+                char      *output;
+                GVariant  *parameters;
 
                 output = NULL;
                 ck_job_get_stdout (job, &output);

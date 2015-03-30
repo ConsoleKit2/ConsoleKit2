@@ -56,7 +56,7 @@ typedef enum
 #define CK_SESSION_LEADER_ERROR ck_session_leader_error_quark ()
 
 typedef void  (* CkSessionLeaderDoneFunc) (CkSessionLeader       *session_leader,
-                                           GVariantBuilder       *parameters,
+                                           GVariant              *parameters,
                                            GDBusMethodInvocation *context,
                                            gpointer               data);
 

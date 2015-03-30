@@ -980,6 +980,12 @@ get_caller_info (CkManager   *manager,
         GError   *error = NULL;
 
         if (sender == NULL) {
+                g_debug ("sender == NULL");
+                goto out;
+        }
+
+        if (manager->priv->bus_proxy == NULL) {
+                g_debug ("manager->priv->bus_proxy == NULL");
                 goto out;
         }
 
@@ -995,7 +1001,7 @@ get_caller_info (CkManager   *manager,
                 g_error_free (error);
                 goto out;
         }
-        g_variant_get (value, "(u)", &calling_uid);
+        g_variant_get (value, "(u)", calling_uid);
 
         value = g_dbus_proxy_call_sync (manager->priv->bus_proxy, "GetConnectionUnixProcessID",
                                         g_variant_new ("(s)", sender),
@@ -1009,7 +1015,7 @@ get_caller_info (CkManager   *manager,
                 g_error_free (error);
                 goto out;
         }
-        g_variant_get (value, "(u)", &calling_pid);
+        g_variant_get (value, "(u)", calling_pid);
 
         res = TRUE;
 
@@ -2106,7 +2112,7 @@ add_new_seat (CkManager *manager,
         ck_seat_run_programs (seat, NULL, NULL, "seat_added");
 
         g_debug ("Emitting seat-added: %s", sid);
-        g_signal_emit (manager, signals [SEAT_ADDED], 0, sid);
+        console_kit_manager_emit_seat_added (CONSOLE_KIT_MANAGER (manager), sid);
 
         log_seat_added_event (manager, seat);
 
@@ -2149,7 +2155,7 @@ remove_seat (CkManager *manager,
         ck_seat_run_programs (seat, NULL, NULL, "seat_removed");
 
         g_debug ("Emitting seat-removed: %s", sid);
-        g_signal_emit (manager, signals [SEAT_REMOVED], 0, sid);
+        console_kit_manager_emit_seat_removed (CONSOLE_KIT_MANAGER (manager), sid);
 
         log_seat_removed_event (manager, orig_seat);
 
@@ -2239,7 +2245,7 @@ manager_set_system_idle_hint (CkManager *manager,
                 g_get_current_time (&manager->priv->system_idle_since_hint);
 
                 g_debug ("Emitting system-idle-hint-changed: %d", idle_hint);
-                g_signal_emit (manager, signals [SYSTEM_IDLE_HINT_CHANGED], 0, idle_hint);
+                console_kit_manager_emit_system_idle_hint_changed (CONSOLE_KIT_MANAGER (manager), idle_hint);
         }
 
         return TRUE;
@@ -2338,6 +2344,8 @@ open_session_for_leader (CkManager             *manager,
                 return;
         }
 
+/*      FIXME: probably need to use a GDbusObjectManager and monitor
+ *      interface-added/interface-removed signals
         g_bus_watch_name_on_connection (manager->priv->connection,
                                         ssid,
                                         G_BUS_NAME_WATCHER_FLAGS_NONE,
@@ -2345,7 +2353,7 @@ open_session_for_leader (CkManager             *manager,
                                         remove_sessions_for_connection,
                                         manager,
                                         NULL);
-
+*/
         g_hash_table_insert (manager->priv->sessions,
                              g_strdup (ssid),
                              g_object_ref (session));
@@ -2424,7 +2432,7 @@ _verify_login_session_id_is_local (CkManager  *manager,
 static void
 verify_and_open_session_for_leader (CkManager             *manager,
                                     CkSessionLeader       *leader,
-                                    GVariantBuilder       *parameters,
+                                    GVariant              *parameters,
                                     GDBusMethodInvocation *context)
 {
         gboolean is_local = FALSE;
@@ -2451,20 +2459,17 @@ verify_and_open_session_for_leader (CkManager             *manager,
         }
 
         g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
-        g_variant_builder_add (parameters, "{sv}", "is-local", is_local);
+        /* FIXME: we need to rework the setting of is-local */
 
         open_session_for_leader (manager,
                                  leader,
-                                 g_variant_builder_end (parameters),
+                                 parameters,
                                  context);
-
-        /* Done with the builder, release the memory */
-        g_variant_builder_unref (parameters);
 }
 
 static void
 collect_parameters_cb (CkSessionLeader       *leader,
-                       GVariantBuilder       *parameters,
+                       GVariant              *parameters,
                        GDBusMethodInvocation *context,
                        CkManager             *manager)
 {
@@ -2515,6 +2520,7 @@ create_session_for_sender (CkManager             *manager,
                                &uid,
                                &pid);
         if (! res) {
+                g_debug ("Unable to get information about the calling process");
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to get information about the calling process");
                 return FALSE;
         }
@@ -3002,8 +3008,6 @@ register_manager (CkManager *manager, GDBusConnection *connection)
 #ifdef HAVE_POLKIT
         polkit_authority_get_async (NULL, polkit_authority_get_cb, manager);
 #endif
-
-        g_debug ("exporting path %s", CK_MANAGER_DBUS_PATH);
 
         if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_MANAGER (manager)),
                                                manager->priv->connection,
