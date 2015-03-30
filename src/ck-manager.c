@@ -678,13 +678,12 @@ log_seat_active_session_changed_event (CkManager  *manager,
 static void
 log_seat_device_added_event (CkManager   *manager,
                              CkSeat      *seat,
-                             GValueArray *device)
+                             GVariant    *device)
 {
         CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
-        GValue             val_struct = { 0, };
         char              *device_id;
         char              *device_type;
 
@@ -699,12 +698,7 @@ log_seat_device_added_event (CkManager   *manager,
 
         ck_seat_get_id (seat, &sid, NULL);
 
-        g_value_init (&val_struct, CK_TYPE_DEVICE);
-        g_value_set_static_boxed (&val_struct, device);
-        res = dbus_g_type_struct_get (&val_struct,
-                                      0, &device_type,
-                                      1, &device_id,
-                                      G_MAXUINT);
+        g_variant_get (device, "(ss)", &device_type, &device_id);
 
         event.event.seat_device_added.seat_id = (char *)get_object_id_basename (sid);
 
@@ -726,13 +720,12 @@ log_seat_device_added_event (CkManager   *manager,
 static void
 log_seat_device_removed_event (CkManager   *manager,
                                CkSeat      *seat,
-                               GValueArray *device)
+                               GVariant    *device)
 {
         CkLogEvent         event;
         gboolean           res;
         GError            *error;
         char              *sid;
-        GValue             val_struct = { 0, };
         char              *device_id;
         char              *device_type;
 
@@ -747,12 +740,7 @@ log_seat_device_removed_event (CkManager   *manager,
 
         ck_seat_get_id (seat, &sid, NULL);
 
-        g_value_init (&val_struct, CK_TYPE_DEVICE);
-        g_value_set_static_boxed (&val_struct, device);
-        res = dbus_g_type_struct_get (&val_struct,
-                                      0, &device_type,
-                                      1, &device_id,
-                                      G_MAXUINT);
+        g_variant_get (device, "(ss)", &device_type, &device_id);
 
         event.event.seat_device_removed.seat_id = (char *)get_object_id_basename (sid);
 
@@ -2040,7 +2028,7 @@ on_seat_session_removed_full (CkSeat     *seat,
 
 static void
 on_seat_device_added (CkSeat      *seat,
-                      GValueArray *device,
+                      GVariant    *device,
                       CkManager   *manager)
 {
         ck_manager_dump (manager);
@@ -2049,7 +2037,7 @@ on_seat_device_added (CkSeat      *seat,
 
 static void
 on_seat_device_removed (CkSeat      *seat,
-                        GValueArray *device,
+                        GVariant    *device,
                         CkManager   *manager)
 {
         ck_manager_dump (manager);
@@ -2093,7 +2081,7 @@ add_new_seat (CkManager *manager,
 
         sid = generate_seat_id (manager);
 
-        seat = ck_seat_new (sid, kind, NULL);
+        seat = ck_seat_new (sid, kind, manager->priv->connection);
 
         /* First we connect our own signals to the seat, followed by
          * the D-Bus signal hookup to make sure we can first dump the
@@ -2329,7 +2317,7 @@ dbus_get_system_idle_since_hint (ConsoleKitManager     *ckmanager,
 static void
 open_session_for_leader (CkManager             *manager,
                          CkSessionLeader       *leader,
-                         const GPtrArray       *parameters,
+                         const GVariant        *parameters,
                          GDBusMethodInvocation *context)
 {
         CkSession   *session;
@@ -2343,7 +2331,7 @@ open_session_for_leader (CkManager             *manager,
         session = ck_session_new_with_parameters (ssid,
                                                   cookie,
                                                   parameters,
-                                                  NULL);
+                                                  manager->priv->connection);
 
         if (session == NULL) {
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to create new session");
@@ -2394,76 +2382,6 @@ enum {
                                                           G_TYPE_VALUE, \
                                                           G_TYPE_INVALID))
 
-static gboolean
-_get_parameter (GPtrArray  *parameters,
-                const char *name,
-                int         prop_type,
-                gpointer   *value)
-{
-        gboolean ret;
-        int      i;
-
-        if (parameters == NULL) {
-                return FALSE;
-        }
-
-        ret = FALSE;
-
-        for (i = 0; i < parameters->len && ret == FALSE; i++) {
-                gboolean    res;
-                GValue      val_struct = { 0, };
-                char       *prop_name;
-                GValue     *prop_val;
-
-                g_value_init (&val_struct, CK_TYPE_PARAMETER_STRUCT);
-                g_value_set_static_boxed (&val_struct, g_ptr_array_index (parameters, i));
-
-                res = dbus_g_type_struct_get (&val_struct,
-                                              0, &prop_name,
-                                              1, &prop_val,
-                                              G_MAXUINT);
-                if (! res) {
-                        g_debug ("Unable to extract parameter input");
-                        goto cont;
-                }
-
-                if (prop_name == NULL) {
-                        g_debug ("Skipping NULL parameter");
-                        goto cont;
-                }
-
-                if (strcmp (prop_name, name) != 0) {
-                        goto cont;
-                }
-
-                switch (prop_type) {
-                case PROP_STRING:
-                        if (value != NULL) {
-                                *value = g_value_dup_string (prop_val);
-                        }
-                        break;
-                case PROP_BOOLEAN:
-                        if (value != NULL) {
-                                *(gboolean *)value = g_value_get_boolean (prop_val);
-                        }
-                        break;
-                default:
-                        g_assert_not_reached ();
-                        break;
-                }
-
-                ret = TRUE;
-
-        cont:
-                g_free (prop_name);
-                if (prop_val != NULL) {
-                        g_value_unset (prop_val);
-                        g_free (prop_val);
-                }
-        }
-
-        return ret;
-}
 
 static gboolean
 _verify_login_session_id_is_local (CkManager  *manager,
@@ -2504,64 +2422,49 @@ _verify_login_session_id_is_local (CkManager  *manager,
 }
 
 static void
-add_param_boolean (GPtrArray  *parameters,
-                   const char *key,
-                   gboolean    value)
-{
-        GValue   val = { 0, };
-        GValue   param_val = { 0, };
-
-        g_value_init (&val, G_TYPE_BOOLEAN);
-        g_value_set_boolean (&val, value);
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
-}
-
-static void
 verify_and_open_session_for_leader (CkManager             *manager,
                                     CkSessionLeader       *leader,
-                                    GPtrArray             *parameters,
+                                    GVariantBuilder       *parameters,
                                     GDBusMethodInvocation *context)
 {
+        gboolean is_local = FALSE;
+        GVariantIter     *iter;
+        gchar            *prop_name;
+        GVariant         *value;
+
         /* Only allow a local session if originating from an existing
            local session.  Effectively this means that only trusted
            parties can create local sessions. */
 
         g_debug ("CkManager: verifying session for leader");
 
-        if (parameters != NULL && ! _get_parameter (parameters, "is-local", PROP_BOOLEAN, NULL)) {
-                gboolean is_local;
-                char    *login_session_id;
-
-                g_debug ("CkManager: is-local has not been set, will inherit from existing login-session-id if available");
-
-                is_local = FALSE;
-
-                if (_get_parameter (parameters, "login-session-id", PROP_STRING, (gpointer *) &login_session_id)) {
-                        is_local = _verify_login_session_id_is_local (manager, login_session_id);
-                        g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
+        g_variant_get ((GVariant *)parameters, "a{sv}", &iter);
+        while (!is_local && g_variant_iter_next (iter, "{sv}", &prop_name, &value)) {
+                if (g_strcmp0 (prop_name, "is-local") == 0) {
+                        is_local = TRUE;
                 }
-
-                add_param_boolean (parameters, "is-local", is_local);
+                if (g_strcmp0 (prop_name, "login-session-id") == 0) {
+                        is_local = _verify_login_session_id_is_local (manager, g_variant_get_string (value, 0));
+                }
+                g_free (prop_name);
+                g_variant_unref (value);
         }
+
+        g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
+        g_variant_builder_add (parameters, "{sv}", "is-local", is_local);
 
         open_session_for_leader (manager,
                                  leader,
-                                 parameters,
+                                 g_variant_builder_end (parameters),
                                  context);
+
+        /* Done with the builder, release the memory */
+        g_variant_builder_unref (parameters);
 }
 
 static void
 collect_parameters_cb (CkSessionLeader       *leader,
-                       GPtrArray             *parameters,
+                       GVariantBuilder       *parameters,
                        GDBusMethodInvocation *context,
                        CkManager             *manager)
 {
@@ -3100,7 +3003,7 @@ register_manager (CkManager *manager, GDBusConnection *connection)
         polkit_authority_get_async (NULL, polkit_authority_get_cb, manager);
 #endif
 
-        g_debug ("exporting path %s", DBUS_PATH_DBUS);
+        g_debug ("exporting path %s", CK_MANAGER_DBUS_PATH);
 
         if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_MANAGER (manager)),
                                                manager->priv->connection,
@@ -3257,7 +3160,7 @@ add_seat_for_file (CkManager  *manager,
 
         sid = generate_seat_id (manager);
 
-        seat = ck_seat_new_from_file (sid, filename, NULL);
+        seat = ck_seat_new_from_file (sid, filename, manager->priv->connection);
 
         if (seat == NULL) {
                 return;

@@ -23,7 +23,6 @@
 #define __CK_RUN_PROGRAMS_H
 
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
 #include "ck-session.h"
 
 G_BEGIN_DECLS

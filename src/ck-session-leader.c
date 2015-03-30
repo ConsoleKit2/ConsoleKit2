@@ -164,11 +164,13 @@ add_to_parameters (gpointer         key,
         g_variant_builder_add (ck_parameters, "{sv}", key, (GVariant*) data);
 }
 
-static GVariant *
+/* Allocates and returns a GVariantBuilder holding all the parameters,
+ * free with g_variant_builder_unref when done using it */
+static GVariantBuilder *
 parse_output (CkSessionLeader *leader,
               const char      *output)
 {
-        GVariantBuilder ck_parameters;
+        GVariantBuilder *ck_parameters;
         char     **lines;
         int        i;
 
@@ -177,7 +179,7 @@ parse_output (CkSessionLeader *leader,
                 return NULL;
         }
 
-        g_variant_builder_init (&ck_parameters, G_VARIANT_TYPE ("a{sv}"));
+        ck_parameters = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
 
         /* first add generated params */
         for (i = 0; lines[i] != NULL; i++) {
@@ -206,7 +208,7 @@ parse_output (CkSessionLeader *leader,
 
                 element = g_variant_new (variant_type, vals[1]);
 
-                g_variant_builder_add (&ck_parameters, "{sv}", vals[0], element);
+                g_variant_builder_add (ck_parameters, "{sv}", vals[0], element);
 
                 g_strfreev (vals);
         }
@@ -215,27 +217,9 @@ parse_output (CkSessionLeader *leader,
         /* now overlay the overrides */
         g_hash_table_foreach (leader->priv->override_parameters,
                               (GHFunc)add_to_parameters,
-                              &ck_parameters);
+                              ck_parameters);
 
-        return g_variant_builder_end (&ck_parameters);
-}
-
-static void
-parameters_free (GVariant  *parameters)
-{
-        GVariantIter     *iter;
-        gchar            *key;
-        GVariant         *value;
-
-        g_variant_get (parameters, "a{sv}", &iter);
-
-        while (g_variant_iter_next (iter, "{sv}", &key, &value)) {
-                g_variant_unref (value);
-                g_free (key);
-        }
-        g_variant_iter_free (iter);
-
-        g_variant_unref (parameters);
+        return ck_parameters;
 }
 
 static void
@@ -257,7 +241,7 @@ save_parameters (CkSessionLeader *leader,
 
                         if (prop_name == NULL) {
                                 g_debug ("Skipping NULL parameter");
-                                g_free (prop_name);
+                                g_variant_unref (value);
                                 continue;
                         }
 
@@ -265,6 +249,7 @@ save_parameters (CkSessionLeader *leader,
                             || strcmp (prop_name, "cookie") == 0) {
                                 g_debug ("Skipping restricted parameter: %s", prop_name);
                                 g_free (prop_name);
+                                g_variant_unref (value);
                                 continue;
                         }
 
@@ -272,6 +257,7 @@ save_parameters (CkSessionLeader *leader,
                         if (gtype == G_TYPE_INVALID) {
                                 g_debug ("Unable to extract parameter input");
                                 g_free (prop_name);
+                                g_variant_unref (value);
                                 continue;
                         }
 
@@ -300,8 +286,8 @@ job_completed (CkJob     *job,
 {
         g_debug ("Job status: %d", status);
         if (status == 0) {
-                char      *output;
-                GVariant  *parameters;
+                char             *output;
+                GVariantBuilder  *parameters;
 
                 output = NULL;
                 ck_job_get_stdout (job, &output);
@@ -314,7 +300,6 @@ job_completed (CkJob     *job,
                                parameters,
                                data->context,
                                data->user_data);
-                parameters_free (parameters);
         } else {
                 data->done_cb (data->leader,
                                NULL,

@@ -22,7 +22,6 @@
 #define __CK_SEAT_H
 
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
 
 #include "ck-session.h"
 #include "ck-seat-generated.h"
@@ -49,6 +48,7 @@ typedef struct
         ConsoleKitSessionSkeletonClass parent_class;
 } CkSeatClass;
 
+
 typedef enum
 {
         CK_SEAT_KIND_STATIC,
@@ -70,10 +70,6 @@ typedef enum
 #define CK_SEAT_ERROR ck_seat_error_quark ()
 
 
-#define CK_TYPE_DEVICE (dbus_g_type_get_struct ("GValueArray", \
-                                                G_TYPE_STRING,          \
-                                                G_TYPE_STRING,          \
-                                                G_TYPE_INVALID))
 
 GQuark              ck_seat_error_quark         (void);
 GType               ck_seat_error_get_type      (void);
@@ -83,10 +79,6 @@ CkSeat            * ck_seat_new                 (const char            *sid,
                                                  GDBusConnection       *connection);
 CkSeat            * ck_seat_new_from_file       (const char            *sid,
                                                  const char            *path,
-                                                 GDBusConnection       *connection);
-CkSeat            * ck_seat_new_with_devices    (const char            *sid,
-                                                 CkSeatKind             kind,
-                                                 GPtrArray             *devices,
                                                  GDBusConnection       *connection);
 
 gboolean            ck_seat_register            (CkSeat                *seat);
@@ -107,9 +99,6 @@ gboolean            ck_seat_add_session         (CkSeat                *seat,
                                                  GError               **error);
 gboolean            ck_seat_remove_session      (CkSeat                *seat,
                                                  CkSession             *session,
-                                                 GError               **error);
-gboolean            ck_seat_add_device          (CkSeat                *seat,
-                                                 GValueArray           *device,
                                                  GError               **error);
 gboolean            ck_seat_remove_device       (CkSeat                *seat,
                                                  GValueArray           *device,

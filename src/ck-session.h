@@ -68,7 +68,7 @@ CkSession         * ck_session_new                    (const char            *ss
                                                        GDBusConnection       *connection);
 CkSession         * ck_session_new_with_parameters    (const char            *ssid,
                                                        const char            *cookie,
-                                                       const GPtrArray       *parameters,
+                                                       const GVariant        *parameters,
                                                        GDBusConnection       *connection);
 
 void                ck_session_dump                   (CkSession             *session,

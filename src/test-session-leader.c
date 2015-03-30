@@ -42,12 +42,13 @@ CkSessionLeader *leader = NULL;
 
 static void
 collect_parameters_cb (CkSessionLeader       *leader,
-                       GVariant              *parameters,
+                       GVariantBuilder       *parameters,
                        GDBusMethodInvocation *context,
                        GMainLoop             *loop)
 {
-        g_debug ("[collect_parameters_cb] Parameters: %s", g_variant_print (parameters, TRUE));
+        g_debug ("[collect_parameters_cb] Parameters: %s", g_variant_print (g_variant_builder_end (parameters), TRUE));
         g_main_loop_quit (loop);
+        g_variant_builder_unref (parameters);
 }
 
 static void

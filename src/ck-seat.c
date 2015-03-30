@@ -30,9 +30,6 @@
 #include <glib/gi18n.h>
 #include <glib-object.h>
 
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-
 #include "ck-sysdeps.h"
 
 #include "ck-seat.h"
@@ -699,22 +696,32 @@ ck_seat_can_activate_sessions (CkSeat   *seat,
 
 static gboolean
 ck_seat_has_device (CkSeat      *seat,
-                    GValueArray *device,
+                    GVariant    *device,
                     gboolean    *result,
                     GError      *error)
 {
+        int i;
+
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        *result = FALSE;
+
+        for (i = 0; i < seat->priv->devices->len; i++) {
+                if (g_variant_equal (g_ptr_array_index (seat->priv->devices, i), device)) {
+                        *result = TRUE;
+                        return TRUE;
+                }
+        }
 
         return TRUE;
 }
 
-gboolean
+static gboolean
 ck_seat_add_device (CkSeat         *seat,
-                    GValueArray    *device,
+                    GVariant       *device,
                     GError        **error)
 {
         gboolean  present;
-        GVariant *variant;
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
@@ -726,16 +733,10 @@ ck_seat_add_device (CkSeat         *seat,
                 return FALSE;
         }
 
-        g_ptr_array_add (seat->priv->devices, g_boxed_copy (CK_TYPE_DEVICE, device));
-
-        /* Convert the GValueArray to a GVariant until we switch to just
-         * usng GVariants */
-        variant = g_variant_new ("ss",
-                                 g_value_get_string (g_value_array_get_nth (device, 0)),
-                                 g_value_get_string (g_value_array_get_nth (device, 1)));
+        g_ptr_array_add (seat->priv->devices, device);
 
         g_debug ("Emitting device added signal");
-        console_kit_seat_emit_device_added (CONSOLE_KIT_SEAT (seat), variant);
+        console_kit_seat_emit_device_added (CONSOLE_KIT_SEAT (seat), device);
 
         return TRUE;
 }
@@ -1099,7 +1100,7 @@ ck_seat_new (const char      *sid,
         return CK_SEAT (object);
 }
 
-CkSeat *
+static CkSeat *
 ck_seat_new_with_devices (const char            *sid,
                           CkSeatKind             kind,
                           GPtrArray             *devices,
@@ -1173,7 +1174,7 @@ ck_seat_new_from_file (const char      *sid,
 
         for (i = 0; i < ndevices; i++) {
                 char **split;
-                GValue device_val = { 0, };
+                GVariant *device_var;
 
                 split = g_strsplit (device_list[i], ":", 2);
 
@@ -1183,15 +1184,9 @@ ck_seat_new_from_file (const char      *sid,
 
                 g_debug ("Adding device: %s %s", split[0], split[1]);
 
-                g_value_init (&device_val, CK_TYPE_DEVICE);
-                g_value_take_boxed (&device_val,
-                                    dbus_g_type_specialized_construct (CK_TYPE_DEVICE));
-                dbus_g_type_struct_set (&device_val,
-                                        0, split[0],
-                                        1, split[1],
-                                        G_MAXUINT);
+                device_var = g_variant_new ("(ss)", split[0], split[1]);
 
-                g_ptr_array_add (devices, g_value_get_boxed (&device_val));
+                g_ptr_array_add (devices, device_var);
 
                 g_strfreev (split);
         }

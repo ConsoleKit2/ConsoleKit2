@@ -784,24 +784,28 @@ ck_session_new (const char      *ssid,
 CkSession *
 ck_session_new_with_parameters (const char      *ssid,
                                 const char      *cookie,
-                                const GPtrArray *parameters,
+                                const GVariant  *parameters,
                                 GDBusConnection *connection)
 {
         GObject      *object;
         gboolean      res;
-        int           i;
         GParameter   *params;
         guint         n_allocated_params;
         guint         n_params;
         GObjectClass *class;
         GType         object_type;
+        GVariantIter *iter;
+        gchar        *prop_name;
+        GVariant     *value;
 
         object_type = CK_TYPE_SESSION;
         class = g_type_class_ref (object_type);
 
+        g_variant_get ((GVariant *)parameters, "a{sv}", &iter);
+
         n_allocated_params = 2;
         if (parameters != NULL) {
-                n_allocated_params += parameters->len;
+                n_allocated_params += g_variant_iter_n_children (iter);
         }
 
         params = g_new0 (GParameter, n_allocated_params);
@@ -820,63 +824,45 @@ ck_session_new_with_parameters (const char      *ssid,
         n_params++;
 
         if (parameters != NULL) {
-                for (i = 0; i < parameters->len; i++) {
+                while (g_variant_iter_next (iter, "{sv}", &prop_name, &value)) {
                         gboolean    res;
                         GValue      val_struct = { 0, };
-                        char       *prop_name;
-                        GValue     *prop_val;
                         GParamSpec *pspec;
 
-                        g_value_init (&val_struct, CK_TYPE_PARAMETER_STRUCT);
-                        g_value_set_static_boxed (&val_struct, g_ptr_array_index (parameters, i));
-
-                        res = dbus_g_type_struct_get (&val_struct,
-                                                      0, &prop_name,
-                                                      1, &prop_val,
-                                                      G_MAXUINT);
-                        if (! res) {
-                                g_debug ("Unable to extract parameter input");
-                                goto cont;
-                        }
 
                         if (prop_name == NULL) {
                                 g_debug ("Skipping NULL parameter");
-                                goto cont;
+                                continue;
                         }
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {
                                 g_debug ("Skipping restricted parameter: %s", prop_name);
-                                goto cont;
+                                continue;
                         }
 
                         pspec = g_object_class_find_property (class, prop_name);
                         if (! pspec) {
                                 g_debug ("Skipping unknown parameter: %s", prop_name);
-                                goto cont;
+                                continue;
                         }
 
                         if (!(pspec->flags & G_PARAM_WRITABLE)) {
                                 g_debug ("property '%s' is not writable", pspec->name);
-                                goto cont;
+                                continue;
                         }
 
                         params[n_params].name = g_strdup (prop_name);
                         params[n_params].value.g_type = 0;
                         g_value_init (&params[n_params].value, G_PARAM_SPEC_VALUE_TYPE (pspec));
-                        res = g_value_transform (prop_val, &params[n_params].value);
+                        g_dbus_gvariant_to_gvalue (value, &val_struct);
+                        res = g_value_transform (&val_struct, &params[n_params].value);
                         if (! res) {
                                 g_debug ("unable to transform property value for '%s'", pspec->name);
-                                goto cont;
+                                continue;
                         }
 
                         n_params++;
-                cont:
-                        g_free (prop_name);
-                        if (prop_val != NULL) {
-                                g_value_unset (prop_val);
-                                g_free (prop_val);
-                        }
                 }
         }
 
