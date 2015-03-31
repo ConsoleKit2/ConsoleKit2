@@ -44,10 +44,6 @@ typedef struct
 
 typedef struct
 {
-        /* internal signals */
-        void          (* activate)          (CkSession             *session,
-                                             GDBusMethodInvocation *context);
-
         ConsoleKitSessionSkeletonClass parent_class;
 } CkSessionClass;
 

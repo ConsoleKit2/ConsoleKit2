@@ -65,11 +65,6 @@ struct CkSessionPrivate
         GDBusProxy      *bus_proxy;
 };
 
-enum {
-        ACTIVATE,
-        LAST_SIGNAL
-};
-
 /* Private properties not exported over D-BUS */
 enum {
         PROP_0,
@@ -77,8 +72,6 @@ enum {
         PROP_COOKIE,
         PROP_LOGIN_SESSION_ID,
 };
-
-static guint signals [LAST_SIGNAL] = { 0, };
 
 static void     ck_session_class_init  (CkSessionClass         *klass);
 static void     ck_session_init        (CkSession              *session);
@@ -277,6 +270,23 @@ session_set_idle_hint_internal (CkSession      *session,
         return TRUE;
 }
 
+static gboolean
+dbus_get_idle_since_hint (ConsoleKitSession     *cksession,
+                          GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION(cksession);
+        char *date_str;
+
+        g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
+
+        date_str = g_time_val_to_iso8601 (&session->priv->idle_since_hint);
+
+        console_kit_session_complete_get_idle_since_hint (cksession, context, date_str);
+
+        g_free (date_str);
+        return TRUE;
+}
+
 /*
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
@@ -359,25 +369,10 @@ ck_session_set_active (CkSession      *session,
 }
 
 static gboolean
-activate (CkSession             *session,
-          GDBusMethodInvocation *context)
+dbus_is_active (ConsoleKitSession     *cksession,
+                GDBusMethodInvocation *context)
 {
-        gboolean res;
-
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        res = FALSE;
-        g_signal_emit (session, signals [ACTIVATE], 0, context, &res);
-        if (! res) {
-                /* if the signal is not handled then either:
-                   a) aren't attached to seat
-                   b) seat doesn't support activation changes */
-                g_debug ("Activate signal not handled");
-
-                throw_error (context, CK_SESSION_ERROR_GENERAL, _("Unable to activate session"));
-                return FALSE;
-        }
-
+        console_kit_session_complete_is_active (cksession, context, console_kit_session_get_active (cksession));
         return TRUE;
 }
 
@@ -385,7 +380,8 @@ static gboolean
 dbus_activate (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
-        ck_session_set_active (CK_SESSION (cksession), TRUE, NULL);
+        console_kit_session_set_active (cksession, TRUE);
+        console_kit_session_emit_active_changed (cksession, TRUE);
 
         console_kit_session_complete_activate (cksession, context);
         return TRUE;
@@ -519,6 +515,20 @@ ck_session_set_x11_display_device (CkSession      *session,
         return TRUE;
 }
 
+static gboolean
+dbus_get_remote_host_name (ConsoleKitSession     *cksession,
+                           GDBusMethodInvocation *context)
+{
+        const gchar *remote_host_name = console_kit_session_get_remote_host_name (cksession);
+
+        if (remote_host_name == NULL) {
+                remote_host_name = "";
+        }
+
+        console_kit_session_complete_get_remote_host_name (cksession, context, remote_host_name);
+        return TRUE;
+}
+
 gboolean
 ck_session_set_remote_host_name (CkSession      *session,
                                  const char     *remote_host_name,
@@ -535,6 +545,17 @@ ck_session_set_remote_host_name (CkSession      *session,
         return TRUE;
 }
 
+static gboolean
+dbus_get_creation_time (ConsoleKitSession     *cksession,
+                        GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION(cksession);
+        g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
+
+        console_kit_session_complete_get_creation_time (cksession, context, g_time_val_to_iso8601 (&session->priv->creation_time));
+         return TRUE;
+}
+
 gboolean
 ck_session_get_creation_time (CkSession      *session,
                               char          **iso8601_datetime,
@@ -546,6 +567,14 @@ ck_session_get_creation_time (CkSession      *session,
                 *iso8601_datetime = g_time_val_to_iso8601 (&session->priv->creation_time);
         }
 
+        return TRUE;
+}
+
+static gboolean
+dbus_is_local (ConsoleKitSession     *cksession,
+               GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_is_local (cksession, context, console_kit_session_get_is_local (cksession));
         return TRUE;
 }
 
@@ -789,17 +818,6 @@ ck_session_class_init (CkSessionClass *klass)
         object_class->set_property = ck_session_set_property;
         object_class->finalize = ck_session_finalize;
 
-        signals [ACTIVATE] =
-                g_signal_new ("activate",
-                              G_TYPE_FROM_CLASS (object_class),
-                              G_SIGNAL_RUN_LAST,
-                              G_STRUCT_OFFSET (CkSessionClass, activate),
-                              NULL,
-                              NULL,
-                              ck_marshal_BOOLEAN__POINTER,
-                              G_TYPE_BOOLEAN,
-                              1, G_TYPE_POINTER);
-
         /* Install private properties we're not exporting over D-BUS */
         g_object_class_install_property (object_class,
                                          PROP_ID,
@@ -847,6 +865,11 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_x11_display_device = dbus_get_x11_display_device;
         iface->handle_get_display_device     = dbus_get_display_device;
         iface->handle_get_x11_display        = dbus_get_x11_display;
+        iface->handle_is_active              = dbus_is_active;
+        iface->handle_get_creation_time      = dbus_get_creation_time;
+        iface->handle_get_remote_host_name   = dbus_get_remote_host_name;
+        iface->handle_get_idle_since_hint    = dbus_get_idle_since_hint;
+        iface->handle_is_local               = dbus_is_local;
 }
 
 static void
