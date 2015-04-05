@@ -43,6 +43,10 @@
 
 #define CK_DBUS_NAME "org.freedesktop.ConsoleKit"
 
+
+static GMainLoop *loop = NULL;
+
+
 static gboolean
 timed_exit_cb (GMainLoop *loop)
 {
@@ -83,7 +87,7 @@ name_lost (GDBusConnection *connection,
 
         /* Release the  object */
         g_debug ("Disconnected from D-Bus");
-        exit (0);
+        g_main_loop_quit (loop);
 }
 
 static void
@@ -279,11 +283,11 @@ int
 main (int    argc,
       char **argv)
 {
-        GMainLoop       *loop;
         GOptionContext  *context;
         GError          *error;
         int              ret;
         gboolean         res;
+        guint            id;
         static gboolean     debug            = FALSE;
         static gboolean     no_daemon        = FALSE;
         static gboolean     do_timed_exit    = FALSE;
@@ -351,11 +355,11 @@ main (int    argc,
 
         g_debug ("initializing console-kit-daemon %s", VERSION);
 
-        g_bus_own_name (G_BUS_TYPE_SYSTEM,
-                        CK_DBUS_NAME,
-                        G_BUS_NAME_OWNER_FLAGS_NONE,
-                        bus_acquired, name_acquired, name_lost,
-                        NULL, NULL);
+        id = g_bus_own_name (G_BUS_TYPE_SYSTEM,
+                             CK_DBUS_NAME,
+                             G_BUS_NAME_OWNER_FLAGS_NONE,
+                             bus_acquired, name_acquired, name_lost,
+                             NULL, NULL);
 
         delete_console_tags ();
         delete_inhibit_files ();
@@ -369,6 +373,8 @@ main (int    argc,
         }
 
         g_main_loop_run (loop);
+
+        g_bus_unown_name (id);
 
         g_main_loop_unref (loop);
 
