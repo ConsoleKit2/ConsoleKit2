@@ -65,6 +65,11 @@ struct CkSessionPrivate
         GDBusProxy      *bus_proxy;
 };
 
+enum {
+        ACTIVATE,
+        LAST_SIGNAL
+};
+
 /* Private properties not exported over D-BUS */
 enum {
         PROP_0,
@@ -72,6 +77,8 @@ enum {
         PROP_COOKIE,
         PROP_LOGIN_SESSION_ID,
 };
+
+static guint signals [LAST_SIGNAL] = { 0, };
 
 static void     ck_session_class_init  (CkSessionClass         *klass);
 static void     ck_session_init        (CkSession              *session);
@@ -380,8 +387,22 @@ static gboolean
 dbus_activate (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
-        console_kit_session_set_active (cksession, TRUE);
-        console_kit_session_emit_active_changed (cksession, TRUE);
+        gboolean res;
+        CkSession *session = CK_SESSION (cksession);
+
+        g_return_val_if_fail (session, FALSE);
+
+        res = FALSE;
+        g_signal_emit (session, signals [ACTIVATE], 0, context, &res);
+        if (! res) {
+                /* if the signal is not handled then either:
+                   a) aren't attached to seat
+                   b) seat doesn't support activation changes */
+                g_debug ("Activate signal not handled");
+
+                throw_error (context, CK_SESSION_ERROR_GENERAL, _("Unable to activate session"));
+                return FALSE;
+        }
 
         console_kit_session_complete_activate (cksession, context);
         return TRUE;
@@ -817,6 +838,17 @@ ck_session_class_init (CkSessionClass *klass)
         object_class->get_property = ck_session_get_property;
         object_class->set_property = ck_session_set_property;
         object_class->finalize = ck_session_finalize;
+
+        signals [ACTIVATE] =
+                g_signal_new ("activate",
+                              G_TYPE_FROM_CLASS (object_class),
+                              G_SIGNAL_RUN_LAST,
+                              G_STRUCT_OFFSET (CkSessionClass, activate),
+                              NULL,
+                              NULL,
+                              ck_marshal_BOOLEAN__POINTER,
+                              G_TYPE_BOOLEAN,
+                              1, G_TYPE_POINTER);
 
         /* Install private properties we're not exporting over D-BUS */
         g_object_class_install_property (object_class,
