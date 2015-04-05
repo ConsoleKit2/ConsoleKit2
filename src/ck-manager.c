@@ -2312,12 +2312,14 @@ dbus_get_system_idle_since_hint (ConsoleKitManager     *ckmanager,
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        date_str = NULL;
         if (manager->priv->system_idle_hint) {
                 date_str = g_time_val_to_iso8601 (&manager->priv->system_idle_since_hint);
+        } else {
+                date_str = g_strdup ("");
         }
 
         console_kit_manager_complete_get_system_idle_since_hint (ckmanager, context, date_str);
+        g_free (date_str);
         return TRUE;
 }
 
@@ -3137,7 +3139,7 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
                 sessions[1] = NULL;
         }
 
-        console_kit_manager_complete_get_seats (ckmanager, context, sessions);
+        console_kit_manager_complete_get_sessions (ckmanager, context, sessions);
         g_free (sessions);
         return TRUE;
 }

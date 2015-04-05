@@ -206,6 +206,41 @@ register_session (CkSession *session, GDBusConnection *connection)
         return TRUE;
 }
 
+/*
+  lock and unlock are separate functions because:
+   1. we don't maintain state for locked
+   2. so security policy can be handled separately
+*/
+static gboolean
+dbus_lock (ConsoleKitSession     *cksession,
+           GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION (cksession);
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        g_debug ("Emitting lock for session %s", session->priv->id);
+        console_kit_session_emit_lock (cksession);
+
+        console_kit_session_complete_lock (cksession, context);
+        return TRUE;
+}
+
+static gboolean
+dbus_unlock (ConsoleKitSession     *cksession,
+             GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION (cksession);
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        g_debug ("Emitting unlock for session %s", session->priv->id);
+        console_kit_session_emit_unlock (cksession);
+
+        console_kit_session_complete_unlock (cksession, context);
+        return TRUE;
+}
+
 /* adapted from PolicyKit */
 static gboolean
 get_caller_info (CkSession   *session,
@@ -408,6 +443,18 @@ dbus_activate (ConsoleKitSession     *cksession,
         return TRUE;
 }
 
+static gboolean
+dbus_get_id (ConsoleKitSession     *cksession,
+             GDBusMethodInvocation *context)
+{
+        CkSession *session = CK_SESSION (cksession);
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        console_kit_session_complete_get_id (cksession, context, session->priv->id);
+        return TRUE;
+}
+
 gboolean
 ck_session_get_id (CkSession *session,
                    char **id,
@@ -445,6 +492,14 @@ ck_session_get_seat_id (CkSession      *session,
                 *id = g_strdup (session->priv->seat_id);
         }
 
+        return TRUE;
+}
+
+static gboolean
+dbus_get_user (ConsoleKitSession     *cksession,
+               GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_get_unix_user (cksession, context, console_kit_session_get_unix_user (cksession));
         return TRUE;
 }
 
@@ -902,6 +957,10 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_remote_host_name   = dbus_get_remote_host_name;
         iface->handle_get_idle_since_hint    = dbus_get_idle_since_hint;
         iface->handle_is_local               = dbus_is_local;
+        iface->handle_get_id                 = dbus_get_id;
+        iface->handle_get_user               = dbus_get_user;
+        iface->handle_lock                   = dbus_lock;
+        iface->handle_unlock                 = dbus_unlock;
 }
 
 static void

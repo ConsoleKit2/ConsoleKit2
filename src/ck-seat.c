@@ -88,7 +88,8 @@ static const GDBusErrorEntry ck_seat_error_entries[] =
         { CK_SEAT_ERROR_GENERAL,                 CK_SEAT_DBUS_NAME ".Error.General" },
         { CK_SEAT_ERROR_FAILED,                  CK_SEAT_DBUS_NAME ".Error.Failed" },
         { CK_SEAT_ERROR_INSUFFICIENT_PERMISSION, CK_SEAT_DBUS_NAME ".Error.InsufficientPermission" },
-        { CK_SEAT_ERROR_NOT_SUPPORTED,           CK_SEAT_DBUS_NAME ".Error.NotSupported" }
+        { CK_SEAT_ERROR_NOT_SUPPORTED,           CK_SEAT_DBUS_NAME ".Error.NotSupported" },
+        { CK_SEAT_ERROR_NO_ACTIVE_SESSION,       CK_SEAT_DBUS_NAME ".Error.NoActiveSession" },
 };
 
 GQuark
@@ -119,6 +120,7 @@ ck_seat_error_get_type (void)
           ENUM_ENTRY (CK_SEAT_ERROR_GENERAL,                 "General"),
           ENUM_ENTRY (CK_SEAT_ERROR_INSUFFICIENT_PERMISSION, "InsufficientPermission"),
           ENUM_ENTRY (CK_SEAT_ERROR_NOT_SUPPORTED,           "NotSupported"),
+          ENUM_ENTRY (CK_SEAT_ERROR_NO_ACTIVE_SESSION,       "NoActiveSession"),
           { 0, 0, 0 }
         };
       g_assert (CK_SEAT_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -189,7 +191,7 @@ ck_seat_get_active_session (CkSeat         *seat,
         if (! ret) {
                 g_set_error (error,
                              CK_SEAT_ERROR,
-                             CK_SEAT_ERROR_GENERAL,
+                             CK_SEAT_ERROR_NO_ACTIVE_SESSION,
                              "%s", "Seat has no active session");
         } else {
                 if (ssid != NULL) {
@@ -207,11 +209,20 @@ dbus_get_active_session (ConsoleKitSeat        *ckseat,
 {
         CkSeat *seat = CK_SEAT (ckseat);
         gboolean ret;
-        char    *session_id;
+        char    *session_id = NULL;
+
+        g_debug ("entering dbus_get_active_session");
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
         ret = ck_seat_get_active_session (seat, &session_id, NULL);
+
+        if (session_id == NULL) {
+                throw_error (context, CK_SEAT_ERROR_NO_ACTIVE_SESSION, "Seat has no active session");
+                return FALSE;
+        }
+
+        g_debug ("session_id '%s'", session_id);
 
         console_kit_seat_complete_get_active_session (ckseat, context, session_id);
         return ret;
@@ -973,7 +984,7 @@ dbus_get_devices (ConsoleKitSeat        *ckseat,
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        g_variant_builder_init (&devices, G_VARIANT_TYPE ("(@a(ss))"));
+        g_variant_builder_init (&devices, G_VARIANT_TYPE ("a(ss)"));
         g_ptr_array_foreach (seat->priv->devices, (GFunc)fill_variant, &devices);
 
         console_kit_seat_complete_get_devices (ckseat, context, g_variant_builder_end (&devices));
