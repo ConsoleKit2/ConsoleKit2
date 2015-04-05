@@ -3054,47 +3054,30 @@ ck_manager_class_init (CkManagerClass *klass)
         g_type_class_add_private (klass, sizeof (CkManagerPrivate));
 }
 
-typedef struct {
-        guint                  uid;
-        GPtrArray             *sessions;
-} GetSessionsData;
-
-static void
-get_sessions_for_unix_user_iter (char            *id,
-                                 CkSession       *session,
-                                 GetSessionsData *data)
-{
-        guint uid = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION (session));
-
-        if (uid == data->uid) {
-                g_ptr_array_add (data->sessions, g_strdup (id));
-        }
-}
-
 static gboolean
 dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
                                  GDBusMethodInvocation *context,
                                  guint                  uid)
 {
-        CkManager       *manager;
-        GetSessionsData *data;
+        CkManager    *manager;
+        const gchar **sessions;
+
+        g_debug ("entering dbus_get_sessions_for_unix_user");
 
         manager = CK_MANAGER (ckmanager);
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        data = g_new0 (GetSessionsData, 1);
-        data->uid = uid;
-        data->sessions = g_ptr_array_new ();
+        sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
 
-        g_hash_table_foreach (manager->priv->sessions, (GHFunc)get_sessions_for_unix_user_iter, data);
+        /* gdbus/gvariant requires that we return something */
+        if (sessions == NULL) {
+                sessions[0] = "";
+                sessions[1] = NULL;
+        }
 
-        g_dbus_method_invocation_return_value (context, g_variant_new ("^ao", data->sessions));
-
-        g_ptr_array_foreach (data->sessions, (GFunc)g_free, NULL);
-        g_ptr_array_free (data->sessions, TRUE);
-        g_free (data);
-
+        console_kit_manager_complete_get_seats (ckmanager, context, sessions);
+        g_free (sessions);
         return TRUE;
 }
 
@@ -3112,9 +3095,7 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
                 GDBusMethodInvocation *context)
 {
         CkManager    *manager;
-        const gchar  *seats[32768];
-        GList        *keys;
-        gint          i;
+        const gchar **seats;
 
         g_debug ("entering dbus_get_seats");
 
@@ -3122,21 +3103,16 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        keys = g_hash_table_get_keys (manager->priv->seats);
+        seats = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->seats, NULL);
 
-        i = 0;
-        for (; keys != NULL; keys = g_list_next (keys)) {
-                seats[i] = keys->data;
-                i++;
-                if (i == 32767) {
-                        g_warning ("excedded max number of seats");
-                        break;
-                }
+        /* gdbus/gvariant requires that we return something */
+        if (seats == NULL) {
+                seats[0] = "";
+                seats[1] = NULL;
         }
-        seats[i] = NULL;
 
         console_kit_manager_complete_get_seats (ckmanager, context, seats);
-        g_list_free (keys);
+        g_free (seats);
         return TRUE;
 }
 
@@ -3145,9 +3121,7 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
                    GDBusMethodInvocation *context)
 {
         CkManager    *manager;
-        const gchar  *sessions[32768];
-        GList        *keys;
-        gint          i;
+        const gchar **sessions;
 
         g_debug ("entering dbus_get_sessions");
 
@@ -3155,21 +3129,16 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        keys = g_hash_table_get_keys (manager->priv->sessions);
+        sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
 
-        i = 0;
-        for (; keys != NULL; keys = g_list_next (keys)) {
-                sessions[i] = keys->data;
-                i++;
-                if (i == 32767) {
-                        g_warning ("excedded max number of sessions");
-                        break;
-                }
+        /* gdbus/gvariant requires that we return something */
+        if (sessions == NULL) {
+                sessions[0] = "";
+                sessions[1] = NULL;
         }
-        sessions[i] = NULL;
 
         console_kit_manager_complete_get_seats (ckmanager, context, sessions);
-        g_list_free (keys);
+        g_free (sessions);
         return TRUE;
 }
 
