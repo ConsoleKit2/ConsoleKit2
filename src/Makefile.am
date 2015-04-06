@@ -260,14 +260,6 @@ test_session_CFLAGS = \
 
 test_session_SOURCES = 	\
 	$(BUILT_SOURCES)	\
-	ck-run-programs.c	\
-	ck-run-programs.h	\
-	ck-file-monitor.h	\
-	ck-file-monitor-dummy.c \
-	ck-tty-idle-monitor.h \
-	ck-tty-idle-monitor.c \
-	ck-session.c		\
-	ck-session.h		\
 	test-session.c		\
 	$(NULL)
 

@@ -689,7 +689,7 @@ ck_seat_add_session (CkSeat         *seat,
 
         ck_session_set_seat_id (session, seat->priv->id, NULL);
 
-        g_signal_connect_object (CONSOLE_KIT_SESSION (session), "activate", G_CALLBACK (session_activate), seat, 0);
+        g_signal_connect_object (session, "activate", G_CALLBACK (session_activate), seat, G_CONNECT_AFTER);
         /* FIXME: attach to property notify signals? */
 
         g_debug ("Emitting added signal: %s", ssid);

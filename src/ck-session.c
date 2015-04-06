@@ -159,7 +159,7 @@ register_session (CkSession *session, GDBusConnection *connection)
         error = NULL;
 
         if (connection == NULL) {
-                session->priv->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
+                g_critical ("CkSession-register_session:connection == NULL");
         } else {
                 session->priv->connection = connection;
         }
@@ -329,6 +329,14 @@ dbus_get_idle_since_hint (ConsoleKitSession     *cksession,
         return TRUE;
 }
 
+static gboolean
+dbus_get_idle_hint (ConsoleKitSession *cksession,
+                    GDBusMethodInvocation *context)
+{
+        console_kit_session_complete_get_idle_hint (cksession, context, console_kit_session_get_idle_hint (cksession));
+        return TRUE;
+}
+
 /*
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
@@ -450,8 +458,17 @@ dbus_get_id (ConsoleKitSession     *cksession,
              GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION (cksession);
+        gchar     *id;
+
+        g_debug ("entering dbus_get_id");
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        id = session->priv->id;
+
+        if (id == NULL) {
+                id = "";
+        }
 
         console_kit_session_complete_get_id (cksession, context, session->priv->id);
         return TRUE;
@@ -476,8 +493,15 @@ dbus_get_seat_id (ConsoleKitSession     *cksession,
                   GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION (cksession);
+        const gchar *seat_id;
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        seat_id = session->priv->seat_id;
+        if (seat_id == NULL) {
+                throw_error (context, CK_SESSION_ERROR_FAILED, "session not attached to a seat");
+                return FALSE;
+        }
 
         console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_id);
         return TRUE;
@@ -965,6 +989,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_user               = dbus_get_user;
         iface->handle_lock                   = dbus_lock;
         iface->handle_unlock                 = dbus_unlock;
+        iface->handle_get_idle_hint          = dbus_get_idle_hint;
 }
 
 static void
