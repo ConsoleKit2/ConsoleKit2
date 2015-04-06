@@ -3127,7 +3127,9 @@ polkit_authority_get_cb (GObject *source_object,
 {
         CkManager *manager = CK_MANAGER (user_data);
 
+#ifdef HAVE_POLKIT
         manager->priv->pol_ctx = polkit_authority_get_finish (res, NULL);
+#endif
 }
 
 static gboolean
