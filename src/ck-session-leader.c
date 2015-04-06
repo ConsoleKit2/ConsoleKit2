@@ -230,9 +230,9 @@ save_parameters (CkSessionLeader *leader,
         gchar            *prop_name;
         GVariant         *value;
 
-        g_variant_get ((GVariant *)parameters, "a{sv}", &iter);
+        g_variant_get ((GVariant *)parameters, "a(sv)", &iter);
 
-        while (g_variant_iter_next (iter, "{sv}", &prop_name, &value)) {
+        while (g_variant_iter_next (iter, "(sv)", &prop_name, &value)) {
 
                 /* filter out the nulls? - sure why not */
                 if (value != NULL) {

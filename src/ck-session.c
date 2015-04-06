@@ -425,6 +425,8 @@ dbus_activate (ConsoleKitSession     *cksession,
         gboolean res;
         CkSession *session = CK_SESSION (cksession);
 
+        g_debug ("entering dbus_activate");
+
         g_return_val_if_fail (session, FALSE);
 
         res = FALSE;
@@ -858,6 +860,8 @@ session_add_activity_watch (CkSession *session)
 static void
 session_remove_activity_watch (CkSession *session)
 {
+        g_debug ("entering session_remove_activity_watch");
+
         if (session->priv->idle_monitor == NULL) {
                 return;
         }

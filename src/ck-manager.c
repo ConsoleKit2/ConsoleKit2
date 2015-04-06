@@ -3256,6 +3256,8 @@ ck_manager_finalize (GObject *object)
 {
         CkManager *manager;
 
+        g_debug ("entering ck_manager_finalize");
+
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_MANAGER (object));
 
