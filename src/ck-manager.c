@@ -2327,6 +2327,7 @@ static void
 open_session_for_leader (CkManager             *manager,
                          CkSessionLeader       *leader,
                          const GVariant        *parameters,
+                         gboolean               is_local,
                          GDBusMethodInvocation *context)
 {
         CkSession   *session;
@@ -2346,6 +2347,9 @@ open_session_for_leader (CkManager             *manager,
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to create new session");
                 return;
         }
+
+        /* set the is_local flag for the session */
+        ck_session_set_is_local (session, is_local, NULL);
 
 /*      FIXME: probably need to use a GDbusObjectManager and monitor
  *      interface-added/interface-removed signals
@@ -2462,11 +2466,11 @@ verify_and_open_session_for_leader (CkManager             *manager,
         }
 
         g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
-        /* FIXME: we need to rework the setting of is-local */
 
         open_session_for_leader (manager,
                                  leader,
                                  parameters,
+                                 is_local,
                                  context);
 }
 
