@@ -908,9 +908,7 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
                    GDBusMethodInvocation *context)
 {
         CkSeat       *seat;
-        const gchar  *sessions[32768];
-        GList        *keys;
-        gint          i;
+        const gchar **sessions;
 
         g_debug ("entering dbus_get_sessions");
 
@@ -918,21 +916,16 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        keys = g_hash_table_get_keys (seat->priv->sessions);
+        sessions = (const gchar**)g_hash_table_get_keys_as_array (seat->priv->sessions, NULL);
 
-        i = 0;
-        for (; keys != NULL; keys = g_list_next (keys)) {
-                sessions[i] = keys->data;
-                i++;
-                if (i == 32767) {
-                        g_warning ("excedded max number of sessions");
-                        break;
-                }
+        /* gdbus/gvariant requires that we return something */
+        if (sessions == NULL) {
+                sessions[0] = "";
+                sessions[1] = NULL;
         }
-        sessions[i] = NULL;
 
         console_kit_seat_complete_get_sessions (ckseat, context, sessions);
-        g_list_free (keys);
+        g_free (sessions);
         return TRUE;
 }
 

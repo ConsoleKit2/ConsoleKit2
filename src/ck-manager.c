@@ -3078,7 +3078,7 @@ dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
                 sessions[1] = NULL;
         }
 
-        console_kit_manager_complete_get_seats (ckmanager, context, sessions);
+        console_kit_manager_complete_get_sessions_for_unix_user (ckmanager, context, sessions);
         g_free (sessions);
         return TRUE;
 }

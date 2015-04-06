@@ -196,6 +196,11 @@ monitor_add_watch (CkTtyIdleMonitor *monitor)
         if (monitor->priv->file_monitor == NULL) {
                 monitor->priv->file_monitor = ck_file_monitor_new ();
         }
+
+        if (monitor->priv->file_notify_id != 0) {
+                g_debug ("monitor_add_watch: creating a new file_notify_id when one already exists");
+        }
+
         monitor->priv->file_notify_id = ck_file_monitor_add_notify (monitor->priv->file_monitor,
                                                                     monitor->priv->device,
                                                                     CK_FILE_MONITOR_EVENT_ACCESS,
