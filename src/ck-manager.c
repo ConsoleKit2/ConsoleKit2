@@ -37,6 +37,7 @@
 #include <glib-object.h>
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
+#include <gio/gio.h>
 
 #if defined HAVE_POLKIT
 #include <polkit/polkit.h>
