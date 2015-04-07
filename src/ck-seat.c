@@ -682,6 +682,7 @@ ck_seat_add_session (CkSeat         *seat,
         char *ssid;
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         ck_session_get_id (session, &ssid, NULL);
 

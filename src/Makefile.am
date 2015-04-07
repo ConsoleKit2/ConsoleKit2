@@ -187,6 +187,7 @@ noinst_PROGRAMS = 			\
 	test-vt-monitor			\
 	test-inhibit			\
 	test-session			\
+	test-seat				\
 	ck-collect-session-info	\
 	test-session-leader		\
 	$(NULL)
@@ -269,6 +270,24 @@ test_session_LDADD =		\
 	libck.la			\
 	$(NULL)
 
+test_seat_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-URUNDIR	\
+	-DRUNDIR=\"/tmp\" 			\
+	$(NULL)
+
+test_seat_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	test-seat.c		\
+	$(NULL)
+
+test_seat_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	libck.la			\
+	$(NULL)
+
+
 ck_collect_session_info_CFLAGS = \
 	$(AM_CFLAGS)	\
 	$(NULL)
@@ -311,6 +330,7 @@ EXTRA_DIST =			\
 	test-open-session	\
 	test-open-session-with-parameters	\
 	test-session	\
+	test-seat		\
 	test-session-leader	\
 	ck-collect-session-info	\
 	$(NULL)

@@ -60,6 +60,7 @@ src/ck-seat-generated.h
 src/ck-session-generated.c
 src/ck-session-generated.h
 src/test-session
+src/test-seat
 src/test-session-leader
 src/ck-collect-session-info
 tools/pam-foreground-compat.ck
