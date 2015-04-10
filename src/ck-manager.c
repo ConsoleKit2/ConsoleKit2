@@ -51,6 +51,7 @@
 #include "ck-marshal.h"
 #include "ck-event-logger.h"
 #include "ck-inhibit-manager.h"
+#include "ck-inhibit.h"
 #include "ck-sysdeps.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
@@ -277,7 +278,10 @@ static const GDBusErrorEntry ck_manager_error_entries[] =
         { CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_DBUS_NAME ".Error.InsufficientPermission" },
         { CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,  CK_MANAGER_DBUS_NAME ".Error.AuthorizationRequired" },
         { CK_MANAGER_ERROR_BUSY,                    CK_MANAGER_DBUS_NAME ".Error.Busy" },
-        { CK_MANAGER_ERROR_NOT_SUPPORTED,           CK_MANAGER_DBUS_NAME ".Error.NotSupported" }
+        { CK_MANAGER_ERROR_NOT_SUPPORTED,           CK_MANAGER_DBUS_NAME ".Error.NotSupported" },
+        { CK_MANAGER_ERROR_INHIBITED,               CK_MANAGER_DBUS_NAME ".Error.Inhibited" },
+        { CK_MANAGER_ERROR_INVALID_INPUT,           CK_MANAGER_DBUS_NAME ".Error.InvalidInput" },
+        { CK_MANAGER_ERROR_OOM,                     CK_MANAGER_DBUS_NAME ".Error.OutOfMemory" }
 };
 
 GQuark
@@ -309,6 +313,9 @@ ck_manager_error_get_type (void)
           ENUM_ENTRY (CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,  "AuthorizationRequired" ),
           ENUM_ENTRY (CK_MANAGER_ERROR_BUSY,                    "Busy" ),
           ENUM_ENTRY (CK_MANAGER_ERROR_NOT_SUPPORTED,           "NotSupported"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_INHIBITED,               "Inhibited"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_INVALID_INPUT,           "InvalidInput"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_OOM,                     "OutOfMemory"),
           { 0, 0, 0 }
         };
       g_assert (CK_MANAGER_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -875,13 +882,13 @@ ready_cb (PolkitAuthority *authority,
                 g_clear_error (&error);
         }
         else if (polkit_authorization_result_get_is_authorized (ret)) {
-                g_dbus_method_invocation_return_value (context, g_variant_new_boolean (TRUE));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(b)", TRUE));
         }
         else if (polkit_authorization_result_get_is_challenge (ret)) {
-                g_dbus_method_invocation_return_value (context, g_variant_new_boolean (TRUE));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(b)", TRUE));
         }
         else {
-                g_dbus_method_invocation_return_value (context, g_variant_new_boolean (FALSE));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(b)", FALSE));
         }
 
         g_object_unref (ret);
@@ -905,13 +912,13 @@ logind_ready_cb (PolkitAuthority *authority,
                 g_clear_error (&error);
         }
         else if (polkit_authorization_result_get_is_authorized (ret)) {
-                g_dbus_method_invocation_return_value (context, g_variant_new_string ("yes"));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(s)", "yes"));
         }
         else if (polkit_authorization_result_get_is_challenge (ret)) {
-                g_dbus_method_invocation_return_value (context, g_variant_new_string ("challenge"));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(s)", "challenge"));
         }
         else {
-                g_dbus_method_invocation_return_value (context, g_variant_new_string ("no"));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(s)", "no"));
         }
 
         g_object_unref (ret);
@@ -1208,13 +1215,13 @@ check_can_action (CkManager             *manager,
 #elif defined ENABLE_RBAC_SHUTDOWN
         /* rbac determines either yes or no. There is no challenge with rbac */
         if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
-                g_dbus_method_invocation_return_value (context, g_variant_new_string ("yes"));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(s)", "yes"));
         } else {
-                g_dbus_method_invocation_return_value (context, g_variant_new_string ("no"));
+                g_dbus_method_invocation_return_value (context, g_variant_new ("(s)","no"));
         }
 #else
         /* neither polkit or rbac. assumed single user system */
-        g_dbus_method_invocation_return_value (context, g_variant_new_string ("yes"));
+        g_dbus_method_invocation_return_value (context, g_variant_new ("(s)", "yes"));
 #endif
 }
 
@@ -1331,7 +1338,7 @@ dbus_restart (ConsoleKitManager     *ckmanager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return FALSE;
         }
 
@@ -1421,7 +1428,7 @@ dbus_stop (ConsoleKitManager     *ckmanager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return FALSE;
         }
 
@@ -1479,7 +1486,7 @@ dbus_power_off (ConsoleKitManager     *ckmanager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return FALSE;
         }
 
@@ -1554,7 +1561,7 @@ dbus_reboot (ConsoleKitManager     *ckmanager,
 
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation inhibited"));
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return FALSE;
         }
 
@@ -1972,6 +1979,21 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
                                              who,
                                              what,
                                              why);
+
+        /* if we didn't get an inhibit lock, translate and throw the error */
+        if (fd < 0) {
+                switch (fd) {
+                case CK_INHIBIT_ERROR_INVALID_INPUT:
+                        throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid input when creating inhibit lock"));
+                        return FALSE;
+                case CK_INHIBIT_ERROR_OOM:
+                        throw_error (context, CK_MANAGER_ERROR_OOM, _("Unable to create inhibit lock, insufficient memory"));
+                        return FALSE;
+                default:
+                        throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Error creating the inhibit lock"));
+                        return FALSE;
+                }
+        }
 
         var_fd = g_variant_new ("h", fd);
 

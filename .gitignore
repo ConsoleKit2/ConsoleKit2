@@ -62,6 +62,7 @@ src/ck-session-generated.h
 src/test-session
 src/test-seat
 src/test-session-leader
+src/test-manager
 src/ck-collect-session-info
 tools/pam-foreground-compat.ck
 tools/70-udev-acl.rules

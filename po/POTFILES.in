@@ -5,7 +5,6 @@ src/ck-sysdeps-linux.c
 src/ck-seat.c
 src/main.c
 src/ck-log-event.c
-src/ck-manager-glue.h
 src/ck-run-programs.h
 src/ck-job.c
 src/ck-vt-monitor.h
@@ -23,7 +22,6 @@ src/ck-log-event.h
 src/test-event-logger.c
 src/ck-log.c
 src/ck-run-programs.c
-src/ck-seat-glue.h
 src/ck-vt-monitor.c
 src/ck-file-monitor-dummy.c
 src/ck-file-monitor.h
@@ -33,7 +31,6 @@ src/ck-manager.c
 src/ck-log.h
 src/ck-session-leader.h
 src/ck-session.c
-src/ck-session-glue.h
 src/test-vt-monitor.c
 src/ck-marshal.h
 src/test-tty-idle-monitor.c

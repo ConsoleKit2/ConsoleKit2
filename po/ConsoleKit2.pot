@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2014-11-17 10:15+0300\n"
+"POT-Creation-Date: 2015-04-10 18:50+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,81 +17,134 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/ck-seat.c:182
+#: src/ck-seat.c:247
 msgid "Another session was activated while waiting"
 msgstr ""
 
-#: src/ck-seat.c:211
+#: src/ck-seat.c:271
 msgid "Activation is not supported for this kind of seat"
 msgstr ""
 
-#: src/ck-seat.c:221
+#: src/ck-seat.c:276
 msgid "Unknown session id"
 msgstr ""
 
-#: src/ck-seat.c:237 src/ck-vt-monitor.c:132 src/ck-session.c:383
+#: src/ck-seat.c:287 src/ck-vt-monitor.c:129 src/ck-session.c:448
 msgid "Unable to activate session"
 msgstr ""
 
-#: src/ck-seat.c:598
+#: src/ck-seat.c:308
+#, c-format
+msgid "Unable to activate session: %s"
+msgstr ""
+
+#: src/ck-seat.c:643
 msgid "Session is not attached to this seat"
 msgstr ""
 
-#: src/main.c:352
+#: src/main.c:295
 msgid "Enable debugging code"
 msgstr ""
 
-#: src/main.c:353
+#: src/main.c:296
 msgid "Don't become a daemon"
 msgstr ""
 
-#: src/main.c:354
+#: src/main.c:297
 msgid "Exit after a time - for debugging"
 msgstr ""
 
-#: src/main.c:381 tools/ck-collect-session-info.c:440
+#: src/main.c:322 tools/ck-collect-session-info.c:440
 msgid "You must be root to run this program"
 msgstr ""
 
-#: src/main.c:385
+#: src/main.c:326
 msgid "Console kit daemon"
 msgstr ""
 
-#: src/ck-vt-monitor.c:113
+#: src/ck-vt-monitor.c:110
 msgid "Session is already active"
 msgstr ""
 
-#: src/ck-vt-monitor.c:121 src/ck-vt-monitor.c:154
+#: src/ck-vt-monitor.c:118 src/ck-vt-monitor.c:151
 msgid "No consoles available"
 msgstr ""
 
-#: src/ck-manager.c:2648 src/ck-manager.c:2747 src/ck-manager.c:2804
+#: src/ck-manager.c:808
+#, c-format
+msgid "Not Authorized: %s"
+msgstr ""
+
+#: src/ck-manager.c:815
+msgid "Authorization is required"
+msgstr ""
+
+#: src/ck-manager.c:818
+msgid "Not Authorized"
+msgstr ""
+
+#: src/ck-manager.c:1247
+#, c-format
+msgid "Unable to %s system: %s"
+msgstr ""
+
+#: src/ck-manager.c:1287 src/ck-manager.c:1384 src/ck-manager.c:1621
+#: src/ck-manager.c:1669 src/ck-manager.c:1780 src/ck-manager.c:1891
+msgid "Attempting to perform a system action while one is in progress"
+msgstr ""
+
+#: src/ck-manager.c:1299
+msgid "failed to allocate memory to perform restart"
+msgstr ""
+
+#: src/ck-manager.c:1334 src/ck-manager.c:1424 src/ck-manager.c:1482
+#: src/ck-manager.c:1557
+msgid "Operation inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1396
+msgid "failed to allocate memory to perform shutdown"
+msgstr ""
+
+#: src/ck-manager.c:1633
+msgid "failed to allocate memory to perform suspend"
+msgstr ""
+
+#: src/ck-manager.c:1744
+msgid "failed to allocate memory to perform hibernate"
+msgstr ""
+
+#: src/ck-manager.c:1855
+msgid "failed to allocate memory to perform hybrid sleep"
+msgstr ""
+
+#: src/ck-manager.c:2601 src/ck-manager.c:2679 src/ck-manager.c:2725
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2661 src/ck-session.c:278
+#: src/ck-manager.c:2615 src/ck-manager.c:2921 src/ck-session.c:371
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2685 src/ck-manager.c:2697 src/ck-manager.c:2954
+#: src/ck-manager.c:2626 src/ck-manager.c:2633 src/ck-manager.c:2872
 msgid "Unable to find session for cookie"
 msgstr ""
 
-#: src/ck-manager.c:2761
+#: src/ck-manager.c:2687
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2962
+#: src/ck-manager.c:2880
 msgid "User ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:2972
+#: src/ck-manager.c:2890
 msgid "Process ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-session.c:291
+#: src/ck-session.c:377
 msgid "Only session owner may set idle hint state"
 msgstr ""
 
