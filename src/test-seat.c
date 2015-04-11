@@ -70,6 +70,8 @@ print_reply (GDBusProxy *proxy, const gchar *method)
             g_print ("error %s", error->message);
     }
     g_clear_error (&error);
+    if (var)
+        g_variant_unref (var);
     g_print ("\n");
 }
 
@@ -182,6 +184,8 @@ main (int   argc,
     g_print ("\n");
 
     get_seats (NULL);
+
+    g_object_unref (manager);
 
     return 0;
 }

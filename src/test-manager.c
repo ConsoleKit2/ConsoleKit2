@@ -33,7 +33,6 @@
 
 #define DBUS_NAME                        "org.freedesktop.ConsoleKit"
 #define DBUS_MANAGER_INTERFACE           DBUS_NAME ".Manager"
-#define DBUS_SEAT_INTERFACE              DBUS_NAME ".Seat"
 #define DBUS_MANAGER_OBJECT_PATH         "/org/freedesktop/ConsoleKit/Manager"
 
 GDBusProxy *manager;
@@ -53,23 +52,113 @@ print_proxy_info (GDBusProxy *proxy)
 }
 
 static void
+open_print_and_test_session (GDBusProxy *proxy, const gchar *method)
+{
+    GVariantBuilder ck_parameters;
+    GVariant       *open_var = NULL;
+    GVariant       *ssid_var = NULL;
+    GVariant       *close_var = NULL;
+    GError         *error = NULL;
+    const gchar    *cookie;
+    const gchar    *ssid;
+    gboolean        is_session_closed;
+
+    /* Build the params so we can call OpenSessionWithParameters. This
+     * is copied from LightDM (with fake values), so we can verify it
+     * works as expected */
+    g_variant_builder_init (&ck_parameters, G_VARIANT_TYPE ("(a(sv))"));
+    g_variant_builder_open (&ck_parameters, G_VARIANT_TYPE ("a(sv)"));
+    g_variant_builder_add (&ck_parameters, "(sv)", "unix-user", g_variant_new_int32 (9000));
+    g_variant_builder_add (&ck_parameters, "(sv)", "session-type", g_variant_new_string ("LoginWindow"));
+    g_variant_builder_add (&ck_parameters, "(sv)", "x11-display", g_variant_new_string (":0.0"));
+    g_variant_builder_add (&ck_parameters, "(sv)", "x11-display-device", g_variant_new_string ("/dev/tty15"));
+    g_variant_builder_add (&ck_parameters, "(sv)", "is-local", g_variant_new_boolean (TRUE));
+
+    g_print ("calling %s\t", method);
+    open_var = g_dbus_proxy_call_sync (proxy, method,
+                                       g_variant_new ("(a(sv))", &ck_parameters),
+                                       G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    if (open_var == NULL) {
+        g_print ("returned NULL\t");
+        if (error)
+            g_print ("error %s", error->message);
+        goto out;
+    }
+
+    g_variant_get (open_var, "(s)", &cookie);
+    g_print ("cookie: %s", cookie);
+
+    g_print ("\n");
+
+    /* Since we built a session go ahead and test getting the ssid */
+    g_print ("calling GetSessionForCookie\t");
+    ssid_var = g_dbus_proxy_call_sync (proxy, "GetSessionForCookie",
+                                       g_variant_new ("(s)", cookie),
+                                       G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    if (ssid_var == NULL) {
+        g_print ("returned NULL\t");
+        if (error)
+            g_print ("error %s", error->message);
+        goto out;
+    }
+
+    g_variant_get (ssid_var, "(o)", &ssid);
+    g_print ("ssid: %s", ssid);
+
+    g_print ("\n");
+
+    /* test closing our session */
+    g_print ("calling CloseSession\t");
+    close_var = g_dbus_proxy_call_sync (proxy, "CloseSession",
+                                        g_variant_new ("(s)", cookie),
+                                        G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    if (close_var == NULL) {
+        g_print ("returned NULL\t");
+        if (error)
+            g_print ("error %s", error->message);
+        goto out;
+    }
+
+    g_variant_get (close_var, "(b)", &is_session_closed);
+    g_print ("session closed? %s", is_session_closed ? "Closed" : "Not Closed");
+
+    g_print ("\n");
+
+out:
+    g_clear_error (&error);
+    if (ssid_var != NULL)
+        g_variant_unref (ssid_var);
+    if (open_var != NULL)
+        g_variant_unref (open_var);
+    if (close_var != NULL)
+        g_variant_unref (close_var);
+    g_print ("\n");
+}
+
+static gint
 print_inhibit_reply (GDBusProxy *proxy, const gchar *method)
 {
     GVariant *var;
     GError   *error = NULL;
+    gint      fd = -1;
 
     g_print ("calling %s\t", method);
-    var = g_dbus_proxy_call_sync (proxy, method, g_variant_new ("(sss)", "sleep:idle", "test-manager", "because it's good to test things?"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    var = g_dbus_proxy_call_sync (proxy, method, g_variant_new ("(sss)", "sleep:shutdown", "test-manager", "because it's good to test things?"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
     if (var != NULL) {
         GString *string = g_variant_print_string (var, NULL, TRUE);
         g_print ("%s", string->str);
+        g_variant_get (var, "(h)", &fd);
     } else {
         g_print ("returned NULL\t");
         if (error)
             g_print ("error %s", error->message);
     }
     g_clear_error (&error);
+    if (var)
+        g_variant_unref (var);
     g_print ("\n");
+
+    return fd;
 }
 
 static void
@@ -89,12 +178,16 @@ print_reply (GDBusProxy *proxy, const gchar *method)
             g_print ("error %s", error->message);
     }
     g_clear_error (&error);
+    if (var)
+        g_variant_unref (var);
     g_print ("\n");
 }
 
 static gboolean
 validate_stuff ()
 {
+    gint fd;
+
     print_reply (manager, "CanRestart");
 
     print_reply (manager, "CanStop");
@@ -109,7 +202,7 @@ validate_stuff ()
 
     print_reply (manager, "CanHybridSleep");
 
-    print_inhibit_reply (manager, "Inhibit");
+    fd = print_inhibit_reply (manager, "Inhibit");
 
     print_reply (manager, "OpenSession");
 
@@ -123,9 +216,10 @@ validate_stuff ()
 
     print_reply (manager, "GetSystemIdleSinceHint");
 
-    /* TODO: OpenSessionWithParameters / CloseSession / GetSessionForCookie
-     * GetSessionForUnixProcess / GetSessionsForUnixUser / GetSessionsForUser
-     */
+    open_print_and_test_session (manager, "OpenSessionWithParameters");
+
+    if (fd > -1)
+        g_close (fd, NULL);
 
     g_print ("done printing stuff\n\n");
 
@@ -164,6 +258,8 @@ main (int   argc,
     g_print ("\n");
 
     validate_stuff ();
+
+    g_object_unref (manager);
 
     return 0;
 }

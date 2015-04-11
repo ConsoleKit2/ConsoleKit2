@@ -70,6 +70,8 @@ print_reply (GDBusProxy *proxy, const gchar *method)
             g_print ("error %s", error->message);
     }
     g_clear_error (&error);
+    if (var)
+        g_variant_unref (var);
     g_print ("\n");
 }
 
@@ -240,6 +242,8 @@ open_session (void)
         g_print ("\n");
         g_clear_error (&error);
     }
+    if (activate_var)
+        g_variant_unref (activate_var);
 
     g_print ("calling Unlock (expected: GDBus.Error:org.freedesktop.DBus.Error.AccessDenied if not run as root)\n");
     activate_var = g_dbus_proxy_call_sync (session, "Unlock", g_variant_new ("()"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
@@ -252,6 +256,8 @@ open_session (void)
         g_print ("\n");
         g_clear_error (&error);
     }
+    if (activate_var)
+        g_variant_unref (activate_var);
 
     g_print ("calling Activate (expected: GDBus.Error:org.freedesktop.ConsoleKit.Seat.Error.NotSupported)\n");
     activate_var = g_dbus_proxy_call_sync (session, "Activate", g_variant_new ("()"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
@@ -264,6 +270,8 @@ open_session (void)
         g_print ("\n");
         g_clear_error (&error);
     }
+    if (activate_var)
+        g_variant_unref (activate_var);
 }
 
 int
@@ -299,6 +307,7 @@ main (int   argc,
 
     get_sessions (NULL);
 
+    g_object_unref (manager);
 
     return 0;
 }
