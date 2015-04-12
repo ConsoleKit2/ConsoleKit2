@@ -1334,6 +1334,8 @@ dbus_restart (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
@@ -1362,6 +1364,8 @@ dbus_can_restart (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1424,6 +1428,8 @@ dbus_stop (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
@@ -1449,6 +1455,8 @@ dbus_can_stop (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1481,6 +1489,8 @@ dbus_power_off (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1529,6 +1539,8 @@ dbus_can_power_off (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
@@ -1556,6 +1568,8 @@ dbus_reboot (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1603,6 +1617,8 @@ dbus_can_reboot (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1669,6 +1685,8 @@ dbus_suspend (ConsoleKitManager     *ckmanager,
         CkManager *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
@@ -1715,6 +1733,8 @@ dbus_can_suspend (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1780,6 +1800,8 @@ dbus_hibernate (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
@@ -1826,6 +1848,8 @@ dbus_can_hibernate (ConsoleKitManager     *ckmanager,
 {
         CkManager  *manager;
         const char *action;
+
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -1891,6 +1915,8 @@ dbus_hybrid_sleep (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         /* Check if something in inhibiting that action */
@@ -1938,6 +1964,8 @@ dbus_can_hybrid_sleep (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         const char *action;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
 
         if (get_system_num_users (manager) > 1) {
@@ -1966,6 +1994,8 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
         CkManagerPrivate *priv;
         gint              fd = -1;
         GVariant         *var_fd;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_MANAGER (ckmanager), FALSE);
 
@@ -2319,6 +2349,8 @@ dbus_get_system_idle_hint (ConsoleKitManager     *ckmanager,
 {
         CkManager *manager = CK_MANAGER (ckmanager);
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
         console_kit_manager_complete_get_system_idle_hint (ckmanager, context, manager->priv->system_idle_hint);
@@ -2331,6 +2363,8 @@ dbus_get_system_idle_since_hint (ConsoleKitManager     *ckmanager,
 {
         CkManager *manager = CK_MANAGER (ckmanager);
         char *date_str;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
@@ -2599,7 +2633,7 @@ dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
         ssid = NULL;
         manager = CK_MANAGER (ckmanager);
 
-        g_debug ("CkManager: get session for cookie");
+        TRACE ();
 
         sender = g_dbus_method_invocation_get_sender (context);
 
@@ -2680,7 +2714,8 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
 
         sender = g_dbus_method_invocation_get_sender (context);
 
-        g_debug ("CkManager: get session for unix process: %u", pid);
+        TRACE ();
+        g_debug ("pid: %u", pid);
 
         res = get_caller_info (manager,
                                sender,
@@ -2723,6 +2758,8 @@ dbus_get_current_session (ConsoleKitManager     *ckmanager,
         uid_t       calling_uid;
         pid_t       calling_pid;
 
+        TRACE ();
+
         manager = CK_MANAGER (ckmanager);
         sender = g_dbus_method_invocation_get_sender (context);
 
@@ -2750,6 +2787,8 @@ dbus_open_session (ConsoleKitManager     *ckmanager,
         const char *sender;
         gboolean    ret;
 
+        TRACE ();
+
         sender = g_dbus_method_invocation_get_sender (context);
         ret = create_session_for_sender (CK_MANAGER (ckmanager), sender, NULL, context);
 
@@ -2764,6 +2803,8 @@ dbus_open_session_with_parameters (ConsoleKitManager     *ckmanager,
 {
         const char *sender;
         gboolean    ret;
+
+        TRACE ();
 
         sender = g_dbus_method_invocation_get_sender (context);
         ret = create_session_for_sender (CK_MANAGER (ckmanager), sender, parameters, context);
@@ -2919,6 +2960,8 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
         pid_t       calling_pid;
         GError     *error;
 
+        TRACE ();
+
         g_debug ("Closing session for cookie: %s", cookie);
 
         manager = CK_MANAGER (ckmanager);
@@ -2947,7 +2990,7 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
         res = remove_session_for_cookie (manager, cookie, &error);
         if (! res) {
                 throw_error (context, CK_MANAGER_ERROR_FAILED, "%s", error->message);
-                g_error_free (error);
+                g_clear_error (&error);
                 return TRUE;
         } else {
                 g_hash_table_remove (manager->priv->leaders, cookie);
@@ -3080,7 +3123,7 @@ dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
         CkManager    *manager;
         const gchar **sessions;
 
-        g_debug ("entering dbus_get_sessions_for_unix_user");
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -3105,6 +3148,7 @@ dbus_get_sessions_for_user (ConsoleKitManager     *ckmanager,
                             GDBusMethodInvocation *context,
                             guint                  uid)
 {
+        TRACE ();
         return dbus_get_sessions_for_unix_user (ckmanager, context, uid);
 }
 
@@ -3115,7 +3159,7 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
         CkManager    *manager;
         const gchar **seats;
 
-        g_debug ("entering dbus_get_seats");
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -3141,7 +3185,7 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
         CkManager    *manager;
         const gchar **sessions;
 
-        g_debug ("entering dbus_get_sessions");
+        TRACE ();
 
         manager = CK_MANAGER (ckmanager);
 
@@ -3272,7 +3316,7 @@ ck_manager_finalize (GObject *object)
 {
         CkManager *manager;
 
-        g_debug ("entering ck_manager_finalize");
+        TRACE ();
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_MANAGER (object));

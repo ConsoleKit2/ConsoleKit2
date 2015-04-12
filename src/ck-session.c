@@ -37,6 +37,7 @@
 #include "ck-session.h"
 #include "ck-marshal.h"
 #include "ck-run-programs.h"
+#include "ck-sysdeps.h"
 
 #define CK_SESSION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SESSION, CkSessionPrivate))
 
@@ -217,6 +218,8 @@ dbus_lock (ConsoleKitSession     *cksession,
 {
         CkSession *session = CK_SESSION (cksession);
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         g_debug ("Emitting lock for session %s", session->priv->id);
@@ -231,6 +234,8 @@ dbus_unlock (ConsoleKitSession     *cksession,
              GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION (cksession);
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
@@ -319,6 +324,8 @@ dbus_get_idle_since_hint (ConsoleKitSession     *cksession,
         CkSession *session = CK_SESSION(cksession);
         char *date_str;
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
         date_str = g_time_val_to_iso8601 (&session->priv->idle_since_hint);
@@ -333,6 +340,7 @@ static gboolean
 dbus_get_idle_hint (ConsoleKitSession *cksession,
                     GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_get_idle_hint (cksession, context, console_kit_session_get_idle_hint (cksession));
         return TRUE;
 }
@@ -354,6 +362,8 @@ dbus_set_idle_hint (ConsoleKitSession     *cksession,
         pid_t       calling_pid;
         gboolean    res;
         CkSession *session;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
@@ -390,6 +400,8 @@ dbus_get_session_type (ConsoleKitSession     *cksession,
 {
         const gchar *session_type = console_kit_session_get_session_type (cksession);
 
+        TRACE ();
+
         if (session_type == NULL) {
                 /* GDBus/GVariant doesn't like NULL strings */
                 session_type = "";
@@ -422,6 +434,7 @@ static gboolean
 dbus_is_active (ConsoleKitSession     *cksession,
                 GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_is_active (cksession, context, console_kit_session_get_active (cksession));
         return TRUE;
 }
@@ -430,10 +443,10 @@ static gboolean
 dbus_activate (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
-        gboolean res;
+        gboolean   res;
         CkSession *session = CK_SESSION (cksession);
 
-        g_debug ("entering dbus_activate");
+        TRACE ();
 
         g_return_val_if_fail (session, FALSE);
 
@@ -460,7 +473,7 @@ dbus_get_id (ConsoleKitSession     *cksession,
         CkSession *session = CK_SESSION (cksession);
         gchar     *id;
 
-        g_debug ("entering dbus_get_id");
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
@@ -495,6 +508,8 @@ dbus_get_seat_id (ConsoleKitSession     *cksession,
         CkSession *session = CK_SESSION (cksession);
         const gchar *seat_id;
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         seat_id = session->priv->seat_id;
@@ -525,6 +540,7 @@ static gboolean
 dbus_get_user (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_get_unix_user (cksession, context, console_kit_session_get_unix_user (cksession));
         return TRUE;
 }
@@ -533,6 +549,7 @@ static gboolean
 dbus_get_unix_user (ConsoleKitSession     *cksession,
                     GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_get_unix_user (cksession, context, console_kit_session_get_unix_user (cksession));
         return TRUE;
 }
@@ -553,6 +570,7 @@ static gboolean
 dbus_get_x11_display (ConsoleKitSession     *cksession,
                       GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_get_x11_display (cksession, context, console_kit_session_get_x11_display (cksession));
         return TRUE;
 }
@@ -573,6 +591,7 @@ static gboolean
 dbus_get_display_device (ConsoleKitSession     *cksession,
                              GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_get_x11_display_device (cksession, context, console_kit_session_get_display_device (cksession));
         return TRUE;
 }
@@ -597,6 +616,7 @@ static gboolean
 dbus_get_x11_display_device (ConsoleKitSession     *cksession,
                              GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_get_x11_display_device (cksession, context, console_kit_session_get_x11_display_device (cksession));
         return TRUE;
 }
@@ -622,6 +642,8 @@ dbus_get_remote_host_name (ConsoleKitSession     *cksession,
                            GDBusMethodInvocation *context)
 {
         const gchar *remote_host_name = console_kit_session_get_remote_host_name (cksession);
+
+        TRACE ();
 
         if (remote_host_name == NULL) {
                 remote_host_name = "";
@@ -652,6 +674,9 @@ dbus_get_creation_time (ConsoleKitSession     *cksession,
                         GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION(cksession);
+
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
         console_kit_session_complete_get_creation_time (cksession, context, g_time_val_to_iso8601 (&session->priv->creation_time));
@@ -676,6 +701,7 @@ static gboolean
 dbus_is_local (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
+        TRACE ();
         console_kit_session_complete_is_local (cksession, context, console_kit_session_get_is_local (cksession));
         return TRUE;
 }
@@ -750,6 +776,8 @@ dbus_get_login_session_id (ConsoleKitSession     *cksession,
                            GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION(cksession);
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
@@ -884,7 +912,7 @@ session_add_activity_watch (CkSession *session)
 static void
 session_remove_activity_watch (CkSession *session)
 {
-        g_debug ("entering session_remove_activity_watch");
+        TRACE ();
 
         if (session->priv->idle_monitor == NULL) {
                 return;

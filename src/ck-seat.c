@@ -211,7 +211,7 @@ dbus_get_active_session (ConsoleKitSeat        *ckseat,
         gboolean ret;
         char    *session_id = NULL;
 
-        g_debug ("entering dbus_get_active_session");
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
@@ -266,14 +266,21 @@ _seat_activate_session (CkSeat                *seat,
         adata = NULL;
         ret = FALSE;
 
-        /* for now, only support switching on static seat */
-        if (seat->priv->kind != CK_SEAT_KIND_STATIC) {
-                throw_error (context, CK_SEAT_ERROR_NOT_SUPPORTED, _("Activation is not supported for this kind of seat"));
+        TRACE ();
+
+        if (!CK_IS_SEAT (seat)) {
+                g_debug (_("There is no Seat to activate"));
                 goto out;
         }
 
-        if (session == NULL) {
-                throw_error (context, CK_SEAT_ERROR_GENERAL, _("Unknown session id"));
+        /* for now, only support switching on static seat */
+        if (seat->priv->kind != CK_SEAT_KIND_STATIC) {
+                g_debug (_("Activation is not supported for this kind of seat"));
+                goto out;
+        }
+
+        if (!CK_IS_SESSION (session)) {
+                g_debug (_("Unknown session id"));
                 goto out;
         }
 
@@ -284,7 +291,7 @@ _seat_activate_session (CkSeat                *seat,
         }
         res = ck_get_console_num_from_device (device, &num);
         if (! res) {
-                throw_error (context, CK_SEAT_ERROR_FAILED, _("Unable to activate session"));
+                g_debug (_("Unable to activate session"));
                 goto out;
         }
 
@@ -309,7 +316,7 @@ _seat_activate_session (CkSeat                *seat,
 
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
 
-                throw_error (context, CK_SEAT_ERROR_FAILED, error_message);
+                g_debug (error_message);
                 g_free (error_message);
                 goto out;
         }
@@ -335,7 +342,9 @@ dbus_activate_session (ConsoleKitSeat        *ckseat,
 {
         CkSeat    *seat;
         CkSession *session;
-        gboolean   ret;
+        GError    *error = NULL;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SEAT (ckseat), FALSE);
 
@@ -348,9 +357,14 @@ dbus_activate_session (ConsoleKitSeat        *ckseat,
                 session = g_hash_table_lookup (seat->priv->sessions, ssid);
         }
 
-        ret = _seat_activate_session (seat, session, context);
+        if (!_seat_activate_session (seat, session, context)) {
+                throw_error (context, CK_SEAT_ERROR_FAILED, _("Failed to activate session"));
+                g_clear_error (&error);
+        } else {
+                console_kit_seat_complete_activate_session (ckseat, context);
+        }
 
-        return ret;
+        return TRUE;
 }
 
 static gboolean
@@ -607,10 +621,10 @@ session_activate (CkSession             *session,
                   GDBusMethodInvocation *context,
                   CkSeat                *seat)
 {
-        _seat_activate_session (seat, session, context);
+        TRACE ();
 
-        /* always return TRUE to indicate that the signal was handled */
-        return TRUE;
+        return _seat_activate_session (seat, session, context);
+
 }
 
 gboolean
@@ -618,7 +632,7 @@ ck_seat_remove_session (CkSeat         *seat,
                         CkSession      *session,
                         GError        **error)
 {
-        char       *ssid;
+        char      *ssid;
         char      *orig_ssid;
         CkSession *orig_session;
         gboolean   res;
@@ -728,6 +742,8 @@ dbus_can_activate_sessions (ConsoleKitSeat        *ckseat,
 {
         CkSeat *seat = CK_SEAT (ckseat);
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
         console_kit_seat_complete_can_activate_sessions (ckseat, context, seat->priv->kind == CK_SEAT_KIND_STATIC);
@@ -831,6 +847,8 @@ dbus_get_id (ConsoleKitSeat        *ckseat,
 {
         CkSeat *seat = CK_SEAT (ckseat);
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
         console_kit_seat_complete_get_id (ckseat, context, seat->priv->id);
@@ -911,7 +929,7 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
         CkSeat       *seat;
         const gchar **sessions;
 
-        g_debug ("entering dbus_get_sessions");
+        TRACE ();
 
         seat = CK_SEAT (ckseat);
 
@@ -975,6 +993,8 @@ dbus_get_devices (ConsoleKitSeat        *ckseat,
 {
         CkSeat          *seat = CK_SEAT (ckseat);
         GVariantBuilder  devices;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
