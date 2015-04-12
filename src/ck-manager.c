@@ -1339,7 +1339,7 @@ dbus_restart (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1429,7 +1429,7 @@ dbus_stop (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1487,7 +1487,7 @@ dbus_power_off (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1562,7 +1562,7 @@ dbus_reboot (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1674,7 +1674,7 @@ dbus_suspend (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1785,7 +1785,7 @@ dbus_hibernate (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1896,7 +1896,7 @@ dbus_hybrid_sleep (ConsoleKitManager     *ckmanager,
         /* Check if something in inhibiting that action */
         if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
-                return FALSE;
+                return TRUE;
         }
 
         if (get_system_num_users (manager) > 1) {
@@ -1985,13 +1985,13 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
                 switch (fd) {
                 case CK_INHIBIT_ERROR_INVALID_INPUT:
                         throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid input when creating inhibit lock"));
-                        return FALSE;
+                        return TRUE;
                 case CK_INHIBIT_ERROR_OOM:
                         throw_error (context, CK_MANAGER_ERROR_OOM, _("Unable to create inhibit lock, insufficient memory"));
-                        return FALSE;
+                        return TRUE;
                 default:
                         throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Error creating the inhibit lock"));
-                        return FALSE;
+                        return TRUE;
                 }
         }
 
@@ -2611,7 +2611,7 @@ dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
         if (! res) {
                 g_debug ("CkManager: Unable to lookup caller info - failing");
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to get information about the calling process"));
-                return FALSE;
+                return TRUE;
         }
 
         local_error = NULL;
@@ -2625,7 +2625,7 @@ dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
                 g_debug ("CkManager: Unable to lookup info for caller - failing");
 
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to lookup information about calling process '%d'"), calling_pid);
-                return FALSE;
+                return TRUE;
         }
 
         /* FIXME: should we restrict this by uid? */
@@ -2636,14 +2636,14 @@ dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
         if (leader == NULL) {
                 g_debug ("CkManager: Unable to lookup cookie for caller - failing");
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to find session for cookie"));
-                return FALSE;
+                return TRUE;
         }
 
         session = g_hash_table_lookup (manager->priv->sessions, ck_session_leader_peek_session_id (leader));
         if (session == NULL) {
                 g_debug ("CkManager: Unable to lookup session for cookie - failing");
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to find session for cookie"));
-                return FALSE;
+                return TRUE;
         }
 
         ck_session_get_id (session, &ssid, NULL);
@@ -2689,7 +2689,7 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
 
         if (! res) {
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to get information about the calling process"));
-                return FALSE;
+                return TRUE;
         }
 
         cookie = get_cookie_for_pid (manager, pid);
@@ -2697,7 +2697,7 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
                 g_debug ("CkManager: unable to lookup session for unix process: %u", pid);
 
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to lookup session information for process '%d'"), pid);
-                return FALSE;
+                return TRUE;
         }
 
         res = dbus_get_session_for_cookie (ckmanager, context, cookie);
@@ -2735,7 +2735,7 @@ dbus_get_current_session (ConsoleKitManager     *ckmanager,
 
         if (! res) {
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to get information about the calling process"));
-                return FALSE;
+                return TRUE;
         }
 
         res = dbus_get_session_for_unix_process (ckmanager, context, calling_pid);
@@ -2931,7 +2931,7 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
 
         if (! res) {
                 throw_error (context, CK_MANAGER_ERROR_FAILED, _("Unable to lookup information about calling process '%d'"), calling_pid);
-                return FALSE;
+                return TRUE;
         }
 
         error = NULL;
@@ -2940,7 +2940,7 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
                 throw_error (context, CK_MANAGER_ERROR_FAILED, "%s", error->message);
                 g_error_free (error);
 
-                return FALSE;
+                return TRUE;
         }
 
         error = NULL;
@@ -2948,7 +2948,7 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
         if (! res) {
                 throw_error (context, CK_MANAGER_ERROR_FAILED, "%s", error->message);
                 g_error_free (error);
-                return FALSE;
+                return TRUE;
         } else {
                 g_hash_table_remove (manager->priv->leaders, cookie);
         }

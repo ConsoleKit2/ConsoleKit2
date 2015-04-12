@@ -369,13 +369,13 @@ dbus_set_idle_hint (ConsoleKitSession     *cksession,
         if (! res) {
                 g_warning ("stat on pid %d failed", calling_pid);
                 throw_error (context, CK_SESSION_ERROR_FAILED, _("Unable to lookup information about calling process '%d'"), calling_pid);
-                return FALSE;
+                return TRUE;
         }
 
         /* only restrict this by UID for now */
         if (session->priv->uid != calling_uid) {
                 throw_error (context, CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, _("Only session owner may set idle hint state"));
-                return FALSE;
+                return TRUE;
         }
 
         session_set_idle_hint_internal (session, idle_hint);
@@ -446,7 +446,7 @@ dbus_activate (ConsoleKitSession     *cksession,
                 g_debug ("Activate signal not handled");
 
                 throw_error (context, CK_SESSION_ERROR_GENERAL, _("Unable to activate session"));
-                return FALSE;
+                return TRUE;
         }
 
         console_kit_session_complete_activate (cksession, context);
@@ -500,7 +500,7 @@ dbus_get_seat_id (ConsoleKitSession     *cksession,
         seat_id = session->priv->seat_id;
         if (seat_id == NULL) {
                 throw_error (context, CK_SESSION_ERROR_FAILED, "session not attached to a seat");
-                return FALSE;
+                return TRUE;
         }
 
         console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_id);

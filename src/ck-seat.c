@@ -219,7 +219,7 @@ dbus_get_active_session (ConsoleKitSeat        *ckseat,
 
         if (session_id == NULL) {
                 throw_error (context, CK_SEAT_ERROR_NO_ACTIVE_SESSION, "Seat has no active session");
-                return FALSE;
+                return TRUE;
         }
 
         g_debug ("session_id '%s'", session_id);
