@@ -33,6 +33,7 @@
 
 #define DBUS_NAME                        "org.freedesktop.ConsoleKit"
 #define DBUS_MANAGER_INTERFACE           DBUS_NAME ".Manager"
+#define DBUS_SESSION_INTERFACE           DBUS_NAME ".Session"
 #define DBUS_MANAGER_OBJECT_PATH         "/org/freedesktop/ConsoleKit/Manager"
 
 GDBusProxy *manager;
@@ -49,6 +50,93 @@ print_proxy_info (GDBusProxy *proxy)
              g_dbus_proxy_get_name_owner (proxy),
              g_dbus_proxy_get_object_path (proxy),
              g_dbus_proxy_get_interface_name (proxy));
+}
+
+static void
+print_reply (GDBusProxy *proxy, const gchar *method)
+{
+    GVariant *var;
+    GError   *error = NULL;
+
+    g_print ("calling %s\t", method);
+    var = g_dbus_proxy_call_sync (proxy, method, g_variant_new ("()"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    if (var != NULL) {
+        GString *string = g_variant_print_string (var, NULL, TRUE);
+        g_print ("%s", string->str);
+    } else {
+        g_print ("returned NULL\t");
+        if (error)
+            g_print ("error %s", error->message);
+    }
+    g_clear_error (&error);
+    if (var)
+        g_variant_unref (var);
+    g_print ("\n");
+}
+
+static gboolean
+validate_session (const gchar *path)
+{
+    GDBusProxy *session;
+    GError     *error = NULL;
+
+    g_print ("entering validate_stuff for %s\n", path);
+
+    session = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                             G_DBUS_PROXY_FLAGS_NONE,
+                                             NULL,
+                                             DBUS_NAME,
+                                             path,
+                                             DBUS_SESSION_INTERFACE,
+                                             NULL,
+                                             &error);
+
+    if (session == NULL || error != NULL)
+    {
+        if (error != NULL) {
+            g_printerr ("Error creating session proxy: %s\n", error->message);
+            g_clear_error (&error);
+        }
+        return FALSE;
+    }
+
+    print_proxy_info (session);
+
+    print_reply (session, "GetId");
+
+    print_reply (session, "GetSeatId");
+
+    print_reply (session, "GetSessionType");
+
+    print_reply (session, "GetUser");
+
+    print_reply (session, "GetUnixUser");
+
+    print_reply (session, "GetX11Display");
+
+    print_reply (session, "GetX11DisplayDevice");
+
+    print_reply (session, "GetDisplayDevice");
+
+    print_reply (session, "GetRemoteHostName");
+
+    print_reply (session, "GetLoginSessionId");
+
+    print_reply (session, "IsActive");
+
+    print_reply (session, "IsLocal");
+
+    print_reply (session, "GetCreationTime");
+
+    print_reply (session, "GetIdleHint");
+
+    print_reply (session, "GetIdleSinceHint");
+
+    g_print ("done printing stuff for %s\n\n", path);
+
+    g_object_unref (session);
+
+    return TRUE;
 }
 
 static void
@@ -107,6 +195,8 @@ open_print_and_test_session (GDBusProxy *proxy, const gchar *method)
 
     g_print ("\n");
 
+    validate_session (ssid);
+
     /* test closing our session */
     g_print ("calling CloseSession\t");
     close_var = g_dbus_proxy_call_sync (proxy, "CloseSession",
@@ -159,28 +249,6 @@ print_inhibit_reply (GDBusProxy *proxy, const gchar *method)
     g_print ("\n");
 
     return fd;
-}
-
-static void
-print_reply (GDBusProxy *proxy, const gchar *method)
-{
-    GVariant *var;
-    GError   *error = NULL;
-
-    g_print ("calling %s\t", method);
-    var = g_dbus_proxy_call_sync (proxy, method, g_variant_new ("()"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
-    if (var != NULL) {
-        GString *string = g_variant_print_string (var, NULL, TRUE);
-        g_print ("%s", string->str);
-    } else {
-        g_print ("returned NULL\t");
-        if (error)
-            g_print ("error %s", error->message);
-    }
-    g_clear_error (&error);
-    if (var)
-        g_variant_unref (var);
-    g_print ("\n");
 }
 
 static gboolean

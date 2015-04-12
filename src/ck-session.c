@@ -570,8 +570,17 @@ static gboolean
 dbus_get_x11_display (ConsoleKitSession     *cksession,
                       GDBusMethodInvocation *context)
 {
+        const gchar *x11_display;
+
         TRACE ();
-        console_kit_session_complete_get_x11_display (cksession, context, console_kit_session_get_x11_display (cksession));
+
+        x11_display = console_kit_session_get_x11_display (cksession);
+
+        if (x11_display == NULL) {
+                x11_display = "";
+        }
+
+        console_kit_session_complete_get_x11_display (cksession, context, x11_display);
         return TRUE;
 }
 
@@ -591,8 +600,16 @@ static gboolean
 dbus_get_display_device (ConsoleKitSession     *cksession,
                              GDBusMethodInvocation *context)
 {
+        const gchar *display_device;
         TRACE ();
-        console_kit_session_complete_get_x11_display_device (cksession, context, console_kit_session_get_display_device (cksession));
+
+        display_device = console_kit_session_get_display_device (cksession);
+
+        if (display_device == NULL) {
+                display_device = "";
+        }
+
+        console_kit_session_complete_get_x11_display_device (cksession, context, display_device);
         return TRUE;
 }
 
@@ -616,8 +633,17 @@ static gboolean
 dbus_get_x11_display_device (ConsoleKitSession     *cksession,
                              GDBusMethodInvocation *context)
 {
+        const gchar *x11_display_device;
+
         TRACE ();
-        console_kit_session_complete_get_x11_display_device (cksession, context, console_kit_session_get_x11_display_device (cksession));
+
+        x11_display_device = console_kit_session_get_x11_display_device (cksession);
+
+        if (x11_display_device == NULL) {
+                x11_display_device = "";
+        }
+
+        console_kit_session_complete_get_x11_display_device (cksession, context, x11_display_device);
         return TRUE;
 }
 

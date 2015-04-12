@@ -2404,9 +2404,6 @@ open_session_for_leader (CkManager             *manager,
                 return;
         }
 
-        /* set the is_local flag for the session */
-        ck_session_set_is_local (session, is_local, NULL);
-
 /*      FIXME: probably need to use a GDbusObjectManager and monitor
  *      interface-added/interface-removed signals
         g_bus_watch_name_on_connection (manager->priv->connection,
@@ -2432,6 +2429,11 @@ open_session_for_leader (CkManager             *manager,
 
         /* FIXME: connect to signals */
         /* FIXME: add weak ref */
+
+        /* set the is_local flag for the session */
+        g_debug ("setting session %s is_local %s", ssid, is_local ? "TRUE" : "FALSE");
+        ck_session_set_is_local (session, is_local, NULL);
+
 
         manager_update_system_idle_hint (manager);
         g_signal_connect (CONSOLE_KIT_SESSION (session), "idle-hint-changed",

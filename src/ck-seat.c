@@ -286,7 +286,7 @@ _seat_activate_session (CkSeat                *seat,
 
         device = NULL;
         device = console_kit_session_get_x11_display_device (CONSOLE_KIT_SESSION (session));
-        if (device == NULL) {
+        if (device == NULL || g_strcmp0 (device, "") == 0) {
                 device = console_kit_session_get_display_device (CONSOLE_KIT_SESSION (session));
         }
         res = ck_get_console_num_from_device (device, &num);
@@ -576,7 +576,10 @@ change_active_session (CkSeat    *seat,
          * important that the '-full' signalled is emitted first. */
 
         g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED_FULL], 0, old_session, session);
-        console_kit_seat_emit_active_session_changed (CONSOLE_KIT_SEAT (seat), ssid);
+        if (ssid != NULL) {
+                /* Only emit if we have a valid ssid or GDBus/GVariant gets mad */
+                console_kit_seat_emit_active_session_changed (CONSOLE_KIT_SEAT (seat), ssid);
+        }
 
         if (old_session != NULL) {
                 g_object_unref (old_session);
