@@ -37,6 +37,7 @@ main (int   argc,
     printf ("x11-display-device = /dev/tty15\n");
     printf ("display-device = /dev/pts/0\n");
     printf ("login-session-id = 99\n");
+    printf ("is-local = TRUE");
 
 
     return 0;

@@ -94,7 +94,9 @@ int
 main (int   argc,
       char *argv[])
 {
-        /* do not run these tests as root */
+        /* do not run these tests as root
+         * execute with G_MESSAGES_DEBUG=all ./test-session-leader
+         * for the printout of the parameters collected */
         if (getuid () == 0) {
                 g_warning ("You must NOT be root to run this tests");
                 exit (1);

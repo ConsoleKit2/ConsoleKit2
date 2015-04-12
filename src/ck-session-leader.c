@@ -187,6 +187,8 @@ parse_output (CkSessionLeader *leader,
                 const char *variant_type;
                 GVariant   *element;
                 GType       gtype;
+                gulong      unix_user;
+                gboolean    is_local = FALSE;
 
                 vals = g_strsplit (lines[i], " = ", 2);
                 if (vals == NULL || vals[0] == NULL) {
@@ -206,7 +208,39 @@ parse_output (CkSessionLeader *leader,
                         continue;
                 }
 
-                element = g_variant_new (variant_type, vals[1]);
+                switch (gtype) {
+                case G_TYPE_STRING:
+                        element = g_variant_new (variant_type, vals[1]);
+                        break;
+                case G_TYPE_BOOLEAN:
+                        if(g_ascii_strncasecmp (vals[1], "TRUE", 4) == 0) {
+                                is_local = TRUE;
+                        }
+
+                        element = g_variant_new (variant_type, is_local);
+                        break;
+                case G_TYPE_INT:
+                        unix_user = strtol (vals[1], NULL, 10);
+
+                        /* Error checking for untrusted input */
+                        if ((errno == ERANGE && (unix_user == LONG_MAX || unix_user == LONG_MIN)) || (errno != 0 && unix_user == 0))
+                        {
+                                continue;
+                        }
+
+                        /* Sanity checks */
+                        if (unix_user > INT_MAX)
+                                continue;
+
+                        if (unix_user < 0)
+                                continue;
+
+                        element = g_variant_new (variant_type, (int)unix_user);
+                        break;
+                default:
+                        g_warning ("ck-session-leader unsupported type");
+                        continue;
+                }
 
                 g_variant_builder_add (&ck_parameters, "{sv}", vals[0], element);
 
