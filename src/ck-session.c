@@ -418,11 +418,14 @@ ck_session_set_active (CkSession      *session,
 {
         ConsoleKitSession *cksession;
 
+        TRACE ();
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         cksession = CONSOLE_KIT_SESSION (session);
 
         if (console_kit_session_get_active (cksession) != active) {
+                g_debug ("marking session %s %s", session->priv->id, active ? "active" : "not active");
                 console_kit_session_set_active (cksession, active);
                 console_kit_session_emit_active_changed (cksession, active);
         }

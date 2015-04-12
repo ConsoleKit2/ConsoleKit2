@@ -312,12 +312,20 @@ _seat_activate_session (CkSeat                *seat,
         vt_error = NULL;
         ret = ck_vt_monitor_set_active (seat->priv->vt_monitor, num, &vt_error);
         if (! ret) {
-                gchar *error_message = g_strdup_printf (_("Unable to activate session: %s"), vt_error->message);
+                if (vt_error && vt_error->code == CK_VT_MONITOR_ERROR_ALREADY_ACTIVE) {
+                        g_debug ("Session already active, calling ck_session_set_active to ensure session is marked active");
+                        /* ensure the session knows it's active */
+                        ck_session_set_active (session, TRUE, NULL);
+                } else if (vt_error) {
+                        gchar *error_message = NULL;
+                        error_message = g_strdup_printf (_("Unable to activate session: %s"), vt_error->message);
+
+                        g_debug (error_message);
+                        g_free (error_message);
+                }
 
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
 
-                g_debug (error_message);
-                g_free (error_message);
                 goto out;
         }
 
@@ -547,13 +555,17 @@ change_active_session (CkSeat    *seat,
         CkSession *old_session;
 
         if (seat->priv->active_session == session) {
+                g_debug ("ckseat: change_active_session: seat->priv->active_session == session");
                 return;
         }
 
         old_session = seat->priv->active_session;
 
         if (old_session != NULL) {
-                console_kit_session_set_active (CONSOLE_KIT_SESSION (old_session), FALSE);
+                char *old_ssid;
+                ck_session_get_id (old_session, &old_ssid, NULL);
+                g_debug ("ckseat: change_active_session: old session %s no longer active", old_ssid ? old_ssid : "(null)");
+                ck_session_set_active (old_session, FALSE, NULL);
         }
 
         seat->priv->active_session = session;
@@ -562,7 +574,7 @@ change_active_session (CkSeat    *seat,
         if (session != NULL) {
                 g_object_ref (session);
                 ck_session_get_id (session, &ssid, NULL);
-                console_kit_session_set_active (CONSOLE_KIT_SESSION (session), TRUE);
+                ck_session_set_active (session, TRUE, NULL);
         }
 
         g_debug ("Active session changed: %s", ssid ? ssid : "(null)");

@@ -50,7 +50,9 @@ typedef struct
 
 typedef enum
 {
-         CK_VT_MONITOR_ERROR_GENERAL
+         CK_VT_MONITOR_ERROR_GENERAL,
+         CK_VT_MONITOR_ERROR_ALREADY_ACTIVE,
+         CK_VT_MONITOR_ERROR_NO_CONSOLE
 } CkVtMonitorError;
 
 #define CK_VT_MONITOR_ERROR ck_vt_monitor_error_quark ()

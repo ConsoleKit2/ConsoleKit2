@@ -106,7 +106,7 @@ ck_vt_monitor_set_active (CkVtMonitor    *vt_monitor,
         if (num == vt_monitor->priv->active_num) {
                 g_set_error (error,
                              CK_VT_MONITOR_ERROR,
-                             CK_VT_MONITOR_ERROR_GENERAL,
+                             CK_VT_MONITOR_ERROR_ALREADY_ACTIVE,
                              _("Session is already active"));
                 return FALSE;
         }
@@ -114,7 +114,7 @@ ck_vt_monitor_set_active (CkVtMonitor    *vt_monitor,
         if (vt_monitor->priv->vfd == ERROR) {
                 g_set_error (error,
                              CK_VT_MONITOR_ERROR,
-                             CK_VT_MONITOR_ERROR_GENERAL,
+                             CK_VT_MONITOR_ERROR_NO_CONSOLE,
                              _("No consoles available"));
                 return FALSE;
         }
@@ -147,7 +147,7 @@ ck_vt_monitor_get_active (CkVtMonitor    *vt_monitor,
         if (vt_monitor->priv->vfd == ERROR) {
                 g_set_error (error,
                              CK_VT_MONITOR_ERROR,
-                             CK_VT_MONITOR_ERROR_GENERAL,
+                             CK_VT_MONITOR_ERROR_NO_CONSOLE,
                              _("No consoles available"));
                 return FALSE;
         }
