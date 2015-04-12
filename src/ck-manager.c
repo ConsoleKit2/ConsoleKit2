@@ -2409,16 +2409,6 @@ open_session_for_leader (CkManager             *manager,
         g_dbus_method_invocation_return_value (context , g_variant_new ("(s)", cookie));
 }
 
-enum {
-        PROP_STRING,
-        PROP_BOOLEAN,
-};
-
-#define CK_TYPE_PARAMETER_STRUCT (dbus_g_type_get_struct ("GValueArray", \
-                                                          G_TYPE_STRING,  \
-                                                          G_TYPE_VALUE, \
-                                                          G_TYPE_INVALID))
-
 
 static gboolean
 _verify_login_session_id_is_local (CkManager  *manager,
