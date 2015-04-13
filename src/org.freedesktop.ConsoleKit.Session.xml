@@ -32,6 +32,7 @@
       <doc:doc>
         <doc:description><doc:para>Returns the ID for the Seat the Session is
         attached to.</doc:para>
+        <doc:para>May fail with CK_SESSION_ERROR_FAILED if the session isn't attached to a seat</doc:para>
         </doc:description>
         <doc:seealso><doc:ref type="interface" to="Seat">org.freedesktop.ConsoleKit.Seat</doc:ref></doc:seealso>
       </doc:doc>

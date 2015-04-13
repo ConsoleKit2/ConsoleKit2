@@ -709,7 +709,7 @@ dbus_get_creation_time (ConsoleKitSession     *cksession,
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
         console_kit_session_complete_get_creation_time (cksession, context, g_time_val_to_iso8601 (&session->priv->creation_time));
-         return TRUE;
+        return TRUE;
 }
 
 gboolean
