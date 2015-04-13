@@ -1204,6 +1204,8 @@ ck_session_run_programs (CkSession  *session,
         int   n;
         char *extra_env[11]; /* be sure to adjust this as needed */
 
+        TRACE ();
+
         n = 0;
         cksession = CONSOLE_KIT_SESSION (session);
 
@@ -1245,6 +1247,8 @@ ck_session_dump (CkSession *session,
         char *s;
         char *group_name;
         ConsoleKitSession *cksession;
+
+        TRACE ();
 
         cksession = CONSOLE_KIT_SESSION (session);
 
@@ -1295,8 +1299,8 @@ ck_session_dump (CkSession *session,
                                "remote_host_name",
                                NONULL_STRING (console_kit_session_get_remote_host_name (cksession)));
 
-        console_kit_session_set_active (cksession, g_key_file_get_boolean (key_file, group_name, "is_active", NULL));
-        console_kit_session_set_is_local (cksession, g_key_file_get_boolean (key_file, group_name, "is_local", NULL));
+        g_key_file_set_boolean (key_file, group_name, "is_active", console_kit_session_get_active (cksession));
+        g_key_file_set_boolean (key_file, group_name, "is_local", console_kit_session_get_is_local (cksession));
 
         s = g_time_val_to_iso8601 (&(session->priv->creation_time));
         g_key_file_set_string (key_file,
