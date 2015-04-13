@@ -1163,7 +1163,7 @@ out:
         if (res == TRUE) {
                 g_debug ("User %s has RBAC permission to stop/restart", username);
         } else {
-                g_debug ("User %s does not have RBAC permission to stop/restart", username);
+                g_debug ("User %s does not have RBAC permission to %s", username, action);
         }
 
         g_free (username);
@@ -2839,14 +2839,13 @@ dbus_open_session (ConsoleKitManager     *ckmanager,
                    GDBusMethodInvocation *context)
 {
         const char *sender;
-        gboolean    ret;
 
         TRACE ();
 
         sender = g_dbus_method_invocation_get_sender (context);
-        ret = create_session_for_sender (CK_MANAGER (ckmanager), sender, NULL, context);
+        create_session_for_sender (CK_MANAGER (ckmanager), sender, NULL, context);
 
-        return ret;
+        return TRUE;
 }
 
 /* privileged method - should be protected by D-Bus policy */
@@ -2856,14 +2855,13 @@ dbus_open_session_with_parameters (ConsoleKitManager     *ckmanager,
                                    GVariant              *parameters)
 {
         const char *sender;
-        gboolean    ret;
 
         TRACE ();
 
         sender = g_dbus_method_invocation_get_sender (context);
-        ret = create_session_for_sender (CK_MANAGER (ckmanager), sender, parameters, context);
+        create_session_for_sender (CK_MANAGER (ckmanager), sender, parameters, context);
 
-        return ret;
+        return TRUE;
 }
 
 static gboolean
