@@ -2789,10 +2789,10 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
                 return TRUE;
         }
 
-        res = dbus_get_session_for_cookie (ckmanager, context, cookie);
+        dbus_get_session_for_cookie (ckmanager, context, cookie);
         g_free (cookie);
 
-        return res;
+        return TRUE;
 }
 
 /*
@@ -2829,9 +2829,9 @@ dbus_get_current_session (ConsoleKitManager     *ckmanager,
                 return TRUE;
         }
 
-        res = dbus_get_session_for_unix_process (ckmanager, context, calling_pid);
+        dbus_get_session_for_unix_process (ckmanager, context, calling_pid);
 
-        return res;
+        return TRUE;
 }
 
 static gboolean
