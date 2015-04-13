@@ -556,6 +556,10 @@ change_active_session (CkSeat    *seat,
 
         if (seat->priv->active_session == session) {
                 g_debug ("ckseat: change_active_session: seat->priv->active_session == session");
+                /* ensure session knows it's active */
+                if (session != NULL) {
+                        ck_session_set_active (session, TRUE, NULL);
+                }
                 return;
         }
 

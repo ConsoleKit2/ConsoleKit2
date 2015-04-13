@@ -56,11 +56,13 @@
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
 
-#define CK_SEAT_DIR          SYSCONFDIR "/ConsoleKit/seats.d"
-#define LOG_FILE             LOCALSTATEDIR "/log/ConsoleKit/history"
-#define CK_DBUS_PATH         "/org/freedesktop/ConsoleKit"
-#define CK_MANAGER_DBUS_PATH CK_DBUS_PATH "/Manager"
-#define CK_MANAGER_DBUS_NAME "org.freedesktop.ConsoleKit.Manager"
+#define CK_SEAT_DIR            SYSCONFDIR "/ConsoleKit/seats.d"
+#define LOG_FILE               LOCALSTATEDIR "/log/ConsoleKit/history"
+#define DBUS_NAME              "org.freedesktop.ConsoleKit"
+#define CK_DBUS_PATH           "/org/freedesktop/ConsoleKit"
+#define CK_MANAGER_DBUS_PATH   CK_DBUS_PATH "/Manager"
+#define DBUS_SESSION_INTERFACE DBUS_NAME ".Session"
+#define DBUS_MANAGER_INTERFACE DBUS_NAME ".Manager"
 
 struct CkManagerPrivate
 {
@@ -273,15 +275,15 @@ error:
 
 static const GDBusErrorEntry ck_manager_error_entries[] =
 {
-        { CK_MANAGER_ERROR_FAILED,                  CK_MANAGER_DBUS_NAME ".Error.Failed" },
-        { CK_MANAGER_ERROR_GENERAL,                 CK_MANAGER_DBUS_NAME ".Error.General" },
-        { CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_DBUS_NAME ".Error.InsufficientPermission" },
-        { CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,  CK_MANAGER_DBUS_NAME ".Error.AuthorizationRequired" },
-        { CK_MANAGER_ERROR_BUSY,                    CK_MANAGER_DBUS_NAME ".Error.Busy" },
-        { CK_MANAGER_ERROR_NOT_SUPPORTED,           CK_MANAGER_DBUS_NAME ".Error.NotSupported" },
-        { CK_MANAGER_ERROR_INHIBITED,               CK_MANAGER_DBUS_NAME ".Error.Inhibited" },
-        { CK_MANAGER_ERROR_INVALID_INPUT,           CK_MANAGER_DBUS_NAME ".Error.InvalidInput" },
-        { CK_MANAGER_ERROR_OOM,                     CK_MANAGER_DBUS_NAME ".Error.OutOfMemory" }
+        { CK_MANAGER_ERROR_FAILED,                  DBUS_MANAGER_INTERFACE ".Error.Failed" },
+        { CK_MANAGER_ERROR_GENERAL,                 DBUS_MANAGER_INTERFACE ".Error.General" },
+        { CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, DBUS_MANAGER_INTERFACE ".Error.InsufficientPermission" },
+        { CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,  DBUS_MANAGER_INTERFACE ".Error.AuthorizationRequired" },
+        { CK_MANAGER_ERROR_BUSY,                    DBUS_MANAGER_INTERFACE ".Error.Busy" },
+        { CK_MANAGER_ERROR_NOT_SUPPORTED,           DBUS_MANAGER_INTERFACE ".Error.NotSupported" },
+        { CK_MANAGER_ERROR_INHIBITED,               DBUS_MANAGER_INTERFACE ".Error.Inhibited" },
+        { CK_MANAGER_ERROR_INVALID_INPUT,           DBUS_MANAGER_INTERFACE ".Error.InvalidInput" },
+        { CK_MANAGER_ERROR_OOM,                     DBUS_MANAGER_INTERFACE ".Error.OutOfMemory" }
 };
 
 GQuark
@@ -2380,6 +2382,56 @@ dbus_get_system_idle_since_hint (ConsoleKitManager     *ckmanager,
 }
 
 static void
+on_name_owner_notify (GObject    *object,
+                      GParamSpec *pspec,
+                      gpointer    user_data)
+{
+        GDBusProxy *proxy = G_DBUS_PROXY (object);
+        CkManager  *manager = CK_MANAGER (user_data);
+        gchar      *name_owner;
+
+        TRACE ();
+
+        name_owner = g_dbus_proxy_get_name_owner (proxy);
+
+        if (!name_owner) {
+                g_debug ("lost a session on bus");
+                /* We lost the name on the bus, remove it */
+                remove_sessions_for_connection (g_dbus_proxy_get_connection (proxy),
+                                                g_dbus_proxy_get_object_path (proxy),
+                                                manager);
+                /* no longer need this proxy */
+                g_object_unref (proxy);
+        } else {
+                g_free (name_owner);
+        }
+}
+
+static void
+session_dbus_proxy_new_cb (GObject      *source,
+                           GAsyncResult *result,
+                           gpointer      user_data)
+{
+        GDBusProxy *proxy;
+        CkManager  *manager;
+
+        TRACE ();
+
+        proxy = g_dbus_proxy_new_for_bus_finish (result, NULL);
+        if (!proxy)
+                return;
+
+        manager = CK_MANAGER (user_data);
+
+        g_debug ("connecting signal for %s", g_dbus_proxy_get_object_path (proxy));
+
+        g_signal_connect (proxy,
+                          "notify::g-name-owner",
+                          G_CALLBACK (on_name_owner_notify),
+                          manager);
+}
+
+static void
 open_session_for_leader (CkManager             *manager,
                          CkSessionLeader       *leader,
                          const GVariant        *parameters,
@@ -2404,16 +2456,6 @@ open_session_for_leader (CkManager             *manager,
                 return;
         }
 
-/*      FIXME: probably need to use a GDbusObjectManager and monitor
- *      interface-added/interface-removed signals
-        g_bus_watch_name_on_connection (manager->priv->connection,
-                                        ssid,
-                                        G_BUS_NAME_WATCHER_FLAGS_NONE,
-                                        NULL,
-                                        remove_sessions_for_connection,
-                                        manager,
-                                        NULL);
-*/
         g_hash_table_insert (manager->priv->sessions,
                              g_strdup (ssid),
                              g_object_ref (session));
@@ -2434,6 +2476,16 @@ open_session_for_leader (CkManager             *manager,
         g_debug ("setting session %s is_local %s", ssid, is_local ? "TRUE" : "FALSE");
         ck_session_set_is_local (session, is_local, NULL);
 
+        /* Watch the session so we can track when it's removed from the bus */
+        g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+                                  G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                  NULL,
+                                  DBUS_NAME,
+                                  ssid,
+                                  DBUS_SESSION_INTERFACE,
+                                  NULL,
+                                  session_dbus_proxy_new_cb,
+                                  manager);
 
         manager_update_system_idle_hint (manager);
         g_signal_connect (CONSOLE_KIT_SESSION (session), "idle-hint-changed",
@@ -3098,7 +3150,8 @@ register_manager (CkManager *manager, GDBusConnection *connection)
                                                           &error);
         if (manager->priv->bus_proxy == NULL) {
                 g_warning ("cannot connect to DBus: %s", error->message);
-                g_error_free (error);
+                g_clear_error (&error);
+                return FALSE;
         }
 
         /* create the seats after we've registered on the manager on the bus */
