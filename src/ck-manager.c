@@ -1137,8 +1137,8 @@ check_rbac_permissions (CkManager             *manager,
         const char *sender;
         char       *username;
         gboolean    res;
-        uid_t       uid;
-        pid_t       pid;
+        uid_t       uid = NULL;
+        pid_t       pid = NULL;
 
         username = NULL;
         sender   = g_dbus_method_invocation_get_sender (context);
@@ -2613,8 +2613,8 @@ create_session_for_sender (CkManager             *manager,
                            const GVariant        *parameters,
                            GDBusMethodInvocation *context)
 {
-        pid_t           pid;
-        uid_t           uid;
+        pid_t           pid = NULL;
+        uid_t           uid = NULL;
         gboolean        res;
         char            *cookie;
         char            *ssid;
@@ -2676,8 +2676,8 @@ dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
         CkManager       *manager;
         gboolean         res;
         const char      *sender;
-        uid_t            calling_uid;
-        pid_t            calling_pid;
+        uid_t            calling_uid = NULL;
+        pid_t            calling_pid = NULL;
         CkProcessStat   *stat;
         char            *ssid;
         CkSession       *session;
@@ -2760,8 +2760,8 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
         CkManager     *manager;
         gboolean       res;
         const char    *sender;
-        uid_t          calling_uid;
-        pid_t          calling_pid;
+        uid_t          calling_uid = NULL;
+        pid_t          calling_pid = NULL;
         char          *cookie;
 
         manager = CK_MANAGER (ckmanager);
@@ -2809,8 +2809,8 @@ dbus_get_current_session (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         gboolean    res;
         const char *sender;
-        uid_t       calling_uid;
-        pid_t       calling_pid;
+        uid_t       calling_uid = NULL;
+        pid_t       calling_pid = NULL;
 
         TRACE ();
 
@@ -3008,8 +3008,8 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
         CkManager  *manager;
         gboolean    res;
         const char *sender;
-        uid_t       calling_uid;
-        pid_t       calling_pid;
+        uid_t       calling_uid = NULL;
+        pid_t       calling_pid = NULL;
         GError     *error;
 
         TRACE ();
