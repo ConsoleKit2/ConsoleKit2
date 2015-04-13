@@ -208,14 +208,13 @@ dbus_get_active_session (ConsoleKitSeat        *ckseat,
                          GDBusMethodInvocation *context)
 {
         CkSeat *seat = CK_SEAT (ckseat);
-        gboolean ret;
         char    *session_id = NULL;
 
         TRACE ();
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        ret = ck_seat_get_active_session (seat, &session_id, NULL);
+        ck_seat_get_active_session (seat, &session_id, NULL);
 
         if (session_id == NULL) {
                 throw_error (context, CK_SEAT_ERROR_NO_ACTIVE_SESSION, "Seat has no active session");
@@ -225,7 +224,7 @@ dbus_get_active_session (ConsoleKitSeat        *ckseat,
         g_debug ("session_id '%s'", session_id);
 
         console_kit_seat_complete_get_active_session (ckseat, context, session_id);
-        return ret;
+        return TRUE;
 }
 
 typedef struct
