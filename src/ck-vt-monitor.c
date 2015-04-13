@@ -523,7 +523,7 @@ ck_vt_monitor_finalize (GObject *object)
 {
         CkVtMonitor *vt_monitor;
 
-        TRACE ("entering");
+        TRACE ();
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_VT_MONITOR (object));

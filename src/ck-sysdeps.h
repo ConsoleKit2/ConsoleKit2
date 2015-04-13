@@ -106,7 +106,6 @@ gboolean     ck_wait_for_console_switch       (gint            sys_fd,
 #elif defined (G_HAVE_GNUC_VARARGS)
 
 #define TRACE(fmt, args...)     G_STMT_START{                                \
-{                                                                            \
     g_debug ("TRACE[%s:%d] %s(): entering",__FILE__,__LINE__,__DBG_FUNC__);  \
 }G_STMT_END
 

@@ -319,7 +319,7 @@ _seat_activate_session (CkSeat                *seat,
                         gchar *error_message = NULL;
                         error_message = g_strdup_printf (_("Unable to activate session: %s"), vt_error->message);
 
-                        g_debug (error_message);
+                        g_debug ("%s", error_message);
                         g_free (error_message);
                 }
 
@@ -956,7 +956,7 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
         sessions = (const gchar**)g_hash_table_get_keys_as_array (seat->priv->sessions, NULL);
 
         /* gdbus/gvariant requires that we return something */
-        if (sessions == NULL) {
+        if (sessions[0] == NULL) {
                 sessions[0] = "";
                 sessions[1] = NULL;
         }

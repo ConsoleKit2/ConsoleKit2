@@ -187,7 +187,7 @@ parse_output (CkSessionLeader *leader,
                 const char *variant_type;
                 GVariant   *element;
                 GType       gtype;
-                gulong      unix_user;
+                glong       unix_user;
                 gboolean    is_local = FALSE;
 
                 vals = g_strsplit (lines[i], " = ", 2);
