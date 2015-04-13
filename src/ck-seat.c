@@ -1085,6 +1085,7 @@ ck_seat_get_property (GObject    *object,
                 break;
         case PROP_CONNECTION:
                 g_value_set_pointer (value, self->priv->connection);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
                 break;
