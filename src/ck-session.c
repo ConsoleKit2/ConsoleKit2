@@ -358,8 +358,8 @@ dbus_set_idle_hint (ConsoleKitSession     *cksession,
                     gboolean               idle_hint)
 {
         const char *sender;
-        uid_t       calling_uid = NULL;
-        pid_t       calling_pid = NULL;
+        uid_t       calling_uid = 0;
+        pid_t       calling_pid = 0;
         gboolean    res;
         CkSession *session;
 
