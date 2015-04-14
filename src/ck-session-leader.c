@@ -235,7 +235,7 @@ parse_output (CkSessionLeader *leader,
                         if (unix_user < 0)
                                 continue;
 
-                        element = g_variant_new (variant_type, (int)unix_user);
+                        element = g_variant_new (variant_type, (uid_t)unix_user);
                         break;
                 default:
                         g_warning ("ck-session-leader unsupported type");
