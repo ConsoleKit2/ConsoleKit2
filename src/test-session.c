@@ -259,7 +259,7 @@ open_session (void)
     if (activate_var)
         g_variant_unref (activate_var);
 
-    g_print ("calling Activate (expected: GDBus.Error:org.freedesktop.ConsoleKit.Session.Error.General)\n");
+    g_print ("calling Activate (expected: GDBus.Error:org.freedesktop.ConsoleKit.Session.Error.NotSupported)\n");
     activate_var = g_dbus_proxy_call_sync (session, "Activate", g_variant_new ("()"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
     if (activate_var == NULL) {
         g_print ("returned NULL\t");

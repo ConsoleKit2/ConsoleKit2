@@ -35,6 +35,7 @@
 
 #include "ck-tty-idle-monitor.h"
 #include "ck-session.h"
+#include "ck-seat.h"
 #include "ck-marshal.h"
 #include "ck-run-programs.h"
 #include "ck-sysdeps.h"
@@ -94,7 +95,8 @@ static const GDBusErrorEntry ck_session_error_entries[] =
         { CK_SESSION_ERROR_FAILED,                  CK_SESSION_DBUS_NAME ".Error.Failed" },
         { CK_SESSION_ERROR_GENERAL,                 CK_SESSION_DBUS_NAME ".Error.General" },
         { CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, CK_SESSION_DBUS_NAME ".Error.InsufficientPermission" },
-        { CK_SESSION_ERROR_NOT_SUPPORTED,           CK_SESSION_DBUS_NAME ".Error.NotSupported" }
+        { CK_SESSION_ERROR_NOT_SUPPORTED,           CK_SESSION_DBUS_NAME ".Error.NotSupported" },
+        { CK_SESSION_ERROR_ALREADY_ACTIVE,          CK_SESSION_DBUS_NAME ".Error.AlreadyActive" }
 };
 
 GQuark
@@ -124,6 +126,7 @@ ck_session_error_get_type (void)
           ENUM_ENTRY (CK_SESSION_ERROR_GENERAL,                 "General"),
           ENUM_ENTRY (CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, "InsufficientPermission"),
           ENUM_ENTRY (CK_SESSION_ERROR_NOT_SUPPORTED,           "NotSupported"),
+          ENUM_ENTRY (CK_SESSION_ERROR_ALREADY_ACTIVE,          "AlreadyActive"),
           { 0, 0, 0 }
         };
       g_assert (CK_SESSION_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -446,22 +449,35 @@ static gboolean
 dbus_activate (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
-        gboolean   res;
+        GError    *error;
         CkSession *session = CK_SESSION (cksession);
 
         TRACE ();
 
         g_return_val_if_fail (session, FALSE);
 
-        res = FALSE;
-        g_signal_emit (session, signals [ACTIVATE], 0, context, &res);
-        if (! res) {
+        /* Set an initial error message in the event the signal isn't handeled */
+        g_set_error (&error, CK_SESSION_ERROR, CK_SESSION_ERROR_NOT_SUPPORTED,
+                     _("Activate signal not handeled. Session not attached to seat, or the seat doesn't support activation changes"));
+
+        g_signal_emit (session, signals [ACTIVATE], 0, context, &error);
+        if (error != NULL) {
                 /* if the signal is not handled then either:
                    a) aren't attached to seat
                    b) seat doesn't support activation changes */
-                g_debug ("Activate signal not handled");
+                g_debug ("Got error message: %s", error->message);
 
-                throw_error (context, CK_SESSION_ERROR_GENERAL, _("Unable to activate session"));
+                /* translate and throw the error */
+                switch (error->code) {
+                case CK_SEAT_ERROR_ALREADY_ACTIVE:
+                        throw_error (context, CK_SESSION_ERROR_ALREADY_ACTIVE, error->message);
+                        break;
+                case CK_SEAT_ERROR_NOT_SUPPORTED:
+                        throw_error (context, CK_SESSION_ERROR_NOT_SUPPORTED, error->message);
+                        break;
+                default:
+                        throw_error (context, CK_SESSION_ERROR_GENERAL, error->message);
+                }
                 return TRUE;
         }
 
@@ -986,8 +1002,8 @@ ck_session_class_init (CkSessionClass *klass)
                               G_STRUCT_OFFSET (CkSessionClass, activate),
                               NULL,
                               NULL,
-                              ck_marshal_BOOLEAN__POINTER,
-                              G_TYPE_BOOLEAN,
+                              ck_marshal_POINTER__POINTER,
+                              G_TYPE_POINTER,
                               1, G_TYPE_POINTER);
 
         /* Install private properties we're not exporting over D-BUS */

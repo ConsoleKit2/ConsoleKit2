@@ -90,6 +90,7 @@ static const GDBusErrorEntry ck_seat_error_entries[] =
         { CK_SEAT_ERROR_INSUFFICIENT_PERMISSION, CK_SEAT_DBUS_NAME ".Error.InsufficientPermission" },
         { CK_SEAT_ERROR_NOT_SUPPORTED,           CK_SEAT_DBUS_NAME ".Error.NotSupported" },
         { CK_SEAT_ERROR_NO_ACTIVE_SESSION,       CK_SEAT_DBUS_NAME ".Error.NoActiveSession" },
+        { CK_SEAT_ERROR_ALREADY_ACTIVE,          CK_SEAT_DBUS_NAME ".Error.AlreadyActive" },
 };
 
 GQuark
@@ -121,6 +122,7 @@ ck_seat_error_get_type (void)
           ENUM_ENTRY (CK_SEAT_ERROR_INSUFFICIENT_PERMISSION, "InsufficientPermission"),
           ENUM_ENTRY (CK_SEAT_ERROR_NOT_SUPPORTED,           "NotSupported"),
           ENUM_ENTRY (CK_SEAT_ERROR_NO_ACTIVE_SESSION,       "NoActiveSession"),
+          ENUM_ENTRY (CK_SEAT_ERROR_ALREADY_ACTIVE,          "AlreadyActive"),
           { 0, 0, 0 }
         };
       g_assert (CK_SEAT_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -249,7 +251,7 @@ activated_cb (CkVtMonitor    *vt_monitor,
         g_signal_handler_disconnect (vt_monitor, adata->handler_id);
 }
 
-static gboolean
+static gpointer
 _seat_activate_session (CkSeat                *seat,
                         CkSession             *session,
                         GDBusMethodInvocation *context)
@@ -259,7 +261,7 @@ _seat_activate_session (CkSeat                *seat,
         guint         num;
         const char   *device;
         ActivateData *adata;
-        GError       *vt_error;
+        GError       *vt_error = NULL;
 
         device = NULL;
         adata = NULL;
@@ -268,18 +270,18 @@ _seat_activate_session (CkSeat                *seat,
         TRACE ();
 
         if (!CK_IS_SEAT (seat)) {
-                g_debug (_("There is no Seat to activate"));
+                g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_FAILED, _("There is no Seat to activate"));
                 goto out;
         }
 
         /* for now, only support switching on static seat */
         if (seat->priv->kind != CK_SEAT_KIND_STATIC) {
-                g_debug (_("Activation is not supported for this kind of seat"));
+                g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_NOT_SUPPORTED, _("Activation is not supported for this kind of seat"));
                 goto out;
         }
 
         if (!CK_IS_SESSION (session)) {
-                g_debug (_("Unknown session id"));
+                g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_FAILED, _("Unknown session id"));
                 goto out;
         }
 
@@ -290,7 +292,7 @@ _seat_activate_session (CkSeat                *seat,
         }
         res = ck_get_console_num_from_device (device, &num);
         if (! res) {
-                g_debug (_("Unable to activate session"));
+                g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_FAILED, _("Unable to activate session"));
                 goto out;
         }
 
@@ -313,14 +315,11 @@ _seat_activate_session (CkSeat                *seat,
         if (! ret) {
                 if (vt_error && vt_error->code == CK_VT_MONITOR_ERROR_ALREADY_ACTIVE) {
                         g_debug ("Session already active, calling ck_session_set_active to ensure session is marked active");
+                        g_clear_error (&vt_error);
+
+                        g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_ALREADY_ACTIVE, _("Session already active"));
                         /* ensure the session knows it's active */
                         ck_session_set_active (session, TRUE, NULL);
-                } else if (vt_error) {
-                        gchar *error_message = NULL;
-                        error_message = g_strdup_printf (_("Unable to activate session: %s"), vt_error->message);
-
-                        g_debug ("%s", error_message);
-                        g_free (error_message);
                 }
 
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
@@ -330,7 +329,7 @@ _seat_activate_session (CkSeat                *seat,
 
  out:
 
-        return ret;
+        return vt_error;
 }
 
 /*
@@ -364,8 +363,10 @@ dbus_activate_session (ConsoleKitSeat        *ckseat,
                 session = g_hash_table_lookup (seat->priv->sessions, ssid);
         }
 
-        if (!_seat_activate_session (seat, session, context)) {
-                throw_error (context, CK_SEAT_ERROR_FAILED, _("Failed to activate session"));
+        error = _seat_activate_session (seat, session, context);
+
+        if (error != NULL) {
+                throw_error (context, error->code, error->message);
                 g_clear_error (&error);
         } else {
                 console_kit_seat_complete_activate_session (ckseat, context);
@@ -634,7 +635,7 @@ maybe_update_active_session (CkSeat *seat)
         }
 }
 
-static gboolean
+static gpointer
 session_activate (CkSession             *session,
                   GDBusMethodInvocation *context,
                   CkSeat                *seat)
