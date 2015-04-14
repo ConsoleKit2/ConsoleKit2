@@ -3185,7 +3185,7 @@ dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
         sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
 
         /* gdbus/gvariant requires that we return something */
-        if (sessions[0] == NULL) {
+        if (sessions == NULL) {
                 sessions[0] = "";
                 sessions[1] = NULL;
         }
@@ -3221,7 +3221,7 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
         seats = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->seats, NULL);
 
         /* gdbus/gvariant requires that we return something */
-        if (seats[0] == NULL) {
+        if (seats == NULL) {
                 seats[0] = "";
                 seats[1] = NULL;
         }
@@ -3247,7 +3247,7 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
         sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
 
         /* gdbus/gvariant requires that we return something */
-        if (sessions[0] == NULL) {
+        if (sessions == NULL) {
                 sessions[0] = "";
                 sessions[1] = NULL;
         }

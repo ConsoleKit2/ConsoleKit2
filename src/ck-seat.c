@@ -957,7 +957,7 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
         sessions = (const gchar**)g_hash_table_get_keys_as_array (seat->priv->sessions, NULL);
 
         /* gdbus/gvariant requires that we return something */
-        if (sessions[0] == NULL) {
+        if (sessions == NULL) {
                 sessions[0] = "";
                 sessions[1] = NULL;
         }
