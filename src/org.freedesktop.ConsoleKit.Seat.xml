@@ -95,7 +95,7 @@ seat at a time.</doc:para>
           cases, if successful, this will cause the session to
           become visible and take control of the hardware that is
           associated with this seat.</doc:para>
-          <doc:para>May fail with: CK_SEAT_ERROR_FAILED</doc:para>
+          <doc:para>May fail with: CK_SEAT_ERROR_FAILED, CK_SEAT_ERROR_ALREADY_ACTIVE, CK_SEAT_ERROR_NOT_SUPPORTED</doc:para>
         </doc:description>
         <doc:seealso><doc:ref type="method" to="Session.Activate">Activate()</doc:ref></doc:seealso>
       </doc:doc>

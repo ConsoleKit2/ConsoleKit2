@@ -320,6 +320,9 @@ _seat_activate_session (CkSeat                *seat,
                         g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_ALREADY_ACTIVE, _("Session already active"));
                         /* ensure the session knows it's active */
                         ck_session_set_active (session, TRUE, NULL);
+                } else {
+                        /* Change the error code for CkSeat */
+                        vt_error->code = CK_SEAT_ERROR_FAILED;
                 }
 
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
