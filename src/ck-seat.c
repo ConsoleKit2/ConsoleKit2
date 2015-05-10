@@ -91,6 +91,7 @@ static const GDBusErrorEntry ck_seat_error_entries[] =
         { CK_SEAT_ERROR_NOT_SUPPORTED,           CK_SEAT_DBUS_NAME ".Error.NotSupported" },
         { CK_SEAT_ERROR_NO_ACTIVE_SESSION,       CK_SEAT_DBUS_NAME ".Error.NoActiveSession" },
         { CK_SEAT_ERROR_ALREADY_ACTIVE,          CK_SEAT_DBUS_NAME ".Error.AlreadyActive" },
+        { CK_SEAT_ERROR_NO_SESSIONS,             CK_SEAT_DBUS_NAME ".Error.NoSessions" },
 };
 
 GQuark
@@ -123,6 +124,7 @@ ck_seat_error_get_type (void)
           ENUM_ENTRY (CK_SEAT_ERROR_NOT_SUPPORTED,           "NotSupported"),
           ENUM_ENTRY (CK_SEAT_ERROR_NO_ACTIVE_SESSION,       "NoActiveSession"),
           ENUM_ENTRY (CK_SEAT_ERROR_ALREADY_ACTIVE,          "AlreadyActive"),
+          ENUM_ENTRY (CK_SEAT_ERROR_NO_SESSIONS,             "NoSessions"),
           { 0, 0, 0 }
         };
       g_assert (CK_SEAT_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -959,10 +961,10 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
 
         sessions = (const gchar**)g_hash_table_get_keys_as_array (seat->priv->sessions, NULL);
 
-        /* gdbus/gvariant requires that we return something */
-        if (sessions[0] == NULL) {
-                sessions[0] = "";
-                sessions[1] = NULL;
+        /* gdbus/gvariant requires that we throw an error to return NULL */
+        if (sessions == NULL) {
+                throw_error (context, CK_SEAT_ERROR_NO_SESSIONS, _("Seat has no sessions"));
+                return TRUE;
         }
 
         console_kit_seat_complete_get_sessions (ckseat, context, sessions);

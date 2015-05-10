@@ -283,7 +283,9 @@ static const GDBusErrorEntry ck_manager_error_entries[] =
         { CK_MANAGER_ERROR_NOT_SUPPORTED,           DBUS_MANAGER_INTERFACE ".Error.NotSupported" },
         { CK_MANAGER_ERROR_INHIBITED,               DBUS_MANAGER_INTERFACE ".Error.Inhibited" },
         { CK_MANAGER_ERROR_INVALID_INPUT,           DBUS_MANAGER_INTERFACE ".Error.InvalidInput" },
-        { CK_MANAGER_ERROR_OOM,                     DBUS_MANAGER_INTERFACE ".Error.OutOfMemory" }
+        { CK_MANAGER_ERROR_OOM,                     DBUS_MANAGER_INTERFACE ".Error.OutOfMemory" },
+        { CK_MANAGER_ERROR_NO_SEATS,                DBUS_MANAGER_INTERFACE ".Error.NoSeats" },
+        { CK_MANAGER_ERROR_NO_SESSIONS,             DBUS_MANAGER_INTERFACE ".Error.NoSessions" },
 };
 
 GQuark
@@ -318,6 +320,8 @@ ck_manager_error_get_type (void)
           ENUM_ENTRY (CK_MANAGER_ERROR_INHIBITED,               "Inhibited"),
           ENUM_ENTRY (CK_MANAGER_ERROR_INVALID_INPUT,           "InvalidInput"),
           ENUM_ENTRY (CK_MANAGER_ERROR_OOM,                     "OutOfMemory"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_NO_SEATS,                "NoSeats"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_NO_SESSIONS,             "NoSessions"),
           { 0, 0, 0 }
         };
       g_assert (CK_MANAGER_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -3184,10 +3188,10 @@ dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
 
         sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
 
-        /* gdbus/gvariant requires that we return something */
-        if (sessions[0] == NULL) {
-                sessions[0] = "";
-                sessions[1] = NULL;
+        /* gdbus/gvariant requires that we throw an error to return NULL */
+        if (sessions == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SESSIONS, _("User has no sessions"));
+                return TRUE;
         }
 
         console_kit_manager_complete_get_sessions_for_unix_user (ckmanager, context, sessions);
@@ -3220,10 +3224,10 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
 
         seats = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->seats, NULL);
 
-        /* gdbus/gvariant requires that we return something */
-        if (seats[0] == NULL) {
-                seats[0] = "";
-                seats[1] = NULL;
+        /* gdbus/gvariant requires that we throw an error to return NULL */
+        if (seats == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SEATS, _("User has no seats"));
+                return TRUE;
         }
 
         console_kit_manager_complete_get_seats (ckmanager, context, seats);
