@@ -449,7 +449,8 @@ static gboolean
 dbus_activate (ConsoleKitSession     *cksession,
                GDBusMethodInvocation *context)
 {
-        GError    *error;
+        GError    *error   = NULL;
+        GError    *initial_error;
         CkSession *session = CK_SESSION (cksession);
 
         TRACE ();
@@ -459,6 +460,10 @@ dbus_activate (ConsoleKitSession     *cksession,
         /* Set an initial error message in the event the signal isn't handeled */
         g_set_error (&error, CK_SESSION_ERROR, CK_SESSION_ERROR_NOT_SUPPORTED,
                      _("Activate signal not handeled. Session not attached to seat, or the seat doesn't support activation changes"));
+
+        /* keep track of the starting error because the call to g_signal_emit
+         * may change it and we still need to free it */
+        initial_error = error;
 
         g_signal_emit (session, signals [ACTIVATE], 0, context, &error);
         if (error != NULL) {
@@ -478,8 +483,13 @@ dbus_activate (ConsoleKitSession     *cksession,
                 default:
                         throw_error (context, CK_SESSION_ERROR_GENERAL, error->message);
                 }
+
+                g_clear_error (&error);
+                g_clear_error (&initial_error);
                 return TRUE;
         }
+
+        g_clear_error (&initial_error);
 
         console_kit_session_complete_activate (cksession, context);
         return TRUE;
