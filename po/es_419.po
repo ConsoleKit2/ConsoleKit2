@@ -1,0 +1,161 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The ConsoleKit2 Team
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Pablo Roberto Francisco Lezaeta Reyes <prflr88@gmail.com>, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: ConsoleKit2\n"
+"Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
+"POT-Creation-Date: 2014-11-17 10:15+0300\n"
+"PO-Revision-Date: 2015-02-02 22:20+0000\n"
+"Last-Translator: Pablo Roberto Francisco Lezaeta Reyes <prflr88@gmail.com>\n"
+"Language-Team: Spanish (Latin America) (http://www.transifex.com/projects/p/consolekit2/language/es_419/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es_419\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/ck-seat.c:182
+msgid "Another session was activated while waiting"
+msgstr "Se inició otra sesión mientras se estaba en espera"
+
+#: src/ck-seat.c:211
+msgid "Activation is not supported for this kind of seat"
+msgstr "La activación no está disponible para este tipo de puesto"
+
+#: src/ck-seat.c:221
+msgid "Unknown session id"
+msgstr "El Id de sesión desconocido"
+
+#: src/ck-seat.c:237 src/ck-vt-monitor.c:132 src/ck-session.c:383
+msgid "Unable to activate session"
+msgstr "No se pudo activar la sesión"
+
+#: src/ck-seat.c:598
+msgid "Session is not attached to this seat"
+msgstr "La sesión no está adjunta a este puesto"
+
+#: src/main.c:352
+msgid "Enable debugging code"
+msgstr "Habilitar código de depuración"
+
+#: src/main.c:353
+msgid "Don't become a daemon"
+msgstr "No convertirse en un demonio"
+
+#: src/main.c:354
+msgid "Exit after a time - for debugging"
+msgstr "Salir después de un tiempo - para depurar"
+
+#: src/main.c:381 tools/ck-collect-session-info.c:440
+msgid "You must be root to run this program"
+msgstr "Debe ser superusuario para ejecutar este programa"
+
+#: src/main.c:385
+msgid "Console kit daemon"
+msgstr "Kit de demonio de consola"
+
+#: src/ck-vt-monitor.c:113
+msgid "Session is already active"
+msgstr "La sesión está activa"
+
+#: src/ck-vt-monitor.c:121 src/ck-vt-monitor.c:154
+msgid "No consoles available"
+msgstr "No hay consolas disponibles"
+
+#: src/ck-manager.c:2648 src/ck-manager.c:2747 src/ck-manager.c:2804
+msgid "Unable to get information about the calling process"
+msgstr "No se puede buscar información acerca de las llamadas a proceso"
+
+#: src/ck-manager.c:2661 src/ck-session.c:278
+#, c-format
+msgid "Unable to lookup information about calling process '%d'"
+msgstr "No se puede buscar información acerca de las llamadas al proceso «%d»"
+
+#: src/ck-manager.c:2685 src/ck-manager.c:2697 src/ck-manager.c:2954
+msgid "Unable to find session for cookie"
+msgstr "No se pudo encontrar la sesión para la galleta"
+
+#: src/ck-manager.c:2761
+#, c-format
+msgid "Unable to lookup session information for process '%d'"
+msgstr "No se puede buscar información de la sesión para el proceso «%d»"
+
+#: src/ck-manager.c:2962
+msgid "User ID does not match the owner of cookie"
+msgstr "El Id del usuario no concuerda con el propietario de la galleta"
+
+#: src/ck-manager.c:2972
+msgid "Process ID does not match the owner of cookie"
+msgstr "El id del proceso no concuerda con el propietario de la cookie"
+
+#: src/ck-session.c:291
+msgid "Only session owner may set idle hint state"
+msgstr "Solo el propietario de la sesión puede establecer el estado de de inactividad"
+
+#: tools/ck-history.c:903 tools/list-sessions.c:372
+msgid "Version of this application"
+msgstr "La versión de esta aplicación"
+
+#: tools/ck-history.c:904
+msgid "Show listing of frequent users"
+msgstr "Lista los usuario frecuentes"
+
+#: tools/ck-history.c:905
+msgid "Show listing of last logged in users"
+msgstr "Muestra la lista de los últimos usuarios conectados"
+
+#: tools/ck-history.c:906
+msgid "Show 'last' compatible listing of last logged in users"
+msgstr "Muestra la «última» lista compatible de los últimos usuarios conectados"
+
+#: tools/ck-history.c:907
+msgid "Show full event log"
+msgstr "Muestra todo el registro de eventos"
+
+#: tools/ck-history.c:908
+msgid "Show entries for the specified seat"
+msgstr "Muestra las entradas específicas por el puesto"
+
+#: tools/ck-history.c:908
+msgid "SEAT"
+msgstr "PUESTO"
+
+#: tools/ck-history.c:909
+msgid "Show entries for the specified session type"
+msgstr "Mostrar las entradas específicas para el tipo de sesión"
+
+#: tools/ck-history.c:909
+msgid "TYPE"
+msgstr "TIPO"
+
+#: tools/ck-history.c:910
+msgid "Show entries for the specified user"
+msgstr "Muestra las entradas específicas para el usuario"
+
+#: tools/ck-history.c:910
+msgid "NAME"
+msgstr "NOMBRE"
+
+#: tools/ck-history.c:911
+msgid "Show entries since the specified time (ISO 8601 format)"
+msgstr "Muestra las entradas específicas para la fecha (en formato ISO 8601)"
+
+#: tools/ck-history.c:911
+msgid "DATETIME"
+msgstr "FECHA Y HORA"
+
+#: tools/ck-get-x11-display-device.c:162
+msgid "display name"
+msgstr "Mostrar nombre"
+
+#: tools/ck-collect-session-info.c:425
+msgid "User ID"
+msgstr "Id de usuario"
+
+#: tools/ck-collect-session-info.c:426
+msgid "Process ID"
+msgstr "Id de proceso"
