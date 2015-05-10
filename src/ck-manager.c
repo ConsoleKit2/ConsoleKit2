@@ -95,9 +95,6 @@ struct CkManagerPrivate
 };
 
 typedef enum {
-        SEAT_ADDED,
-        SEAT_REMOVED,
-        SYSTEM_IDLE_HINT_CHANGED,
         PREPARE_FOR_SHUTDOWN,
         PREPARE_FOR_SLEEP,
         LAST_SIGNAL
@@ -112,8 +109,6 @@ typedef struct
         const gchar           *description;
         SIGNALS                signal;
 } SystemActionData;
-
-static guint signals [LAST_SIGNAL] = { 0, };
 
 static void     ck_manager_class_init  (CkManagerClass         *klass);
 static void     ck_manager_init        (CkManager              *manager);
@@ -1277,9 +1272,18 @@ system_action_idle_cb(SystemActionData *data)
                           data->event_type,
                           data->description);
 
-        /* If we got here the sleep action is done and we're awake again
+        /* If we got here the sleep/shutdown action is done and we're awake again
          * or the operation failed. Either way we can signal to the apps */
-        g_signal_emit (data->manager, signals [data->signal], 0, FALSE);
+        switch (data->signal) {
+        case PREPARE_FOR_SHUTDOWN:
+                console_kit_manager_emit_prepare_for_shutdown (CONSOLE_KIT_MANAGER (data->manager), FALSE);
+                break;
+        case PREPARE_FOR_SLEEP:
+                console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (data->manager), FALSE);
+                break;
+        default:
+                g_error ("system_action_idle_cb, unknown signal for command %s", data->command);
+        }
 
         /* reset this since we'll return FALSE here and kill the cb */
         data->manager->priv->system_action_idle_id = 0;
@@ -1302,13 +1306,13 @@ do_restart (CkManager             *manager,
         }
 
         /* Emit the signal */
-        g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, TRUE);
+        console_kit_manager_emit_prepare_for_shutdown (CONSOLE_KIT_MANAGER (manager), TRUE);
 
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform shutdown\n");
-                g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
+                console_kit_manager_emit_prepare_for_shutdown (CONSOLE_KIT_MANAGER (manager), FALSE);
                 throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform restart"));
                 return;
         }
@@ -1403,13 +1407,13 @@ do_stop (CkManager             *manager,
         }
 
         /* Emit the signal */
-        g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, TRUE);
+        console_kit_manager_emit_prepare_for_shutdown (CONSOLE_KIT_MANAGER (manager), TRUE);
 
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform shutdown\n");
-                g_signal_emit (manager, signals [PREPARE_FOR_SHUTDOWN], 0, FALSE);
+                console_kit_manager_emit_prepare_for_shutdown (CONSOLE_KIT_MANAGER (manager), FALSE);
                 throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform shutdown"));
                 return;
         }
@@ -1652,13 +1656,13 @@ do_suspend (CkManager             *manager,
         }
 
         /* Emit the signal */
-        g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
+        console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), TRUE);
 
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform suspend\n");
-                g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), FALSE);
                 throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform suspend"));
                 return;
         }
@@ -1767,13 +1771,13 @@ do_hibernate (CkManager             *manager,
         SystemActionData *data;
 
         /* Emit the signal */
-        g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
+        console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), TRUE);
 
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform hibernate\n");
-                g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), FALSE);
                 throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform hibernate"));
                 return;
         }
@@ -1882,13 +1886,13 @@ do_hybrid_sleep (CkManager             *manager,
         SystemActionData *data;
 
         /* Emit the signal */
-        g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, TRUE);
+        console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), TRUE);
 
         /* Allocate and fill the data struct to pass to the idle cb */
         data = g_new0 (SystemActionData, 1);
         if (data == NULL) {
                 g_critical ("failed to allocate memory to perform hybrid sleep\n");
-                g_signal_emit (manager, signals [PREPARE_FOR_SLEEP], 0, FALSE);
+                console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), FALSE);
                 throw_error (context, CK_MANAGER_ERROR_FAILED, _("failed to allocate memory to perform hybrid sleep"));
                 return;
         }
