@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.com
+
+[consolekit2.consolekit2pot]
+file_filter = translations/consolekit2.consolekit2pot/<lang>.po
+source_lang = en
+type = PO
+
