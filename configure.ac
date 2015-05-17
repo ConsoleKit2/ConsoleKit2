@@ -494,7 +494,6 @@ Makefile
 src/Makefile
 tools/70-udev-acl.rules
 tools/Makefile
-tools/pam-foreground-compat.ck
 tools/linux/Makefile
 tools/freebsd/Makefile
 tools/openbsd/Makefile

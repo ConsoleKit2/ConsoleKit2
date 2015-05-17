@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-05-10 17:13+0300\n"
+"POT-Creation-Date: 2015-05-17 11:11+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,23 +49,23 @@ msgstr ""
 msgid "Seat has no sessions"
 msgstr ""
 
-#: src/main.c:295
+#: src/main.c:263
 msgid "Enable debugging code"
 msgstr ""
 
-#: src/main.c:296
+#: src/main.c:264
 msgid "Don't become a daemon"
 msgstr ""
 
-#: src/main.c:297
+#: src/main.c:265
 msgid "Exit after a time - for debugging"
 msgstr ""
 
-#: src/main.c:322 tools/ck-collect-session-info.c:440
+#: src/main.c:290 tools/ck-collect-session-info.c:440
 msgid "You must be root to run this program"
 msgstr ""
 
-#: src/main.c:326
+#: src/main.c:294
 msgid "Console kit daemon"
 msgstr ""
 

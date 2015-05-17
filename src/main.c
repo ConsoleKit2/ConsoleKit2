@@ -96,37 +96,6 @@ delete_pid (void)
         unlink (CONSOLE_KIT_PID_FILE);
 }
 
-#define CONSOLE_TAGS_DIR RUNDIR "/console"
-
-static void
-delete_console_tags (void)
-{
-        GDir *dir;
-        GError *error = NULL;
-        const gchar *name;
-
-        g_debug ("Cleaning up %s", CONSOLE_TAGS_DIR);
-
-        dir = g_dir_open (CONSOLE_TAGS_DIR, 0, &error);
-        if (dir == NULL) {
-                g_debug ("Couldn't open directory %s: %s", CONSOLE_TAGS_DIR,
-                         error->message);
-                g_error_free (error);
-                return;
-        }
-        while ((name = g_dir_read_name (dir)) != NULL) {
-                gchar *file;
-                file = g_build_filename (CONSOLE_TAGS_DIR, name, NULL);
-
-                g_debug ("Removing tag file: %s", file);
-                if (unlink (file) == -1) {
-                        g_warning ("Couldn't delete tag file: %s", file);
-                }
-                g_free (file);
-        }
-        g_dir_close (dir);
-}
-
 static void
 delete_inhibit_files (void)
 {
@@ -166,7 +135,6 @@ delete_inhibit_files (void)
 static void
 cleanup (void)
 {
-        delete_console_tags ();
         delete_inhibit_files ();
         delete_pid ();
 }
@@ -361,7 +329,6 @@ main (int    argc,
                              bus_acquired, name_acquired, name_lost,
                              NULL, NULL);
 
-        delete_console_tags ();
         delete_inhibit_files ();
 
         create_pid_file ();

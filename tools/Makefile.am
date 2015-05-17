@@ -174,17 +174,7 @@ install-exec-hook:
 	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(UDEVDIR)/udev-acl
 endif
 
-scriptdir = $(prefix)/lib/ConsoleKit/scripts
-script_SCRIPTS =			\
-	pam-foreground-compat.ck	\
-	$(NULL)
-
-install-data-hook:
-	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d
-	ln -sf $(prefix)/lib/ConsoleKit/scripts/pam-foreground-compat.ck $(DESTDIR)$(prefix)/lib/ConsoleKit/run-session.d/pam-foreground-compat.ck
-
 EXTRA_DIST =				\
-	$(script_SCRIPTS)		\
 	$(NULL)
 
 MAINTAINERCLEANFILES =			\
