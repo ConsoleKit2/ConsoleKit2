@@ -32,9 +32,6 @@
 #include <glib/gstdio.h>
 #include <glib-object.h>
 
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-
 #include "ck-vt-monitor.h"
 #include "ck-sysdeps.h"
 #include "ck-marshal.h"
@@ -109,7 +106,7 @@ ck_vt_monitor_set_active (CkVtMonitor    *vt_monitor,
         if (num == vt_monitor->priv->active_num) {
                 g_set_error (error,
                              CK_VT_MONITOR_ERROR,
-                             CK_VT_MONITOR_ERROR_GENERAL,
+                             CK_VT_MONITOR_ERROR_ALREADY_ACTIVE,
                              _("Session is already active"));
                 return FALSE;
         }
@@ -117,7 +114,7 @@ ck_vt_monitor_set_active (CkVtMonitor    *vt_monitor,
         if (vt_monitor->priv->vfd == ERROR) {
                 g_set_error (error,
                              CK_VT_MONITOR_ERROR,
-                             CK_VT_MONITOR_ERROR_GENERAL,
+                             CK_VT_MONITOR_ERROR_NO_CONSOLE,
                              _("No consoles available"));
                 return FALSE;
         }
@@ -150,7 +147,7 @@ ck_vt_monitor_get_active (CkVtMonitor    *vt_monitor,
         if (vt_monitor->priv->vfd == ERROR) {
                 g_set_error (error,
                              CK_VT_MONITOR_ERROR,
-                             CK_VT_MONITOR_ERROR_GENERAL,
+                             CK_VT_MONITOR_ERROR_NO_CONSOLE,
                              _("No consoles available"));
                 return FALSE;
         }
@@ -525,6 +522,8 @@ static void
 ck_vt_monitor_finalize (GObject *object)
 {
         CkVtMonitor *vt_monitor;
+
+        TRACE ();
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (CK_IS_VT_MONITOR (object));

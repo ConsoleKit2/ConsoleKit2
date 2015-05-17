@@ -32,20 +32,27 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
 
 #include "ck-session-leader.h"
 #include "ck-job.h"
 
 #define CK_SESSION_LEADER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SESSION_LEADER, CkSessionLeaderPrivate))
 
-#define CK_TYPE_PARAMETER_STRUCT (dbus_g_type_get_struct ("GValueArray", \
-                                                          G_TYPE_STRING, \
-                                                          G_TYPE_VALUE, \
-                                                          G_TYPE_INVALID))
-#define CK_TYPE_PARAMETER_LIST (dbus_g_type_get_collection ("GPtrArray", \
-                                                            CK_TYPE_PARAMETER_STRUCT))
+
+static struct {
+        const char *name;
+        const char *variant_type;
+        GType       gtype;
+} parameter_lookup[] = {
+        { "login-session-id",   "s", G_TYPE_STRING },
+        { "display-device",     "s", G_TYPE_STRING },
+        { "x11-display-device", "s", G_TYPE_STRING },
+        { "x11-display",        "s", G_TYPE_STRING },
+        { "remote-host-name",   "s", G_TYPE_STRING },
+        { "session-type",       "s", G_TYPE_STRING },
+        { "is-local",           "b", G_TYPE_BOOLEAN },
+        { "unix-user",          "i", G_TYPE_INT },
+};
 
 struct CkSessionLeaderPrivate
 {
@@ -111,85 +118,6 @@ ck_session_leader_cancel (CkSessionLeader *leader)
         leader->priv->cancelled = TRUE;
 }
 
-
-static void
-add_param_int (GPtrArray  *parameters,
-               const char *key,
-               const char *value)
-{
-        GValue val = { 0, };
-        GValue param_val = { 0, };
-        int    num;
-
-        num = atoi (value);
-
-        g_value_init (&val, G_TYPE_INT);
-        g_value_set_int (&val, num);
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
-}
-
-static void
-add_param_boolean (GPtrArray  *parameters,
-                   const char *key,
-                   const char *value)
-{
-        GValue   val = { 0, };
-        GValue   param_val = { 0, };
-        gboolean b;
-
-        if (value != NULL && strcmp (value, "true") == 0) {
-                b = TRUE;
-        } else {
-                b = FALSE;
-        }
-
-        g_value_init (&val, G_TYPE_BOOLEAN);
-        g_value_set_boolean (&val, b);
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
-}
-
-static void
-add_param_string (GPtrArray  *parameters,
-                  const char *key,
-                  const char *value)
-{
-        GValue val = { 0, };
-        GValue param_val = { 0, };
-
-        g_value_init (&val, G_TYPE_STRING);
-        g_value_set_string (&val, value);
-
-        g_value_init (&param_val, CK_TYPE_PARAMETER_STRUCT);
-        g_value_take_boxed (&param_val,
-                            dbus_g_type_specialized_construct (CK_TYPE_PARAMETER_STRUCT));
-
-        dbus_g_type_struct_set (&param_val,
-                                0, key,
-                                1, &val,
-                                G_MAXUINT);
-        g_value_unset (&val);
-
-        g_ptr_array_add (parameters, g_value_get_boxed (&param_val));
-}
-
 static gboolean
 have_override_parameter (CkSessionLeader *leader,
                          const char      *prop_name)
@@ -213,53 +141,54 @@ have_override_parameter (CkSessionLeader *leader,
 }
 
 static void
-add_to_parameters (gpointer   key,
-                   gpointer   data,
-                   GPtrArray *parameters)
+lookup_parameter_type (const char *name, const char **variant_type, GType *gtype)
 {
-        gpointer data_copy;
+        int i;
 
-        data_copy = g_boxed_copy (CK_TYPE_PARAMETER_STRUCT, data);
-        g_ptr_array_add (parameters, data_copy);
+        *gtype = G_TYPE_INVALID;
+
+        for (i = 0; i < G_N_ELEMENTS (parameter_lookup); i++) {
+                if (strcmp (name, parameter_lookup[i].name) == 0) {
+                        *variant_type = parameter_lookup[i].variant_type;
+                        *gtype = parameter_lookup[i].gtype;
+                        return;
+                }
+        }
 }
 
-typedef void (* CkAddParamFunc) (GPtrArray  *arr,
-                                 const char *key,
-                                 const char *value);
+static void
+add_to_parameters (gpointer         key,
+                   gpointer         data,
+                   GVariantBuilder *ck_parameters)
+{
+        g_variant_builder_add (ck_parameters, "{sv}", key, (GVariant*) data);
+}
 
-static struct {
-        char          *key;
-        CkAddParamFunc func;
-} parse_ops[] = {
-        { "login-session-id",   add_param_string },
-        { "display-device",     add_param_string },
-        { "x11-display-device", add_param_string },
-        { "x11-display",        add_param_string },
-        { "remote-host-name",   add_param_string },
-        { "session-type",       add_param_string },
-        { "is-local",           add_param_boolean },
-        { "unix-user",          add_param_int },
-};
-
-static GPtrArray *
+/* Allocates and returns a GVariantBuilder holding all the parameters,
+ * free with g_variant_builder_unref when done using it */
+static GVariant *
 parse_output (CkSessionLeader *leader,
               const char      *output)
 {
-        GPtrArray *parameters;
+        GVariantBuilder ck_parameters;
         char     **lines;
         int        i;
-        int        j;
 
         lines = g_strsplit (output, "\n", -1);
         if (lines == NULL) {
                 return NULL;
         }
 
-        parameters = g_ptr_array_sized_new (10);
+        g_variant_builder_init (&ck_parameters, G_VARIANT_TYPE ("a{sv}"));
 
         /* first add generated params */
         for (i = 0; lines[i] != NULL; i++) {
-                char **vals;
+                char      **vals;
+                const char *variant_type;
+                GVariant   *element;
+                GType       gtype;
+                glong       unix_user;
+                gboolean    is_local = FALSE;
 
                 vals = g_strsplit (lines[i], " = ", 2);
                 if (vals == NULL || vals[0] == NULL) {
@@ -273,12 +202,48 @@ parse_output (CkSessionLeader *leader,
                         continue;
                 }
 
-                for (j = 0; j < G_N_ELEMENTS (parse_ops); j++) {
-                        if (strcmp (vals[0], parse_ops[j].key) == 0) {
-                                parse_ops[j].func (parameters, vals[0], vals[1]);
-                                break;
-                        }
+                lookup_parameter_type (vals[0], &variant_type, &gtype);
+                if (gtype == G_TYPE_INVALID) {
+                        g_warning ("invalid parameter type\n");
+                        continue;
                 }
+
+                switch (gtype) {
+                case G_TYPE_STRING:
+                        element = g_variant_new (variant_type, vals[1]);
+                        break;
+                case G_TYPE_BOOLEAN:
+                        if(g_ascii_strncasecmp (vals[1], "TRUE", 4) == 0) {
+                                is_local = TRUE;
+                        }
+
+                        element = g_variant_new (variant_type, is_local);
+                        break;
+                case G_TYPE_INT:
+                        unix_user = strtol (vals[1], NULL, 10);
+
+                        /* Error checking for untrusted input */
+                        if ((errno == ERANGE && (unix_user == LONG_MAX || unix_user == LONG_MIN)) || (errno != 0 && unix_user == 0))
+                        {
+                                continue;
+                        }
+
+                        /* Sanity checks */
+                        if (unix_user > INT_MAX)
+                                continue;
+
+                        if (unix_user < 0)
+                                continue;
+
+                        element = g_variant_new (variant_type, (uid_t)unix_user);
+                        break;
+                default:
+                        g_warning ("ck-session-leader unsupported type");
+                        continue;
+                }
+
+                g_variant_builder_add (&ck_parameters, "{sv}", vals[0], element);
+
                 g_strfreev (vals);
         }
         g_strfreev (lines);
@@ -286,60 +251,31 @@ parse_output (CkSessionLeader *leader,
         /* now overlay the overrides */
         g_hash_table_foreach (leader->priv->override_parameters,
                               (GHFunc)add_to_parameters,
-                              parameters);
+                              &ck_parameters);
 
-        return parameters;
-}
-
-static void
-parameters_free (GPtrArray *parameters)
-{
-        int i;
-
-        for (i = 0; i < parameters->len; i++) {
-                gpointer data;
-                data = g_ptr_array_index (parameters, i);
-                if (data != NULL) {
-                        g_boxed_free (CK_TYPE_PARAMETER_STRUCT, data);
-                }
-        }
-
-        g_ptr_array_free (parameters, TRUE);
+        return g_variant_builder_end (&ck_parameters);
 }
 
 static void
 save_parameters (CkSessionLeader *leader,
-                 const GPtrArray *parameters)
+                 const GVariant  *parameters)
 {
-        int i;
+        GVariantIter     *iter;
+        gchar            *prop_name;
+        GVariant         *value;
 
-        for (i = 0; i < parameters->len; i++) {
-                gpointer data;
-                data = g_ptr_array_index (parameters, i);
+        g_variant_get ((GVariant *)parameters, "a(sv)", &iter);
+
+        while (g_variant_iter_next (iter, "(sv)", &prop_name, &value)) {
 
                 /* filter out the nulls? - sure why not */
-
-                if (data != NULL) {
-                        gpointer data_copy;
-                        GValue   val_struct = { 0, };
-                        char    *prop_name;
-                        gboolean res;
-
-                        g_value_init (&val_struct, CK_TYPE_PARAMETER_STRUCT);
-                        g_value_set_static_boxed (&val_struct, g_ptr_array_index (parameters, i));
-
-                        res = dbus_g_type_struct_get (&val_struct,
-                                                      0, &prop_name,
-                                                      G_MAXUINT);
-                        if (! res) {
-                                g_debug ("Unable to extract parameter input");
-                                g_free (prop_name);
-                                continue;
-                        }
+                if (value != NULL) {
+                        const char *variant_type;
+                        GType       gtype;
 
                         if (prop_name == NULL) {
                                 g_debug ("Skipping NULL parameter");
-                                g_free (prop_name);
+                                g_variant_unref (value);
                                 continue;
                         }
 
@@ -347,26 +283,34 @@ save_parameters (CkSessionLeader *leader,
                             || strcmp (prop_name, "cookie") == 0) {
                                 g_debug ("Skipping restricted parameter: %s", prop_name);
                                 g_free (prop_name);
+                                g_variant_unref (value);
+                                continue;
+                        }
+
+                        lookup_parameter_type (prop_name, &variant_type, &gtype);
+                        if (gtype == G_TYPE_INVALID) {
+                                g_debug ("Unable to extract parameter input");
+                                g_free (prop_name);
+                                g_variant_unref (value);
                                 continue;
                         }
 
                         g_debug ("Setting override parameters for: %s", prop_name);
 
-                        data_copy = g_boxed_copy (CK_TYPE_PARAMETER_STRUCT, data);
-
                         /* takes ownership */
                         g_hash_table_insert (leader->priv->override_parameters,
                                              prop_name,
-                                             data_copy);
+                                             value);
                 }
         }
+        g_variant_iter_free (iter);
 }
 
 typedef struct {
         CkSessionLeader        *leader;
         CkSessionLeaderDoneFunc done_cb;
         gpointer                user_data;
-        DBusGMethodInvocation  *context;
+        GDBusMethodInvocation  *context;
 } JobData;
 
 static void
@@ -377,7 +321,7 @@ job_completed (CkJob     *job,
         g_debug ("Job status: %d", status);
         if (status == 0) {
                 char      *output;
-                GPtrArray *parameters;
+                GVariant  *parameters;
 
                 output = NULL;
                 ck_job_get_stdout (job, &output);
@@ -390,7 +334,6 @@ job_completed (CkJob     *job,
                                parameters,
                                data->context,
                                data->user_data);
-                parameters_free (parameters);
         } else {
                 data->done_cb (data->leader,
                                NULL,
@@ -414,7 +357,7 @@ job_data_free (JobData *data)
 
 gboolean
 ck_session_leader_collect_parameters (CkSessionLeader        *session_leader,
-                                      DBusGMethodInvocation  *context,
+                                      GDBusMethodInvocation  *context,
                                       CkSessionLeaderDoneFunc done_cb,
                                       gpointer                user_data)
 {
@@ -550,7 +493,7 @@ ck_session_leader_set_service_name (CkSessionLeader       *session_leader,
 
 void
 ck_session_leader_set_override_parameters (CkSessionLeader       *session_leader,
-                                           const GPtrArray       *parameters)
+                                           const GVariant        *parameters)
 {
         g_return_if_fail (CK_IS_SESSION_LEADER (session_leader));
 
@@ -619,7 +562,7 @@ ck_session_leader_class_init (CkSessionLeaderClass *klass)
 static void
 parameter_free (gpointer data)
 {
-        g_boxed_free (CK_TYPE_PARAMETER_STRUCT, data);
+        g_variant_unref ((GVariant*)data);
 }
 
 static void

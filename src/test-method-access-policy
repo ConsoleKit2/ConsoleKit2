@@ -22,6 +22,8 @@ print "Testing all public methods to check D-Bus policy"
 manager_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Manager')
 manager = dbus.Interface (manager_obj, 'org.freedesktop.ConsoleKit.Manager')
 
+print "Testing Manager"
+
 print "Testing Manager.OpenSession:",
 res = "PASS"
 try:
@@ -169,6 +171,7 @@ except:
 print "\t%s" % res
 
 # Test Seat Interface
+print "Testing Seat"
 
 seat_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Seat1')
 seat = dbus.Interface (seat_obj, 'org.freedesktop.ConsoleKit.Seat')
@@ -252,6 +255,7 @@ except:
 print "\t\t\t%s" % res
 
 # Test Session Interface
+print "Testing Session"
 
 # create a new session so we can set props
 cookie = manager.OpenSession ()

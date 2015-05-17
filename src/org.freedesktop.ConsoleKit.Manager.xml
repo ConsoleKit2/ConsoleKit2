@@ -9,6 +9,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to restart (ie. reboot) the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -19,6 +21,7 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method returns whether the user is authorized to restart the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -28,6 +31,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to stop (ie. shutdown) the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -38,12 +43,14 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method returns whether the user is authorized to shutdown the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
         </doc:description>
       </doc:doc>
     </method>
 
     <method name="Reboot">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="policykit_interactivity" type="b" direction="in">
         <doc:doc>
           <doc:summary>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</doc:summary>
@@ -53,6 +60,8 @@
         <doc:description>
           <doc:para>This method emulates the logind implementation. This method initiates a request to reboot the computer system.
           </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -60,6 +69,7 @@
 
     <method name="CanReboot">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="can_reboot" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
@@ -70,6 +80,7 @@
           <doc:para>If "yes" is returned rebooting is supported and the user may suspend without further authentication.</doc:para>
           <doc:para>If "no" is returned rebooting is available but the user is not allowed to reboot.</doc:para>
           <doc:para>If "challenge" is returned rebooting is available, but only after authorization.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -77,6 +88,7 @@
 
     <method name="PowerOff">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="policykit_interactivity" type="b" direction="in">
         <doc:doc>
           <doc:summary>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</doc:summary>
@@ -85,6 +97,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to shutdown the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -92,6 +106,7 @@
 
     <method name="CanPowerOff">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="can_poweroff" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
@@ -102,6 +117,7 @@
           <doc:para>If "yes" is returned shutdown is supported and the user may hibernate without further authentication.</doc:para>
           <doc:para>If "no" is returned shutdown is available but the user is not allowed to shutdown.</doc:para>
           <doc:para>If "challenge" is returned shutdown is available, but only after authorization.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -109,6 +125,7 @@
 
     <method name="Suspend">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="policykit_interactivity" type="b" direction="in">
         <doc:doc>
           <doc:summary>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</doc:summary>
@@ -117,6 +134,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to suspend the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -124,6 +143,7 @@
 
     <method name="CanSuspend">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.1"/>
       <arg name="can_suspend" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
@@ -134,6 +154,7 @@
           <doc:para>If "yes" is returned suspending is supported and the user may suspend without further authentication.</doc:para>
           <doc:para>If "no" is returned suspending is available but the user is not allowed to suspend.</doc:para>
           <doc:para>If "challenge" is returned suspending is available, but only after authorization.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
           <doc:para>Since 0.9.1</doc:para>
         </doc:description>
       </doc:doc>
@@ -141,6 +162,7 @@
 
     <method name="Hibernate">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="policykit_interactivity" type="b" direction="in">
         <doc:doc>
           <doc:summary>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</doc:summary>
@@ -149,6 +171,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to hibernate the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -156,6 +180,7 @@
 
     <method name="CanHibernate">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.1"/>
       <arg name="can_hibernate" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
@@ -166,6 +191,7 @@
           <doc:para>If "yes" is returned hibernation is supported and the user may hibernate without further authentication.</doc:para>
           <doc:para>If "no" is returned hibernation is available but the user is not allowed to hibernate.</doc:para>
           <doc:para>If "challenge" is returned hibernation is available, but only after authorization.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
           <doc:para>Since 0.9.1</doc:para>
         </doc:description>
       </doc:doc>
@@ -173,6 +199,7 @@
 
     <method name="HybridSleep">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.2"/>
       <arg name="policykit_interactivity" type="b" direction="in">
         <doc:doc>
           <doc:summary>policykit_interactivity determines whether PolicyKit (if enabled) should interactively ask the user for authentication credentials if it needs to.</doc:summary>
@@ -181,6 +208,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>This method initiates a request to hybrid sleep (suspend + hibernate) the computer system.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INHIBITED, CK_MANAGER_ERROR_INSUFFICIENT_PERMISSION, CK_MANAGER_ERROR_AUTHORIZATION_REQUIRED,
+          CK_MANAGER_ERROR_GENERAL, CK_MANAGER_ERROR_BUSY</doc:para>
           <doc:para>Since 0.9.2</doc:para>
         </doc:description>
       </doc:doc>
@@ -188,6 +217,7 @@
 
     <method name="CanHybridSleep">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.1"/>
       <arg name="can_hybridsleep" type="s" direction="out"/>
       <doc:doc>
         <doc:description>
@@ -198,6 +228,7 @@
           <doc:para>If "yes" is returned hybrid sleeping is supported and the user may hybrid sleep without further authentication.</doc:para>
           <doc:para>If "no" is returned hybrid sleeping is available but the user is not allowed to hybrid sleep.</doc:para>
           <doc:para>If "challenge" is returned hybrid sleeping is available, but only after authorization.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_FAILED if polkit is used and fails checking authorization.</doc:para>
           <doc:para>Since 0.9.1</doc:para>
         </doc:description>
       </doc:doc>
@@ -205,6 +236,7 @@
 
     <method name="Inhibit">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.0"/>
       <arg name="what" type="s" direction="in">
         <doc:doc>
           <doc:summary>What is a colon-separated list of lock types. The list of lock types are: shutdown, sleep, idle, handle-power-key, handle-suspend-key, handle-hibernate-key. Example: "shutdown:idle"</doc:summary>
@@ -229,6 +261,7 @@
         <doc:description>
         <doc:para>Inhibit locks are named pipes used by ConsoleKit2 to prevent the system from performing actions such as suspending, restarting, or going idle. There are various reasons and application would like to prevent one or more of these functions such as a movie player preventing the screen saving from activating or a package manager ensuring an application installs before allowing the computer to shutdown.</doc:para>
         <doc:para>Note: Each application can have only one lock open at any given time. Multiple applications can hold locks to the same thing, for example a media player application and a cd burning application can both prevent the system from being marked idle.</doc:para>
+        <doc:para>May fail with: CK_MANAGER_ERROR_INVALID_INPUT, CK_MANAGER_ERROR_OOM, CK_MANAGER_ERROR_GENERAL</doc:para>
         <doc:para>Since 0.9.0</doc:para>
         <doc:para>See this simple example:
           <doc:example language="c" title="simple example"><doc:code>
@@ -307,6 +340,7 @@
           be made available to child processes of the caller so that they may be identified
           as members of this session.
           </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
           <doc:para>See this simple example:
           <doc:example language="c" title="simple example"><doc:code>
 	DBusError       error;
@@ -370,6 +404,7 @@
           as members of this session.
           </doc:para>
           <doc:para>See the <doc:ref type="interface" to="Session">Session</doc:ref> properties for a list of valid parameters.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
         </doc:description>
         <doc:seealso><doc:ref type="interface" to="Session">org.freedesktop.ConsoleKit.Session</doc:ref></doc:seealso>
         <doc:permission>This method is restricted to privileged users by D-Bus policy.</doc:permission>
@@ -447,6 +482,7 @@
         <doc:description>
           <doc:para>Returns the session ID that is associated with the specified cookie.
           </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -467,6 +503,7 @@
           <doc:para>Attempts to determine the session ID for the specified
           POSIX process ID (pid).
           </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
         </doc:description>
       </doc:doc>
     </method>
@@ -481,6 +518,7 @@
         <doc:description>
           <doc:para>Attempts to determine the session ID that the caller belongs to.
           </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
           <doc:para>See this example of using dbus-send:
           <doc:example language="shell" title="shell example"><doc:code>
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
@@ -514,6 +552,7 @@
     </method>
     <method name="GetSessionsForUser">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.freedesktop.DBus.Deprecated" value=""/>
       <arg name="uid" direction="in" type="u">
          <doc:doc>
           <doc:summary>User identification</doc:summary>

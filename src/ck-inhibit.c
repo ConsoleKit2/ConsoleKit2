@@ -523,7 +523,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         priv->why = why;
         priv->named_pipe_path = get_named_pipe_path (who);
         if (!parse_inhibitors_string(inhibit, what)) {
-                g_error ("Failed to set any inhibitors.");
+                g_warning ("Failed to set any inhibitors.");
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
         }
 

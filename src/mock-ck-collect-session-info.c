@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2007 David Zeuthen <david@fubar.dk>
+ * Copyright (C) 2015 Eric Koegel <eric.koegel@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,17 +18,27 @@
  *
  */
 
+#include "config.h"
 
-#ifndef __CK_RUN_PROGRAMS_H
-#define __CK_RUN_PROGRAMS_H
+#include <stdlib.h>
+#include <stdio.h>
 
-#include <glib-object.h>
-#include "ck-session.h"
 
-G_BEGIN_DECLS
+int
+main (int   argc,
+      char *argv[])
+{
+    /* This is a mock for the tools/ck-collect-session-info program.
+     * It provides similar output to the real tool for test-session-leader.
+     * You do not need to run this as root, but as it does nothing there's
+     * little to worry about */
+    printf ("unix-user = 9000\n");
+    printf ("x11-display = :0.0\n");
+    printf ("x11-display-device = /dev/tty15\n");
+    printf ("display-device = /dev/pts/0\n");
+    printf ("login-session-id = 99\n");
+    printf ("is-local = TRUE");
 
-void ck_run_programs (const char *dirpath, const char *action, char **extra_env);
 
-G_END_DECLS
-
-#endif /* __CK_RUN_PROGRAMS_H */
+    return 0;
+}

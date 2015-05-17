@@ -83,6 +83,40 @@ gboolean     ck_wait_for_console_switch       (gint            sys_fd,
                                                gint32         *num);
 #endif /* HAVE_SYS_VT_SIGNAL */
 
+
+/* compiling with --enable-debug=full enables TRACE messages */
+#if defined(CONSOLEKIT_DEBUGGING)
+
+#if defined(__NetBSD__) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
+#define __DBG_FUNC__    __func__
+#elif defined(__GNUC__) && __GNUC__ >= 3
+#define __DBG_FUNC__    __FUNCTION__
+#elif defined(__SVR4) && defined(__sun)
+#define __DBG_FUNC__    __func__
+#else
+#define __DBG_FUNC__    "??"
+#endif
+
+#if defined(G_HAVE_ISO_VARARGS)
+
+#define TRACE(...)              G_STMT_START{                                \
+    g_debug ("TRACE[%s:%d] %s(): entering",__FILE__,__LINE__,__DBG_FUNC__);  \
+}G_STMT_END
+
+#elif defined (G_HAVE_GNUC_VARARGS)
+
+#define TRACE(fmt, args...)     G_STMT_START{                                \
+    g_debug ("TRACE[%s:%d] %s(): entering",__FILE__,__LINE__,__DBG_FUNC__);  \
+}G_STMT_END
+
+#endif
+
+#else /* !defined(CONSOLEKIT_DEBUGGING) */
+
+#define TRACE(...) G_STMT_START{ (void)0; }G_STMT_END
+
+#endif
+
 G_END_DECLS
 
 #endif /* __CK_SYSDEPS_H */

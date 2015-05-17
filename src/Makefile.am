@@ -85,9 +85,12 @@ sbin_PROGRAMS = 		\
 	$(NULL)
 
 BUILT_SOURCES = 		\
-	ck-manager-glue.h	\
-	ck-seat-glue.h		\
-	ck-session-glue.h	\
+	ck-manager-generated.h	\
+	ck-manager-generated.c	\
+	ck-seat-generated.h	\
+	ck-seat-generated.c	\
+	ck-session-generated.h	\
+	ck-session-generated.c	\
 	ck-marshal.c 		\
 	ck-marshal.h		\
 	$(NULL)
@@ -99,12 +102,26 @@ dbusif_DATA = 					\
 	org.freedesktop.ConsoleKit.Session.xml	\
 	$(NULL)
 
-ck-manager-glue.h: org.freedesktop.ConsoleKit.Manager.xml Makefile.am
-	dbus-binding-tool --prefix=ck_manager --mode=glib-server --output=ck-manager-glue.h org.freedesktop.ConsoleKit.Manager.xml
-ck-seat-glue.h: org.freedesktop.ConsoleKit.Seat.xml Makefile.am
-	dbus-binding-tool --prefix=ck_seat --mode=glib-server --output=ck-seat-glue.h org.freedesktop.ConsoleKit.Seat.xml
-ck-session-glue.h: org.freedesktop.ConsoleKit.Session.xml Makefile.am
-	dbus-binding-tool --prefix=ck_session --mode=glib-server --output=ck-session-glue.h org.freedesktop.ConsoleKit.Session.xml
+ck-manager-generated.c ck-manager-generated.h : org.freedesktop.ConsoleKit.Manager.xml Makefile.am
+	gdbus-codegen \
+		--c-namespace=ConsoleKit \
+		--interface-prefix=org.freedesktop.ConsoleKit. \
+		--generate-c-code=ck-manager-generated \
+		$(srcdir)/org.freedesktop.ConsoleKit.Manager.xml
+
+ck-seat-generated.c ck-seat-generated.h : org.freedesktop.ConsoleKit.Seat.xml Makefile.am
+	gdbus-codegen \
+		--c-namespace=ConsoleKit \
+		--interface-prefix=org.freedesktop.ConsoleKit. \
+		--generate-c-code=ck-seat-generated \
+		$(srcdir)/org.freedesktop.ConsoleKit.Seat.xml
+
+ck-session-generated.c ck-session-generated.h : org.freedesktop.ConsoleKit.Session.xml Makefile.am
+	gdbus-codegen \
+		--c-namespace=ConsoleKit \
+		--interface-prefix=org.freedesktop.ConsoleKit. \
+		--generate-c-code=ck-session-generated \
+		$(srcdir)/org.freedesktop.ConsoleKit.Session.xml
 
 ck-marshal.c: ck-marshal.list
 	echo "#include \"ck-marshal.h\"" > $@ && \
@@ -169,6 +186,11 @@ noinst_PROGRAMS = 			\
 	test-tty-idle-monitor		\
 	test-vt-monitor			\
 	test-inhibit			\
+	test-session			\
+	test-seat				\
+	test-manager			\
+	ck-collect-session-info	\
+	test-session-leader		\
 	$(NULL)
 
 test_event_logger_SOURCES = 		\
@@ -232,6 +254,91 @@ test_inhibit_LDADD =		\
 	libck.la			\
 	$(NULL)
 
+test_session_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-URUNDIR	\
+	-DRUNDIR=\"/tmp\" 			\
+	$(NULL)
+
+test_session_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	test-session.c		\
+	$(NULL)
+
+test_session_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	libck.la			\
+	$(NULL)
+
+test_seat_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-URUNDIR	\
+	-DRUNDIR=\"/tmp\" 			\
+	$(NULL)
+
+test_seat_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	test-seat.c		\
+	$(NULL)
+
+test_seat_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	libck.la			\
+	$(NULL)
+
+test_manager_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-URUNDIR	\
+	-DRUNDIR=\"/tmp\" 			\
+	$(NULL)
+
+test_manager_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	test-manager.c		\
+	$(NULL)
+
+test_manager_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(POLKIT_LIBS)			\
+	libck.la			\
+	$(NULL)
+
+ck_collect_session_info_CFLAGS = \
+	$(AM_CFLAGS)	\
+	$(NULL)
+
+ck_collect_session_info_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	mock-ck-collect-session-info.c		\
+	$(NULL)
+
+ck_collect_session_info_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	$(NULL)
+
+
+test_session_leader_CFLAGS = \
+	$(AM_CFLAGS)	\
+	-ULIBEXECDIR	\
+	-DLIBEXECDIR=\".\" 			\
+	$(NULL)
+
+test_session_leader_SOURCES = 	\
+	$(BUILT_SOURCES)	\
+	ck-job.h		\
+	ck-job.c		\
+	ck-session-leader.c		\
+	ck-session-leader.h		\
+	test-session-leader.c		\
+	$(NULL)
+
+test_session_leader_LDADD =		\
+	$(CONSOLE_KIT_LIBS)		\
+	libck.la			\
+	$(NULL)
+
 
 EXTRA_DIST =			\
 	ck-marshal.list		\
@@ -239,6 +346,11 @@ EXTRA_DIST =			\
 	valgrind.sh		\
 	test-open-session	\
 	test-open-session-with-parameters	\
+	test-session	\
+	test-seat		\
+	test-session-leader	\
+	test-manager	\
+	ck-collect-session-info	\
 	$(NULL)
 
 CLEANFILES = $(BUILT_SOURCES)
