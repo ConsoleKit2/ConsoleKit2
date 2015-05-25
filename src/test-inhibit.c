@@ -37,14 +37,16 @@
 static const gchar* WHO  = "test-inhibit";
 static const gchar* WHAT = "sleep:idle";
 static const gchar* WHY  = "for testing";
+static const gchar* MODE = "block";
 
 /* If this doesn't get escaped we won't have rights to write here */
 static const gchar* WHO2  = "../../../../../root";
 static const gchar* WHAT2 = "shutdown:sleep";
+static const gchar* MODE2 = "delay";
 
 CkInhibitManager *manager;
 CkInhibit *inhibit;
-gint fd;
+gint fd, fd1, fd2;
 
 static void
 test_create_inhibit (void)
@@ -69,7 +71,8 @@ test_ck_create_inhibit_lock (void)
     fd = ck_inhibit_create_lock (inhibit,
                                  WHO,
                                  WHAT,
-                                 WHY);
+                                 WHY,
+                                 MODE);
 
     /* ensure we succeeded */
     g_assert (fd >= 0);
@@ -120,9 +123,12 @@ test_unref_inhibit (void)
 }
 
 static void
-cb_changed_event (CkInhibitManager *manager, gint event, gboolean enabled, gpointer user_data)
+cb_changed_event (CkInhibitManager *manager, gint inhibit_mode, gint event, gboolean enabled, gpointer user_data)
 {
-    g_print ("cb_changed_event: event %d is now %s\n", event,
+    g_print ("cb_changed_event: mode %s event %d is now %s\n",
+             inhibit_mode == CK_INHIBIT_MODE_BLOCK ? "CK_INHIBIT_MODE_BLOCK" :
+             inhibit_mode == CK_INHIBIT_MODE_DELAY ? "CK_INHIBIT_MODE_DELAY" : "unknown",
+             event,
              enabled ? "TRUE" : "FALSE");
 }
 
@@ -139,32 +145,38 @@ static void
 test_manager_add_lock1 (void)
 {
     g_print ("\n");
-    ck_inhibit_manager_create_lock (manager,
-                                    WHO,
-                                    WHAT,
-                                    WHY);
+    fd1 = ck_inhibit_manager_create_lock (manager,
+                                          WHO,
+                                          WHAT,
+                                          WHY,
+                                          MODE);
+
+    g_assert (fd1 != 0);
 }
 
 static void
 test_manager_add_lock2 (void)
 {
     g_print ("\n");
-    ck_inhibit_manager_create_lock (manager,
-                                    WHO2,
-                                    WHAT2,
-                                    WHY);
+    fd2 = ck_inhibit_manager_create_lock (manager,
+                                          WHO2,
+                                          WHAT2,
+                                          WHY,
+                                          MODE2);
+
+    g_assert (fd2 != 0);
 }
 
 static void
 test_manager_which_are_inhibited (void)
 {
-    g_assert (ck_inhibit_manager_is_shutdown_inhibited (manager));
-    g_assert (ck_inhibit_manager_is_suspend_inhibited  (manager));
-    g_assert (ck_inhibit_manager_is_idle_inhibited     (manager));
+    g_assert (ck_inhibit_manager_is_shutdown_delayed (manager));
+    g_assert (ck_inhibit_manager_is_suspend_blocked  (manager));
+    g_assert (ck_inhibit_manager_is_idle_blocked     (manager));
 
-    g_assert (ck_inhibit_manager_is_hibernate_key_inhibited (manager) == FALSE);
-    g_assert (ck_inhibit_manager_is_suspend_key_inhibited   (manager) == FALSE);
-    g_assert (ck_inhibit_manager_is_power_key_inhibited     (manager) == FALSE);
+    g_assert (ck_inhibit_manager_is_hibernate_key_blocked (manager) == FALSE);
+    g_assert (ck_inhibit_manager_is_suspend_key_blocked   (manager) == FALSE);
+    g_assert (ck_inhibit_manager_is_power_key_blocked     (manager) == FALSE);
 
 }
 

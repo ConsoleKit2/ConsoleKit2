@@ -46,7 +46,7 @@ typedef struct
         GObjectClass parent_class;
 
         /*< signals >*/
-        void (*changed_event) (CkInhibitManager *manager, gint event, gboolean enabled);
+        void (*changed_event) (CkInhibitManager *manager, gint inhibit_mode, gint event, gboolean enabled);
 } CkInhibitManagerClass;
 
 
@@ -57,17 +57,27 @@ CkInhibitManager *ck_inhibit_manager_get                         (void);
 gint              ck_inhibit_manager_create_lock                 (CkInhibitManager *manager,
                                                                   const gchar      *who,
                                                                   const gchar      *what,
-                                                                  const gchar      *why);
+                                                                  const gchar      *why,
+                                                                  const gchar      *mode);
 
 gboolean          ck_inhibit_manager_remove_lock                 (CkInhibitManager *manager,
                                                                   const gchar      *who);
 
-gboolean          ck_inhibit_manager_is_shutdown_inhibited       (CkInhibitManager *manager);
-gboolean          ck_inhibit_manager_is_suspend_inhibited        (CkInhibitManager *manager);
-gboolean          ck_inhibit_manager_is_idle_inhibited           (CkInhibitManager *manager);
-gboolean          ck_inhibit_manager_is_power_key_inhibited      (CkInhibitManager *manager);
-gboolean          ck_inhibit_manager_is_suspend_key_inhibited    (CkInhibitManager *manager);
-gboolean          ck_inhibit_manager_is_hibernate_key_inhibited  (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_shutdown_delayed         (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_suspend_delayed          (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_idle_delayed             (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_power_key_delayed        (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_suspend_key_delayed      (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_hibernate_key_delayed    (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_lid_switch_delayed       (CkInhibitManager *manager);
+
+gboolean          ck_inhibit_manager_is_shutdown_blocked         (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_suspend_blocked          (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_idle_blocked             (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_power_key_blocked        (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_suspend_key_blocked      (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_hibernate_key_blocked    (CkInhibitManager *manager);
+gboolean          ck_inhibit_manager_is_lid_switch_blocked       (CkInhibitManager *manager);
 
 G_END_DECLS
 

@@ -41,10 +41,12 @@ struct CkInhibitManagerPrivate
          * it's doubtful there will be more than a dozen items in the list.
          */
         GList *inhibit_list;
-        /* inhibitors is an array of which events to suppress.
+        /* inhibitors is an 2-dimensional array of which events to suppress
+         * and how they are suppressed.
          * The CkInhibitEvent value is used to indicate how many different
-         * inhibits are suppressing that event. */
-        gint inhibitors[CK_INHIBIT_EVENT_LAST];
+         * inhibits are suppressing that event. The CkInhibitMode indicates
+         * if it's a block or delay event */
+        gint inhibitors[CK_INHIBIT_MODE_LAST][CK_INHIBIT_EVENT_LAST];
 };
 
 typedef enum {
@@ -76,9 +78,9 @@ ck_inhibit_manager_class_init (CkInhibitManagerClass *klass)
                                                     G_SIGNAL_RUN_LAST,
                                                     G_STRUCT_OFFSET (CkInhibitManagerClass, changed_event),
                                                     NULL, NULL,
-                                                    ck_marshal_VOID__INT_BOOLEAN,
+                                                    ck_marshal_VOID__INT_INT_BOOLEAN,
                                                     G_TYPE_NONE,
-                                                    2, G_TYPE_INT, G_TYPE_BOOLEAN);
+                                                    3, G_TYPE_INT, G_TYPE_INT, G_TYPE_BOOLEAN);
 }
 
 static void
@@ -94,7 +96,11 @@ ck_inhibit_manager_finalize (GObject *object)
 }
 
 static void
-cb_changed_event (CkInhibit *inhibit, gint event, gboolean enabled, gpointer user_data)
+cb_changed_event (CkInhibit *inhibit,
+                  gint       inhibit_mode,
+                  gint       event,
+                  gboolean   enabled,
+                  gpointer   user_data)
 {
         CkInhibitManager        *manager;
         CkInhibitManagerPrivate *priv;
@@ -111,29 +117,31 @@ cb_changed_event (CkInhibit *inhibit, gint event, gboolean enabled, gpointer use
         }
 
         if (enabled) {
-                priv->inhibitors[event]++;
+                priv->inhibitors[inhibit_mode][event]++;
 
-                if (priv->inhibitors[event] == 1) {
+                if (priv->inhibitors[inhibit_mode][event] == 1) {
                         /* event is now inhibited, send a notification */
                         g_signal_emit(G_OBJECT (manager),
                                       __signals[SIG_CHANGED_EVENT],
                                       0,
+                                      inhibit_mode,
                                       event,
                                       TRUE);
                 }
         } else {
-                priv->inhibitors[event]--;
-                if (priv->inhibitors[event] < 0) {
-                        g_warning ("cb_changed_event: priv->inhibitors[%d] "
+                priv->inhibitors[inhibit_mode][event]--;
+                if (priv->inhibitors[inhibit_mode][event] < 0) {
+                        g_warning ("cb_changed_event: priv->inhibitors[%d][%d] "
                                    "is negative, that's not supposed to happen",
-                                   event);
+                                   inhibit_mode, event);
                 }
 
-                if (priv->inhibitors[event] == 0) {
+                if (priv->inhibitors[inhibit_mode][event] == 0) {
                         /* event is no longer inhibited, send a notification */
                         g_signal_emit(G_OBJECT (manager),
                                       __signals[SIG_CHANGED_EVENT],
                                       0,
+                                      inhibit_mode,
                                       event,
                                       FALSE);
                 }
@@ -152,6 +160,10 @@ cb_changed_event (CkInhibit *inhibit, gint event, gboolean enabled, gpointer use
  * @why:  A human-readable, descriptive string of why the program
  *        is taking the lock. Example: "Burning a DVD, interrupting now
  *        will ruin the DVD."
+ * @mode: Must either be block or delay. block prevents the operation
+ *        from happening and will cause a call to perform that action
+ *        to fail. delay temporarly prevents the operation from happening
+ *        until either the lock is released or a timeout is reached.
  *
  * Initializes an inhibit lock with the supplied paramters and returns
  * the named pipe. An application can only hold one lock at a time, multiple
@@ -165,7 +177,8 @@ gint
 ck_inhibit_manager_create_lock (CkInhibitManager *manager,
                                 const gchar *who,
                                 const gchar *what,
-                                const gchar *why)
+                                const gchar *why,
+                                const gchar *mode)
 {
         CkInhibitManagerPrivate *priv;
         CkInhibit               *inhibit;
@@ -187,7 +200,7 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
          */
         signal_id = g_signal_connect (inhibit, "changed-event", G_CALLBACK (cb_changed_event), manager);
 
-        fd = ck_inhibit_create_lock (inhibit, who, what, why);
+        fd = ck_inhibit_create_lock (inhibit, who, what, why, mode);
 
         if (fd == -1) {
                 g_error ("error creating inhibit lock");
@@ -269,86 +282,178 @@ ck_inhibit_manager_get (void)
         return CK_INHIBIT_MANAGER (manager);
 }
 
-/**
- * ck_inhibit_manager_is_shutdown_inhibited:
- * @manager: The @CkInhibitManager object
- *
- * Return value: TRUE is inhibited.
- **/
-gboolean
-ck_inhibit_manager_is_shutdown_inhibited (CkInhibitManager *manager)
+static gboolean
+get_inhibit_status (CkInhibitManager *manager, CkInhibitEvent event, CkInhibitMode mode)
 {
         g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
-        return manager->priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN] > 0 ? TRUE : FALSE;
+        return manager->priv->inhibitors[mode][event] > 0 ? TRUE : FALSE;
 }
 
 /**
- * ck_inhibit_manager_is_suspend_inhibited:
+ * ck_inhibit_manager_is_shutdown_delayed:
  * @manager: The @CkInhibitManager object
  *
- * Return value: TRUE is inhibited.
+ * Return value: TRUE is delayed.
  **/
 gboolean
-ck_inhibit_manager_is_suspend_inhibited (CkInhibitManager *manager)
+ck_inhibit_manager_is_shutdown_delayed (CkInhibitManager *manager)
 {
-        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
-
-        return manager->priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND] > 0 ? TRUE : FALSE;
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_SHUTDOWN, CK_INHIBIT_MODE_DELAY);
 }
 
 /**
- * ck_inhibit_manager_is_idle_inhibited:
+ * ck_inhibit_manager_is_shutdown_blocked:
  * @manager: The @CkInhibitManager object
  *
- * Return value: TRUE is inhibited.
+ * Return value: TRUE is blocked.
  **/
 gboolean
-ck_inhibit_manager_is_idle_inhibited (CkInhibitManager *manager)
+ck_inhibit_manager_is_shutdown_blocked (CkInhibitManager *manager)
 {
-        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
-
-        return manager->priv->inhibitors[CK_INHIBIT_EVENT_IDLE] > 0 ? TRUE : FALSE;
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_SHUTDOWN, CK_INHIBIT_MODE_BLOCK);
 }
 
 /**
- * ck_inhibit_manager_is_power_key_inhibited:
+ * ck_inhibit_manager_is_suspend_delayed:
  * @manager: The @CkInhibitManager object
  *
- * Return value: TRUE is inhibited.
+ * Return value: TRUE is delayed.
  **/
 gboolean
-ck_inhibit_manager_is_power_key_inhibited (CkInhibitManager *manager)
+ck_inhibit_manager_is_suspend_delayed (CkInhibitManager *manager)
 {
-        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
-
-        return manager->priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY] > 0 ? TRUE : FALSE;
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_SUSPEND, CK_INHIBIT_MODE_DELAY);
 }
 
 /**
- * ck_inhibit_manager_is_suspend_key_inhibited:
+ * ck_inhibit_manager_is_suspend_blocked:
  * @manager: The @CkInhibitManager object
  *
- * Return value: TRUE is inhibited.
+ * Return value: TRUE is blocked.
  **/
 gboolean
-ck_inhibit_manager_is_suspend_key_inhibited (CkInhibitManager *manager)
+ck_inhibit_manager_is_suspend_blocked (CkInhibitManager *manager)
 {
-        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
-
-        return manager->priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY] > 0 ? TRUE : FALSE;
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_SUSPEND, CK_INHIBIT_MODE_BLOCK);
 }
 
 /**
- * ck_inhibit_manager_is_hibernate_key_inhibited:
+ * ck_inhibit_manager_is_idle_delayed:
  * @manager: The @CkInhibitManager object
  *
- * Return value: TRUE is inhibited.
+ * Return value: TRUE is delayed.
  **/
 gboolean
-ck_inhibit_manager_is_hibernate_key_inhibited (CkInhibitManager *manager)
+ck_inhibit_manager_is_idle_delayed (CkInhibitManager *manager)
 {
-        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_IDLE, CK_INHIBIT_MODE_DELAY);
+}
 
-        return manager->priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] > 0 ? TRUE : FALSE;
+/**
+ * ck_inhibit_manager_is_idle_blocked:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is blocked.
+ **/
+gboolean
+ck_inhibit_manager_is_idle_blocked (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_IDLE, CK_INHIBIT_MODE_BLOCK);
+}
+
+/**
+ * ck_inhibit_manager_is_power_key_delayed:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is delayed.
+ **/
+gboolean
+ck_inhibit_manager_is_power_key_delayed (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_POWER_KEY, CK_INHIBIT_MODE_DELAY);
+}
+
+/**
+ * ck_inhibit_manager_is_power_key_blocked:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is blocked.
+ **/
+gboolean
+ck_inhibit_manager_is_power_key_blocked (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_POWER_KEY, CK_INHIBIT_MODE_BLOCK);
+}
+
+/**
+ * ck_inhibit_manager_is_suspend_key_delayed:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is delayed.
+ **/
+gboolean
+ck_inhibit_manager_is_suspend_key_delayed (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_SUSPEND_KEY, CK_INHIBIT_MODE_DELAY);
+}
+
+/**
+ * ck_inhibit_manager_is_suspend_key_blocked:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is blocked.
+ **/
+gboolean
+ck_inhibit_manager_is_suspend_key_blocked (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_SUSPEND_KEY, CK_INHIBIT_MODE_BLOCK);
+}
+
+/**
+ * ck_inhibit_manager_is_hibernate_key_delayed:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is delayed.
+ **/
+gboolean
+ck_inhibit_manager_is_hibernate_key_delayed (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_HIBERNATE_KEY, CK_INHIBIT_MODE_DELAY);
+}
+
+/**
+ * ck_inhibit_manager_is_hibernate_key_blocked:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is blocked.
+ **/
+gboolean
+ck_inhibit_manager_is_hibernate_key_blocked (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_HIBERNATE_KEY, CK_INHIBIT_MODE_BLOCK);
+}
+
+/**
+ * ck_inhibit_manager_is_lid_switch_delayed:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is delayed.
+ **/
+gboolean
+ck_inhibit_manager_is_lid_switch_delayed (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_LID_SWITCH, CK_INHIBIT_MODE_DELAY);
+}
+
+/**
+ * ck_inhibit_manager_is_lid_switch_blocked:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: TRUE is blocked.
+ **/
+gboolean
+ck_inhibit_manager_is_lid_switch_blocked (CkInhibitManager *manager)
+{
+        return get_inhibit_status (manager, CK_INHIBIT_EVENT_LID_SWITCH, CK_INHIBIT_MODE_BLOCK);
 }

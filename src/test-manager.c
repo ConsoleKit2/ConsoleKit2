@@ -233,7 +233,17 @@ print_inhibit_reply (GDBusProxy *proxy, const gchar *method)
     gint      fd = -1;
 
     g_print ("calling %s\t", method);
-    var = g_dbus_proxy_call_sync (proxy, method, g_variant_new ("(sss)", "sleep:shutdown", "test-manager", "because it's good to test things?"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    var = g_dbus_proxy_call_sync (proxy,
+                                  method,
+                                  g_variant_new ("(ssss)",
+                                                 "sleep:shutdown",
+                                                 "test-manager",
+                                                 "testing inhibit",
+                                                 "block"),
+                                  G_DBUS_CALL_FLAGS_NONE,
+                                  3000,
+                                  NULL,
+                                  &error);
     if (var != NULL) {
         GString *string = g_variant_print_string (var, NULL, TRUE);
         g_print ("%s", string->str);

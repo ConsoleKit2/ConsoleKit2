@@ -45,7 +45,7 @@ typedef struct
         GObjectClass parent_class;
 
         /*< signals >*/
-        void (*changed_event) (CkInhibit *inhibit, gint event, gboolean enabled);
+        void (*changed_event) (CkInhibit *inhibit, gint inhibit_mode, gint event, gboolean enabled);
 } CkInhibitClass;
 
 /* The list of events that may be inhibited -- except for event_last :) */
@@ -57,8 +57,18 @@ typedef enum
         CK_INHIBIT_EVENT_POWER_KEY,
         CK_INHIBIT_EVENT_SUSPEND_KEY,
         CK_INHIBIT_EVENT_HIBERNATE_KEY,
+        CK_INHIBIT_EVENT_LID_SWITCH,
         CK_INHIBIT_EVENT_LAST
 } CkInhibitEvent;
+
+/* The list of inhibit modes -- except for mode_last and invalid */
+typedef enum
+{
+        CK_INHIBIT_MODE_INVALID = 0,
+        CK_INHIBIT_MODE_BLOCK,
+        CK_INHIBIT_MODE_DELAY,
+        CK_INHIBIT_MODE_LAST
+} CkInhibitMode;
 
 /*
  * Various error codes for CkInhibit. All the values will be negative except
@@ -80,12 +90,15 @@ CkInhibit      *ck_inhibit_new                         (void);
 gint            ck_inhibit_create_lock                 (CkInhibit   *inhibit,
                                                         const gchar *who,
                                                         const gchar *what,
-                                                        const gchar *why);
+                                                        const gchar *why,
+                                                        const gchar *mode);
 
 void            ck_inhibit_remove_lock                 (CkInhibit   *inhibit);
 
 const gchar    *ck_inhibit_get_who                     (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_why                     (CkInhibit   *inhibit);
+const gchar    *ck_inhibit_get_mode                    (CkInhibit   *inhibit);
+CkInhibitMode   ck_inhibit_get_inhibit_mode            (CkInhibit   *inhibit);
 
 gboolean        ck_inhibit_is_shutdown_inhibited       (CkInhibit   *inhibit);
 gboolean        ck_inhibit_is_suspend_inhibited        (CkInhibit   *inhibit);
@@ -93,6 +106,7 @@ gboolean        ck_inhibit_is_idle_inhibited           (CkInhibit   *inhibit);
 gboolean        ck_inhibit_is_power_key_inhibited      (CkInhibit   *inhibit);
 gboolean        ck_inhibit_is_suspend_key_inhibited    (CkInhibit   *inhibit);
 gboolean        ck_inhibit_is_hibernate_key_inhibited  (CkInhibit   *inhibit);
+gboolean        ck_inhibit_is_lid_switch_inhibited     (CkInhibit   *inhibit);
 
 G_END_DECLS
 

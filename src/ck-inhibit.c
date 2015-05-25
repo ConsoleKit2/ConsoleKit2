@@ -51,6 +51,10 @@ struct CkInhibitPrivate
          */
         const gchar *why;
         /*
+         * Mode is the CkInhibitMode, block or delay
+         */
+        CkInhibitMode mode;
+        /*
          * named_pipe is a named pipe that the user app will hold onto
          * while they want the lock to be held. When they close all
          * references to the named pipe then the lock is released and
@@ -96,9 +100,9 @@ ck_inhibit_class_init (CkInhibitClass *klass)
                                                     G_SIGNAL_RUN_LAST,
                                                     G_STRUCT_OFFSET (CkInhibitClass, changed_event),
                                                     NULL, NULL,
-                                                    ck_marshal_VOID__INT_BOOLEAN,
+                                                    ck_marshal_VOID__INT_INT_BOOLEAN,
                                                     G_TYPE_NONE,
-                                                    2, G_TYPE_INT, G_TYPE_BOOLEAN);
+                                                    3, G_TYPE_INT, G_TYPE_INT, G_TYPE_BOOLEAN);
 }
 
 static void
@@ -195,6 +199,9 @@ parse_inhibitors_string (CkInhibit *inhibit,
                 } else if (g_strcmp0 (tokens[i], "handle-hibernate-key") == 0) {
                         priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] = TRUE;
                         inhibit_set = TRUE;
+                } else if (g_strcmp0 (tokens[i], "handle-lid-switch") == 0) {
+                        priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH] = TRUE;
+                        inhibit_set = TRUE;
                 } else {
                         g_warning ("requested inhibit operation not supported %s",
                                    tokens[i]);
@@ -203,6 +210,32 @@ parse_inhibitors_string (CkInhibit *inhibit,
         g_strfreev (tokens);
 
         return inhibit_set;
+}
+
+
+/* Parses what for the inhibitors to assign to inhibit, invalid options
+ * generate a warning but the operation continues. If at least one
+ * inhibitor was set then it returns TRUE. */
+static gboolean
+parse_mode_string (CkInhibit   *inhibit,
+                   const gchar *mode)
+{
+        CkInhibitPrivate  *priv;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        /* Check for whatever inhibit modes we support */
+        if (g_strcmp0 (mode, "block") == 0) {
+                priv->mode = CK_INHIBIT_MODE_BLOCK;
+        } else if (g_strcmp0 (mode, "delay") == 0) {
+                priv->mode = CK_INHIBIT_MODE_DELAY;
+        } else {
+                return FALSE;
+        }
+
+        return TRUE;
 }
 
 /*
@@ -245,27 +278,31 @@ emit_initial_inhibit_signals (CkInhibit *inhibit)
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SHUTDOWN, TRUE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_SHUTDOWN, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND, TRUE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_SUSPEND, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_IDLE]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_IDLE, TRUE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_IDLE, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_POWER_KEY, TRUE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_POWER_KEY, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_SUSPEND_KEY, TRUE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_SUSPEND_KEY, TRUE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY]) {
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, CK_INHIBIT_EVENT_HIBERNATE_KEY, TRUE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_HIBERNATE_KEY, TRUE);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH]) {
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_LID_SWITCH, TRUE);
         }
 }
 
@@ -282,32 +319,37 @@ emit_final_uninhibit_signals (CkInhibit *inhibit)
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SHUTDOWN, FALSE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_SHUTDOWN, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND, FALSE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_SUSPEND, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_IDLE]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_IDLE] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_IDLE, FALSE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_IDLE, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_POWER_KEY] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_POWER_KEY, FALSE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_POWER_KEY, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_SUSPEND_KEY] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_SUSPEND_KEY, FALSE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_SUSPEND_KEY, FALSE);
         }
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY]) {
                 priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY] = FALSE;
-                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0,  CK_INHIBIT_EVENT_HIBERNATE_KEY, FALSE);
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_HIBERNATE_KEY, FALSE);
+        }
+
+        if (priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH]) {
+                priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH] = FALSE;
+                g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_LID_SWITCH, FALSE);
         }
 }
 
@@ -487,6 +529,10 @@ create_named_pipe (CkInhibit *inhibit)
  * @why:  A human-readable, descriptive string of why the program
  *        is taking the lock. Example: "Burning a DVD, interrupting now
  *        will ruin the DVD."
+ * @mode: Must either be block or delay. block prevents the operation
+ *        from happening and will cause a call to perform that action
+ *        to fail. delay temporarly prevents the operation from happening
+ *        until either the lock is released or a timeout is reached.
  *
  * Initializes the lock fd and populates the inhibit object with data.
  *
@@ -498,7 +544,8 @@ gint
 ck_inhibit_create_lock (CkInhibit   *inhibit,
                         const gchar *who,
                         const gchar *what,
-                        const gchar *why)
+                        const gchar *why,
+                        const gchar *mode)
 {
         CkInhibitPrivate *priv;
         gint              pipe;
@@ -506,7 +553,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), CK_INHIBIT_ERROR_INVALID_INPUT);
 
         /* These fields only get set here and are mandatory */
-        if (!who || !what || !why) {
+        if (!who || !what || !why || !mode) {
                 g_warning ("who, what, and why and mandatory for inhibit locks");
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
         }
@@ -514,7 +561,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
         /* always make sure we have a directory to work in */
-        if (create_inhibit_base_directory () < 0) {
+        if (create_inhibit_base_directory () == FALSE) {
                 return CK_INHIBIT_ERROR_GENERAL;
         }
 
@@ -524,6 +571,10 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         priv->named_pipe_path = get_named_pipe_path (who);
         if (!parse_inhibitors_string(inhibit, what)) {
                 g_warning ("Failed to set any inhibitors.");
+                return CK_INHIBIT_ERROR_INVALID_INPUT;
+        }
+        if (!parse_mode_string(inhibit, mode)) {
+                g_warning ("Failed to set inhibit mode.");
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
         }
 
@@ -579,6 +630,45 @@ ck_inhibit_get_why (CkInhibit   *inhibit)
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
 
         return inhibit->priv->why;
+}
+
+/**
+ * ck_inhibit_get_mode:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: the inhibit mode, either "delay" or "block" (or NULL on failure).
+ **/
+const gchar*
+ck_inhibit_get_mode (CkInhibit   *inhibit)
+{
+        CkInhibitPrivate *priv;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
+
+        priv = CK_INHIBIT_GET_PRIVATE (inhibit);
+
+        if (priv->mode == CK_INHIBIT_MODE_BLOCK) {
+                return "block";
+        } else if (priv->mode == CK_INHIBIT_MODE_DELAY) {
+                return "delay";
+        }
+
+        /* if mode wasn't set to block or delay, there was an error */
+        return NULL;
+}
+
+/**
+ * ck_inhibit_get_inhibit_mode:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: The CkInhibitMode directly, rather than a string representation.
+ **/
+CkInhibitMode
+ck_inhibit_get_inhibit_mode (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), CK_INHIBIT_MODE_INVALID);
+
+        return inhibit->priv->mode;
 }
 
 /**
@@ -663,4 +753,18 @@ ck_inhibit_is_hibernate_key_inhibited (CkInhibit *inhibit)
         g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
 
         return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_HIBERNATE_KEY];
+}
+
+/**
+ * ck_inhibit_is_lid_switch_inhibited:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: TRUE is inhibited.
+ **/
+gboolean
+ck_inhibit_is_lid_switch_inhibited (CkInhibit *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), FALSE);
+
+        return inhibit->priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH];
 }

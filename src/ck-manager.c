@@ -64,6 +64,22 @@
 #define DBUS_SESSION_INTERFACE DBUS_NAME ".Session"
 #define DBUS_MANAGER_INTERFACE DBUS_NAME ".Manager"
 
+typedef enum {
+        PREPARE_FOR_SHUTDOWN,
+        PREPARE_FOR_SLEEP,
+        LAST_SIGNAL
+} SIGNALS;
+
+typedef struct
+{
+        CkManager             *manager;
+        GDBusMethodInvocation *context;
+        const gchar           *command;
+        CkLogEventType         event_type;
+        const gchar           *description;
+        SIGNALS                signal;
+} SystemActionData;
+
 struct CkManagerPrivate
 {
 #ifdef HAVE_POLKIT
@@ -85,30 +101,27 @@ struct CkManagerPrivate
         GTimeVal         system_idle_since_hint;
 
         /* How long to delay after emitting the PREPARE_FOR_SHUTDOWN or
-         * PREPARE_FOR_SLEEP signal */
+         * PREPARE_FOR_SLEEP signal
+         */
         guint            system_action_idle_delay;
+        /* How long to delay after emitting the PREPARE_FOR_SHUTDOWN or
+         * PREPARE_FOR_SLEEP signal with something holding the delay
+         * inhibit
+         */
+        guint            system_action_idle_inhibited_delay;
         /* The idle callback id so we can detect multiple attempts to
-         * perform a system action at the same time */
+         * perform a system action at the same time
+         */
         guint            system_action_idle_id;
+        /* Now that the action data can be delayed and that delay can
+         * be lifted sooner than system_action_idle_inhibited_delay,
+         * we need to keep a pointer to the system action data so we
+         * can manually call system_action_idle_cb
+         */
+        SystemActionData *system_action_data;
 
         CkInhibitManager *inhibit_manager;
 };
-
-typedef enum {
-        PREPARE_FOR_SHUTDOWN,
-        PREPARE_FOR_SLEEP,
-        LAST_SIGNAL
-} SIGNALS;
-
-typedef struct
-{
-        CkManager             *manager;
-        GDBusMethodInvocation *context;
-        const gchar           *command;
-        CkLogEventType         event_type;
-        const gchar           *description;
-        SIGNALS                signal;
-} SystemActionData;
 
 static void     ck_manager_class_init  (CkManagerClass         *klass);
 static void     ck_manager_init        (CkManager              *manager);
@@ -1287,6 +1300,9 @@ system_action_idle_cb(SystemActionData *data)
 
         /* reset this since we'll return FALSE here and kill the cb */
         data->manager->priv->system_action_idle_id = 0;
+        /* set this to NULL as we've processed this event and are about
+         * to free the data */
+        data->manager->priv->system_action_data = NULL;
 
         g_free (data);
 
@@ -1298,6 +1314,7 @@ do_restart (CkManager             *manager,
             GDBusMethodInvocation *context)
 {
         SystemActionData *data;
+        guint             delay_time;
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
@@ -1324,8 +1341,18 @@ do_restart (CkManager             *manager,
         data->description = "Restart";
         data->signal = PREPARE_FOR_SHUTDOWN;
 
+        if (ck_inhibit_manager_is_shutdown_delayed (manager->priv->inhibit_manager)) {
+                delay_time = manager->priv->system_action_idle_inhibited_delay;
+                /* We need to keep a pointer to the system action data because
+                 * the inhibit lock can be lifted before the timeout
+                 */
+                manager->priv->system_action_data = data;
+        } else {
+                delay_time = manager->priv->system_action_idle_delay;
+        }
+
         /* Sleep so user applications have time to respond */
-        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+        manager->priv->system_action_idle_id = g_timeout_add (delay_time,
                                                               (GSourceFunc)system_action_idle_cb,
                                                               data);
 }
@@ -1348,8 +1375,8 @@ dbus_restart (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_shutdown_blocked (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
@@ -1399,6 +1426,7 @@ do_stop (CkManager             *manager,
          GDBusMethodInvocation *context)
 {
         SystemActionData *data;
+        guint             delay_time;
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
@@ -1425,8 +1453,18 @@ do_stop (CkManager             *manager,
         data->description = "Stop";
         data->signal = PREPARE_FOR_SHUTDOWN;
 
+        if (ck_inhibit_manager_is_shutdown_delayed (manager->priv->inhibit_manager)) {
+                delay_time = manager->priv->system_action_idle_inhibited_delay;
+                /* We need to keep a pointer to the system action data because
+                 * the inhibit lock can be lifted before the timeout
+                 */
+                manager->priv->system_action_data = data;
+        } else {
+                delay_time = manager->priv->system_action_idle_delay;
+        }
+
         /* Sleep so user applications have time to respond */
-        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+        manager->priv->system_action_idle_id = g_timeout_add (delay_time,
                                                               (GSourceFunc)system_action_idle_cb,
                                                               data);
 }
@@ -1442,8 +1480,8 @@ dbus_stop (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+        /* Check if something is blocked that action */
+        if (ck_inhibit_manager_is_shutdown_blocked (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
@@ -1504,8 +1542,8 @@ dbus_power_off (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_shutdown_blocked (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
@@ -1583,8 +1621,8 @@ dbus_reboot (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_shutdown_inhibited (manager->priv->inhibit_manager)) {
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_shutdown_blocked (manager->priv->inhibit_manager)) {
                 throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
@@ -1648,6 +1686,7 @@ do_suspend (CkManager             *manager,
             GDBusMethodInvocation *context)
 {
         SystemActionData *data;
+        guint             delay_time;
 
         /* Don't allow multiple system actions at the same time */
         if (manager->priv->system_action_idle_id != 0) {
@@ -1674,8 +1713,18 @@ do_suspend (CkManager             *manager,
         data->description = "Suspend";
         data->signal = PREPARE_FOR_SLEEP;
 
+        if (ck_inhibit_manager_is_suspend_delayed (manager->priv->inhibit_manager)) {
+                delay_time = manager->priv->system_action_idle_inhibited_delay;
+                /* We need to keep a pointer to the system action data because
+                 * the inhibit lock can be lifted before the timeout
+                 */
+                manager->priv->system_action_data = data;
+        } else {
+                delay_time = manager->priv->system_action_idle_delay;
+        }
+
         /* Sleep so user applications have time to respond */
-        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+        manager->priv->system_action_idle_id = g_timeout_add (delay_time,
                                                               (GSourceFunc)system_action_idle_cb,
                                                               data);
 }
@@ -1699,9 +1748,9 @@ dbus_suspend (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_suspend_blocked (manager->priv->inhibit_manager)) {
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
 
@@ -1769,6 +1818,13 @@ do_hibernate (CkManager             *manager,
               GDBusMethodInvocation *context)
 {
         SystemActionData *data;
+        guint             delay_time;
+
+        /* Don't allow multiple system actions at the same time */
+        if (manager->priv->system_action_idle_id != 0) {
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+                return;
+        }
 
         /* Emit the signal */
         console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), TRUE);
@@ -1789,8 +1845,18 @@ do_hibernate (CkManager             *manager,
         data->description = "Hibernate";
         data->signal = PREPARE_FOR_SLEEP;
 
+        if (ck_inhibit_manager_is_suspend_delayed (manager->priv->inhibit_manager)) {
+                delay_time = manager->priv->system_action_idle_inhibited_delay;
+                /* We need to keep a pointer to the system action data because
+                 * the inhibit lock can be lifted before the timeout
+                 */
+                manager->priv->system_action_data = data;
+        } else {
+                delay_time = manager->priv->system_action_idle_delay;
+        }
+
         /* Sleep so user applications have time to respond */
-        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+        manager->priv->system_action_idle_id = g_timeout_add (delay_time,
                                                               (GSourceFunc)system_action_idle_cb,
                                                               data);
 }
@@ -1814,9 +1880,9 @@ dbus_hibernate (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_suspend_blocked (manager->priv->inhibit_manager)) {
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
 
@@ -1884,6 +1950,13 @@ do_hybrid_sleep (CkManager             *manager,
                  GDBusMethodInvocation *context)
 {
         SystemActionData *data;
+        guint             delay_time;
+
+        /* Don't allow multiple system actions at the same time */
+        if (manager->priv->system_action_idle_id != 0) {
+                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+                return;
+        }
 
         /* Emit the signal */
         console_kit_manager_emit_prepare_for_sleep (CONSOLE_KIT_MANAGER (manager), TRUE);
@@ -1904,8 +1977,18 @@ do_hybrid_sleep (CkManager             *manager,
         data->description = "Hybrid Sleep";
         data->signal = PREPARE_FOR_SLEEP;
 
+        if (ck_inhibit_manager_is_suspend_delayed (manager->priv->inhibit_manager)) {
+                delay_time = manager->priv->system_action_idle_inhibited_delay;
+                /* We need to keep a pointer to the system action data because
+                 * the inhibit lock can be lifted before the timeout
+                 */
+                manager->priv->system_action_data = data;
+        } else {
+                delay_time = manager->priv->system_action_idle_delay;
+        }
+
         /* Sleep so user applications have time to respond */
-        manager->priv->system_action_idle_id = g_timeout_add (data->manager->priv->system_action_idle_delay,
+        manager->priv->system_action_idle_id = g_timeout_add (delay_time,
                                                               (GSourceFunc)system_action_idle_cb,
                                                               data);
 }
@@ -1929,9 +2012,9 @@ dbus_hybrid_sleep (ConsoleKitManager     *ckmanager,
 
         manager = CK_MANAGER (ckmanager);
 
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_suspend_inhibited (manager->priv->inhibit_manager)) {
-                throw_error (context, CK_MANAGER_ERROR_BUSY, _("Attempting to perform a system action while one is in progress"));
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_suspend_blocked (manager->priv->inhibit_manager)) {
+                throw_error (context, CK_MANAGER_ERROR_INHIBITED, _("Operation is being inhibited"));
                 return TRUE;
         }
 
@@ -1999,7 +2082,8 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
               GDBusMethodInvocation *context,
               const gchar *what,
               const gchar *who,
-              const gchar *why)
+              const gchar *why,
+              const gchar *mode)
 {
         CkManagerPrivate *priv;
         gint              fd = -1;
@@ -2012,13 +2096,15 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
         priv = CK_MANAGER_GET_PRIVATE (CK_MANAGER (ckmanager));
 
         if (priv->inhibit_manager == NULL) {
-                priv->inhibit_manager = ck_inhibit_manager_get ();
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Inhibit manager failed to initialize"));
+                return TRUE;
         }
 
         fd = ck_inhibit_manager_create_lock (priv->inhibit_manager,
                                              who,
                                              what,
-                                             why);
+                                             why,
+                                             mode);
 
         /* if we didn't get an inhibit lock, translate and throw the error */
         if (fd < 0) {
@@ -2295,8 +2381,8 @@ static gboolean
 manager_set_system_idle_hint (CkManager *manager,
                               gboolean   idle_hint)
 {
-        /* Check if something in inhibiting that action */
-        if (ck_inhibit_manager_is_idle_inhibited (manager->priv->inhibit_manager)) {
+        /* Check if something is blocking that action */
+        if (ck_inhibit_manager_is_idle_blocked (manager->priv->inhibit_manager)) {
                 g_debug ("idle inhibited, forcing idle_hint to FALSE");
                 idle_hint = FALSE;
         }
@@ -3340,6 +3426,54 @@ create_seats (CkManager *manager)
 }
 
 static void
+on_inhibit_manager_changed_event (CkInhibitManager *manager, gint inhibit_mode, gint event, gboolean enabled, gpointer user_data)
+{
+        CkManagerPrivate *priv;
+
+        g_return_if_fail (CK_IS_MANAGER (user_data));
+
+        priv = CK_MANAGER_GET_PRIVATE (CK_MANAGER (user_data));
+
+        /* No system action pending, return */
+        if (priv->system_action_idle_id == 0) {
+                return;
+        }
+
+        /* No system action data? normal shutdown/suspend, return */
+        if (priv->system_action_data == NULL) {
+                return;
+        }
+
+        /* this system action must be for a sleep or shutdown operation */
+        if (priv->system_action_data->signal != PREPARE_FOR_SLEEP ||
+            priv->system_action_data->signal != PREPARE_FOR_SHUTDOWN) {
+                return;
+        }
+
+        /* the inhibit change must be for sleep or shutdown */
+        if (event != CK_INHIBIT_EVENT_SUSPEND || event != CK_INHIBIT_EVENT_SHUTDOWN) {
+                return;
+        }
+
+        /* must be a delay inhibitor */
+        if (inhibit_mode != CK_INHIBIT_MODE_DELAY) {
+                return;
+        }
+
+        /* the inhibit lock must be removed */
+        if (enabled != FALSE) {
+                return;
+        }
+
+        /* The inhibit lock for this action was removed.
+         * Stop the timeout and call the system action now.
+         */
+        g_source_remove (priv->system_action_idle_id);
+        priv->system_action_idle_id = 0;
+        system_action_idle_cb (priv->system_action_data);
+}
+
+static void
 ck_manager_init (CkManager *manager)
 {
 
@@ -3367,8 +3501,12 @@ ck_manager_init (CkManager *manager)
         manager->priv->logger = ck_event_logger_new (LOG_FILE);
 
         manager->priv->inhibit_manager = ck_inhibit_manager_get ();
+        if (manager->priv->inhibit_manager) {
+                g_signal_connect (manager->priv->inhibit_manager, "changed-event", G_CALLBACK (on_inhibit_manager_changed_event), manager);
+        }
 
-        manager->priv->system_action_idle_delay = 4 * 1000;
+        manager->priv->system_action_idle_delay = 2 * 1000;
+        manager->priv->system_action_idle_inhibited_delay = 8 * 1000;
         manager->priv->system_action_idle_id = 0;
 }
 

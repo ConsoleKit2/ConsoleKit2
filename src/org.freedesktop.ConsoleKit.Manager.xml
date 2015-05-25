@@ -252,6 +252,11 @@
           <doc:summary>Why is a human-readable, descriptive string of why the program is taking the lock. Example: "Burning a DVD, interrupting now will ruin the DVD."</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="mode"  type="s" direction="in">
+        <doc:doc>
+          <doc:summary>Mode is either "block" or "delay" which determines if the inhibit lock is mandatory or should just delay the operation to a certain maximum time.</doc:summary>
+        </doc:doc>
+      </arg>
       <arg name="fd"   type="h" direction="out">
         <doc:doc>
             <doc:summary>Returns a file descriptor that encapsulates the lock, or -1 on failure. As soon as the file descriptor is closed (and all its duplicates) the lock is automatically released. If the client dies while the lock is taken it is automatically closed and the lock is released.</doc:summary>
@@ -272,6 +277,7 @@
     const char *what = "shutdown:sleep";
     const char *who = "Xfburn";
     const char *why = "Burning a DVD, interrupting now will ruin the DVD.";
+    const char *mode = "block";
 
     message = dbus_message_new_method_call ("org.freedesktop.ConsoleKit",
                                             "/org/freedesktop/ConsoleKit/Manager",
@@ -288,6 +294,7 @@
                                    DBUS_TYPE_STRING, &amp;what,
                                    DBUS_TYPE_STRING, &amp;who,
                                    DBUS_TYPE_STRING, &amp;why,
+                                   DBUS_TYPE_STRING, &amp;mode,
                                    DBUS_TYPE_INVALID))
     {
         g_warning ("Unable to call Inhibit()");
