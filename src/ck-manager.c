@@ -3340,10 +3340,10 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
 
         sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
 
-        /* gdbus/gvariant requires that we return something */
-        if (sessions[0] == NULL) {
-                sessions[0] = "";
-                sessions[1] = NULL;
+        /* gdbus/gvariant requires that we throw an error to return NULL */
+        if (sessions == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SESSIONS, _("There are no sessions"));
+                return TRUE;
         }
 
         console_kit_manager_complete_get_sessions (ckmanager, context, sessions);
