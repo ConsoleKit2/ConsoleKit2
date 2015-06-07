@@ -97,45 +97,8 @@ delete_pid (void)
 }
 
 static void
-delete_inhibit_files (void)
-{
-        GDir *dir;
-        GError *error = NULL;
-        const gchar *INHIBIT_DIRECTORY = RUNDIR "/ConsoleKit/inhibit";
-        const gchar *name;
-
-        g_debug ("Cleaning up %s", INHIBIT_DIRECTORY);
-
-        dir = g_dir_open (INHIBIT_DIRECTORY, 0, &error);
-        if (dir == NULL) {
-                g_debug ("Couldn't open directory %s: %s", INHIBIT_DIRECTORY,
-                         error->message);
-                g_error_free (error);
-                return;
-        }
-        while ((name = g_dir_read_name (dir)) != NULL) {
-                gchar *file;
-
-                /* the inhibit files end in .pipe */
-                if (!g_str_has_suffix (name, ".pipe")) {
-                        continue;
-                }
-
-                file = g_build_filename (INHIBIT_DIRECTORY, name, NULL);
-
-                g_debug ("Removing inhibit file: %s", file);
-                if (unlink (file) == -1) {
-                        g_warning ("Couldn't delete inhibit file: %s", file);
-                }
-                g_free (file);
-        }
-        g_dir_close (dir);
-}
-
-static void
 cleanup (void)
 {
-        delete_inhibit_files ();
         delete_pid ();
 }
 
@@ -328,8 +291,6 @@ main (int    argc,
                              G_BUS_NAME_OWNER_FLAGS_NONE,
                              bus_acquired, name_acquired, name_lost,
                              NULL, NULL);
-
-        delete_inhibit_files ();
 
         create_pid_file ();
 
