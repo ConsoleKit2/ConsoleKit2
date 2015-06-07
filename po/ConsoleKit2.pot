@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-05-17 11:11+0300\n"
+"POT-Creation-Date: 2015-06-07 18:48+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,23 +49,23 @@ msgstr ""
 msgid "Seat has no sessions"
 msgstr ""
 
-#: src/main.c:263
+#: src/main.c:226
 msgid "Enable debugging code"
 msgstr ""
 
-#: src/main.c:264
+#: src/main.c:227
 msgid "Don't become a daemon"
 msgstr ""
 
-#: src/main.c:265
+#: src/main.c:228
 msgid "Exit after a time - for debugging"
 msgstr ""
 
-#: src/main.c:290 tools/ck-collect-session-info.c:440
+#: src/main.c:253 tools/ck-collect-session-info.c:440
 msgid "You must be root to run this program"
 msgstr ""
 
-#: src/main.c:294
+#: src/main.c:257
 msgid "Console kit daemon"
 msgstr ""
 
@@ -77,98 +77,107 @@ msgstr ""
 msgid "No consoles available"
 msgstr ""
 
-#: src/ck-manager.c:816
+#: src/ck-manager.c:830
 #, c-format
 msgid "Not Authorized: %s"
 msgstr ""
 
-#: src/ck-manager.c:823
+#: src/ck-manager.c:837
 msgid "Authorization is required"
 msgstr ""
 
-#: src/ck-manager.c:826
+#: src/ck-manager.c:840
 msgid "Not Authorized"
 msgstr ""
 
-#: src/ck-manager.c:1255
+#: src/ck-manager.c:1269
 #, c-format
 msgid "Unable to %s system: %s"
 msgstr ""
 
-#: src/ck-manager.c:1304 src/ck-manager.c:1405 src/ck-manager.c:1654
-#: src/ck-manager.c:1704 src/ck-manager.c:1819 src/ck-manager.c:1934
+#: src/ck-manager.c:1322 src/ck-manager.c:1434 src/ck-manager.c:1694
+#: src/ck-manager.c:1826 src/ck-manager.c:1958
 msgid "Attempting to perform a system action while one is in progress"
 msgstr ""
 
-#: src/ck-manager.c:1316
+#: src/ck-manager.c:1334
 msgid "failed to allocate memory to perform restart"
 msgstr ""
 
-#: src/ck-manager.c:1353 src/ck-manager.c:1447 src/ck-manager.c:1509
-#: src/ck-manager.c:1588
+#: src/ck-manager.c:1381 src/ck-manager.c:1486 src/ck-manager.c:1548
+#: src/ck-manager.c:1627 src/ck-manager.c:1754 src/ck-manager.c:1886
+#: src/ck-manager.c:2018
 msgid "Operation is being inhibited"
 msgstr ""
 
-#: src/ck-manager.c:1417
+#: src/ck-manager.c:1446
 msgid "failed to allocate memory to perform shutdown"
 msgstr ""
 
-#: src/ck-manager.c:1666
+#: src/ck-manager.c:1706
 msgid "failed to allocate memory to perform suspend"
 msgstr ""
 
-#: src/ck-manager.c:1781
+#: src/ck-manager.c:1838
 msgid "failed to allocate memory to perform hibernate"
 msgstr ""
 
-#: src/ck-manager.c:1896
+#: src/ck-manager.c:1970
 msgid "failed to allocate memory to perform hybrid sleep"
 msgstr ""
 
-#: src/ck-manager.c:2027
+#: src/ck-manager.c:2101
+msgid "Inhibit manager failed to initialize"
+msgstr ""
+
+#: src/ck-manager.c:2115
 msgid "Invalid input when creating inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2030
+#: src/ck-manager.c:2118
 msgid "Unable to create inhibit lock, insufficient memory"
 msgstr ""
 
-#: src/ck-manager.c:2033
+#: src/ck-manager.c:2121
 msgid "Error creating the inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2709 src/ck-manager.c:2788 src/ck-manager.c:2836
+#: src/ck-manager.c:2798 src/ck-manager.c:2877 src/ck-manager.c:2925
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2723 src/ck-manager.c:3036 src/ck-session.c:384
+#: src/ck-manager.c:2812 src/ck-manager.c:3125 src/ck-session.c:384
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2734 src/ck-manager.c:2741 src/ck-manager.c:2985
+#: src/ck-manager.c:2823 src/ck-manager.c:2830 src/ck-manager.c:3074
 msgid "Unable to find session for cookie"
 msgstr ""
 
-#: src/ck-manager.c:2796
+#: src/ck-manager.c:2885
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2993
+#: src/ck-manager.c:3082
 msgid "User ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:3003
+#: src/ck-manager.c:3092
 msgid "Process ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:3197
+#: src/ck-manager.c:3286
 msgid "User has no sessions"
 msgstr ""
 
-#: src/ck-manager.c:3233
+#: src/ck-manager.c:3322
 msgid "User has no seats"
+msgstr ""
+
+#: src/ck-manager.c:3348
+msgid "There are no sessions"
 msgstr ""
 
 #: src/ck-session.c:390
