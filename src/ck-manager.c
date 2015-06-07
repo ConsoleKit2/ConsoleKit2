@@ -36,6 +36,7 @@
 #include <glib/gstdio.h>
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 
 #if defined HAVE_POLKIT
 #include <polkit/polkit.h>
@@ -2080,6 +2081,7 @@ dbus_can_hybrid_sleep (ConsoleKitManager     *ckmanager,
 static gboolean
 dbus_inhibit (ConsoleKitManager     *ckmanager,
               GDBusMethodInvocation *context,
+              GUnixFDList *fd_list,
               const gchar *what,
               const gchar *who,
               const gchar *why,
@@ -2087,7 +2089,7 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
 {
         CkManagerPrivate *priv;
         gint              fd = -1;
-        GVariant         *var_fd;
+        GUnixFDList      *out_fd_list = NULL;
 
         TRACE ();
 
@@ -2121,9 +2123,10 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
                 }
         }
 
-        var_fd = g_variant_new ("h", fd);
+        out_fd_list = g_unix_fd_list_new_from_array (&fd, 1);
 
-        console_kit_manager_complete_inhibit (ckmanager, context, var_fd);
+        console_kit_manager_complete_inhibit (ckmanager, context, out_fd_list, g_variant_new_handle (0));
+        g_clear_object (&out_fd_list);
         return TRUE;
 }
 

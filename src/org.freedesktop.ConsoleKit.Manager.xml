@@ -237,6 +237,7 @@
     <method name="Inhibit">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <annotation name="org.gtk.GDBus.Since" value="0.9.0"/>
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="4"/>
       <arg name="what" type="s" direction="in">
         <doc:doc>
           <doc:summary>What is a colon-separated list of lock types. The list of lock types are: shutdown, sleep, idle, handle-power-key, handle-suspend-key, handle-hibernate-key. Example: "shutdown:idle"</doc:summary>

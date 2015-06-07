@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 
 #define DBUS_NAME                        "org.freedesktop.ConsoleKit"
 #define DBUS_MANAGER_INTERFACE           DBUS_NAME ".Manager"
@@ -52,14 +53,14 @@ print_proxy_info (GDBusProxy *proxy)
              g_dbus_proxy_get_interface_name (proxy));
 }
 
-static void
-print_reply (GDBusProxy *proxy, const gchar *method)
+static GVariant*
+print_method (GDBusProxy *proxy, const gchar *method, GVariant *variant)
 {
     GVariant *var;
     GError   *error = NULL;
 
     g_print ("calling %s\t", method);
-    var = g_dbus_proxy_call_sync (proxy, method, g_variant_new ("()"), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+    var = g_dbus_proxy_call_sync (proxy, method, variant, G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
     if (var != NULL) {
         GString *string = g_variant_print_string (var, NULL, TRUE);
         g_print ("%s", string->str);
@@ -69,9 +70,56 @@ print_reply (GDBusProxy *proxy, const gchar *method)
             g_print ("error %s", error->message);
     }
     g_clear_error (&error);
+    g_print ("\n");
+    return var;
+}
+
+static void
+print_reply (GDBusProxy *proxy, const gchar *method)
+{
+    GVariant *var = print_method (proxy, method, g_variant_new ("()"));
+
     if (var)
         g_variant_unref (var);
+
+}
+
+static gint
+print_inhibit_reply (GDBusProxy *proxy, const gchar *method)
+{
+    GVariant    *var;
+    gint         fd = -1;
+    GError      *error = NULL;
+    GUnixFDList *out_fd_list = NULL;
+
+    g_print ("calling %s\t", method);
+    var = g_dbus_proxy_call_with_unix_fd_list_sync (proxy,
+                                                    method,
+                                                    g_variant_new ("(ssss)",
+                                                                   "sleep:shutdown",
+                                                                   "test-manager",
+                                                                   "testing inhibit",
+                                                                   "block"),
+                                                    G_DBUS_CALL_FLAGS_NONE,
+                                                    -1,
+                                                    NULL,
+                                                    &out_fd_list,
+                                                    NULL,
+                                                    &error);
+    if (var != NULL) {
+        GString *string = g_variant_print_string (var, NULL, TRUE);
+        g_print ("%s", string->str);
+        fd = g_unix_fd_list_get (out_fd_list, 0, NULL);
+        g_print ("fd %d", fd);
+    } else {
+        g_print ("returned NULL\t");
+        if (error)
+            g_print ("error %s", error->message);
+    }
+    g_clear_error (&error);
     g_print ("\n");
+
+    return fd;
 }
 
 static gboolean
@@ -225,42 +273,6 @@ out:
     g_print ("\n");
 }
 
-static gint
-print_inhibit_reply (GDBusProxy *proxy, const gchar *method)
-{
-    GVariant *var;
-    GError   *error = NULL;
-    gint      fd = -1;
-
-    g_print ("calling %s\t", method);
-    var = g_dbus_proxy_call_sync (proxy,
-                                  method,
-                                  g_variant_new ("(ssss)",
-                                                 "sleep:shutdown",
-                                                 "test-manager",
-                                                 "testing inhibit",
-                                                 "block"),
-                                  G_DBUS_CALL_FLAGS_NONE,
-                                  3000,
-                                  NULL,
-                                  &error);
-    if (var != NULL) {
-        GString *string = g_variant_print_string (var, NULL, TRUE);
-        g_print ("%s", string->str);
-        g_variant_get (var, "(h)", &fd);
-    } else {
-        g_print ("returned NULL\t");
-        if (error)
-            g_print ("error %s", error->message);
-    }
-    g_clear_error (&error);
-    if (var)
-        g_variant_unref (var);
-    g_print ("\n");
-
-    return fd;
-}
-
 static gboolean
 validate_stuff ()
 {
@@ -297,7 +309,12 @@ validate_stuff ()
     open_print_and_test_session (manager, "OpenSessionWithParameters");
 
     if (fd > -1)
+    {
+        g_print ("Expecting an Error.Inhibited message\n");
+        print_method (manager, "Suspend", g_variant_new ("(b)", FALSE));
+
         g_close (fd, NULL);
+    }
 
     g_print ("done printing stuff\n\n");
 

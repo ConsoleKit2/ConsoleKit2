@@ -31,6 +31,8 @@
 #include "ck-inhibit.h"
 #include "ck-inhibit-manager.h"
 #include "ck-marshal.h"
+/* For TRACE */
+#include "ck-sysdeps.h"
 
 
 #define CK_INHIBIT_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_INHIBIT_MANAGER, CkInhibitManagerPrivate))
@@ -105,6 +107,8 @@ cb_changed_event (CkInhibit *inhibit,
         CkInhibitManager        *manager;
         CkInhibitManagerPrivate *priv;
 
+        TRACE ();
+
         g_return_if_fail (CK_IS_INHIBIT_MANAGER (user_data));
 
         manager = CK_INHIBIT_MANAGER (user_data);
@@ -121,6 +125,7 @@ cb_changed_event (CkInhibit *inhibit,
 
                 if (priv->inhibitors[inhibit_mode][event] == 1) {
                         /* event is now inhibited, send a notification */
+                        g_debug ("event %d is inhibited, emitting signal", event);
                         g_signal_emit(G_OBJECT (manager),
                                       __signals[SIG_CHANGED_EVENT],
                                       0,
@@ -138,6 +143,7 @@ cb_changed_event (CkInhibit *inhibit,
 
                 if (priv->inhibitors[inhibit_mode][event] == 0) {
                         /* event is no longer inhibited, send a notification */
+                        g_debug ("event %d is no longer inhibited, emitting signal", event);
                         g_signal_emit(G_OBJECT (manager),
                                       __signals[SIG_CHANGED_EVENT],
                                       0,
@@ -183,6 +189,8 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
         CkInhibitManagerPrivate *priv;
         CkInhibit               *inhibit;
         gint                     fd, signal_id;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), CK_INHIBIT_ERROR_GENERAL);
 
@@ -234,6 +242,8 @@ ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
 {
         CkInhibitManagerPrivate *priv;
         GList                   *l;
+
+        TRACE ();
 
         g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), FALSE);
 
