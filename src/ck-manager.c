@@ -3448,13 +3448,13 @@ on_inhibit_manager_changed_event (CkInhibitManager *manager, gint inhibit_mode, 
         }
 
         /* this system action must be for a sleep or shutdown operation */
-        if (priv->system_action_data->signal != PREPARE_FOR_SLEEP ||
+        if (priv->system_action_data->signal != PREPARE_FOR_SLEEP &&
             priv->system_action_data->signal != PREPARE_FOR_SHUTDOWN) {
                 return;
         }
 
         /* the inhibit change must be for sleep or shutdown */
-        if (event != CK_INHIBIT_EVENT_SUSPEND || event != CK_INHIBIT_EVENT_SHUTDOWN) {
+        if (event != CK_INHIBIT_EVENT_SUSPEND && event != CK_INHIBIT_EVENT_SHUTDOWN) {
                 return;
         }
 
