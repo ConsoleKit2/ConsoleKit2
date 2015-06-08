@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-06-07 18:48+0300\n"
+"POT-Creation-Date: 2015-06-08 15:38+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,7 +33,7 @@ msgstr ""
 msgid "Unknown session id"
 msgstr ""
 
-#: src/ck-seat.c:297 src/ck-vt-monitor.c:129
+#: src/ck-seat.c:297 src/ck-seat.c:330 src/ck-vt-monitor.c:129
 msgid "Unable to activate session"
 msgstr ""
 
@@ -41,11 +41,11 @@ msgstr ""
 msgid "Session already active"
 msgstr ""
 
-#: src/ck-seat.c:681
+#: src/ck-seat.c:685
 msgid "Session is not attached to this seat"
 msgstr ""
 
-#: src/ck-seat.c:966
+#: src/ck-seat.c:970
 msgid "Seat has no sessions"
 msgstr ""
 
@@ -190,7 +190,7 @@ msgid ""
 "doesn't support activation changes"
 msgstr ""
 
-#: tools/ck-history.c:903 tools/list-sessions.c:372
+#: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"
 msgstr ""
 

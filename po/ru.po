@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-05-17 11:11+0300\n"
-"PO-Revision-Date: 2015-02-13 21:22+0000\n"
+"POT-Creation-Date: 2015-06-08 15:38+0300\n"
+"PO-Revision-Date: 2015-06-08 09:18+0000\n"
 "Last-Translator: bizdelnick <bizdelnick@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/consolekit2/"
 "language/ru/)\n"
@@ -27,7 +27,7 @@ msgstr "За время ожидания была активирована др�
 
 #: src/ck-seat.c:275
 msgid "There is no Seat to activate"
-msgstr ""
+msgstr "Нет рабочих мест для активации"
 
 #: src/ck-seat.c:281
 msgid "Activation is not supported for this kind of seat"
@@ -37,40 +37,39 @@ msgstr "Для этого типа рабочего места активаци�
 msgid "Unknown session id"
 msgstr "Неизвестный идентификатор сессии"
 
-#: src/ck-seat.c:297 src/ck-vt-monitor.c:129
+#: src/ck-seat.c:297 src/ck-seat.c:330 src/ck-vt-monitor.c:129
 msgid "Unable to activate session"
 msgstr "Невозможно активировать сессию"
 
 #: src/ck-seat.c:322
-#, fuzzy
 msgid "Session already active"
 msgstr "Сессия уже активна"
 
-#: src/ck-seat.c:681
+#: src/ck-seat.c:685
 msgid "Session is not attached to this seat"
 msgstr "Сессия не привязана к этому рабочему месту"
 
-#: src/ck-seat.c:966
+#: src/ck-seat.c:970
 msgid "Seat has no sessions"
-msgstr ""
+msgstr "У рабочего места нет сессий"
 
-#: src/main.c:263
+#: src/main.c:226
 msgid "Enable debugging code"
 msgstr "Включить код для отладки"
 
-#: src/main.c:264
+#: src/main.c:227
 msgid "Don't become a daemon"
 msgstr "Не становиться демоном"
 
-#: src/main.c:265
+#: src/main.c:228
 msgid "Exit after a time - for debugging"
 msgstr "Выйти через некоторое время - для отладки"
 
-#: src/main.c:290 tools/ck-collect-session-info.c:440
+#: src/main.c:253 tools/ck-collect-session-info.c:440
 msgid "You must be root to run this program"
 msgstr "Для запуска этой программы необходимо быть root"
 
-#: src/main.c:294
+#: src/main.c:257
 msgid "Console kit daemon"
 msgstr "Демон Console kit"
 
@@ -82,99 +81,108 @@ msgstr "Сессия уже активна"
 msgid "No consoles available"
 msgstr "Нет доступных консолей"
 
-#: src/ck-manager.c:816
+#: src/ck-manager.c:830
 #, c-format
 msgid "Not Authorized: %s"
-msgstr ""
+msgstr "Не авторизован: %s"
 
-#: src/ck-manager.c:823
+#: src/ck-manager.c:837
 msgid "Authorization is required"
-msgstr ""
+msgstr "Требуется авторизация"
 
-#: src/ck-manager.c:826
+#: src/ck-manager.c:840
 msgid "Not Authorized"
-msgstr ""
+msgstr "Не авторизован"
 
-#: src/ck-manager.c:1255
+#: src/ck-manager.c:1269
 #, c-format
 msgid "Unable to %s system: %s"
-msgstr ""
+msgstr "Невозможно %s систему: %s"
 
-#: src/ck-manager.c:1304 src/ck-manager.c:1405 src/ck-manager.c:1654
-#: src/ck-manager.c:1704 src/ck-manager.c:1819 src/ck-manager.c:1934
+#: src/ck-manager.c:1322 src/ck-manager.c:1434 src/ck-manager.c:1694
+#: src/ck-manager.c:1826 src/ck-manager.c:1958
 msgid "Attempting to perform a system action while one is in progress"
-msgstr ""
+msgstr "Попытка запустить системное действие во время его выполнения"
 
-#: src/ck-manager.c:1316
+#: src/ck-manager.c:1334
 msgid "failed to allocate memory to perform restart"
-msgstr ""
+msgstr "не удалось выделить память для перезапуска"
 
-#: src/ck-manager.c:1353 src/ck-manager.c:1447 src/ck-manager.c:1509
-#: src/ck-manager.c:1588
+#: src/ck-manager.c:1381 src/ck-manager.c:1486 src/ck-manager.c:1548
+#: src/ck-manager.c:1627 src/ck-manager.c:1754 src/ck-manager.c:1886
+#: src/ck-manager.c:2018
 msgid "Operation is being inhibited"
-msgstr ""
+msgstr "Операция блокируется"
 
-#: src/ck-manager.c:1417
+#: src/ck-manager.c:1446
 msgid "failed to allocate memory to perform shutdown"
-msgstr ""
+msgstr "не удалось выделить память для отключения"
 
-#: src/ck-manager.c:1666
+#: src/ck-manager.c:1706
 msgid "failed to allocate memory to perform suspend"
-msgstr ""
+msgstr "не удалось выделить память для перехода в ждущий режим"
 
-#: src/ck-manager.c:1781
+#: src/ck-manager.c:1838
 msgid "failed to allocate memory to perform hibernate"
-msgstr ""
+msgstr "не удалось выделить память для перехода в спящий режим"
 
-#: src/ck-manager.c:1896
+#: src/ck-manager.c:1970
 msgid "failed to allocate memory to perform hybrid sleep"
-msgstr ""
+msgstr "не удалось выделить память для перехода в режим гибридного сна"
 
-#: src/ck-manager.c:2027
+#: src/ck-manager.c:2101
+msgid "Inhibit manager failed to initialize"
+msgstr "Не удалось инициализировать менеджер блокировок"
+
+#: src/ck-manager.c:2115
 msgid "Invalid input when creating inhibit lock"
-msgstr ""
+msgstr "Некорректный ввод при создании блокировки"
 
-#: src/ck-manager.c:2030
+#: src/ck-manager.c:2118
 msgid "Unable to create inhibit lock, insufficient memory"
-msgstr ""
+msgstr "Невозможно создать блокировку: недостаточно памяти"
 
-#: src/ck-manager.c:2033
+#: src/ck-manager.c:2121
 msgid "Error creating the inhibit lock"
-msgstr ""
+msgstr "Ошибка при создании блокировки"
 
-#: src/ck-manager.c:2709 src/ck-manager.c:2788 src/ck-manager.c:2836
+#: src/ck-manager.c:2798 src/ck-manager.c:2877 src/ck-manager.c:2925
 msgid "Unable to get information about the calling process"
 msgstr "Невозможно получить информацию о вызывающем процессе"
 
-#: src/ck-manager.c:2723 src/ck-manager.c:3036 src/ck-session.c:384
+#: src/ck-manager.c:2812 src/ck-manager.c:3125 src/ck-session.c:384
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "Невозможно получить информацию о вызывающем процессе '%d'"
 
-#: src/ck-manager.c:2734 src/ck-manager.c:2741 src/ck-manager.c:2985
+#: src/ck-manager.c:2823 src/ck-manager.c:2830 src/ck-manager.c:3074
 msgid "Unable to find session for cookie"
 msgstr "Невозможно найти сессию для cookie"
 
-#: src/ck-manager.c:2796
+#: src/ck-manager.c:2885
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Невозможно получить информацию о сессии для процесса '%d'"
 
-#: src/ck-manager.c:2993
+#: src/ck-manager.c:3082
 msgid "User ID does not match the owner of cookie"
 msgstr "ID пользователя не соответствует владельцу cookie"
 
-#: src/ck-manager.c:3003
+#: src/ck-manager.c:3092
 msgid "Process ID does not match the owner of cookie"
 msgstr "ID процесса не соответствует владельцу cookie"
 
-#: src/ck-manager.c:3197
+#: src/ck-manager.c:3286
 msgid "User has no sessions"
-msgstr ""
+msgstr "У пользователя нет сессий"
 
-#: src/ck-manager.c:3233
+#: src/ck-manager.c:3322
 msgid "User has no seats"
-msgstr ""
+msgstr "У пользователя нет рабочих мест"
+
+#: src/ck-manager.c:3348
+msgid "There are no sessions"
+msgstr "Нет сессий"
 
 #: src/ck-session.c:390
 msgid "Only session owner may set idle hint state"
@@ -185,8 +193,10 @@ msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
 msgstr ""
+"Сигнал активации не обрабатывается. Сессия не привязана к рабочему месту или "
+"рабочее место не поддерживает изменения активации"
 
-#: tools/ck-history.c:903 tools/list-sessions.c:372
+#: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"
 msgstr "Версия этого приложения"
 
