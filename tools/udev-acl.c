@@ -107,8 +107,7 @@ update:
                 printf("%c%u %s\n", add ? '+' : '-', uid, filename);
         acl_calc_mask(&acl);
         ret = acl_set_file(filename, ACL_TYPE_ACCESS, acl);
-        if (ret != 0)
-                goto out;
+
 out:
         acl_free(acl);
         return ret;
