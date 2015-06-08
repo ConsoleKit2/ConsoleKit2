@@ -115,6 +115,7 @@ print_inhibit_reply (GDBusProxy *proxy, const gchar *method)
         g_print ("returned NULL\t");
         if (error)
             g_print ("error %s", error->message);
+        g_variant_unref (var);
     }
     g_clear_error (&error);
     g_print ("\n");

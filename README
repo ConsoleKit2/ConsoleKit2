@@ -24,7 +24,6 @@ Minimum Requirements
 
 * Autotools (for building ConsoleKit2)
 * Gettext 0.15
-* dbus-glib 0.82
 * glib 2.30
 * X11
 * zlib

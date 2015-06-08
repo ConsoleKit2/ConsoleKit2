@@ -31,10 +31,7 @@
 
 #include <glib.h>
 #include <glib/gi18n.h>
-
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
+#include <gio/gio.h>
 
 #define CK_NAME      "org.freedesktop.ConsoleKit"
 #define CK_PATH      "/org/freedesktop/ConsoleKit"
@@ -46,95 +43,64 @@
 #define CK_SESSION_INTERFACE "org.freedesktop.ConsoleKit.Session"
 
 static gboolean
-get_uint (DBusGProxy *proxy,
+get_value (GDBusProxy *proxy,
+           const char *method,
+           const char *variant_type,
+           gpointer    val)
+{
+        GError   *error;
+        GVariant *res;
+
+        error = NULL;
+        res = g_dbus_proxy_call_sync (proxy,
+                                      method,
+                                      g_variant_new ("()"),
+                                      G_DBUS_CALL_FLAGS_NONE,
+                                      6000,
+                                      NULL,
+                                      &error);
+        if (res == NULL) {
+                g_warning ("%s failed: %s", method, error->message);
+                g_clear_error (&error);
+                return FALSE;
+        } else {
+                g_variant_get (res, variant_type, val, NULL);
+                g_variant_unref (res);
+        }
+
+        return TRUE;
+}
+
+static gboolean
+get_uint (GDBusProxy *proxy,
           const char *method,
           guint      *val)
 {
-        GError  *error;
-        gboolean res;
-
-        error = NULL;
-        res = dbus_g_proxy_call (proxy,
-                                 method,
-                                 &error,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_UINT, val,
-                                 G_TYPE_INVALID);
-        if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
-                g_error_free (error);
-        }
-
-        return res;
+        return get_value (proxy, method, "(u)", val);
 }
 
 static gboolean
-get_path (DBusGProxy *proxy,
+get_path (GDBusProxy *proxy,
           const char *method,
           char      **str)
 {
-        GError  *error;
-        gboolean res;
-
-        error = NULL;
-        res = dbus_g_proxy_call (proxy,
-                                 method,
-                                 &error,
-                                 G_TYPE_INVALID,
-                                 DBUS_TYPE_G_OBJECT_PATH, str,
-                                 G_TYPE_INVALID);
-        if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
-                g_error_free (error);
-        }
-
-        return res;
+        return get_value (proxy, method, "(o)", str);
 }
 
 static gboolean
-get_string (DBusGProxy *proxy,
+get_string (GDBusProxy *proxy,
             const char *method,
             char      **str)
 {
-        GError  *error;
-        gboolean res;
-
-        error = NULL;
-        res = dbus_g_proxy_call (proxy,
-                                 method,
-                                 &error,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_STRING, str,
-                                 G_TYPE_INVALID);
-        if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
-                g_error_free (error);
-        }
-
-        return res;
+        return get_value (proxy, method, "(s)", str);
 }
 
 static gboolean
-get_boolean (DBusGProxy *proxy,
+get_boolean (GDBusProxy *proxy,
              const char *method,
              gboolean   *value)
 {
-        GError  *error;
-        gboolean res;
-
-        error = NULL;
-        res = dbus_g_proxy_call (proxy,
-                                 method,
-                                 &error,
-                                 G_TYPE_INVALID,
-                                 G_TYPE_BOOLEAN, value,
-                                 G_TYPE_INVALID);
-        if (! res) {
-                g_warning ("%s failed: %s", method, error->message);
-                g_error_free (error);
-        }
-
-        return res;
+        return get_value (proxy, method, "(b)", value);
 }
 
 static char *
@@ -166,11 +132,11 @@ get_real_name (uid_t uid)
 }
 
 static void
-list_session (DBusGConnection *connection,
+list_session (GDBusConnection *connection,
               const char      *ssid)
 {
-        DBusGProxy *proxy;
-        guint       uid;
+        GDBusProxy *proxy;
+        guint       uid = 0;
         char       *realname;
         char       *sid;
         char       *lsid;
@@ -185,12 +151,19 @@ list_session (DBusGConnection *connection,
         gboolean    is_local;
         char       *short_sid;
         const char *short_ssid;
+        GError     *error = NULL;
 
-        proxy = dbus_g_proxy_new_for_name (connection,
-                                           CK_NAME,
-                                           ssid,
-                                           CK_SESSION_INTERFACE);
+        proxy = g_dbus_proxy_new_sync (connection,
+                                       G_DBUS_PROXY_FLAGS_NONE,
+                                       NULL,
+                                       CK_NAME,
+                                       ssid,
+                                       CK_SESSION_INTERFACE,
+                                       NULL,
+                                       &error);
         if (proxy == NULL) {
+                g_print ("error creating proxy, %s", error->message);
+                g_clear_error (&error);
                 return;
         }
 
@@ -262,98 +235,103 @@ list_session (DBusGConnection *connection,
 }
 
 static void
-list_sessions (DBusGConnection *connection,
+list_sessions (GDBusConnection *connection,
                const char      *sid)
 {
-        DBusGProxy *proxy;
-        GError     *error;
-        gboolean    res;
-        GPtrArray  *sessions;
-        int         i;
+        GDBusProxy   *proxy;
+        GError       *error;
+        GVariant     *res;
+        GVariantIter *iter;
 
-        proxy = dbus_g_proxy_new_for_name (connection,
-                                           CK_NAME,
-                                           sid,
-                                           CK_SEAT_INTERFACE);
+        proxy = g_dbus_proxy_new_sync (connection,
+                                       G_DBUS_PROXY_FLAGS_NONE,
+                                       NULL,
+                                       CK_NAME,
+                                       sid,
+                                       CK_SEAT_INTERFACE,
+                                       NULL,
+                                       &error);
+
         if (proxy == NULL) {
+                g_print ("error creating proxy, %s", error->message);
+                g_clear_error (&error);
                 return;
         }
 
-        sessions = NULL;
-
         error = NULL;
-        res = dbus_g_proxy_call (proxy,
-                                 "GetSessions",
-                                 &error,
-                                 G_TYPE_INVALID,
-                                 dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_G_OBJECT_PATH),
-                                 &sessions,
-                                 G_TYPE_INVALID);
-        if (! res) {
+        res = g_dbus_proxy_call_sync (proxy,
+                                      "GetSessions",
+                                      g_variant_new ("()"),
+                                      G_DBUS_CALL_FLAGS_NONE,
+                                      6000,
+                                      NULL,
+                                      &error);
+
+        if (res == NULL) {
                 g_warning ("Failed to get list of sessions for %s: %s", sid, error->message);
-                g_error_free (error);
+                g_clear_error (&error);
                 goto out;
         }
 
-        for (i = 0; i < sessions->len; i++) {
-                char *ssid;
-
-                ssid = g_ptr_array_index (sessions, i);
-
-                list_session (connection, ssid);
-
-                g_free (ssid);
+        g_variant_get (res, "(ao)", &iter);
+        while (g_variant_iter_next (iter, "o", &sid))
+        {
+                list_session (connection, sid);
         }
+        g_variant_iter_free (iter);
+        g_variant_unref (res);
 
-        g_ptr_array_free (sessions, TRUE);
  out:
         g_object_unref (proxy);
 }
 
 static void
-list_seats (DBusGConnection *connection)
+list_seats (GDBusConnection *connection)
 {
-        DBusGProxy *proxy;
-        GError     *error;
-        gboolean    res;
-        GPtrArray  *seats;
-        int         i;
+        GDBusProxy   *proxy;
+        GError       *error;
+        GVariant     *res;
+        GVariantIter *iter;
+        gchar        *path = NULL;
 
-        proxy = dbus_g_proxy_new_for_name (connection,
-                                           CK_NAME,
-                                           CK_MANAGER_PATH,
-                                           CK_MANAGER_INTERFACE);
+        proxy = g_dbus_proxy_new_sync (connection,
+                                       G_DBUS_PROXY_FLAGS_NONE,
+                                       NULL,
+                                       CK_NAME,
+                                       CK_MANAGER_PATH,
+                                       CK_MANAGER_INTERFACE,
+                                       NULL,
+                                       &error);
+
         if (proxy == NULL) {
+                g_print ("error creating proxy, %s", error->message);
+                g_clear_error (&error);
                 return;
         }
 
-        seats = NULL;
-
         error = NULL;
-        res = dbus_g_proxy_call (proxy,
-                                 "GetSeats",
-                                 &error,
-                                 G_TYPE_INVALID,
-                                 dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_G_OBJECT_PATH),
-                                 &seats,
-                                 G_TYPE_INVALID);
-        if (! res) {
+        res = g_dbus_proxy_call_sync (proxy,
+                                      "GetSeats",
+                                      g_variant_new ("()"),
+                                      G_DBUS_CALL_FLAGS_NONE,
+                                      6000,
+                                      NULL,
+                                      &error);
+
+        if (res == NULL) {
                 g_warning ("Failed to get list of seats: %s", error->message);
-                g_error_free (error);
+                g_clear_error (&error);
                 goto out;
         }
 
-        for (i = 0; i < seats->len; i++) {
-                char *sid;
-
-                sid = g_ptr_array_index (seats, i);
-
-                list_sessions (connection, sid);
-
-                g_free (sid);
+        g_variant_get (res, "(ao)", &iter);
+        while (g_variant_iter_next (iter, "o", &path))
+        {
+                list_sessions (connection, path);
         }
+        g_variant_iter_free (iter);
+        g_variant_unref (res);
 
-        g_ptr_array_free (seats, TRUE);
  out:
         g_object_unref (proxy);
 }
@@ -362,7 +340,7 @@ int
 main (int    argc,
       char **argv)
 {
-        DBusGConnection *connection;
+        GDBusConnection *connection;
 
         GOptionContext *context;
         gboolean        retval;
@@ -379,10 +357,6 @@ main (int    argc,
 #ifdef ENABLE_NLS
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);
-#endif
-
-#if !GLIB_CHECK_VERSION(2, 36, 0)
-        g_type_init ();
 #endif
 
         context = g_option_context_new (NULL);
@@ -403,7 +377,7 @@ main (int    argc,
         }
 
         error = NULL;
-        connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
+        connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
         if (connection == NULL) {
                 g_message ("Failed to connect to the D-Bus daemon: %s", error->message);
                 g_error_free (error);
