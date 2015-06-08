@@ -324,7 +324,11 @@ _seat_activate_session (CkSeat                *seat,
                         ck_session_set_active (session, TRUE, NULL);
                 } else {
                         /* Change the error code for CkSeat */
-                        vt_error->code = CK_SEAT_ERROR_FAILED;
+                        if (vt_error) {
+                                vt_error->code = CK_SEAT_ERROR_FAILED;
+                        } else {
+                                g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_FAILED, _("Unable to activate session"));
+                        }
                 }
 
                 g_signal_handler_disconnect (seat->priv->vt_monitor, adata->handler_id);
