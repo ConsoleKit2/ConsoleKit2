@@ -805,6 +805,7 @@ typedef struct
         AuthorizedCallback     callback;
 } AuthorizedCallbackData;
 
+#ifdef HAVE_POLKIT
 static void
 data_free (AuthorizedCallbackData *data)
 {
@@ -812,7 +813,6 @@ data_free (AuthorizedCallbackData *data)
         g_free (data);
 }
 
-#ifdef HAVE_POLKIT
 static void
 auth_ready_callback (PolkitAuthority        *authority,
                      GAsyncResult           *res,
@@ -1400,23 +1400,18 @@ dbus_can_restart (ConsoleKitManager     *ckmanager,
                   GDBusMethodInvocation *context)
 
 {
-        CkManager  *manager;
-        const char *action;
-
-        TRACE ();
-
-        manager = CK_MANAGER (ckmanager);
-
-        action = "org.freedesktop.consolekit.system.restart";
-
 #if defined HAVE_POLKIT
-        get_polkit_permissions (manager, action, context);
+        const char *action = "org.freedesktop.consolekit.system.restart";
+
+        get_polkit_permissions (CK_MANAGER (ckmanager), action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
-        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+        if (check_rbac_permissions (CK_MANAGER (ckmanager), context, RBAC_SHUTDOWN_KEY, NULL)) {
                 console_kit_manager_complete_can_restart (ckmanager, context , TRUE);
         } else {
                 console_kit_manager_complete_can_restart (ckmanager, context , FALSE);
         }
+#else
+        console_kit_manager_complete_can_restart (ckmanager, context , TRUE);
 #endif
 
         return TRUE;
@@ -1502,23 +1497,18 @@ static gboolean
 dbus_can_stop (ConsoleKitManager     *ckmanager,
                GDBusMethodInvocation *context)
 {
-        CkManager  *manager;
-        const char *action;
-
-        TRACE ();
-
-        manager = CK_MANAGER (ckmanager);
-
-        action = "org.freedesktop.consolekit.system.stop";
-
 #if defined HAVE_POLKIT
-        get_polkit_permissions (manager, action, context);
+        const char *action = "org.freedesktop.consolekit.system.stop";
+
+        get_polkit_permissions (CK_MANAGER (ckmanager), action, context);
 #elif defined ENABLE_RBAC_SHUTDOWN
-        if (check_rbac_permissions (manager, context, RBAC_SHUTDOWN_KEY, NULL)) {
+        if (check_rbac_permissions (CK_MANAGER (ckmanager), context, RBAC_SHUTDOWN_KEY, NULL)) {
                 console_kit_manager_complete_can_stop (ckmanager, context, TRUE);
         } else {
                 console_kit_manager_complete_can_stop (ckmanager, context, FALSE);
         }
+#else
+        console_kit_manager_complete_can_stop (ckmanager, context, TRUE);
 #endif
 
         return TRUE;
@@ -3197,6 +3187,7 @@ remove_sessions_for_connection (GDBusConnection *connection,
 
 }
 
+#ifdef HAVE_POLKIT
 static void
 polkit_authority_get_cb (GObject *source_object,
                          GAsyncResult *res,
@@ -3204,10 +3195,9 @@ polkit_authority_get_cb (GObject *source_object,
 {
         CkManager *manager = CK_MANAGER (user_data);
 
-#ifdef HAVE_POLKIT
         manager->priv->pol_ctx = polkit_authority_get_finish (res, NULL);
-#endif
 }
+#endif
 
 static gboolean
 register_manager (CkManager *manager, GDBusConnection *connection)
