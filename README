@@ -24,7 +24,7 @@ Minimum Requirements
 
 * Autotools (for building ConsoleKit2)
 * Gettext 0.15
-* glib 2.30
+* glib 2.40
 * X11
 * zlib
 * libkvm (required for OpenBSD, FreeBSD, kfreebsd, and DragonFlyBSD)

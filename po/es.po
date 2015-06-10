@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-06-08 15:38+0300\n"
+"POT-Creation-Date: 2015-06-10 18:40+0300\n"
 "PO-Revision-Date: 2015-06-08 09:01+0000\n"
 "Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/consolekit2/"
@@ -97,8 +97,8 @@ msgstr "No autorizado"
 msgid "Unable to %s system: %s"
 msgstr "No se pudo %s al sistema: %s"
 
-#: src/ck-manager.c:1322 src/ck-manager.c:1434 src/ck-manager.c:1694
-#: src/ck-manager.c:1826 src/ck-manager.c:1958
+#: src/ck-manager.c:1322 src/ck-manager.c:1429 src/ck-manager.c:1684
+#: src/ck-manager.c:1816 src/ck-manager.c:1948
 msgid "Attempting to perform a system action while one is in progress"
 msgstr ""
 
@@ -106,79 +106,79 @@ msgstr ""
 msgid "failed to allocate memory to perform restart"
 msgstr ""
 
-#: src/ck-manager.c:1381 src/ck-manager.c:1486 src/ck-manager.c:1548
-#: src/ck-manager.c:1627 src/ck-manager.c:1754 src/ck-manager.c:1886
-#: src/ck-manager.c:2018
+#: src/ck-manager.c:1381 src/ck-manager.c:1481 src/ck-manager.c:1538
+#: src/ck-manager.c:1617 src/ck-manager.c:1744 src/ck-manager.c:1876
+#: src/ck-manager.c:2008
 msgid "Operation is being inhibited"
 msgstr ""
 
-#: src/ck-manager.c:1446
+#: src/ck-manager.c:1441
 msgid "failed to allocate memory to perform shutdown"
 msgstr ""
 
-#: src/ck-manager.c:1706
+#: src/ck-manager.c:1696
 msgid "failed to allocate memory to perform suspend"
 msgstr ""
 
-#: src/ck-manager.c:1838
+#: src/ck-manager.c:1828
 msgid "failed to allocate memory to perform hibernate"
 msgstr ""
 
-#: src/ck-manager.c:1970
+#: src/ck-manager.c:1960
 msgid "failed to allocate memory to perform hybrid sleep"
 msgstr ""
 
-#: src/ck-manager.c:2101
+#: src/ck-manager.c:2091
 msgid "Inhibit manager failed to initialize"
 msgstr ""
 
-#: src/ck-manager.c:2115
+#: src/ck-manager.c:2105
 msgid "Invalid input when creating inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2118
+#: src/ck-manager.c:2108
 msgid "Unable to create inhibit lock, insufficient memory"
 msgstr ""
 
-#: src/ck-manager.c:2121
+#: src/ck-manager.c:2111
 msgid "Error creating the inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2798 src/ck-manager.c:2877 src/ck-manager.c:2925
+#: src/ck-manager.c:2788 src/ck-manager.c:2867 src/ck-manager.c:2915
 msgid "Unable to get information about the calling process"
 msgstr "No se puede buscar información acerca de las llamadas a proceso"
 
-#: src/ck-manager.c:2812 src/ck-manager.c:3125 src/ck-session.c:384
+#: src/ck-manager.c:2802 src/ck-manager.c:3115 src/ck-session.c:384
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "No se puede buscar información acerca de la llamada al proceso «%d»"
 
-#: src/ck-manager.c:2823 src/ck-manager.c:2830 src/ck-manager.c:3074
+#: src/ck-manager.c:2813 src/ck-manager.c:2820 src/ck-manager.c:3064
 msgid "Unable to find session for cookie"
 msgstr "No se pudo encontrar la sesión para la cookie"
 
-#: src/ck-manager.c:2885
+#: src/ck-manager.c:2875
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "No se puede buscar información de la sesión para el proceso «%d»"
 
-#: src/ck-manager.c:3082
+#: src/ck-manager.c:3072
 msgid "User ID does not match the owner of cookie"
 msgstr "El Id del usuario no concuerda con el propietario de la cookie"
 
-#: src/ck-manager.c:3092
+#: src/ck-manager.c:3082
 msgid "Process ID does not match the owner of cookie"
 msgstr "El id del proceso no concuerda con el propietario de la cookie"
 
-#: src/ck-manager.c:3286
+#: src/ck-manager.c:3276
 msgid "User has no sessions"
 msgstr "El usuario no tiene sesión"
 
-#: src/ck-manager.c:3322
+#: src/ck-manager.c:3312
 msgid "User has no seats"
 msgstr "El usuario no tiene puesto de trabajo"
 
-#: src/ck-manager.c:3348
+#: src/ck-manager.c:3338
 msgid "There are no sessions"
 msgstr ""
 

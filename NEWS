@@ -1,4 +1,47 @@
 ==============
+Version 0.9.3
+==============
+[Please note that this is a development release.]
+
+Development release of ConsoleKit2 targeting the 1.0 release.
+Please report all problems to
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+Changes to the public DBUS API:
+    - Adds the "mode" parameter to the inhibit call
+    - Additional error messages are now returned i.e.
+      CkSeat's ActivateSession can return CK_SEAT_ERROR_ALREADY_ACTIVE
+    - PrepareForSleep PrepareForShutdown signals added
+
+- Coverity scan and cppcheck static analysis fixes
+- Don't delete the inhibit named pipe files on startup
+- Add "mode" to the inhibit dbus call to better match logind
+- Remove the pam-foreground-compat script, it was causing race conditions
+- Port ConsoleKit2 to GDBus, these changes required a glib min version
+  bump to 2.40
+- A TRACE macro was added for additional debugging when built with
+--enable-debug=full
+- Add transifex client configuration
+- Fix build without PolicyKit/Polkit (Ivailo Monev)
+- Include gio header required for GAsyncResult (Ivailo Monev)
+- OpenBSD: unbreak get_kinfo_proc by properly initializing the
+  length (Antoine Jacoutot)
+- Check for Linux-PAM features rather than just Linux, for
+  OpenPAM support. (Andrew Aldridge)
+- Fix a warning message about the Source ID not being found during
+  remote ck session log out.
+- Add -with-rundir configure flag (Robby Workman)
+- Revert the "Fix crash on logout/login via SunRay" as it caused
+  regressions
+- OpenBSD cleanups and sync (Antoine Jacoutot)
+- PrepareForSleep/Shutdown signals are now emitted
+- Ensure the 90-consolekit file is correctly installed
+- SystemdService file is now conditionally installed
+- Fix installing the logrotate file
+
+Translation Updates: Russian, Spanish, Spanish (Latin America)
+
+==============
 Version 0.9.2
 ==============
 [Please note that this is a development release.]
