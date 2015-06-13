@@ -836,7 +836,11 @@ dbus_get_login_session_id (ConsoleKitSession     *cksession,
 
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
-        console_kit_session_complete_get_login_session_id (cksession, context, session->priv->login_session_id);
+        if (session->priv->login_session_id == NULL) {
+                throw_error (context, CK_SESSION_ERROR_FAILED, "no login session id");
+        } else {
+                console_kit_session_complete_get_login_session_id (cksession, context, session->priv->login_session_id);
+        }
         return TRUE;
 }
 
