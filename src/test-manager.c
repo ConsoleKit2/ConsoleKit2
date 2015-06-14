@@ -277,7 +277,10 @@ out:
 static gboolean
 validate_stuff ()
 {
-    gint fd;
+    gint      fd;
+    GVariant *session_var = NULL, *close_var = NULL;
+    gboolean  is_session_closed;
+    GError   *error = NULL;
 
     print_reply (manager, "CanRestart");
 
@@ -295,7 +298,7 @@ validate_stuff ()
 
     fd = print_inhibit_reply (manager, "Inhibit");
 
-    print_reply (manager, "OpenSession");
+    session_var = print_method (manager, "OpenSession", g_variant_new ("()"));
 
     print_reply (manager, "GetSeats");
 
@@ -317,7 +320,28 @@ validate_stuff ()
         g_close (fd, NULL);
     }
 
+    /* test closing our session */
+    if (session_var != NULL) {
+        g_print ("calling CloseSession\t");
+        close_var = g_dbus_proxy_call_sync (manager, "CloseSession",
+                                            session_var,
+                                            G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
+        if (close_var == NULL) {
+            g_print ("returned NULL\t");
+            if (error)
+                g_print ("error %s", error->message);
+        }
+    }
+
+    g_variant_get (close_var, "(b)", &is_session_closed);
+    g_print ("session closed? %s", is_session_closed ? "Closed" : "Not Closed");
+
     g_print ("done printing stuff\n\n");
+
+    if (session_var)
+        g_variant_unref (session_var);
+    if (close_var)
+        g_variant_unref (close_var);
 
     return TRUE;
 }
