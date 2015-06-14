@@ -55,7 +55,6 @@ struct CkSessionPrivate
         char            *seat_id;
 
         char            *login_session_id;
-        guint            uid;
 
         GTimeVal         creation_time;
 
@@ -386,7 +385,7 @@ dbus_set_idle_hint (ConsoleKitSession     *cksession,
         }
 
         /* only restrict this by UID for now */
-        if (session->priv->uid != calling_uid) {
+        if (console_kit_session_get_unix_user (cksession) != calling_uid) {
                 throw_error (context, CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, _("Only session owner may set idle hint state"));
                 return TRUE;
         }
@@ -1244,7 +1243,7 @@ ck_session_run_programs (CkSession  *session,
                 extra_env[n++] = g_strdup_printf ("CK_SESSION_TYPE=%s", console_kit_session_get_session_type (cksession));
         }
         extra_env[n++] = g_strdup_printf ("CK_SESSION_SEAT_ID=%s", session->priv->seat_id);
-        extra_env[n++] = g_strdup_printf ("CK_SESSION_USER_UID=%d", session->priv->uid);
+        extra_env[n++] = g_strdup_printf ("CK_SESSION_USER_UID=%d", console_kit_session_get_unix_user (cksession));
         if (console_kit_session_get_display_device (cksession) != NULL && strlen (console_kit_session_get_display_device (cksession)) > 0) {
                 extra_env[n++] = g_strdup_printf ("CK_SESSION_DISPLAY_DEVICE=%s", console_kit_session_get_display_device (cksession));
         }
@@ -1283,7 +1282,7 @@ ck_session_dump (CkSession *session,
         cksession = CONSOLE_KIT_SESSION (session);
 
         group_name = g_strdup_printf ("Session %s", session->priv->id);
-        g_key_file_set_integer (key_file, group_name, "uid", session->priv->uid);
+        g_key_file_set_integer (key_file, group_name, "uid", console_kit_session_get_unix_user (cksession));
         g_key_file_set_string (key_file,
                                group_name,
                                "seat",
