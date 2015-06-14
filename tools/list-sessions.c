@@ -60,7 +60,7 @@ get_value (GDBusProxy *proxy,
                                       NULL,
                                       &error);
         if (res == NULL) {
-                g_warning ("%s failed: %s", method, error->message);
+                g_debug ("%s failed: %s", method, error->message);
                 g_clear_error (&error);
                 return FALSE;
         } else {
