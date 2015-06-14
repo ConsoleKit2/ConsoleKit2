@@ -330,6 +330,11 @@ dbus_get_idle_since_hint (ConsoleKitSession     *cksession,
 
         g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
 
+        if (console_kit_session_get_idle_hint (cksession) == FALSE) {
+                throw_error (context, CK_SESSION_ERROR_GENERAL, "idle since hint not set");
+                return TRUE;
+        }
+
         date_str = g_time_val_to_iso8601 (&session->priv->idle_since_hint);
 
         console_kit_session_complete_get_idle_since_hint (cksession, context, date_str);
