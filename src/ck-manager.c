@@ -2851,6 +2851,11 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
         pid_t          calling_pid = 0;
         char          *cookie;
 
+        if (pid <= 1) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("pid must be > 1"));
+                return TRUE;
+        }
+
         manager = CK_MANAGER (ckmanager);
 
         sender = g_dbus_method_invocation_get_sender (context);
