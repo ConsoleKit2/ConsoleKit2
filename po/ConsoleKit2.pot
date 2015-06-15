@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-06-10 18:40+0300\n"
+"POT-Creation-Date: 2015-06-15 16:44+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -142,49 +142,53 @@ msgstr ""
 msgid "Error creating the inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2788 src/ck-manager.c:2867 src/ck-manager.c:2915
+#: src/ck-manager.c:2788 src/ck-manager.c:2872 src/ck-manager.c:2920
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2802 src/ck-manager.c:3115 src/ck-session.c:384
+#: src/ck-manager.c:2802 src/ck-manager.c:3120 src/ck-session.c:388
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2813 src/ck-manager.c:2820 src/ck-manager.c:3064
+#: src/ck-manager.c:2813 src/ck-manager.c:2820 src/ck-manager.c:3069
 msgid "Unable to find session for cookie"
 msgstr ""
 
-#: src/ck-manager.c:2875
+#: src/ck-manager.c:2855
+msgid "pid must be > 1"
+msgstr ""
+
+#: src/ck-manager.c:2880
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:3072
+#: src/ck-manager.c:3077
 msgid "User ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:3082
+#: src/ck-manager.c:3087
 msgid "Process ID does not match the owner of cookie"
 msgstr ""
 
-#: src/ck-manager.c:3276
+#: src/ck-manager.c:3281
 msgid "User has no sessions"
 msgstr ""
 
-#: src/ck-manager.c:3312
+#: src/ck-manager.c:3317
 msgid "User has no seats"
 msgstr ""
 
-#: src/ck-manager.c:3338
+#: src/ck-manager.c:3343
 msgid "There are no sessions"
 msgstr ""
 
-#: src/ck-session.c:390
+#: src/ck-session.c:394
 msgid "Only session owner may set idle hint state"
 msgstr ""
 
-#: src/ck-session.c:462
+#: src/ck-session.c:466
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
