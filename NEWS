@@ -1,4 +1,20 @@
 ==============
+Version 0.9.4
+==============
+[Please note that this is a development release.]
+
+Development release of ConsoleKit2 targeting the 1.0 release.
+Please report all problems to
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+- Cksession return empty string when login session id not set
+- Test code now cleans up any created sessions
+- Fix issue #26, where polkit and networkmanager weren't working
+  because the CKDB wasn't getting the correct uid set.
+
+Translation Updates: Russian, Spanish, Spanish (Latin America)
+
+==============
 Version 0.9.3
 ==============
 [Please note that this is a development release.]
