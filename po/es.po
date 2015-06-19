@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR The ConsoleKit2 Team
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Translators:
 # Pablo Roberto Francisco Lezaeta Reyes <prflr88@gmail.com>, 2015
 msgid ""
@@ -9,14 +9,13 @@ msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2015-06-15 16:44+0300\n"
-"PO-Revision-Date: 2015-06-16 08:44+0000\n"
-"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
-"Language-Team: Spanish (http://www.transifex.com/projects/p/consolekit2/"
-"language/es/)\n"
-"Language: es\n"
+"PO-Revision-Date: 2015-06-17 22:03+0000\n"
+"Last-Translator: Pablo Roberto Francisco Lezaeta Reyes <prflr88@gmail.com>\n"
+"Language-Team: Spanish (http://www.transifex.com/projects/p/consolekit2/language/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/ck-seat.c:250
@@ -159,7 +158,7 @@ msgstr "No se pudo encontrar la sesión para la cookie"
 
 #: src/ck-manager.c:2855
 msgid "pid must be > 1"
-msgstr ""
+msgstr "el pid debe ser > 1"
 
 #: src/ck-manager.c:2880
 #, c-format
@@ -184,21 +183,17 @@ msgstr "El usuario no tiene puesto de trabajo"
 
 #: src/ck-manager.c:3343
 msgid "There are no sessions"
-msgstr ""
+msgstr "Sin sesiones"
 
 #: src/ck-session.c:394
 msgid "Only session owner may set idle hint state"
-msgstr ""
-"Solo el propietario de la sesión puede establecer el estado de toque de "
-"inactividad"
+msgstr "Solo el propietario de la sesión puede establecer el estado de toque de inactividad"
 
 #: src/ck-session.c:466
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
-msgstr ""
-"La señal de activación no se ha manejada. La sesión no se pudo unir al "
-"puesto de trabajo, o el puesto de trabajo no admite cambios de activación."
+msgstr "La señal de activación no se ha manejada. La sesión no se pudo unir al puesto de trabajo, o el puesto de trabajo no admite cambios de activación."
 
 #: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"
@@ -214,8 +209,7 @@ msgstr "Muestra la lista de los últimos usuarios conectados"
 
 #: tools/ck-history.c:906
 msgid "Show 'last' compatible listing of last logged in users"
-msgstr ""
-"Muestra la «última» lista compatible de los últimos usuarios conectados"
+msgstr "Muestra la «última» lista compatible de los últimos usuarios conectados"
 
 #: tools/ck-history.c:907
 msgid "Show full event log"
