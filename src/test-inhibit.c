@@ -72,7 +72,9 @@ test_ck_create_inhibit_lock (void)
                                  WHO,
                                  WHAT,
                                  WHY,
-                                 MODE);
+                                 MODE,
+                                 42,
+                                 9999);
 
     /* ensure we succeeded */
     g_assert (fd >= 0);
@@ -149,7 +151,9 @@ test_manager_add_lock1 (void)
                                           WHO,
                                           WHAT,
                                           WHY,
-                                          MODE);
+                                          MODE,
+                                          123,
+                                          456);
 
     g_assert (fd1 != 0);
 }
@@ -162,7 +166,9 @@ test_manager_add_lock2 (void)
                                           WHO2,
                                           WHAT2,
                                           WHY,
-                                          MODE2);
+                                          MODE2,
+                                          789,
+                                          987);
 
     g_assert (fd2 != 0);
 }

@@ -58,7 +58,9 @@ gint              ck_inhibit_manager_create_lock                 (CkInhibitManag
                                                                   const gchar      *who,
                                                                   const gchar      *what,
                                                                   const gchar      *why,
-                                                                  const gchar      *mode);
+                                                                  const gchar      *mode,
+                                                                  uid_t             uid,
+                                                                  pid_t             pid);
 
 gboolean          ck_inhibit_manager_remove_lock                 (CkInhibitManager *manager,
                                                                   const gchar      *who);
@@ -78,6 +80,8 @@ gboolean          ck_inhibit_manager_is_power_key_blocked        (CkInhibitManag
 gboolean          ck_inhibit_manager_is_suspend_key_blocked      (CkInhibitManager *manager);
 gboolean          ck_inhibit_manager_is_hibernate_key_blocked    (CkInhibitManager *manager);
 gboolean          ck_inhibit_manager_is_lid_switch_blocked       (CkInhibitManager *manager);
+
+GList            *ck_inhibit_manager_get_inhibit_list            (CkInhibitManager *manager);
 
 G_END_DECLS
 

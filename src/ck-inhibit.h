@@ -91,14 +91,19 @@ gint            ck_inhibit_create_lock                 (CkInhibit   *inhibit,
                                                         const gchar *who,
                                                         const gchar *what,
                                                         const gchar *why,
-                                                        const gchar *mode);
+                                                        const gchar *mode,
+                                                        uid_t        uid,
+                                                        pid_t        pid);
 
 void            ck_inhibit_remove_lock                 (CkInhibit   *inhibit);
 
+const gchar    *ck_inhibit_get_what                    (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_who                     (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_why                     (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_mode                    (CkInhibit   *inhibit);
 CkInhibitMode   ck_inhibit_get_inhibit_mode            (CkInhibit   *inhibit);
+uid_t           ck_inhibit_get_uid                     (CkInhibit   *inhibit);
+pid_t           ck_inhibit_get_pid                     (CkInhibit   *inhibit);
 
 gboolean        ck_inhibit_is_shutdown_inhibited       (CkInhibit   *inhibit);
 gboolean        ck_inhibit_is_suspend_inhibited        (CkInhibit   *inhibit);

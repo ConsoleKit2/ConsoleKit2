@@ -39,7 +39,7 @@ struct CkInhibitPrivate
          * Who is a human-readable, descriptive string of who is taking
          * the lock. Example: "Xfburn"
          */
-        const gchar *who;
+        gchar *who;
         /* inhibitors is an array of which events to suppress.
          * Setting an CkInhibitEvent value inside the array to TRUE
          * marks it for suppression. */
@@ -49,11 +49,14 @@ struct CkInhibitPrivate
          * is taking the lock. Example: "Burning a DVD, interrupting now
          * will ruin the DVD."
          */
-        const gchar *why;
+        gchar *why;
         /*
          * Mode is the CkInhibitMode, block or delay
          */
         CkInhibitMode mode;
+        /* the uid and pid, used for list inhibitors */
+        uid_t uid;
+        pid_t pid;
         /*
          * named_pipe is a named pipe that the user app will hold onto
          * while they want the lock to be held. When they close all
@@ -134,6 +137,16 @@ ck_inhibit_finalize (GObject *object)
         }
 
         close_named_pipe (inhibit);
+
+        if(inhibit->priv->who != NULL) {
+                g_free (inhibit->priv->who);
+                inhibit->priv->who = NULL;
+        }
+
+        if(inhibit->priv->why != NULL) {
+                g_free (inhibit->priv->why);
+                inhibit->priv->why = NULL;
+        }
 
         G_OBJECT_CLASS (ck_inhibit_parent_class)->finalize (object);
 }
@@ -533,6 +546,8 @@ create_named_pipe (CkInhibit *inhibit)
  *        from happening and will cause a call to perform that action
  *        to fail. delay temporarly prevents the operation from happening
  *        until either the lock is released or a timeout is reached.
+ * @uid:  user id.
+ * @pid:  process id.
  *
  * Initializes the lock fd and populates the inhibit object with data.
  *
@@ -545,7 +560,9 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
                         const gchar *who,
                         const gchar *what,
                         const gchar *why,
-                        const gchar *mode)
+                        const gchar *mode,
+                        uid_t        uid,
+                        pid_t        pid)
 {
         CkInhibitPrivate *priv;
         gint              pipe;
@@ -566,8 +583,10 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         }
 
         /* fill in the inihibt values */
-        priv->who = who;
-        priv->why = why;
+        priv->who = g_strdup (who);
+        priv->why = g_strdup (why);
+        priv->uid = uid;
+        priv->pid = pid;
         priv->named_pipe_path = get_named_pipe_path (who);
         if (!parse_inhibitors_string(inhibit, what)) {
                 g_warning ("Failed to set any inhibitors.");
@@ -602,6 +621,72 @@ void
 ck_inhibit_remove_lock (CkInhibit   *inhibit)
 {
         return close_named_pipe (inhibit);
+}
+
+/* Adds what to the string, frees the old string if needed, and returns the
+ * newly created string */
+static gchar*
+add_item_to_string (gchar *string, const gchar* what)
+{
+        gchar *temp;
+
+        /* nothing to do, easy */
+        if (what == NULL) {
+                return string;
+        }
+
+        /* start of our string */
+        if (string == NULL) {
+                return g_strdup (what);
+        }
+
+        /* add :what to the existing string */
+        temp = g_strdup_printf ("%s:%s", string, what);
+
+        g_free (string);
+
+        return temp;
+}
+
+/* We check if the inhibit event is set, if so we add what to the string
+ * and return a new string. The old string that's passed in is freed if not
+ * needed anymore.
+ */
+static gchar*
+check_event_and_add_to_string (CkInhibit     *inhibit,
+                               CkInhibitEvent event,
+                               const gchar   *what,
+                               gchar         *string)
+{
+        if (inhibit->priv->inhibitors[event]) {
+                string = add_item_to_string (string, what);
+        }
+
+        return string;
+}
+
+/**
+ * ck_inhibit_get_what:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: A string representation of the things being inhibited.
+ **/
+const gchar*
+ck_inhibit_get_what (CkInhibit   *inhibit)
+{
+        gchar *string = NULL;
+
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
+
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_SHUTDOWN, "shutdown", string);
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_SUSPEND, "suspend", string);
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_IDLE, "idle", string);
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_POWER_KEY, "handle-power-key", string);
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_SUSPEND_KEY, "handle-suspend-key", string);
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_HIBERNATE_KEY, "handle-hibernate-key", string);
+        string = check_event_and_add_to_string (inhibit, CK_INHIBIT_EVENT_LID_SWITCH, "handle-lid-switch", string);
+
+        return string;
 }
 
 /**
@@ -655,6 +740,34 @@ ck_inhibit_get_mode (CkInhibit   *inhibit)
 
         /* if mode wasn't set to block or delay, there was an error */
         return NULL;
+}
+
+/**
+ * ck_inhibit_get_uid:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: return the uid or 0 on failure.
+ **/
+uid_t
+ck_inhibit_get_uid (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), 0);
+
+        return inhibit->priv->uid;
+}
+
+/**
+ * ck_inhibit_get_pid:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: return the pid or 0 on failure.
+ **/
+pid_t
+ck_inhibit_get_pid (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), 0);
+
+        return inhibit->priv->pid;
 }
 
 /**

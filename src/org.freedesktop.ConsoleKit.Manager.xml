@@ -327,6 +327,20 @@
       </doc:doc>
     </method>
 
+    <method name="ListInhibitors">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <annotation name="org.gtk.GDBus.Since" value="0.9.5"/>
+      <arg name="inhibitors" type="a(ssssuu)" direction="out"/>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method emulates the logind implementation.</doc:para>
+          <doc:para>Returns the current list of inhibitors, an array of strings representing the what, who, why, mode, and two unsigned int32 representing the user ID and process ID.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL or CK_MANAGER_ERROR_NOTHING_INHIBITED.</doc:para>
+          <doc:para>Since 0.9.5</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="OpenSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="out" type="s">

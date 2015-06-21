@@ -151,6 +151,10 @@ cb_changed_event (CkInhibit *inhibit,
                                       event,
                                       FALSE);
                 }
+
+                /* When an inhibitor loses it lockes, remove the inhibitor from
+                 * the list */
+                ck_inhibit_manager_remove_lock (manager, ck_inhibit_get_who (inhibit));
         }
 }
 
@@ -170,6 +174,8 @@ cb_changed_event (CkInhibit *inhibit,
  *        from happening and will cause a call to perform that action
  *        to fail. delay temporarly prevents the operation from happening
  *        until either the lock is released or a timeout is reached.
+ * @uid:  user id.
+ * @pid:  process id.
  *
  * Initializes an inhibit lock with the supplied paramters and returns
  * the named pipe. An application can only hold one lock at a time, multiple
@@ -184,7 +190,9 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
                                 const gchar *who,
                                 const gchar *what,
                                 const gchar *why,
-                                const gchar *mode)
+                                const gchar *mode,
+                                uid_t        uid,
+                                pid_t        pid)
 {
         CkInhibitManagerPrivate *priv;
         CkInhibit               *inhibit;
@@ -208,7 +216,7 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
          */
         signal_id = g_signal_connect (inhibit, "changed-event", G_CALLBACK (cb_changed_event), manager);
 
-        fd = ck_inhibit_create_lock (inhibit, who, what, why, mode);
+        fd = ck_inhibit_create_lock (inhibit, who, what, why, mode, uid, pid);
 
         if (fd == -1) {
                 g_error ("error creating inhibit lock");
@@ -466,4 +474,19 @@ gboolean
 ck_inhibit_manager_is_lid_switch_blocked (CkInhibitManager *manager)
 {
         return get_inhibit_status (manager, CK_INHIBIT_EVENT_LID_SWITCH, CK_INHIBIT_MODE_BLOCK);
+}
+
+/**
+ * ck_inhibit_manager_get_inhibit_list:
+ * @manager: The @CkInhibitManager object
+ *
+ * Return value: The internal inhibit list. Needed for ck-manager to return
+ * the list of inhibitors. NULL if there's no inhibitors.
+ **/
+GList*
+ck_inhibit_manager_get_inhibit_list (CkInhibitManager *manager)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT_MANAGER (manager), NULL);
+
+        return manager->priv->inhibit_list;
 }

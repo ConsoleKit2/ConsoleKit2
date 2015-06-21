@@ -312,6 +312,8 @@ validate_stuff ()
 
     open_print_and_test_session (manager, "OpenSessionWithParameters");
 
+    print_reply (manager, "ListInhibitors");
+
     if (fd > -1)
     {
         g_print ("Expecting an Error.Inhibited message\n");

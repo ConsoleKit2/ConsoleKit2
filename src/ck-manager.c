@@ -295,6 +295,7 @@ static const GDBusErrorEntry ck_manager_error_entries[] =
         { CK_MANAGER_ERROR_OOM,                     DBUS_MANAGER_INTERFACE ".Error.OutOfMemory" },
         { CK_MANAGER_ERROR_NO_SEATS,                DBUS_MANAGER_INTERFACE ".Error.NoSeats" },
         { CK_MANAGER_ERROR_NO_SESSIONS,             DBUS_MANAGER_INTERFACE ".Error.NoSessions" },
+        { CK_MANAGER_ERROR_NOTHING_INHIBITED,       DBUS_MANAGER_INTERFACE ".Error.NothingInhibited" },
 };
 
 GQuark
@@ -331,6 +332,7 @@ ck_manager_error_get_type (void)
           ENUM_ENTRY (CK_MANAGER_ERROR_OOM,                     "OutOfMemory"),
           ENUM_ENTRY (CK_MANAGER_ERROR_NO_SEATS,                "NoSeats"),
           ENUM_ENTRY (CK_MANAGER_ERROR_NO_SESSIONS,             "NoSessions"),
+          ENUM_ENTRY (CK_MANAGER_ERROR_NOTHING_INHIBITED,       "NothingInhibited"),
           { 0, 0, 0 }
         };
       g_assert (CK_MANAGER_NUM_ERRORS == G_N_ELEMENTS (values) - 1);
@@ -2080,12 +2082,27 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
         CkManagerPrivate *priv;
         gint              fd = -1;
         GUnixFDList      *out_fd_list = NULL;
+        const gchar      *sender;
+        uid_t             uid = 0;
+        pid_t             pid = 0;
+        gint              res;
 
         TRACE ();
 
         g_return_val_if_fail (CK_IS_MANAGER (ckmanager), FALSE);
 
         priv = CK_MANAGER_GET_PRIVATE (CK_MANAGER (ckmanager));
+
+        sender   = g_dbus_method_invocation_get_sender (context);
+        res      = get_caller_info (CK_MANAGER (ckmanager),
+                                    sender,
+                                    &uid,
+                                    &pid);
+
+        if (!res) {
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Error creating the inhibit lock"));
+                return TRUE;
+        }
 
         if (priv->inhibit_manager == NULL) {
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Inhibit manager failed to initialize"));
@@ -2096,7 +2113,9 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
                                              who,
                                              what,
                                              why,
-                                             mode);
+                                             mode,
+                                             uid,
+                                             pid);
 
         /* if we didn't get an inhibit lock, translate and throw the error */
         if (fd < 0) {
@@ -2117,6 +2136,68 @@ dbus_inhibit (ConsoleKitManager     *ckmanager,
 
         console_kit_manager_complete_inhibit (ckmanager, context, out_fd_list, g_variant_new_handle (0));
         g_clear_object (&out_fd_list);
+        return TRUE;
+}
+
+/**
+ * dbus_list_inhibitors:
+ * @ckmanager: the @ConsoleKitManager object
+ * @context: The GDBus context.
+ * Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.ListInhibitors
+ *
+ * Returnes TRUE.
+ **/
+static gboolean
+dbus_list_inhibitors (ConsoleKitManager     *ckmanager,
+                      GDBusMethodInvocation *context)
+{
+        CkManagerPrivate *priv;
+        GVariantBuilder   inhibitor_builder;
+        GVariant         *inhibitor;
+        GList            *l, *inhibit_list;
+
+        TRACE ();
+
+        g_return_val_if_fail (CK_IS_MANAGER (ckmanager), FALSE);
+
+        priv = CK_MANAGER_GET_PRIVATE (CK_MANAGER (ckmanager));
+
+        if (priv->inhibit_manager == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Inhibit manager failed to initialize"));
+                return TRUE;
+        }
+
+        inhibit_list = ck_inhibit_manager_get_inhibit_list (priv->inhibit_manager);
+
+        if (inhibit_list == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_NOTHING_INHIBITED, _("There is nothing currently inhibited"));
+                return TRUE;
+        }
+
+        g_variant_builder_init (&inhibitor_builder, G_VARIANT_TYPE_ARRAY);
+
+        for (l = inhibit_list; l != NULL; l = g_list_next (l)) {
+                g_debug ("what %s", ck_inhibit_get_what (CK_INHIBIT (l->data)));
+                g_debug ("who %s", ck_inhibit_get_who (CK_INHIBIT (l->data)));
+                g_debug ("why %s", ck_inhibit_get_why (CK_INHIBIT (l->data)));
+                g_debug ("mode %s", ck_inhibit_get_mode  (CK_INHIBIT (l->data)));
+
+                inhibitor = g_variant_new("(ssssuu)",
+                                          ck_inhibit_get_what (CK_INHIBIT (l->data)),
+                                          ck_inhibit_get_who (CK_INHIBIT (l->data)),
+                                          ck_inhibit_get_why (CK_INHIBIT (l->data)),
+                                          ck_inhibit_get_mode (CK_INHIBIT (l->data)),
+                                          ck_inhibit_get_uid (CK_INHIBIT (l->data)),
+                                          ck_inhibit_get_pid (CK_INHIBIT (l->data)));
+
+                g_variant_builder_add_value (&inhibitor_builder, inhibitor);
+        }
+
+        console_kit_manager_complete_list_inhibitors(ckmanager, context, g_variant_builder_end (&inhibitor_builder));
         return TRUE;
 }
 
@@ -3578,6 +3659,7 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_hibernate                    = dbus_hibernate;
         iface->handle_hybrid_sleep                 = dbus_hybrid_sleep;
         iface->handle_inhibit                      = dbus_inhibit;
+        iface->handle_list_inhibitors              = dbus_list_inhibitors;
         iface->handle_power_off                    = dbus_power_off;
         iface->handle_reboot                       = dbus_reboot;
         iface->handle_restart                      = dbus_restart;
