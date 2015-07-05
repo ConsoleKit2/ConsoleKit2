@@ -329,7 +329,11 @@ fill_x11_info (SessionInfo *si)
 gotit:
         ck_process_stat_free (xorg_stat);
 
-        /* don't set is-local here - let the daemon do that */
+        /* when PAM is supported don't set is-local here - let the daemon do that */
+#ifndef HAVE_PAM
+        si->is_local = TRUE;
+        si->is_local_is_set = TRUE;
+#endif
 
         g_free (si->remote_host_name);
         si->remote_host_name = NULL;
@@ -357,6 +361,15 @@ fill_session_info (SessionInfo *si)
         ck_process_stat_free (stat);
 
         fill_x11_info (si);
+
+#ifndef HAVE_PAM
+        if (! si->is_local_is_set) {
+                /* FIXME: how should we set this? */
+                /* non x11 sessions must be local I guess */
+                si->is_local = TRUE;
+                si->is_local_is_set = TRUE;
+        }
+#endif
 
         res = ck_unix_pid_get_login_session_id (si->pid, &si->login_session_id);
         if (! res) {
