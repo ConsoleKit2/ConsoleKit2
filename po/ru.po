@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-06-15 16:44+0300\n"
-"PO-Revision-Date: 2015-06-16 09:12+0000\n"
-"Last-Translator: bizdelnick <bizdelnick@gmail.com>\n"
+"POT-Creation-Date: 2015-07-06 09:35+0300\n"
+"PO-Revision-Date: 2015-07-06 08:46+0000\n"
+"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/consolekit2/language/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,7 +62,7 @@ msgstr "Не становиться демоном"
 msgid "Exit after a time - for debugging"
 msgstr "Выйти через некоторое время - для отладки"
 
-#: src/main.c:253 tools/ck-collect-session-info.c:440
+#: src/main.c:253 tools/ck-collect-session-info.c:453
 msgid "You must be root to run this program"
 msgstr "Для запуска этой программы необходимо быть root"
 
@@ -78,110 +78,114 @@ msgstr "Сессия уже активна"
 msgid "No consoles available"
 msgstr "Нет доступных консолей"
 
-#: src/ck-manager.c:830
+#: src/ck-manager.c:833
 #, c-format
 msgid "Not Authorized: %s"
 msgstr "Не авторизован: %s"
 
-#: src/ck-manager.c:837
+#: src/ck-manager.c:840
 msgid "Authorization is required"
 msgstr "Требуется авторизация"
 
-#: src/ck-manager.c:840
+#: src/ck-manager.c:843
 msgid "Not Authorized"
 msgstr "Не авторизован"
 
-#: src/ck-manager.c:1269
+#: src/ck-manager.c:1272
 #, c-format
 msgid "Unable to %s system: %s"
 msgstr "Невозможно %s систему: %s"
 
-#: src/ck-manager.c:1322 src/ck-manager.c:1429 src/ck-manager.c:1684
-#: src/ck-manager.c:1816 src/ck-manager.c:1948
+#: src/ck-manager.c:1325 src/ck-manager.c:1432 src/ck-manager.c:1687
+#: src/ck-manager.c:1819 src/ck-manager.c:1951
 msgid "Attempting to perform a system action while one is in progress"
 msgstr "Попытка запустить системное действие во время его выполнения"
 
-#: src/ck-manager.c:1334
+#: src/ck-manager.c:1337
 msgid "failed to allocate memory to perform restart"
 msgstr "не удалось выделить память для перезапуска"
 
-#: src/ck-manager.c:1381 src/ck-manager.c:1481 src/ck-manager.c:1538
-#: src/ck-manager.c:1617 src/ck-manager.c:1744 src/ck-manager.c:1876
-#: src/ck-manager.c:2008
+#: src/ck-manager.c:1384 src/ck-manager.c:1484 src/ck-manager.c:1541
+#: src/ck-manager.c:1620 src/ck-manager.c:1747 src/ck-manager.c:1879
+#: src/ck-manager.c:2011
 msgid "Operation is being inhibited"
 msgstr "Операция блокируется"
 
-#: src/ck-manager.c:1441
+#: src/ck-manager.c:1444
 msgid "failed to allocate memory to perform shutdown"
 msgstr "не удалось выделить память для отключения"
 
-#: src/ck-manager.c:1696
+#: src/ck-manager.c:1699
 msgid "failed to allocate memory to perform suspend"
 msgstr "не удалось выделить память для перехода в ждущий режим"
 
-#: src/ck-manager.c:1828
+#: src/ck-manager.c:1831
 msgid "failed to allocate memory to perform hibernate"
 msgstr "не удалось выделить память для перехода в спящий режим"
 
-#: src/ck-manager.c:1960
+#: src/ck-manager.c:1963
 msgid "failed to allocate memory to perform hybrid sleep"
 msgstr "не удалось выделить память для перехода в режим гибридного сна"
 
-#: src/ck-manager.c:2091
-msgid "Inhibit manager failed to initialize"
-msgstr "Не удалось инициализировать менеджер блокировок"
-
-#: src/ck-manager.c:2105
-msgid "Invalid input when creating inhibit lock"
-msgstr "Некорректный ввод при создании блокировки"
-
-#: src/ck-manager.c:2108
-msgid "Unable to create inhibit lock, insufficient memory"
-msgstr "Невозможно создать блокировку: недостаточно памяти"
-
-#: src/ck-manager.c:2111
+#: src/ck-manager.c:2104 src/ck-manager.c:2131
 msgid "Error creating the inhibit lock"
 msgstr "Ошибка при создании блокировки"
 
-#: src/ck-manager.c:2788 src/ck-manager.c:2872 src/ck-manager.c:2920
+#: src/ck-manager.c:2109 src/ck-manager.c:2171
+msgid "Inhibit manager failed to initialize"
+msgstr "Не удалось инициализировать менеджер блокировок"
+
+#: src/ck-manager.c:2125
+msgid "Invalid input when creating inhibit lock"
+msgstr "Некорректный ввод при создании блокировки"
+
+#: src/ck-manager.c:2128
+msgid "Unable to create inhibit lock, insufficient memory"
+msgstr "Невозможно создать блокировку: недостаточно памяти"
+
+#: src/ck-manager.c:2178
+msgid "There is nothing currently inhibited"
+msgstr ""
+
+#: src/ck-manager.c:2809 src/ck-manager.c:2893 src/ck-manager.c:2941
 msgid "Unable to get information about the calling process"
 msgstr "Невозможно получить информацию о вызывающем процессе"
 
-#: src/ck-manager.c:2802 src/ck-manager.c:3120 src/ck-session.c:388
+#: src/ck-manager.c:2823 src/ck-manager.c:3141 src/ck-session.c:388
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "Невозможно получить информацию о вызывающем процессе '%d'"
 
-#: src/ck-manager.c:2813 src/ck-manager.c:2820 src/ck-manager.c:3069
+#: src/ck-manager.c:2834 src/ck-manager.c:2841 src/ck-manager.c:3090
 msgid "Unable to find session for cookie"
 msgstr "Невозможно найти сессию для cookie"
 
-#: src/ck-manager.c:2855
+#: src/ck-manager.c:2876
 msgid "pid must be > 1"
 msgstr "PID должен быть > 1"
 
-#: src/ck-manager.c:2880
+#: src/ck-manager.c:2901
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Невозможно получить информацию о сессии для процесса '%d'"
 
-#: src/ck-manager.c:3077
+#: src/ck-manager.c:3098
 msgid "User ID does not match the owner of cookie"
 msgstr "ID пользователя не соответствует владельцу cookie"
 
-#: src/ck-manager.c:3087
+#: src/ck-manager.c:3108
 msgid "Process ID does not match the owner of cookie"
 msgstr "ID процесса не соответствует владельцу cookie"
 
-#: src/ck-manager.c:3281
+#: src/ck-manager.c:3332
 msgid "User has no sessions"
 msgstr "У пользователя нет сессий"
 
-#: src/ck-manager.c:3317
+#: src/ck-manager.c:3368
 msgid "User has no seats"
 msgstr "У пользователя нет рабочих мест"
 
-#: src/ck-manager.c:3343
+#: src/ck-manager.c:3394
 msgid "There are no sessions"
 msgstr "Нет сессий"
 
@@ -251,10 +255,10 @@ msgstr "ВРЕМЯ"
 msgid "display name"
 msgstr "показать имя"
 
-#: tools/ck-collect-session-info.c:425
+#: tools/ck-collect-session-info.c:438
 msgid "User ID"
 msgstr "ID пользователя"
 
-#: tools/ck-collect-session-info.c:426
+#: tools/ck-collect-session-info.c:439
 msgid "Process ID"
 msgstr "ID процесса"
