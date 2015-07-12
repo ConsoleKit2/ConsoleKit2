@@ -1028,6 +1028,7 @@ get_caller_info (CkManager   *manager,
                 goto out;
         }
         g_variant_get (value, "(u)", calling_uid);
+        g_variant_unref (value);
 
         value = g_dbus_proxy_call_sync (manager->priv->bus_proxy, "GetConnectionUnixProcessID",
                                         g_variant_new ("(s)", sender),
@@ -1042,6 +1043,7 @@ get_caller_info (CkManager   *manager,
                 goto out;
         }
         g_variant_get (value, "(u)", calling_pid);
+        g_variant_unref (value);
 
         res = TRUE;
 
