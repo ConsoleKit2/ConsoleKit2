@@ -1,4 +1,18 @@
 ==============
+Version 0.9.5
+==============
+[Please note that this is a development release.]
+
+Development release of ConsoleKit2 targeting the 1.0 release.
+Please report all problems to
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+- Add new DBUS method: ListInhibitors
+- Mark sessions as local explicitly when not built with PAM support
+- Watch and handle dbus NameOwnerChanged events
+- Add an --enable-tests configure option 
+
+==============
 Version 0.9.4
 ==============
 [Please note that this is a development release.]
