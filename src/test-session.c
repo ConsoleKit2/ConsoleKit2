@@ -274,8 +274,8 @@ open_session (void)
         g_variant_unref (activate_var);
 
     close_var = g_dbus_proxy_call_sync (manager, "CloseSession", g_variant_new ("(s)", cookie), G_DBUS_CALL_FLAGS_NONE, 3000, NULL, &error);
-    if (session_var == NULL) {
-        g_print ("returned NULL, is the daemon running?\t");
+    if (close_var == NULL) {
+        g_print ("Failed to close session\t");
 
         if (error)
             g_print ("error %s", error->message);
@@ -284,8 +284,7 @@ open_session (void)
         g_clear_error (&error);
         return;
     }
-    if (close_var)
-        g_variant_unref (close_var);
+    g_variant_unref (close_var);
 }
 
 int
