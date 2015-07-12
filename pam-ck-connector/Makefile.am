@@ -23,6 +23,7 @@ pam_ck_connector_la_LIBADD =  			\
 
 man_MANS = pam_ck_connector.8
 
+if BUILD_TESTS
 if HAVE_LINUXPAM
 noinst_PROGRAMS = 				\
 	test-pam				\
@@ -36,9 +37,10 @@ test_pam_LDADD =				\
 	$(PAM_LIBS)				\
 	-lpam_misc				\
 	$(NULL)
-endif
+endif # HAVE_LINUXPAM
+endif # BUILD_TESTS
 
-endif
+endif # ENABLE_PAM_MODULE
 
 MAINTAINERCLEANFILES =				\
 	*~					\

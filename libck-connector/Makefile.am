@@ -21,6 +21,7 @@ libck_connector_la_SOURCES = 		\
 	ck-connector.h			\
 	$(NULL)
 
+if BUILD_TESTS
 noinst_PROGRAMS = 			\
 	test-connector			\
 	$(NULL)
@@ -34,6 +35,7 @@ test_connector_LDADD =			\
 	libck-connector.la	\
 	$(LIBDBUS_LIBS)			\
 	$(NULL)
+endif # BUILD_TESTS
 
 # soname management for libck-connector
 LIBCKCON_LT_CURRENT=0

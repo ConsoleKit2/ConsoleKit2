@@ -181,6 +181,8 @@ console_kit_daemon_LDADD =	\
 	libck-event-log.la	\
 	$(NULL)
 
+if BUILD_TESTS
+
 noinst_PROGRAMS = 			\
 	test-event-logger		\
 	test-tty-idle-monitor		\
@@ -339,11 +341,16 @@ test_session_leader_LDADD =		\
 	libck.la			\
 	$(NULL)
 
+endif # BUILD_TESTS
 
 EXTRA_DIST =			\
 	ck-marshal.list		\
 	$(dbusif_DATA)		\
 	valgrind.sh		\
+	$(NULL)
+
+if BUILD_TESTS
+EXTRA_DIST +=		\
 	test-open-session	\
 	test-open-session-with-parameters	\
 	test-session	\
@@ -352,6 +359,7 @@ EXTRA_DIST =			\
 	test-manager	\
 	ck-collect-session-info	\
 	$(NULL)
+endif # BUILD_TESTS
 
 CLEANFILES = $(BUILT_SOURCES)
 

@@ -391,6 +391,16 @@ if test "x$enable_rbac_shutdown" != "xno"; then
 fi
 AC_SUBST(RBAC_LIBS)
 
+#
+# Enable Tests
+#
+AC_ARG_ENABLE(tests,
+	[AS_HELP_STRING([--enable-tests],[enable validation test framework @<:@default=@<:@disabled@:>@@:>@])],
+	enable_tests=yes, enable_tests=no)
+AC_MSG_CHECKING([whether to build the validation test framework])
+AM_CONDITIONAL(BUILD_TESTS, test "x$enable_tests" = "xyes")
+AC_MSG_RESULT($enable_tests)
+
 dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
@@ -437,17 +447,22 @@ fi
 # Enable Debug
 #
 AC_ARG_ENABLE(debug,
-	[AS_HELP_STRING([--enable-debug],[turn on debugging])],
+	[AS_HELP_STRING([--enable-debug@<:@=no|yes|full@:>@],[change debugging level @<:@default=@<:@yes@:>@@:>@])],
 	, enable_debug=yes)
+AC_MSG_CHECKING([whether to enable debugging])
 if test "$enable_debug" = "yes"; then
 	DEBUG_CFLAGS="-DG_ENABLE_DEBUG"
+	AC_MSG_RESULT(yes)
 else
 	if test "x$enable_debug" = "xno"; then
 		DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
+		AC_MSG_RESULT(no)
 	elif test "$enable_debug" = "full"; then
 		DEBUG_CFLAGS="-DG_ENABLE_DEBUG -DCONSOLEKIT_DEBUGGING"
+		AC_MSG_RESULT(yes)
 	else
 		DEBUG_CFLAGS=
+		AC_MSG_RESULT(yes)
   	fi
 fi
 AC_SUBST(DEBUG_CFLAGS)
@@ -528,6 +543,7 @@ echo "
 	compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
 	debug cflags:	          ${DEBUG_CFLAGS}
+	build tests:              ${enable_tests}
         Base libs:                ${CONSOLE_KIT_LIBS}
         Tools libs:               ${TOOLS_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
