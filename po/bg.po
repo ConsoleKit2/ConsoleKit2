@@ -1,0 +1,264 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The ConsoleKit2 Team
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Ivailo Monev <xakepa10@gmail.com>, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: ConsoleKit2\n"
+"Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
+"POT-Creation-Date: 2015-07-06 09:35+0300\n"
+"PO-Revision-Date: 2015-07-13 18:39+0000\n"
+"Last-Translator: Ivailo Monev <xakepa10@gmail.com>\n"
+"Language-Team: Bulgarian (http://www.transifex.com/p/consolekit2/language/bg/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: bg\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/ck-seat.c:250
+msgid "Another session was activated while waiting"
+msgstr "Друга сесия беше активиране докато се чакаше"
+
+#: src/ck-seat.c:275
+msgid "There is no Seat to activate"
+msgstr "Няма активна Седалка"
+
+#: src/ck-seat.c:281
+msgid "Activation is not supported for this kind of seat"
+msgstr "Активацията не се поддържа за този тип седалка"
+
+#: src/ck-seat.c:286
+msgid "Unknown session id"
+msgstr "Непознато id на сесията"
+
+#: src/ck-seat.c:297 src/ck-seat.c:330 src/ck-vt-monitor.c:129
+msgid "Unable to activate session"
+msgstr "Невъзможно активиране на сесията"
+
+#: src/ck-seat.c:322
+msgid "Session already active"
+msgstr "Сесията вече е активна"
+
+#: src/ck-seat.c:685
+msgid "Session is not attached to this seat"
+msgstr "Сесията не е прикачена към тази седалка"
+
+#: src/ck-seat.c:970
+msgid "Seat has no sessions"
+msgstr "Седалката няма сесии"
+
+#: src/main.c:226
+msgid "Enable debugging code"
+msgstr "Включи код за дебъгване"
+
+#: src/main.c:227
+msgid "Don't become a daemon"
+msgstr "Не демонизирай"
+
+#: src/main.c:228
+msgid "Exit after a time - for debugging"
+msgstr "Излез след време - за дебъгване"
+
+#: src/main.c:253 tools/ck-collect-session-info.c:453
+msgid "You must be root to run this program"
+msgstr "Трябва да се root за да пуснете тази програма"
+
+#: src/main.c:257
+msgid "Console kit daemon"
+msgstr "Console kit демон"
+
+#: src/ck-vt-monitor.c:110
+msgid "Session is already active"
+msgstr "Сесията вече е активна"
+
+#: src/ck-vt-monitor.c:118 src/ck-vt-monitor.c:151
+msgid "No consoles available"
+msgstr "Няма налични конзоли"
+
+#: src/ck-manager.c:833
+#, c-format
+msgid "Not Authorized: %s"
+msgstr "Не е Ауторизиран: %s"
+
+#: src/ck-manager.c:840
+msgid "Authorization is required"
+msgstr "Нужна е ауторизация"
+
+#: src/ck-manager.c:843
+msgid "Not Authorized"
+msgstr "Не е Ауторизиран"
+
+#: src/ck-manager.c:1272
+#, c-format
+msgid "Unable to %s system: %s"
+msgstr "Невъзможно %s на системата: %s"
+
+#: src/ck-manager.c:1325 src/ck-manager.c:1432 src/ck-manager.c:1687
+#: src/ck-manager.c:1819 src/ck-manager.c:1951
+msgid "Attempting to perform a system action while one is in progress"
+msgstr "Опит за изпълнение на системно действие докато друго е в прогрес"
+
+#: src/ck-manager.c:1337
+msgid "failed to allocate memory to perform restart"
+msgstr "невъзможно алокиране на памет за изпълняването на рестарт"
+
+#: src/ck-manager.c:1384 src/ck-manager.c:1484 src/ck-manager.c:1541
+#: src/ck-manager.c:1620 src/ck-manager.c:1747 src/ck-manager.c:1879
+#: src/ck-manager.c:2011
+msgid "Operation is being inhibited"
+msgstr ""
+
+#: src/ck-manager.c:1444
+msgid "failed to allocate memory to perform shutdown"
+msgstr ""
+
+#: src/ck-manager.c:1699
+msgid "failed to allocate memory to perform suspend"
+msgstr ""
+
+#: src/ck-manager.c:1831
+msgid "failed to allocate memory to perform hibernate"
+msgstr ""
+
+#: src/ck-manager.c:1963
+msgid "failed to allocate memory to perform hybrid sleep"
+msgstr ""
+
+#: src/ck-manager.c:2104 src/ck-manager.c:2131
+msgid "Error creating the inhibit lock"
+msgstr ""
+
+#: src/ck-manager.c:2109 src/ck-manager.c:2171
+msgid "Inhibit manager failed to initialize"
+msgstr ""
+
+#: src/ck-manager.c:2125
+msgid "Invalid input when creating inhibit lock"
+msgstr ""
+
+#: src/ck-manager.c:2128
+msgid "Unable to create inhibit lock, insufficient memory"
+msgstr ""
+
+#: src/ck-manager.c:2178
+msgid "There is nothing currently inhibited"
+msgstr ""
+
+#: src/ck-manager.c:2809 src/ck-manager.c:2893 src/ck-manager.c:2941
+msgid "Unable to get information about the calling process"
+msgstr ""
+
+#: src/ck-manager.c:2823 src/ck-manager.c:3141 src/ck-session.c:388
+#, c-format
+msgid "Unable to lookup information about calling process '%d'"
+msgstr ""
+
+#: src/ck-manager.c:2834 src/ck-manager.c:2841 src/ck-manager.c:3090
+msgid "Unable to find session for cookie"
+msgstr "Невъзможно намиране на сесия за бизквитка"
+
+#: src/ck-manager.c:2876
+msgid "pid must be > 1"
+msgstr "pid трябва да е > 1"
+
+#: src/ck-manager.c:2901
+#, c-format
+msgid "Unable to lookup session information for process '%d'"
+msgstr ""
+
+#: src/ck-manager.c:3098
+msgid "User ID does not match the owner of cookie"
+msgstr ""
+
+#: src/ck-manager.c:3108
+msgid "Process ID does not match the owner of cookie"
+msgstr ""
+
+#: src/ck-manager.c:3332
+msgid "User has no sessions"
+msgstr ""
+
+#: src/ck-manager.c:3368
+msgid "User has no seats"
+msgstr ""
+
+#: src/ck-manager.c:3394
+msgid "There are no sessions"
+msgstr ""
+
+#: src/ck-session.c:394
+msgid "Only session owner may set idle hint state"
+msgstr ""
+
+#: src/ck-session.c:466
+msgid ""
+"Activate signal not handeled. Session not attached to seat, or the seat "
+"doesn't support activation changes"
+msgstr ""
+
+#: tools/ck-history.c:903 tools/list-sessions.c:350
+msgid "Version of this application"
+msgstr ""
+
+#: tools/ck-history.c:904
+msgid "Show listing of frequent users"
+msgstr ""
+
+#: tools/ck-history.c:905
+msgid "Show listing of last logged in users"
+msgstr ""
+
+#: tools/ck-history.c:906
+msgid "Show 'last' compatible listing of last logged in users"
+msgstr ""
+
+#: tools/ck-history.c:907
+msgid "Show full event log"
+msgstr ""
+
+#: tools/ck-history.c:908
+msgid "Show entries for the specified seat"
+msgstr ""
+
+#: tools/ck-history.c:908
+msgid "SEAT"
+msgstr "СЕДАЛКА"
+
+#: tools/ck-history.c:909
+msgid "Show entries for the specified session type"
+msgstr ""
+
+#: tools/ck-history.c:909
+msgid "TYPE"
+msgstr "ТИП"
+
+#: tools/ck-history.c:910
+msgid "Show entries for the specified user"
+msgstr ""
+
+#: tools/ck-history.c:910
+msgid "NAME"
+msgstr "ИМЕ"
+
+#: tools/ck-history.c:911
+msgid "Show entries since the specified time (ISO 8601 format)"
+msgstr ""
+
+#: tools/ck-history.c:911
+msgid "DATETIME"
+msgstr "ДАТА"
+
+#: tools/ck-get-x11-display-device.c:162
+msgid "display name"
+msgstr "име на дисплей"
+
+#: tools/ck-collect-session-info.c:438
+msgid "User ID"
+msgstr "Потребителско ID"
+
+#: tools/ck-collect-session-info.c:439
+msgid "Process ID"
+msgstr "Процесно ID"
