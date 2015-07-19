@@ -1342,7 +1342,7 @@ do_restart (CkManager             *manager,
 
         data->manager = manager;
         data->context = context;
-        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-restart";
+        data->command = LIBDIR "/ConsoleKit/scripts/ck-system-restart";
         data->event_type = CK_LOG_EVENT_SYSTEM_RESTART;
         data->description = "Restart";
         data->signal = PREPARE_FOR_SHUTDOWN;
@@ -1449,7 +1449,7 @@ do_stop (CkManager             *manager,
 
         data->manager = manager;
         data->context = context;
-        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-stop";
+        data->command = LIBDIR "/ConsoleKit/scripts/ck-system-stop";
         data->event_type = CK_LOG_EVENT_SYSTEM_STOP;
         data->description = "Stop";
         data->signal = PREPARE_FOR_SHUTDOWN;
@@ -1704,7 +1704,7 @@ do_suspend (CkManager             *manager,
 
         data->manager = manager;
         data->context = context;
-        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-suspend";
+        data->command = LIBDIR "/ConsoleKit/scripts/ck-system-suspend";
         data->event_type = CK_LOG_EVENT_SYSTEM_SUSPEND;
         data->description = "Suspend";
         data->signal = PREPARE_FOR_SLEEP;
@@ -1836,7 +1836,7 @@ do_hibernate (CkManager             *manager,
 
         data->manager = manager;
         data->context = context;
-        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-hibernate";
+        data->command = LIBDIR "/ConsoleKit/scripts/ck-system-hibernate";
         data->event_type = CK_LOG_EVENT_SYSTEM_HIBERNATE;
         data->description = "Hibernate";
         data->signal = PREPARE_FOR_SLEEP;
@@ -1968,7 +1968,7 @@ do_hybrid_sleep (CkManager             *manager,
 
         data->manager = manager;
         data->context = context;
-        data->command = PREFIX "/lib/ConsoleKit/scripts/ck-system-hybridsleep";
+        data->command = LIBDIR "/ConsoleKit/scripts/ck-system-hybridsleep";
         data->event_type = CK_LOG_EVENT_SYSTEM_HIBERNATE;
         data->description = "Hybrid Sleep";
         data->signal = PREPARE_FOR_SLEEP;
