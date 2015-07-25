@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2015-07-06 09:35+0300\n"
-"PO-Revision-Date: 2015-07-13 18:39+0000\n"
+"PO-Revision-Date: 2015-07-25 13:00+0000\n"
 "Last-Translator: Ivailo Monev <xakepa10@gmail.com>\n"
 "Language-Team: Bulgarian (http://www.transifex.com/projects/p/consolekit2/language/bg/)\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: src/ck-seat.c:250
 msgid "Another session was activated while waiting"
-msgstr "Друга сесия беше активиране докато се чакаше"
+msgstr "Друга сесия беше активиранa докато се чакаше"
 
 #: src/ck-seat.c:275
 msgid "There is no Seat to activate"
@@ -64,7 +64,7 @@ msgstr "Излез след време - за дебъгване"
 
 #: src/main.c:253 tools/ck-collect-session-info.c:453
 msgid "You must be root to run this program"
-msgstr "Трябва да се root за да пуснете тази програма"
+msgstr "Трябва да сте root за да пуснете тази програма"
 
 #: src/main.c:257
 msgid "Console kit daemon"
@@ -113,19 +113,19 @@ msgstr ""
 
 #: src/ck-manager.c:1444
 msgid "failed to allocate memory to perform shutdown"
-msgstr ""
+msgstr "невъзможно алокиране на памет за изпълняването на изключване"
 
 #: src/ck-manager.c:1699
 msgid "failed to allocate memory to perform suspend"
-msgstr ""
+msgstr "невъзможно алокиране на памет за изпълняването на заспиване"
 
 #: src/ck-manager.c:1831
 msgid "failed to allocate memory to perform hibernate"
-msgstr ""
+msgstr "невъзможно алокиране на памет за изпълняването на хибернация"
 
 #: src/ck-manager.c:1963
 msgid "failed to allocate memory to perform hybrid sleep"
-msgstr ""
+msgstr "невъзможно алокиране на памет за изпълняването на хибридно заспиване"
 
 #: src/ck-manager.c:2104 src/ck-manager.c:2131
 msgid "Error creating the inhibit lock"
@@ -167,27 +167,27 @@ msgstr "pid трябва да е > 1"
 #: src/ck-manager.c:2901
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
-msgstr ""
+msgstr "Невъзможно намиране на сесиина информация за процес '%d'"
 
 #: src/ck-manager.c:3098
 msgid "User ID does not match the owner of cookie"
-msgstr ""
+msgstr "Потребилското ID несъвпада с това на притежателя на бизквитката"
 
 #: src/ck-manager.c:3108
 msgid "Process ID does not match the owner of cookie"
-msgstr ""
+msgstr "Процесното ID несъвпада с това на притежателя на бизквитката"
 
 #: src/ck-manager.c:3332
 msgid "User has no sessions"
-msgstr ""
+msgstr "Потребителя няма сесии"
 
 #: src/ck-manager.c:3368
 msgid "User has no seats"
-msgstr ""
+msgstr "Потребителя няма седалки"
 
 #: src/ck-manager.c:3394
 msgid "There are no sessions"
-msgstr ""
+msgstr "Няма сесии"
 
 #: src/ck-session.c:394
 msgid "Only session owner may set idle hint state"
