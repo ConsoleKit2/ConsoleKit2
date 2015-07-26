@@ -257,7 +257,7 @@ ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
 
         priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
 
-        for (l = g_list_first (priv->inhibit_list); l != NULL; l = g_list_next (priv->inhibit_list)) {
+        for (l = g_list_first (priv->inhibit_list); l != NULL; l = l->next) {
                 if (l->data && g_strcmp0 (ck_inhibit_get_who (l->data), who) == 0) {
                         CkInhibit *inhibit = l->data;
 
