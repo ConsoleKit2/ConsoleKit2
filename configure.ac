@@ -274,6 +274,25 @@ AM_CONDITIONAL(ENABLE_PAM_MODULE, test "x$enable_pam_module" = "xyes")
 AC_CHECK_LIB(pam_misc, misc_conv, have_linuxpam=yes)
 AM_CONDITIONAL(HAVE_LINUXPAM, test "x$have_linuxpam" = "xyes")
 
+
+# cgroups - Using the kernel to track processes instead of the cookie
+have_cgmanager=no
+AC_ARG_ENABLE([cgroups],
+  AS_HELP_STRING([--enable-cgroups], [Enable cgroup support @<:@default=auto@:>@]),
+  [enable_cgroups=$enableval],
+  [enable_cgroups=auto])
+AS_IF([test "x$enable_cgroups" != "xno"], [
+  PKG_CHECK_MODULES([CGMANAGER], [libcgmanager libnih >= 1.0.2 libnih-dbus >= 1.0.0], [have_cgmanager=yes], [have_cgmanager=no])
+  if test "x$enable_cgroups"  = "xyes" -a "x$have_cgmanager" = "xno"; then
+    AC_MSG_ERROR([cgroup support explicitly requested but dependencies not found])
+  fi
+])
+AS_IF([test "x$have_cgmanager" = "xyes"], [
+  AC_DEFINE([HAVE_CGMANAGER], [], [Define if we have cgmanager])
+])
+AM_CONDITIONAL([HAVE_CGMANAGER], [test "x$have_cgmanager" = "xyes"])
+AC_SUBST(HAVE_CGMANAGER)
+
 dnl ------------------------------------------------------------------------------
 dnl udev-acl - apply ACLs for users with local forground sessions
 dnl ------------------------------------------------------------------------------
@@ -553,6 +572,7 @@ echo "
         PAM module dir:           ${PAM_MODULE_DIR}
         Build PAM module:         ${msg_pam_module}
         Build udev-acl:           ${enable_udev_acl}
+        cgroup support:           ${have_cgmanager}
         Build docs:               ${enable_docbook_docs}
         xinitrc dir:              ${XINITRC_DIR}
 

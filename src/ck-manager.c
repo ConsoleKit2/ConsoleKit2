@@ -54,6 +54,7 @@
 #include "ck-inhibit-manager.h"
 #include "ck-inhibit.h"
 #include "ck-sysdeps.h"
+#include "ck-process-group.h"
 
 #define CK_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_MANAGER, CkManagerPrivate))
 
@@ -789,11 +790,28 @@ static char *
 get_cookie_for_pid (CkManager *manager,
                     guint      pid)
 {
-        char *cookie;
+        char            *cookie = NULL;
+        gchar           *ssid = NULL;
+        CkProcessGroup  *pgroup;
+        CkSession       *session;
 
-        /* FIXME: need a better way to get the cookie */
+        pgroup = ck_process_group_get ();
 
-        cookie = ck_unix_pid_get_env (pid, "XDG_SESSION_COOKIE");
+        ssid = ck_process_group_get_ssid (pgroup, pid);
+
+        if (ssid != NULL) {
+                g_debug ("looking for session for ssid %s", ssid);
+                session = g_hash_table_lookup (manager->priv->sessions, ssid);
+                if (session != NULL) {
+                        g_object_get (session, "cookie", &cookie, NULL);
+                }
+
+                g_free (ssid);
+        }
+
+        if (cookie == NULL) {
+                cookie = ck_unix_pid_get_env (pid, "XDG_SESSION_COOKIE");
+        }
 
         return cookie;
 }
@@ -2559,10 +2577,11 @@ open_session_for_leader (CkManager             *manager,
                          gboolean               is_local,
                          GDBusMethodInvocation *context)
 {
-        CkSession   *session;
-        CkSeat      *seat;
-        const char  *ssid;
-        const char  *cookie;
+        CkProcessGroup *pgroup;
+        CkSession      *session;
+        CkSeat         *seat;
+        const char     *ssid;
+        const char     *cookie;
 
         ssid = ck_session_leader_peek_session_id (leader);
         cookie = ck_session_leader_peek_cookie (leader);
@@ -2576,6 +2595,13 @@ open_session_for_leader (CkManager             *manager,
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to create new session");
                 return;
         }
+
+        /* If supported, add the session leader to a process group so we
+         * can track it with something better than an environment variable */
+        pgroup = ck_process_group_get ();
+        ck_process_group_create (pgroup,
+                                 ck_session_leader_get_pid (leader),
+                                 ssid);
 
         g_hash_table_insert (manager->priv->sessions,
                              g_strdup (ssid),

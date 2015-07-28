@@ -2,7 +2,10 @@ What is ConsoleKit2?
 ===================
 
 ConsoleKit2 is a framework for defining and tracking users, login
-sessions, and seats.
+sessions, and seats. It allows multiple users to be logged in at the
+same time and share hardware for their graphical session. ConsoleKit2
+will keep track of those resources and whichever session is active
+will have use of the hardware at that time.
 
 What is a seat?
 ===============
@@ -36,6 +39,7 @@ Minimum Requirements
 * inotify (optional)
 * RBAC (optional)
 * pm-utils (optional, but required for suspend/hibernate on Linux)
+* cgmanager (recommended on Linux, for process tracking)
 
 Additionally, on Linux CONFIG_AUDITSYSCALL=y is required for
 pam_ck_connector.so to work (PAM support).

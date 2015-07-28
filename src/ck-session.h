@@ -87,15 +87,6 @@ gboolean            ck_session_set_active             (CkSession             *se
 gboolean            ck_session_set_is_local           (CkSession             *session,
                                                        gboolean               is_local,
                                                        GError               **error);
-gboolean            ck_session_set_id                 (CkSession             *session,
-                                                       const char            *ssid,
-                                                       GError               **error);
-gboolean            ck_session_set_cookie             (CkSession             *session,
-                                                       const char            *cookie,
-                                                       GError               **error);
-gboolean            ck_session_set_seat_id            (CkSession             *session,
-                                                       const char            *sid,
-                                                       GError               **error);
 gboolean            ck_session_set_unix_user          (CkSession             *session,
                                                        guint                  uid,
                                                        GError               **error);
@@ -107,9 +98,6 @@ gboolean            ck_session_set_x11_display_device (CkSession             *se
                                                        GError               **error);
 gboolean            ck_session_set_display_device     (CkSession             *session,
                                                        const char            *device,
-                                                       GError               **error);
-gboolean            ck_session_set_login_session_id   (CkSession             *session,
-                                                       const char            *login_session_id,
                                                        GError               **error);
 gboolean            ck_session_set_remote_host_name   (CkSession             *session,
                                                        const char            *remote_host_name,

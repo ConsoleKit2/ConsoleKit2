@@ -12,6 +12,7 @@ AM_CFLAGS =							\
 	-U_FORTIFY_SOURCE				\
 	$(CONSOLE_KIT_CFLAGS)					\
 	$(POLKIT_CFLAGS)					\
+	$(CGMANAGER_CFLAGS)					\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
@@ -157,6 +158,8 @@ console_kit_daemon_SOURCES =	\
 	ck-inhibit.h		\
 	ck-inhibit-manager.c	\
 	ck-inhibit-manager.h	\
+	ck-process-group.h	\
+	ck-process-group.c	\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -177,6 +180,7 @@ console_kit_daemon_LDADD =	\
 	$(CONSOLE_KIT_LIBS)	\
 	$(POLKIT_LIBS)		\
 	$(RBAC_LIBS)		\
+	$(CGMANAGER_LIBS)	\
 	libck.la		\
 	libck-event-log.la	\
 	$(NULL)
