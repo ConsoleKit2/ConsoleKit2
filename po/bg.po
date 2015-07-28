@@ -1,22 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR The ConsoleKit2 Team
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Translators:
 # Ivailo Monev <xakepa10@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-07-28 20:29+0300\n"
+"POT-Creation-Date: 2015-07-06 09:35+0300\n"
 "PO-Revision-Date: 2015-07-25 13:00+0000\n"
 "Last-Translator: Ivailo Monev <xakepa10@gmail.com>\n"
-"Language-Team: Bulgarian (http://www.transifex.com/projects/p/consolekit2/"
-"language/bg/)\n"
-"Language: bg\n"
+"Language-Team: Bulgarian (http://www.transifex.com/projects/p/consolekit2/language/bg/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: bg\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/ck-seat.c:250
@@ -79,122 +78,122 @@ msgstr "Сесията вече е активна"
 msgid "No consoles available"
 msgstr "Няма налични конзоли"
 
-#: src/ck-manager.c:851
+#: src/ck-manager.c:833
 #, c-format
 msgid "Not Authorized: %s"
 msgstr "Не е Ауторизиран: %s"
 
-#: src/ck-manager.c:858
+#: src/ck-manager.c:840
 msgid "Authorization is required"
 msgstr "Нужна е ауторизация"
 
-#: src/ck-manager.c:861
+#: src/ck-manager.c:843
 msgid "Not Authorized"
 msgstr "Не е Ауторизиран"
 
-#: src/ck-manager.c:1292
+#: src/ck-manager.c:1272
 #, c-format
 msgid "Unable to %s system: %s"
 msgstr "Невъзможно %s на системата: %s"
 
-#: src/ck-manager.c:1345 src/ck-manager.c:1452 src/ck-manager.c:1707
-#: src/ck-manager.c:1839 src/ck-manager.c:1971
+#: src/ck-manager.c:1325 src/ck-manager.c:1432 src/ck-manager.c:1687
+#: src/ck-manager.c:1819 src/ck-manager.c:1951
 msgid "Attempting to perform a system action while one is in progress"
 msgstr "Опит за изпълнение на системно действие докато друго е в прогрес"
 
-#: src/ck-manager.c:1357
+#: src/ck-manager.c:1337
 msgid "failed to allocate memory to perform restart"
 msgstr "невъзможно алокиране на памет за изпълняването на рестарт"
 
-#: src/ck-manager.c:1404 src/ck-manager.c:1504 src/ck-manager.c:1561
-#: src/ck-manager.c:1640 src/ck-manager.c:1767 src/ck-manager.c:1899
-#: src/ck-manager.c:2031
+#: src/ck-manager.c:1384 src/ck-manager.c:1484 src/ck-manager.c:1541
+#: src/ck-manager.c:1620 src/ck-manager.c:1747 src/ck-manager.c:1879
+#: src/ck-manager.c:2011
 msgid "Operation is being inhibited"
 msgstr ""
 
-#: src/ck-manager.c:1464
+#: src/ck-manager.c:1444
 msgid "failed to allocate memory to perform shutdown"
 msgstr "невъзможно алокиране на памет за изпълняването на изключване"
 
-#: src/ck-manager.c:1719
+#: src/ck-manager.c:1699
 msgid "failed to allocate memory to perform suspend"
 msgstr "невъзможно алокиране на памет за изпълняването на заспиване"
 
-#: src/ck-manager.c:1851
+#: src/ck-manager.c:1831
 msgid "failed to allocate memory to perform hibernate"
 msgstr "невъзможно алокиране на памет за изпълняването на хибернация"
 
-#: src/ck-manager.c:1983
+#: src/ck-manager.c:1963
 msgid "failed to allocate memory to perform hybrid sleep"
 msgstr "невъзможно алокиране на памет за изпълняването на хибридно заспиване"
 
-#: src/ck-manager.c:2124 src/ck-manager.c:2151
+#: src/ck-manager.c:2104 src/ck-manager.c:2131
 msgid "Error creating the inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2129 src/ck-manager.c:2191
+#: src/ck-manager.c:2109 src/ck-manager.c:2171
 msgid "Inhibit manager failed to initialize"
 msgstr ""
 
-#: src/ck-manager.c:2145
+#: src/ck-manager.c:2125
 msgid "Invalid input when creating inhibit lock"
 msgstr ""
 
-#: src/ck-manager.c:2148
+#: src/ck-manager.c:2128
 msgid "Unable to create inhibit lock, insufficient memory"
 msgstr ""
 
-#: src/ck-manager.c:2198
+#: src/ck-manager.c:2178
 msgid "There is nothing currently inhibited"
 msgstr ""
 
-#: src/ck-manager.c:2837 src/ck-manager.c:2921 src/ck-manager.c:2969
+#: src/ck-manager.c:2809 src/ck-manager.c:2893 src/ck-manager.c:2941
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:2851 src/ck-manager.c:3169 src/ck-session.c:390
+#: src/ck-manager.c:2823 src/ck-manager.c:3141 src/ck-session.c:388
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
 
-#: src/ck-manager.c:2862 src/ck-manager.c:2869 src/ck-manager.c:3118
+#: src/ck-manager.c:2834 src/ck-manager.c:2841 src/ck-manager.c:3090
 msgid "Unable to find session for cookie"
 msgstr "Невъзможно намиране на сесия за бизквитка"
 
-#: src/ck-manager.c:2904
+#: src/ck-manager.c:2876
 msgid "pid must be > 1"
 msgstr "pid трябва да е > 1"
 
-#: src/ck-manager.c:2929
+#: src/ck-manager.c:2901
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Невъзможно намиране на сесиина информация за процес '%d'"
 
-#: src/ck-manager.c:3126
+#: src/ck-manager.c:3098
 msgid "User ID does not match the owner of cookie"
 msgstr "Потребилското ID несъвпада с това на притежателя на бизквитката"
 
-#: src/ck-manager.c:3136
+#: src/ck-manager.c:3108
 msgid "Process ID does not match the owner of cookie"
 msgstr "Процесното ID несъвпада с това на притежателя на бизквитката"
 
-#: src/ck-manager.c:3360
+#: src/ck-manager.c:3332
 msgid "User has no sessions"
 msgstr "Потребителя няма сесии"
 
-#: src/ck-manager.c:3396
+#: src/ck-manager.c:3368
 msgid "User has no seats"
 msgstr "Потребителя няма седалки"
 
-#: src/ck-manager.c:3422
+#: src/ck-manager.c:3394
 msgid "There are no sessions"
 msgstr "Няма сесии"
 
-#: src/ck-session.c:396
+#: src/ck-session.c:394
 msgid "Only session owner may set idle hint state"
 msgstr ""
 
-#: src/ck-session.c:468
+#: src/ck-session.c:466
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
