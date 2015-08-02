@@ -37,6 +37,7 @@ src/test-tty-idle-monitor.c
 src/ck-sysdeps-openbsd.c
 src/ck-job.h
 src/ck-sysdeps-freebsd.c
+src/ck-process-group.c
 tools/ck-history.c
 tools/list-sessions.c
 tools/ck-log-system-stop.c

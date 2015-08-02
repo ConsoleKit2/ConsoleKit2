@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2015-07-28 20:29+0300\n"
+"POT-Creation-Date: 2015-08-02 09:00+0300\n"
 "PO-Revision-Date: 2015-07-06 08:46+0000\n"
 "Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
 "Language-Team: Spanish (Latin America) (http://www.transifex.com/projects/p/"
@@ -202,6 +202,63 @@ msgid ""
 msgstr ""
 "No se pudo manejar la señal de activación. La sesión no se adjuntará al "
 "puesto de trabajo o el puesto no soporta cambios de activación"
+
+#. TRANSLATORS: This is letting the user know that cgmanager
+#. * support was compiled in, but the cgmanager daemon isn't
+#. * running.
+#.
+#: src/ck-process-group.c:109
+msgid ""
+"Failed to open connection to cgmanager. Is the cgmanager daemon running?"
+msgstr ""
+
+#. TRANSLATORS: There is an error with cgmanager, we're just
+#. * printing it out. Please ensure you keep the %s in the
+#. * string somewhere. It's the detailed error message from
+#. * cgmanager.
+#.
+#: src/ck-process-group.c:125
+#, c-format
+msgid "There was an error while initializing cgmanager, the error was: %s"
+msgstr ""
+
+#. TRANSLATORS: Please ensure you keep the %s in the
+#. * string somewhere. It's the detailed error message from
+#. * cgmanager.
+#.
+#: src/ck-process-group.c:230
+#, c-format
+msgid "Failed to create cgroup, the error was: %s"
+msgstr ""
+
+#. TRANSLATORS: Please ensure you keep the %s in the
+#. * string somewhere. It's the detailed error message from
+#. * cgmanager.
+#.
+#: src/ck-process-group.c:240
+#, c-format
+msgid "Failed to move the session leader process to cgroup, the error was: %s"
+msgstr ""
+
+#. TRANSLATORS: Please ensure you keep the %s in the
+#. * string somewhere. It's the detailed error message from
+#. * cgmanager.
+#.
+#: src/ck-process-group.c:250
+#, c-format
+msgid ""
+"Failed to let cgmanager know that it can remove the cgroup when it's empty, "
+"the error was: %s"
+msgstr ""
+
+#. TRANSLATORS: Please ensure you keep the %s in the
+#. * string somewhere. It's the detailed error message from
+#. * cgmanager.
+#.
+#: src/ck-process-group.c:289
+#, c-format
+msgid "Failed to get the session id from cgmanager, the error was: %s"
+msgstr ""
 
 #: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"

@@ -27,11 +27,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* Note to porters, on Linux, cgroups are used here only to tag the session
+ * leader process with a string, the ssid. In doing so, the kernel will
+ * also tag any decendants of that process (via clone, fork, whatever) as well.
+ * This way even if the process does things like double-forks or forgets to
+ * pass along the XDG_SESSION_COOKIE, it and it's decendants always have
+ * that ssid so ConsoleKit2 doesn't get confused. We don't need or use
+ * anything else with cgroups such as resource management.
+ */
+
 #include "config.h"
 
 #include <glib.h>
 #include <glib-object.h>
 #include <glib/gstdio.h>
+#include <glib/gi18n.h>
 
 #ifdef HAVE_CGMANAGER
 #include <cgmanager/cgmanager.h>
@@ -62,6 +72,22 @@ static void     ck_process_group_finalize    (GObject             *object);
 
 G_DEFINE_TYPE (CkProcessGroup, ck_process_group, G_TYPE_OBJECT)
 
+
+#ifdef HAVE_CGMANAGER
+/* Ensure the warning message contains a %s to handle the actual warning
+ * text from libnih
+ */
+static void
+throw_nih_warning (const gchar *warning)
+{
+        NihError *nerr = nih_error_get ();
+        if (nerr != NULL) {
+                g_warning (warning, nerr->message);
+                nih_free (nerr);
+        }
+}
+#endif
+
 static gboolean
 ck_process_group_backend_init (CkProcessGroup *pgroup)
 {
@@ -78,7 +104,11 @@ ck_process_group_backend_init (CkProcessGroup *pgroup)
          */
         connection = dbus_connection_open_private (CGMANAGER_DBUS_PATH, &dbus_error);
         if (!connection) {
-                g_warning (_("Failed to open connection to cgmanager. Is the cgmanager service running?"));
+                /* TRANSLATORS: This is letting the user know that cgmanager
+                 * support was compiled in, but the cgmanager daemon isn't
+                 * running.
+                 */
+                g_warning (_("Failed to open connection to cgmanager. Is the cgmanager daemon running?"));
                 dbus_error_free (&dbus_error);
                 return FALSE;
         }
@@ -89,10 +119,12 @@ ck_process_group_backend_init (CkProcessGroup *pgroup)
         pgroup->priv->cgmanager_proxy = nih_dbus_proxy_new (NULL, connection, NULL, "/org/linuxcontainers/cgmanager", NULL, NULL);
         dbus_connection_unref (connection);
         if (!pgroup->priv->cgmanager_proxy) {
-                NihError *nerr;
-                nerr = nih_error_get ();
-                g_warning ("cgmanager initialization error: %s", nerr->message);
-                nih_free (nerr);
+                /* TRANSLATORS: There is an error with cgmanager, we're just
+                 * printing it out. Please ensure you keep the %s in the
+                 * string somewhere. It's the detailed error message from
+                 * cgmanager.
+                 */
+                throw_nih_warning (_("There was an error while initializing cgmanager, the error was: %s"));
                 return FALSE;
         }
 #endif
@@ -146,6 +178,8 @@ ck_process_group_finalize (GObject *object)
 #ifdef HAVE_CGMANAGER
         CkProcessGroupPrivate *priv = CK_PROCESS_GROUP_GET_PRIVATE (object);
 
+        TRACE ();
+
         if (priv->cgmanager_proxy) {
                 dbus_connection_flush(priv->cgmanager_proxy->connection);
                 dbus_connection_close(priv->cgmanager_proxy->connection);
@@ -191,28 +225,31 @@ ck_process_group_create (CkProcessGroup *pgroup,
          */
         ret = cgmanager_create_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, &existed);
         if (ret != 0) {
-                NihError *nerr;
-                nerr = nih_error_get();
-                g_debug ("failed to create cgroup: %s", nerr->message);
-                nih_free(nerr);
+                /* TRANSLATORS: Please ensure you keep the %s in the
+                 * string somewhere. It's the detailed error message from
+                 * cgmanager.
+                 */
+                throw_nih_warning (_("Failed to create cgroup, the error was: %s"));
                 return FALSE;
         }
 
         ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, process);
         if (ret != 0) {
-                NihError *nerr;
-                nerr = nih_error_get();
-                g_debug ("failed to move pid to cgroup: %s", nerr->message);
-                nih_free(nerr);
+                /* TRANSLATORS: Please ensure you keep the %s in the
+                 * string somewhere. It's the detailed error message from
+                 * cgmanager.
+                 */
+                throw_nih_warning (_("Failed to move the session leader process to cgroup, the error was: %s"));
                 return FALSE;
         }
 
         ret = cgmanager_remove_on_empty_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid);
         if (ret != 0) {
-                NihError *nerr;
-                nerr = nih_error_get();
-                g_debug ("cgmanager_remove_on_empty_sync error: %s", nerr->message);
-                nih_free(nerr);
+                /* TRANSLATORS: Please ensure you keep the %s in the
+                 * string somewhere. It's the detailed error message from
+                 * cgmanager.
+                 */
+                throw_nih_warning (_("Failed to let cgmanager know that it can remove the cgroup when it's empty, the error was: %s"));
                 return FALSE;
         }
 
@@ -247,10 +284,11 @@ ck_process_group_get_ssid (CkProcessGroup *pgroup,
 
         ret = cgmanager_get_pid_cgroup_abs_sync (NULL, priv->cgmanager_proxy, "cpuacct", process, &nih_ssid);
         if (ret != 0) {
-                NihError *nerr;
-                nerr = nih_error_get();
-                g_debug ("cgmanager_get_pid_cgroup_abs_sync error: %s", nerr->message);
-                nih_free(nerr);
+                /* TRANSLATORS: Please ensure you keep the %s in the
+                 * string somewhere. It's the detailed error message from
+                 * cgmanager.
+                 */
+                throw_nih_warning (_("Failed to get the session id from cgmanager, the error was: %s"));
                 return NULL;
         }
 
