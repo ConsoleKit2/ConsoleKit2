@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR The ConsoleKit2 Team
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Translators:
 # bizdelnick <bizdelnick@gmail.com>, 2015
 msgid ""
@@ -9,17 +9,14 @@ msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2015-08-02 09:00+0300\n"
-"PO-Revision-Date: 2015-07-19 06:03+0000\n"
-"Last-Translator: bizdelnick <bizdelnick@gmail.com>\n"
-"Language-Team: Russian (http://www.transifex.com/projects/p/consolekit2/"
-"language/ru/)\n"
-"Language: ru\n"
+"PO-Revision-Date: 2015-08-02 09:21+0000\n"
+"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
+"Language-Team: Russian (http://www.transifex.com/consolekit2/consolekit2/language/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
-"%100>=11 && n%100<=14)? 2 : 3);\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #: src/ck-seat.c:250
 msgid "Another session was activated while waiting"
@@ -200,14 +197,11 @@ msgstr "Только владелец сессии может устанавли
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
-msgstr ""
-"Сигнал активации не обрабатывается. Сессия не привязана к рабочему месту или "
-"рабочее место не поддерживает изменения активации"
+msgstr "Сигнал активации не обрабатывается. Сессия не привязана к рабочему месту или рабочее место не поддерживает изменения активации"
 
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
 #. * running.
-#.
 #: src/ck-process-group.c:109
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
@@ -217,7 +211,6 @@ msgstr ""
 #. * printing it out. Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:125
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
@@ -226,7 +219,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:230
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
@@ -235,7 +227,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:240
 #, c-format
 msgid "Failed to move the session leader process to cgroup, the error was: %s"
@@ -244,7 +235,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:250
 #, c-format
 msgid ""
@@ -255,7 +245,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:289
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
@@ -275,8 +264,7 @@ msgstr "Показать список последних вошедших пол
 
 #: tools/ck-history.c:906
 msgid "Show 'last' compatible listing of last logged in users"
-msgstr ""
-"Показать 'последний' совместимый список последних вошедших пользователей"
+msgstr "Показать 'последний' совместимый список последних вошедших пользователей"
 
 #: tools/ck-history.c:907
 msgid "Show full event log"
