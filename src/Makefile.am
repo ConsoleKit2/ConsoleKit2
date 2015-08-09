@@ -44,6 +44,8 @@ libck_la_SOURCES =		\
 	ck-sysdeps-unix.c	\
 	$(NULL)
 
+libck_la_LIBADD = $(CONSOLE_KIT_LIBS)
+
 if CK_COMPILE_LINUX
 libck_la_SOURCES +=		\
 	ck-sysdeps-linux.c	\
@@ -53,25 +55,25 @@ if CK_COMPILE_SOLARIS
 libck_la_SOURCES +=		\
 	ck-sysdeps-solaris.c	\
 	$(NULL)
-libck_la_LIBADD = -lscf
+libck_la_LIBADD += -lscf
 endif
 if CK_COMPILE_FREEBSD
 libck_la_SOURCES +=		\
 	ck-sysdeps-freebsd.c	\
 	$(NULL)
-libck_la_LIBADD = $(KVM_LIBS)
+libck_la_LIBADD += $(KVM_LIBS)
 endif
 if CK_COMPILE_OPENBSD
 libck_la_SOURCES +=		\
 	ck-sysdeps-openbsd.c	\
 	$(NULL)
-libck_la_LIBADD = $(KVM_LIBS)
+libck_la_LIBADD += $(KVM_LIBS)
 endif
 if CK_COMPILE_GNU
 libck_la_SOURCES +=		\
 	ck-sysdeps-gnu.c	\
 	$(NULL)
-libck_la_LIBADD = -lps
+libck_la_LIBADD += -lps
 endif
 
 EXTRA_libck_la_SOURCES =		\
