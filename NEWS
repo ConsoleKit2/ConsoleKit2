@@ -1,4 +1,27 @@
 ==============
+Version 1.0.0
+==============
+
+Stable release of ConsoleKit2
+
+This is the first release of ConsoleKit2 considered stable. It
+incorporates many changes since the fork from ConsoleKit. Please
+see the previous development release notes for the full list of
+changes.
+
+
+Notable changes since 0.9.5:
+- On Linux, if cgmanager is installed and running, ConsoleKit2
+  will use it to track the sessions. The method of session tracking
+  supersedes the XDG_SESSION_COOKIE
+- Respect multilib/multiarch filesystem layouts.
+  Patch by Kylie McClain
+- Filter out the sddm user the same as the gdm user
+- Update the gettext portion of the build system
+- Prevent an infinite loop when removing inhibitors
+- Add Bulgarian language translations
+
+==============
 Version 0.9.5
 ==============
 [Please note that this is a development release.]
