@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2015-08-10 09:43+0300\n"
-"PO-Revision-Date: 2015-08-02 09:21+0000\n"
-"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
+"PO-Revision-Date: 2015-08-10 06:58+0000\n"
+"Last-Translator: bizdelnick <bizdelnick@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/consolekit2/consolekit2/"
 "language/ru/)\n"
 "Language: ru\n"
@@ -211,7 +211,7 @@ msgstr ""
 #: src/ck-process-group.c:111
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
-msgstr ""
+msgstr "Не удалось подключиться к cgmanager. Запущен ли демон cgmanager?"
 
 #. TRANSLATORS: There is an error with cgmanager, we're just
 #. * printing it out. Please ensure you keep the %s in the
@@ -221,7 +221,7 @@ msgstr ""
 #: src/ck-process-group.c:127
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
-msgstr ""
+msgstr "При инициализации cgmanager произошла ошибка: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -230,7 +230,7 @@ msgstr ""
 #: src/ck-process-group.c:232
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
-msgstr ""
+msgstr "Не удалось создать cgroup: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -239,7 +239,7 @@ msgstr ""
 #: src/ck-process-group.c:242
 #, c-format
 msgid "Failed to move the session leader process to cgroup, the error was: %s"
-msgstr ""
+msgstr "Не удалось переместить процесс-лидер сессии в cgroup: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -251,6 +251,8 @@ msgid ""
 "Failed to let cgmanager know that it can remove the cgroup when it's empty, "
 "the error was: %s"
 msgstr ""
+"Не удалось сообщить cgmanager, что cgroup может быть удалена, когда станет "
+"пустой: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -259,7 +261,7 @@ msgstr ""
 #: src/ck-process-group.c:291
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
-msgstr ""
+msgstr "Не удалось получить идентификатор сессии от cgmanager: %s"
 
 #: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"
