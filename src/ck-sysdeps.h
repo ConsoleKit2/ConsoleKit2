@@ -24,7 +24,6 @@
 #include "config.h"
 
 #include <glib.h>
-#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -54,11 +53,6 @@ gboolean     ck_get_socket_peer_credentials   (int             socket_fd,
                                                pid_t          *pid,
                                                uid_t          *uid,
                                                GError        **error);
-
-gboolean     get_caller_info                  (GDBusProxy     *bus_proxy,
-                                               const char     *sender,
-                                               uid_t          *calling_uid,
-                                               pid_t          *calling_pid);
 
 int          ck_get_a_console_fd              (void);
 

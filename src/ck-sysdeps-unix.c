@@ -132,65 +132,6 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         return ret;
 }
 
-/* adapted from PolicyKit */
-gboolean
-get_caller_info (GDBusProxy  *bus_proxy,
-                 const char  *sender,
-                 uid_t       *calling_uid,
-                 pid_t       *calling_pid)
-{
-        gboolean  res   = FALSE;
-        GVariant *value = NULL;
-        GError   *error = NULL;
-
-        if (sender == NULL) {
-                g_debug ("sender == NULL");
-                goto out;
-        }
-
-        if (bus_proxy == NULL) {
-                g_debug ("bus_proxy == NULL");
-                goto out;
-        }
-
-        value = g_dbus_proxy_call_sync (bus_proxy, "GetConnectionUnixUser",
-                                        g_variant_new ("(s)", sender),
-                                        G_DBUS_CALL_FLAGS_NONE,
-                                        2000,
-                                        NULL,
-                                        &error);
-
-        if (value == NULL) {
-                g_warning ("GetConnectionUnixUser() failed: %s", error->message);
-                g_error_free (error);
-                goto out;
-        }
-        g_variant_get (value, "(u)", calling_uid);
-        g_variant_unref (value);
-
-        value = g_dbus_proxy_call_sync (bus_proxy, "GetConnectionUnixProcessID",
-                                        g_variant_new ("(s)", sender),
-                                        G_DBUS_CALL_FLAGS_NONE,
-                                        2000,
-                                        NULL,
-                                        &error);
-
-        if (value == NULL) {
-                g_warning ("GetConnectionUnixProcessID() failed: %s", error->message);
-                g_error_free (error);
-                goto out;
-        }
-        g_variant_get (value, "(u)", calling_pid);
-        g_variant_unref (value);
-
-        res = TRUE;
-
-        g_debug ("uid = %d", *calling_uid);
-        g_debug ("pid = %d", *calling_pid);
-
-out:
-        return res;
-}
 
 /*
  * getfd.c
