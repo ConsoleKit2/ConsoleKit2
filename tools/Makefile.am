@@ -171,9 +171,9 @@ udev_acl_CFLAGS =       \
 	$(NULL)
 
 install-exec-hook:
-	mkdir -p $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d
+	mkdir -p $(DESTDIR)$(libdir)/ConsoleKit/run-seat.d
 	mkdir -p $(DESTDIR)$(UDEVDIR)
-	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(prefix)/lib/ConsoleKit/run-seat.d/udev-acl.ck
+	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(libdir)/ConsoleKit/run-seat.d/udev-acl.ck
 	ln -sf $(libexecdir)/udev-acl $(DESTDIR)$(UDEVDIR)/udev-acl
 endif
 
