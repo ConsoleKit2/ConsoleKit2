@@ -65,6 +65,8 @@ struct _CkConnector
 {
         int             refcount;
         char           *cookie;
+        char           *ssid;
+        char           *runtime_dir;
         dbus_bool_t     session_created;
         DBusConnection *connection;
 };
@@ -181,6 +183,14 @@ _ck_connector_free (CkConnector *connector)
                 free (connector->cookie);
         }
 
+        if (connector->ssid != NULL) {
+                free (connector->ssid);
+        }
+
+        if (connector->runtime_dir != NULL) {
+                free (connector->runtime_dir);
+        }
+
         free (connector);
 }
 
@@ -242,6 +252,8 @@ ck_connector_new (void)
         connector->connection = NULL;
         connector->cookie = NULL;
         connector->session_created = FALSE;
+        connector->ssid = NULL;
+        connector->runtime_dir = NULL;
 oom:
         return connector;
 }
@@ -587,6 +599,182 @@ ck_connector_get_cookie (CkConnector *connector)
         } else {
                 return connector->cookie;
         }
+}
+
+static dbus_bool_t
+ck_connector_get_ssid (CkConnector *connector,
+                       DBusError   *error)
+{
+        DBusError    local_error;
+        DBusMessage *message;
+        DBusMessage *reply;
+        char        *ssid;
+        dbus_bool_t  ret;
+
+        _ck_return_val_if_fail (connector != NULL, FALSE);
+
+        reply = NULL;
+        message = NULL;
+        ssid = NULL;
+        ret = FALSE;
+
+        if (!connector->session_created || connector->cookie == NULL) {
+                return ret;
+        }
+
+        dbus_error_init (&local_error);
+        message = dbus_message_new_method_call ("org.freedesktop.ConsoleKit",
+                                                "/org/freedesktop/ConsoleKit/Manager",
+                                                "org.freedesktop.ConsoleKit.Manager",
+                                                "GetSessionForCookie");
+        if (message == NULL) {
+                goto out;
+        }
+
+        if (!dbus_message_append_args (message,
+                                       DBUS_TYPE_STRING, &(connector->cookie),
+                                       DBUS_TYPE_INVALID)) {
+                goto out;
+        }
+
+        dbus_error_init (&local_error);
+        reply = dbus_connection_send_with_reply_and_block (connector->connection,
+                                                           message,
+                                                           -1,
+                                                           &local_error);
+        if (reply == NULL) {
+                if (dbus_error_is_set (&local_error)) {
+                        dbus_set_error (error,
+                                        CK_CONNECTOR_ERROR,
+                                        "Unable to get session for cookie: %s, no reply from dbus",
+                                        local_error.message);
+                        dbus_error_free (&local_error);
+                        goto out;
+                }
+        }
+
+        if (!dbus_message_get_args (reply, error,
+                                    DBUS_TYPE_OBJECT_PATH, &ssid,
+                                    DBUS_TYPE_INVALID)) {
+                dbus_set_error (error,
+                                CK_CONNECTOR_ERROR,
+                                "Unable to get session for cookie: %s",
+                                local_error.message);
+                dbus_error_free (&local_error);
+                goto out;
+        }
+
+        connector->ssid = strdup (ssid);
+        if (connector->ssid == NULL) {
+                goto out;
+        }
+
+        ret = TRUE;
+
+out:
+        if (reply != NULL) {
+                dbus_message_unref (reply);
+        }
+
+        if (message != NULL) {
+                dbus_message_unref (message);
+        }
+
+        return ret;
+}
+
+/**
+ * Gets the XDG_RUNTIME_DIR for the current open session.
+ * Returns #NULL if no session is open.
+ *
+ * @returns a constant string with the XDG_RUNTIME_DIR.
+ */
+const char *
+ck_connector_get_runtime_dir (CkConnector *connector,
+                              DBusError   *error)
+{
+        DBusError    local_error;
+        DBusMessage *message;
+        char        *runtime_dir;
+        DBusMessage *reply;
+
+        _ck_return_val_if_fail (connector != NULL, NULL);
+
+        if (!connector->session_created || connector->cookie == NULL) {
+                return NULL;
+        }
+
+        /* If we already have the runtime dir, supply it again */
+        if (connector->runtime_dir != NULL) {
+                return connector->runtime_dir;
+        }
+
+        /* get the ssid if we don't already have it */
+        if (connector->ssid == NULL) {
+                if (ck_connector_get_ssid (connector, error) == FALSE) {
+                        return NULL;
+                }
+        }
+
+        reply = NULL;
+        message = NULL;
+        runtime_dir = NULL;
+
+        if (!connector->session_created || connector->cookie == NULL) {
+                return NULL;
+        }
+
+        dbus_error_init (&local_error);
+        message = dbus_message_new_method_call ("org.freedesktop.ConsoleKit",
+                                                connector->ssid,
+                                                "org.freedesktop.ConsoleKit.Session",
+                                                "GetXDGRuntimeDir");
+        if (message == NULL) {
+                goto out;
+        }
+
+        dbus_error_init (&local_error);
+        reply = dbus_connection_send_with_reply_and_block (connector->connection,
+                                                           message,
+                                                           -1,
+                                                           &local_error);
+        if (reply == NULL) {
+                if (dbus_error_is_set (&local_error)) {
+                        dbus_set_error (error,
+                                        CK_CONNECTOR_ERROR,
+                                        "Unable to get runtime dir for session: %s",
+                                        local_error.message);
+                        dbus_error_free (&local_error);
+                        goto out;
+                }
+        }
+
+        if (!dbus_message_get_args (reply, error,
+                                    DBUS_TYPE_STRING, &runtime_dir,
+                                    DBUS_TYPE_INVALID)) {
+                dbus_set_error (error,
+                                CK_CONNECTOR_ERROR,
+                                "Unable to get runtime dir for session: %s",
+                                local_error.message);
+                dbus_error_free (&local_error);
+                goto out;
+        }
+
+        connector->runtime_dir = strdup (runtime_dir);
+        if (connector->runtime_dir == NULL) {
+                goto out;
+        }
+
+out:
+        if (reply != NULL) {
+                dbus_message_unref (reply);
+        }
+
+        if (message != NULL) {
+                dbus_message_unref (message);
+        }
+
+        return connector->runtime_dir;
 }
 
 /**

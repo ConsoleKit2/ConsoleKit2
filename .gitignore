@@ -66,4 +66,5 @@ src/test-manager
 src/ck-collect-session-info
 tools/pam-foreground-compat.ck
 tools/70-udev-acl.rules
+tools/ck-remove-directory
 doc/console-kit-daemon.1m

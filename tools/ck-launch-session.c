@@ -76,6 +76,9 @@ main (int argc, char **argv)
                         case 0:
                                 setenv ("XDG_SESSION_COOKIE",
                                        ck_connector_get_cookie (ckc), 1);
+
+                                setenv ("XDG_RUNTIME_DIR",
+                                       ck_connector_get_runtime_dir (ckc, &error), 1);
                                 break;
                         default:
                                 waitpid (pid, &status, 0);

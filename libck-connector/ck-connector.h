@@ -56,6 +56,8 @@ dbus_bool_t   ck_connector_open_session                 (CkConnector *ckc,
                                                          DBusError   *error);
 
 const char   *ck_connector_get_cookie                   (CkConnector *ckc);
+const char   *ck_connector_get_runtime_dir              (CkConnector *ckc,
+                                                         DBusError   *error);
 dbus_bool_t   ck_connector_close_session                (CkConnector *ckc,
                                                          DBusError   *error);
 

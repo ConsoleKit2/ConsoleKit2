@@ -62,6 +62,7 @@ struct CkSessionLeaderPrivate
         char       *service_name;
         char       *session_id;
         char       *cookie;
+        char       *runtime_dir;
         GList      *pending_jobs;
         gboolean    cancelled;
         GHashTable *override_parameters;

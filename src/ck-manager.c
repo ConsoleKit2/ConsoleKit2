@@ -1165,6 +1165,40 @@ get_system_num_users (CkManager *manager)
         return num_users;
 }
 
+static gboolean
+session_has_user (const char *ssid,
+                  CkSession  *session,
+                  guint      *unix_user)
+{
+        guint session_user;
+
+        session_user = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION (session));
+
+        if (session_user == *unix_user) {
+                g_debug ("Found session for user %d", *unix_user);
+                return TRUE;
+        }
+
+        return FALSE;
+}
+
+static const gchar *
+get_runtime_dir_for_user (CkManager *manager,
+                          guint      unix_user)
+{
+        gpointer session;
+
+        TRACE ();
+
+        session = g_hash_table_find (manager->priv->sessions, (GHRFunc)session_has_user, &unix_user);
+
+        if (session != NULL) {
+                return ck_session_get_runtime_dir (CK_SESSION (session));
+        }
+
+        return NULL;
+}
+
 #ifdef ENABLE_RBAC_SHUTDOWN
 static gboolean
 check_rbac_permissions (CkManager             *manager,
@@ -2584,6 +2618,8 @@ open_session_for_leader (CkManager             *manager,
         CkSeat         *seat;
         const char     *ssid;
         const char     *cookie;
+        char           *runtime_dir;
+        guint           unix_user;
 
         ssid = ck_session_leader_peek_session_id (leader);
         cookie = ck_session_leader_peek_cookie (leader);
@@ -2597,6 +2633,20 @@ open_session_for_leader (CkManager             *manager,
                 throw_error (context, CK_MANAGER_ERROR_GENERAL, "Unable to create new session");
                 return;
         }
+
+        unix_user = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION (session));
+
+        /* If the user is already logged in, continue to use the same runtime dir.
+         * We need to do this before adding the session to the manager's table. */
+        runtime_dir = g_strdup (get_runtime_dir_for_user (manager, unix_user));
+
+        /* otherwise generate a new one */
+        if (runtime_dir == NULL) {
+                runtime_dir = ck_generate_runtime_dir_for_user (unix_user);
+        }
+
+        g_debug ("XDG_RUNTIME_DIR is %s", runtime_dir);
+        ck_session_set_runtime_dir (session, runtime_dir);
 
         /* If supported, add the session leader to a process group so we
          * can track it with something better than an environment variable */
@@ -2631,6 +2681,7 @@ open_session_for_leader (CkManager             *manager,
                           manager);
 
         g_object_unref (session);
+        g_free (runtime_dir);
 
         g_dbus_method_invocation_return_value (context , g_variant_new ("(s)", cookie));
 }
@@ -3016,6 +3067,7 @@ remove_session_for_cookie (CkManager  *manager,
         char            *orig_ssid;
         CkSessionLeader *leader;
         char            *sid;
+        guint            unix_user;
         gboolean         res;
         gboolean         ret;
 
@@ -3055,6 +3107,11 @@ remove_session_for_cookie (CkManager  *manager,
          * for seat removals doesn't work.
          */
 
+        /* Get the session's uid, we'll need this if we have to remove the
+         * runtime dir
+         */
+        unix_user = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION (orig_session));
+
         /* remove from seat */
         sid = NULL;
         ck_session_get_seat_id (orig_session, &sid, NULL);
@@ -3084,6 +3141,14 @@ remove_session_for_cookie (CkManager  *manager,
         ck_manager_dump (manager);
 
         manager_update_system_idle_hint (manager);
+
+        if (get_runtime_dir_for_user (manager, unix_user) == NULL) {
+                /* We removed the session and now there's no runtime dir
+                 * associated with that user.
+                 * Remove the runtime dir from the system.
+                 */
+                ck_remove_runtime_dir_for_user (unix_user);
+        }
 
         ret = TRUE;
  out:

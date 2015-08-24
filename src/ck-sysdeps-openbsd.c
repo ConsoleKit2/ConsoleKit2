@@ -43,6 +43,14 @@
 #include <sys/stdint.h>
 #endif
 
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 #include <dev/wscons/wsdisplay_usl_io.h>
 
 #define DEV_ENCODE(M,m) ( \
@@ -482,5 +490,53 @@ gboolean
 ck_system_can_hybrid_sleep (void)
 {
         /* TODO: not implemented */
+        return FALSE;
+}
+
+gboolean
+ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
+{
+#ifdef HAVE_SYS_MOUNT_H
+        gchar        *opts;
+        int           result;
+
+        TRACE ();
+
+        opts = g_strdup_printf ("mode=0700,size=8M,uid=%d,guid=%d", uid, gid);
+
+        result = mount("tmpfs", dest, 0, opts);
+
+        g_free (opts);
+
+        if (result == 0) {
+                return TRUE;
+        } else {
+                g_info ("Failed to create tmpfs mount, reason was: %s", strerror(errno));
+                errno = 0;
+                return FALSE;
+        }
+#endif
+
+        return FALSE;
+}
+
+gboolean
+ck_remove_tmpfs (guint uid, const gchar *dest)
+{
+#ifdef HAVE_SYS_MOUNT_H
+        int           result;
+
+        TRACE ();
+
+        result = unmount(dest, 0);
+
+        if (result == 0) {
+                return TRUE;
+        }
+
+        g_info ("Failed to unmount tmpfs mount, reason was: %s", strerror(errno));
+        errno = 0;
+#endif
+
         return FALSE;
 }

@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <pwd.h>
 
 #ifdef __linux__
 #include <linux/kd.h>
@@ -54,6 +55,10 @@
 
 #ifdef HAVE_GETPEERUCRED
 #include <ucred.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #include "ck-sysdeps.h"
@@ -326,6 +331,147 @@ ck_is_root_user (void)
 
 #endif
         return FALSE;
+}
+
+/* Call g_free on string when done using it. [transfer: full] */
+static gchar *
+get_rundir (guint uid)
+{
+        const gchar *base;
+
+        TRACE ();
+
+        base = RUNDIR "/user";
+
+        return g_strdup_printf ("%s/%d", base, uid);
+}
+
+static gboolean
+create_rundir_base (guint uid)
+{
+        const gchar *base;
+
+        TRACE ();
+
+        base = RUNDIR "/user";
+
+        /* Create the base directory that we will own. */
+        if (g_mkdir_with_parents (base, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0) {
+                g_warning ("Failed to create %s, reason was: %s", base, strerror(errno));
+                errno = 0;
+                return FALSE;
+        }
+
+        /* ensure we have ownership */
+        if (chown (base, 0, 0) != 0) {
+                g_warning ("Failed to chown %s, reason was: %s", base, strerror(errno));
+                errno = 0;
+                return FALSE;
+        }
+
+        return TRUE;
+}
+
+static gboolean
+remove_rundir (guint uid, const gchar *dest)
+{
+        gchar   *command;
+        GError  *error = NULL;
+        gboolean res;
+
+        TRACE ();
+
+        g_return_val_if_fail (dest, FALSE);
+
+        if (uid < 1) {
+                g_debug ("We didn't create a runtime dir for root, nothing to remove");
+                return FALSE;
+        }
+
+        command = g_strdup_printf (LIBEXECDIR "/ck-remove-directory --uid=%d --dest=%s", uid, dest);
+
+        res = g_spawn_command_line_sync (command, NULL, NULL, NULL, &error);
+
+        if (! res) {
+                g_warning ("Unable to remove user runtime dir '%s' error was: %s", dest, error->message);
+                g_clear_error (&error);
+                return FALSE;
+        }
+
+        return TRUE;
+}
+
+gchar *
+ck_generate_runtime_dir_for_user (guint uid)
+{
+        gchar        *dest;
+        struct passwd *pwent;
+
+        TRACE ();
+
+        if (uid < 1) {
+                g_debug ("We do not create runtime dirs for root");
+                return NULL;
+        }
+
+        errno = 0;
+        pwent = getpwuid (uid);
+        if (pwent == NULL) {
+                g_warning ("Unable to lookup UID: %s", g_strerror (errno));
+                errno = 0;
+                return NULL;
+        }
+
+        /* ensure we have created the base directory */
+        if (create_rundir_base (uid) == FALSE) {
+                return NULL;
+        }
+
+        dest = get_rundir (uid);
+
+        /* Create the new directory */
+        if (g_mkdir_with_parents (dest, S_IRWXU) != 0) {
+                g_warning ("Failed to create XDG_RUNTIME_DIR, reason was: %s", strerror(errno));
+                errno = 0;
+                g_free (dest);
+                return NULL;
+        }
+
+        g_debug ("setting uid %d, gid %d", uid, pwent->pw_gid);
+
+        /* assign ownership to the user */
+        if (chown (dest, uid, pwent->pw_gid) != 0) {
+                g_warning ("Failed to chown XDG_RUNTIME_DIR, reason was: %s", strerror(errno));
+                errno = 0;
+                g_free (dest);
+                return NULL;
+        }
+
+        /* attempt to make it a small tmpfs location */
+        ck_make_tmpfs (uid, pwent->pw_gid, dest);
+
+        return dest;
+}
+
+gboolean
+ck_remove_runtime_dir_for_user (guint uid)
+{
+        gchar        *dest;
+
+        TRACE ();
+
+        dest = get_rundir (uid);
+
+        /* attempt to remove the tmpfs */
+        ck_remove_tmpfs (uid, dest);
+
+        /* remove the user's runtime dir now that all user sessions
+         * are gone */
+        remove_rundir (uid, dest);
+
+        g_free (dest);
+
+        return TRUE;
 }
 
 gboolean

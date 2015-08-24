@@ -125,7 +125,11 @@ gboolean            ck_session_get_login_session_id   (CkSession             *se
 gboolean            ck_session_get_creation_time      (CkSession             *session,
                                                        char                 **iso8601_datetime,
                                                        GError               **error);
+const char        * ck_session_get_runtime_dir        (CkSession             *session);
 
+
+gboolean            ck_session_set_runtime_dir        (CkSession             *session,
+                                                       const char            *runtime_dir);
 
 gboolean            ck_session_set_id                 (CkSession             *session,
                                                        const char            *ssid,

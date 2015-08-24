@@ -550,3 +550,15 @@ ck_system_can_hybrid_sleep (void)
         /* TODO: not implemented */
         return FALSE;
 }
+
+gboolean
+ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
+{
+        return FALSE;
+}
+
+gboolean
+ck_remove_tmpfs (guint uid, const gchar *dest)
+{
+        return FALSE;
+}

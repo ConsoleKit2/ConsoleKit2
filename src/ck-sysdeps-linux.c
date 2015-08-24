@@ -39,6 +39,10 @@
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
 
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+
 #include "ck-sysdeps.h"
 
 #ifndef ERROR
@@ -898,6 +902,54 @@ gboolean
 ck_system_can_hybrid_sleep (void)
 {
         return linux_supports_sleep_state ("suspend-hybrid");
+}
+
+gboolean
+ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
+{
+#ifdef HAVE_SYS_MOUNT_H
+        gchar        *opts;
+        int           result;
+
+        TRACE ();
+
+        opts = g_strdup_printf ("mode=0700,size=8M,uid=%d,guid=%d", uid, gid);
+
+        result = mount("none", dest, "tmpfs", 0, opts);
+
+        g_free (opts);
+
+        if (result == 0) {
+                return TRUE;
+        } else {
+                g_info ("Failed to create tmpfs mount, reason was: %s", strerror(errno));
+                errno = 0;
+                return FALSE;
+        }
+#endif
+
+        return FALSE;
+}
+
+gboolean
+ck_remove_tmpfs (guint uid, const char* dest)
+{
+#ifdef HAVE_SYS_MOUNT_H
+        int           result;
+
+        TRACE ();
+
+        result = umount2(dest, MNT_DETACH);
+
+        if (result == 0) {
+                return TRUE;
+        }
+
+        g_info ("Failed to unmount tmpfs mount, reason was: %s", strerror(errno));
+        errno = 0;
+#endif
+
+        return FALSE;
 }
 
 #ifdef HAVE_SYS_VT_SIGNAL

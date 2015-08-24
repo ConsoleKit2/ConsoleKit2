@@ -53,7 +53,7 @@ struct CkSessionPrivate
         char            *id;
         char            *cookie;
         char            *seat_id;
-
+        char            *runtime_dir;
         char            *login_session_id;
 
         GTimeVal         creation_time;
@@ -832,6 +832,58 @@ ck_session_set_seat_id (CkSession      *session,
         return TRUE;
 }
 
+/**
+ * ck_session_set_runtime_dir
+ * @session: CkSession object
+ * @runtime_dir: The XDG_RUNTIME_DIR for the user of this session. For details, see:
+ *  http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+ * returns: TRUE if successfully set, FALSE on failure.
+ **/
+gboolean
+ck_session_set_runtime_dir (CkSession      *session,
+                            const char     *runtime_dir)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        g_free (session->priv->runtime_dir);
+        session->priv->runtime_dir = g_strdup (runtime_dir);
+
+        return TRUE;
+}
+
+/**
+ * ck_session_get_runtime_dir
+ * @session: CkSession object
+ * returns: The XDG_RUNTIME_DIR. For details, see:
+ *  http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+ **/
+const char *
+ck_session_get_runtime_dir (CkSession *session)
+{
+        g_return_val_if_fail (CK_IS_SESSION (session), NULL);
+        return session->priv->runtime_dir;
+}
+
+static gboolean
+dbus_get_runtime_dir (ConsoleKitSession     *cksession,
+                      GDBusMethodInvocation *context)
+{
+        CkSession   *session = CK_SESSION(cksession);
+
+        TRACE ();
+
+        g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
+
+        /* if no login session id is set return an empty string */
+        if (session->priv->runtime_dir == NULL) {
+            throw_error (context, CK_SESSION_ERROR_FAILED, _("Failed to create the XDG_RUNTIME_DIR"));
+            return FALSE;
+        }
+
+        console_kit_session_complete_get_xdgruntime_dir (cksession, context, session->priv->runtime_dir);
+        return TRUE;
+}
+
 static gboolean
 dbus_get_login_session_id (ConsoleKitSession     *cksession,
                            GDBusMethodInvocation *context)
@@ -1087,6 +1139,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_lock                   = dbus_lock;
         iface->handle_unlock                 = dbus_unlock;
         iface->handle_get_idle_hint          = dbus_get_idle_hint;
+        iface->handle_get_xdgruntime_dir     = dbus_get_runtime_dir;
 }
 
 static void
@@ -1108,6 +1161,7 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->id);
         g_free (session->priv->cookie);
         g_free (session->priv->login_session_id);
+        g_free (session->priv->runtime_dir);
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
 }
@@ -1341,6 +1395,7 @@ ck_session_dump (CkSession *session,
 
         g_key_file_set_boolean (key_file, group_name, "is_active", console_kit_session_get_active (cksession));
         g_key_file_set_boolean (key_file, group_name, "is_local", console_kit_session_get_is_local (cksession));
+        g_key_file_set_string  (key_file, group_name, "XDG_RUNTIME_DIR", NONULL_STRING (session->priv->runtime_dir));
 
         s = g_time_val_to_iso8601 (&(session->priv->creation_time));
         g_key_file_set_string (key_file,

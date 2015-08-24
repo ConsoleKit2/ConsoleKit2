@@ -76,6 +76,18 @@ main (int argc, char *argv[])
         }
 
         printf ("Session cookie is '%s'\n", ck_connector_get_cookie (connector));
+
+        if (ck_connector_get_runtime_dir (connector, &error) == NULL) {
+                if (dbus_error_is_set (&error)) {
+                        printf ("Failed to get XDG_RUNTIME_DIR error is '%s'\n", error.message);
+                        dbus_error_free (&error);
+                } else {
+                        printf ("Cannot get XDG_RUNTIME_DIR, out of memory error\n");
+                }
+        } else {
+                printf ("XDG_RUNTIME_DIR is '%s'\n", ck_connector_get_runtime_dir (connector, &error));
+        }
+
         sleep (20);
 
         dbus_error_init (&error);

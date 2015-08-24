@@ -60,6 +60,16 @@ gboolean     ck_fd_is_a_console               (int             fd);
 
 gboolean     ck_is_root_user                  (void);
 
+gchar *      ck_generate_runtime_dir_for_user (guint           uid);
+
+gboolean     ck_remove_runtime_dir_for_user   (guint           uid);
+
+gboolean     ck_make_tmpfs                    (guint           uid,
+                                               guint           gid,
+                                               const gchar    *dest);
+gboolean     ck_remove_tmpfs                  (guint           uid,
+                                               const gchar    *dest);
+
 gboolean     ck_get_max_num_consoles          (guint          *num);
 gboolean     ck_supports_activatable_consoles (void);
 

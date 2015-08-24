@@ -78,6 +78,19 @@
         <doc:seealso><doc:ref type="property" to="Session:unix-user">unix-user</doc:ref></doc:seealso>
       </doc:doc>
     </method>
+    <method name="GetXDGRuntimeDir">
+      <arg name="xdg_runtime_dir" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>XDG_RUNTIME_DIR</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description><doc:para>Returns the XDG_RUNTIME_DIR location of the session.
+        The XDG_RUNTIME_DIR is the same for all sessions of the same user and will be automatically
+        removed once the last session of the user is closed.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
     <method name="GetX11Display">
       <arg name="display" direction="out" type="s">
         <doc:doc>

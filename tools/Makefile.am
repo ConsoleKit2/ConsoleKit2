@@ -129,6 +129,7 @@ libexec_PROGRAMS = 			\
 	ck-collect-session-info		\
 	ck-get-x11-server-pid		\
 	ck-get-x11-display-device	\
+	ck-remove-directory			\
 	$(NULL)
 
 ck_collect_session_info_SOURCES =	\
@@ -155,6 +156,15 @@ ck_get_x11_display_device_SOURCES =	\
 	$(NULL)
 
 ck_get_x11_display_device_LDADD =	\
+	$(TOOLS_LIBS)			\
+	$(top_builddir)/src/libck.la	\
+	$(NULL)
+
+ck_remove_directory_SOURCES =	\
+	ck-remove-directory.c	\
+	$(NULL)
+
+ck_remove_directory_LDADD =		\
 	$(TOOLS_LIBS)			\
 	$(top_builddir)/src/libck.la	\
 	$(NULL)
