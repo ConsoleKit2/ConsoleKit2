@@ -332,14 +332,14 @@
       </doc:doc>
     </signal>
 
-    <property name="unix-user" type="u" access="readwrite">
+    <property name="unix-user" type="u" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>The user assigned to the session.</doc:para>
         </doc:description>
       </doc:doc>
     </property>
-    <property name="user" type="u" access="readwrite">
+    <property name="user" type="u" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>The user assigned to the session.</doc:para>
@@ -357,7 +357,7 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="remote-host-name" type="s" access="readwrite">
+    <property name="remote-host-name" type="s" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>The remote host name for the session.
@@ -371,7 +371,7 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="display-device" type="s" access="readwrite">
+    <property name="display-device" type="s" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>The display device (aka TTY) that the
@@ -380,7 +380,7 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="x11-display" type="s" access="readwrite">
+    <property name="x11-display" type="s" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>Value of the X11 DISPLAY for this session
@@ -389,7 +389,7 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="x11-display-device" type="s" access="readwrite">
+    <property name="x11-display-device" type="s" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>
@@ -411,7 +411,7 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="is-local" type="b" access="readwrite">
+    <property name="is-local" type="b" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>

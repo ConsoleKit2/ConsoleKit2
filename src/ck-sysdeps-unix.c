@@ -429,6 +429,11 @@ ck_generate_runtime_dir_for_user (guint uid)
 
         dest = get_rundir (uid);
 
+        /* Ensure any files from the last session are removed */
+        if (g_file_test (dest, G_FILE_TEST_EXISTS) == TRUE) {
+                remove_rundir (uid, dest);
+        }
+
         /* Create the new directory */
         if (g_mkdir_with_parents (dest, S_IRWXU) != 0) {
                 g_warning ("Failed to create XDG_RUNTIME_DIR, reason was: %s", strerror(errno));
