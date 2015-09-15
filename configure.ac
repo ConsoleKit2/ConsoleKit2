@@ -216,6 +216,14 @@ case "$host" in
                 KVM_LIBS="-lkvm"
         fi
         ;;
+        *-*-netbsd*)
+        CK_BACKEND="netbsd"
+        AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
+                AC_MSG_ERROR([Unable to find libkvm which is needed on NetBSD]))
+        if test "x$have_kvm" = "xyes"; then
+                KVM_LIBS="-lkvm"
+        fi
+        ;;
         *-*-linux*)
         CK_BACKEND="linux"
         ;;
@@ -234,6 +242,7 @@ AC_SUBST(KVM_LIBS)
 
 AM_CONDITIONAL(CK_COMPILE_LINUX, test x$CK_BACKEND = xlinux, [Compiling for Linux])
 AM_CONDITIONAL(CK_COMPILE_FREEBSD, test x$CK_BACKEND = xfreebsd, [Compiling for FreeBSD])
+AM_CONDITIONAL(CK_COMPILE_NETBSD, test x$CK_BACKEND = xnetbsd, [Compiling for NetBSD])
 AM_CONDITIONAL(CK_COMPILE_OPENBSD, test x$CK_BACKEND = xopenbsd, [Compiling for OpenBSD])
 AM_CONDITIONAL(CK_COMPILE_SOLARIS, test x$CK_BACKEND = xsolaris, [Compiling for Solaris])
 AM_CONDITIONAL(CK_COMPILE_GNU, test x$CK_BACKEND = xgnu, [Compiling for GNU])
@@ -530,6 +539,7 @@ tools/70-udev-acl.rules
 tools/Makefile
 tools/linux/Makefile
 tools/freebsd/Makefile
+tools/netbsd/Makefile
 tools/openbsd/Makefile
 tools/solaris/Makefile
 data/Makefile

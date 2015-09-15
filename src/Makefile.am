@@ -75,11 +75,18 @@ libck_la_SOURCES +=		\
 	$(NULL)
 libck_la_LIBADD += -lps
 endif
+if CK_COMPILE_NETBSD
+libck_la_SOURCES +=		\
+	ck-sysdeps-netbsd.c	\
+	$(NULL)
+libck_la_LIBADD += $(KVM_LIBS)
+endif
 
 EXTRA_libck_la_SOURCES =		\
 	ck-sysdeps-linux.c		\
 	ck-sysdeps-solaris.c		\
 	ck-sysdeps-freebsd.c		\
+	ck-sysdeps-netbsd.c		\
 	ck-sysdeps-gnu.c		\
 	$(NULL)
 

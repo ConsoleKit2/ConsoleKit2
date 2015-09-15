@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if /sbin/sysctl -q hw.acpi.sleep.state; then
+	/sbin/sysctl -w hw.acpi.sleep.state=3
+elif /sbin/sysctl -q machdep.xen.suspend; then
+	/sbin/sysctl -w machdep.xen.suspend=1
+elif test -x /usr/sbin/apm; then
+	if test -f /etc/rc.d/apmd && /etc/rc.d/apmd onestatus > /dev/null; then
+		/usr/sbin/apm -z
+	else
+		/usr/sbin/apm -d -z
+	fi
+else
+	exit 1
+fi
