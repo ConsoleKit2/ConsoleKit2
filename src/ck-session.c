@@ -1273,7 +1273,7 @@ ck_session_run_programs (CkSession  *session,
         g_assert(n <= G_N_ELEMENTS(extra_env));
 
         ck_run_programs (SYSCONFDIR "/ConsoleKit/run-session.d", action, extra_env);
-        ck_run_programs (PREFIX "/lib/ConsoleKit/run-session.d", action, extra_env);
+        ck_run_programs (LIBDIR "/ConsoleKit/run-session.d", action, extra_env);
 
         for (n = 0; extra_env[n] != NULL; n++) {
                 g_free (extra_env[n]);
