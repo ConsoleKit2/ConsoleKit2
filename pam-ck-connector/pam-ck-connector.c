@@ -248,11 +248,13 @@ pam_sm_open_session (pam_handle_t *pamh,
         uid_t       uid;
         char        buf[256];
         char       *ttybuf;
+        char       *xdd;
         DBusError   error;
         dbus_bool_t is_local;
 
         ret = PAM_IGNORE;
         ttybuf = NULL;
+        xdd = NULL;
         is_local = TRUE;
 
         _parse_pam_args (pamh, flags, argc, argv);
@@ -339,6 +341,14 @@ pam_sm_open_session (pam_handle_t *pamh,
                 if (opt_debug) {
                         ck_pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display device (from CKCON_X11_DISPLAY_DEVICE)", x11_display_device);
                 }
+        } else if ((s = pam_getenv (pamh, "XDG_VTNR")) != NULL) {
+                int len = strlen (s) + 9; /* room for "/dev/ttyX\0" */
+                xdd = malloc (len);
+                snprintf (xdd, len, "/dev/tty%s", s);
+                x11_display_device = xdd;
+                if (opt_debug) {
+                        ck_pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display device (from XDG_VTNR)", x11_display_device);
+                }
         }
 
         uid = _util_name_to_uid (user, NULL);
@@ -421,6 +431,7 @@ pam_sm_open_session (pam_handle_t *pamh,
 
 out:
         free (ttybuf);
+        free (xdd);
 
         return ret;
 }
