@@ -90,8 +90,6 @@ struct _CkProcessStat
         int exit_signal;                /* stat            might not be SIGCHLD */
         int processor;                  /* stat            current (or most recent?) CPU */
         uintptr_t penv;                 /* stat            address of initial environment vector */
-        char tty_text[16];              /* stat            device name */
-
 };
 
 pid_t
@@ -115,7 +113,11 @@ ck_process_stat_get_tty (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, NULL);
 
-        return g_strdup (stat->tty_text);
+        if (stat->tty != NODEV){
+                return NULL;
+        }
+
+        return g_strdup(devname (stat->tty, S_IFCHR));
 }
 
 static gboolean
@@ -147,10 +149,7 @@ stat2proc (pid_t        pid,
            CkProcessStat *P)
 {
         struct kinfo_proc2 p;
-        char              *ttname;
         int               num;
-        int               tty_maj;
-        int               tty_min;
 
         if (! get_kinfo_proc2 (pid, &p)) {
                 return FALSE;
@@ -178,22 +177,7 @@ stat2proc (pid_t        pid,
         P->tpgid      = p.p_tpgid;
         P->processor  = p.p_cpuid;
         P->nlwp       = p.p_nlwps;
-
-        /* we like it Linux-encoded :-) */
-        tty_maj = major (p.p_tdev);
-        tty_min = minor (p.p_tdev);
-        P->tty = DEV_ENCODE (tty_maj,tty_min);
-
-        snprintf (P->tty_text, sizeof(P->tty_text), "%3d,%-3d", tty_maj, tty_min);
-
-        if (p.p_tdev != NODEV && (ttname = devname (p.p_tdev, S_IFCHR)) != NULL) {
-                memcpy (P->tty_text, ttname, sizeof(P->tty_text));
-        }
-
-        if (p.p_tdev == NODEV) {
-		/* XXX how do we associate X with its tty? */
-                memcpy (P->tty_text, "/dev/ttyE4", sizeof(P->tty_text));
-        }
+        P->tty        = p.p_tdev;
 
         if (P->pid != pid) {
                 return FALSE;

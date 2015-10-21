@@ -40,6 +40,10 @@
 #include <dev/wscons/wsdisplay_usl_io.h>
 #endif
 
+#if defined(__NetBSD__)
+#include <sys/un.h>
+#endif
+
 #ifdef HAVE_SYS_VT_H
 #include <sys/vt.h>
 #endif
@@ -107,6 +111,22 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         }
         if (ucred != NULL) {
                 ucred_free (ucred);
+        }
+#elif defined(LOCAL_PEEREID)
+        struct unpcbid cr;
+        socklen_t      cr_len;
+
+        cr_len = sizeof (cr);
+
+        if (getsockopt (socket_fd, 0, LOCAL_PEEREID, &cr, &cr_len) == 0 && cr_len == sizeof (cr)) {
+                pid_read = cr.unp_pid;
+                uid_read = cr.unp_euid;
+                ret = TRUE;
+        } else {
+                g_warning ("Failed to getsockopt() credentials, returned len %d/%d: %s\n",
+                           cr_len,
+                           (int) sizeof (cr),
+                           g_strerror (errno));
         }
 #elif defined(HAVE_GETPEEREID)
 	gid_t dummy;
