@@ -778,6 +778,85 @@ ck_get_active_console_num (int    console_fd,
         return ret;
 }
 
+/* adapted from upower-0.9 branch */
+gfloat linux_get_used_swap(void);
+gfloat
+linux_get_used_swap (void)
+{
+        gchar *contents = NULL;
+        gchar **lines = NULL;
+        GError *error = NULL;
+        gchar **tokens;
+        gboolean ret;
+        guint active = 0;
+        guint swap_free = 0;
+        guint swap_total = 0;
+        guint len;
+        guint i;
+        gfloat percentage = 0.0f;
+        const gchar *filename = "/proc/meminfo";
+
+        /* get memory data */
+        ret = g_file_get_contents (filename, &contents, NULL, &error);
+        if (!ret) {
+                g_warning ("failed to open %s: %s", filename, error->message);
+                g_error_free (error);
+                goto out;
+        }
+
+        /* process each line */
+        lines = g_strsplit (contents, "\n", -1);
+        for (i=1; lines[i] != NULL; i++) {
+                tokens = g_strsplit_set (lines[i], ": ", -1);
+                len = g_strv_length (tokens);
+                if (len > 3) {
+                        if (g_strcmp0 (tokens[0], "SwapFree") == 0)
+                                swap_free = atoi (tokens[len-2]);
+                        if (g_strcmp0 (tokens[0], "SwapTotal") == 0)
+                                swap_total = atoi (tokens[len-2]);
+                        else if (g_strcmp0 (tokens[0], "Active(anon)") == 0)
+                                active = atoi (tokens[len-2]);
+                }
+                g_strfreev (tokens);
+        }
+
+        /* first check if we even have swap, if not consider all swap space used */
+        if (swap_total == 0) {
+                g_debug ("no swap space found");
+                percentage = 100.0f;
+                goto out;
+        }
+        /* work out how close to the line we are */
+        if (swap_free > 0 && active > 0)
+                percentage = (active * 100) / swap_free;
+        g_debug ("total swap available %i kb, active memory %i kb (%.1f%%)", swap_free, active, percentage);
+out:
+        g_free (contents);
+        g_strfreev (lines);
+        return percentage;
+}
+
+/* adapted from upower-0.9 branch */
+gboolean linux_check_enough_swap (void);
+gboolean
+linux_check_enough_swap (void)
+{
+        gfloat waterline = 98.0f; /* 98% */
+        gfloat used_swap = linux_get_used_swap();
+
+        if (used_swap < waterline) {
+                        g_debug ("enough swap to hibernate");
+                        return TRUE;
+                } else {
+                        g_debug ("not enough swap to hibernate");
+                        return FALSE;
+                }
+
+        g_debug ("should not hit this in linux_check_enough_swap");
+        return FALSE;
+}
+
+
 static gboolean
 linux_supports_sleep_state (const gchar *state)
 {
@@ -812,7 +891,9 @@ ck_system_can_suspend (void)
 gboolean
 ck_system_can_hibernate (void)
 {
-        return linux_supports_sleep_state ("hibernate");
+        if (linux_supports_sleep_state ("hibernate"))
+		return linux_check_enough_swap() ;
+        return FALSE;
 }
 
 gboolean
