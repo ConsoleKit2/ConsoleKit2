@@ -779,8 +779,7 @@ ck_get_active_console_num (int    console_fd,
 }
 
 /* adapted from upower-0.9 branch */
-gfloat linux_get_used_swap(void);
-gfloat
+static gfloat
 linux_get_used_swap (void)
 {
         gchar *contents = NULL;
@@ -837,8 +836,7 @@ out:
 }
 
 /* adapted from upower-0.9 branch */
-gboolean linux_check_enough_swap (void);
-gboolean
+static gboolean
 linux_check_enough_swap (void)
 {
         gfloat waterline = 98.0f; /* 98% */
