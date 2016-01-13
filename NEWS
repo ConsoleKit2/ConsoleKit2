@@ -1,4 +1,19 @@
 ==============
+Version 1.0.1
+==============
+
+Stable release of ConsoleKit2. Thank you to everyone who submitted
+pull requests.
+
+Changes since 1.0.0:
+- Check for enough swap space before allowing hibernate operation
+- XDG_VTNR support
+- Add NetBSD support
+- Fix a potential crash condition after successfully suspending.
+- Fix some libdir/scripts stuff
+- Filter out the kdm user
+
+==============
 Version 1.0.0
 ==============
 

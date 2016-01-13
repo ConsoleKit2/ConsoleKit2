@@ -14,6 +14,10 @@ if CK_COMPILE_FREEBSD
 SUBDIRS += freebsd
 endif
 
+if CK_COMPILE_NETBSD
+SUBDIRS += netbsd
+endif
+
 if CK_COMPILE_OPENBSD
 SUBDIRS += openbsd
 endif
@@ -25,6 +29,7 @@ endif
 DIST_SUBDIRS = 		\
 	linux		\
 	freebsd		\
+	netbsd		\
 	openbsd		\
 	solaris		\
 	$(NULL)
