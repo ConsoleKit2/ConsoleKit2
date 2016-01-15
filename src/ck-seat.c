@@ -536,9 +536,9 @@ find_session_for_display_device (CkSeat     *seat,
         GList     *sessions;
         CkSession *session;
 
-        sessions = find_sessions_for_display_device (seat, device);
+        sessions = find_sessions_for_x11_display_device (seat, device);
         if (sessions == NULL) {
-                sessions = find_sessions_for_x11_display_device (seat, device);
+                sessions = find_sessions_for_display_device (seat, device);
         }
 
         if (sessions == NULL) {
