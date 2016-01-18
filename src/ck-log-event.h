@@ -140,7 +140,7 @@ typedef struct
 {
         union {
                 CkLogNoneEvent none;
-                CkLogSystemRestartEvent system_start;
+                CkLogSystemStartEvent system_start;
                 CkLogSystemStopEvent system_stop;
                 CkLogSystemRestartEvent system_restart;
                 CkLogSeatAddedEvent seat_added;

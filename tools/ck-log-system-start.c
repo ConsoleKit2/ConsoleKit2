@@ -249,7 +249,7 @@ main (int    argc,
 
         event.type = CK_LOG_EVENT_SYSTEM_START;
         g_get_current_time (&event.timestamp);
-        e = (CkLogSystemStartEvent *) &event;
+        e = (CkLogSystemStartEvent *) &event.event;
 
         if (uname (&uts) == 0) {
                 e->kernel_release = uts.release;
