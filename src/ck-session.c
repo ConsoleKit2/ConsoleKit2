@@ -877,7 +877,7 @@ dbus_get_runtime_dir (ConsoleKitSession     *cksession,
         /* if no login session id is set return an empty string */
         if (session->priv->runtime_dir == NULL) {
             throw_error (context, CK_SESSION_ERROR_FAILED, _("Failed to create the XDG_RUNTIME_DIR"));
-            return FALSE;
+            return TRUE;
         }
 
         console_kit_session_complete_get_xdgruntime_dir (cksession, context, session->priv->runtime_dir);
