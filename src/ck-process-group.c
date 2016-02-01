@@ -223,7 +223,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
          * to clean up the cgroup after all the processes are gone which
          * will happen when the user logs out.
          */
-        ret = cgmanager_create_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, &existed);
+        ret = cgmanager_create_sync (NULL, priv->cgmanager_proxy, "all", ssid, &existed);
         if (ret != 0) {
                 /* TRANSLATORS: Please ensure you keep the %s in the
                  * string somewhere. It's the detailed error message from
@@ -233,7 +233,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
                 return FALSE;
         }
 
-        ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, process);
+        ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "all", ssid, process);
         if (ret != 0) {
                 /* TRANSLATORS: Please ensure you keep the %s in the
                  * string somewhere. It's the detailed error message from
@@ -243,7 +243,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
                 return FALSE;
         }
 
-        ret = cgmanager_remove_on_empty_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid);
+        ret = cgmanager_remove_on_empty_sync (NULL, priv->cgmanager_proxy, "all", ssid);
         if (ret != 0) {
                 /* TRANSLATORS: Please ensure you keep the %s in the
                  * string somewhere. It's the detailed error message from
