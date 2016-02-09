@@ -38,6 +38,8 @@
 
 #include "config.h"
 
+#include <pwd.h>
+
 #include <glib.h>
 #include <glib-object.h>
 #include <glib/gstdio.h>
@@ -211,6 +213,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
         CkProcessGroupPrivate *priv = CK_PROCESS_GROUP_GET_PRIVATE (pgroup);
         gint                   ret;
         gint32                 existed;
+        struct passwd         *pwent;
 
         TRACE ();
 
@@ -223,7 +226,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
          * to clean up the cgroup after all the processes are gone which
          * will happen when the user logs out.
          */
-        ret = cgmanager_create_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, &existed);
+        ret = cgmanager_create_sync (NULL, priv->cgmanager_proxy, "all", ssid, &existed);
         if (ret != 0) {
                 /* TRANSLATORS: Please ensure you keep the %s in the
                  * string somewhere. It's the detailed error message from
@@ -233,7 +236,24 @@ ck_process_group_create (CkProcessGroup *pgroup,
                 return FALSE;
         }
 
-        ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, process);
+        errno = 0;
+        pwent = getpwuid (ck_unix_pid_get_uid(process));
+        if (pwent == NULL) {
+                g_warning ("Unable to lookup UID: %s", g_strerror (errno));
+                return FALSE;
+        }
+
+        ret = cgmanager_chown_sync(NULL, priv->cgmanager_proxy, "all", ssid, pwent->pw_uid, pwent->pw_gid);
+        if (ret != 0) {
+                /* TRANSLATORS: Please ensure you keep the %s in the
+                 * string somewhere. It's the detailed error message from
+                 * cgmanager.
+                 */
+                throw_nih_warning (_("Failed to change owner of the new cgroup to owner of the session leader, the error was: %s"));
+                return FALSE;
+        }
+
+        ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "all", ssid, process);
         if (ret != 0) {
                 /* TRANSLATORS: Please ensure you keep the %s in the
                  * string somewhere. It's the detailed error message from
@@ -243,7 +263,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
                 return FALSE;
         }
 
-        ret = cgmanager_remove_on_empty_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid);
+        ret = cgmanager_remove_on_empty_sync (NULL, priv->cgmanager_proxy, "all", ssid);
         if (ret != 0) {
                 /* TRANSLATORS: Please ensure you keep the %s in the
                  * string somewhere. It's the detailed error message from
