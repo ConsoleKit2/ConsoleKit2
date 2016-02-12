@@ -3,201 +3,201 @@
 # This file is distributed under the same license as the ConsoleKit2 package.
 # 
 # Translators:
-# Pablo Roberto Francisco Lezaeta Reyes <prflr88@gmail.com>, 2015
+# Eric Hameleers <eric.hameleers@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2016-01-13 11:50+0300\n"
-"PO-Revision-Date: 2015-08-02 09:21+0000\n"
-"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
-"Language-Team: Spanish (Latin America) (http://www.transifex.com/consolekit2/consolekit2/language/es_419/)\n"
+"PO-Revision-Date: 2015-12-20 13:35+0000\n"
+"Last-Translator: Eric Hameleers <eric.hameleers@gmail.com>\n"
+"Language-Team: Dutch (http://www.transifex.com/consolekit2/consolekit2/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: es_419\n"
+"Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/ck-seat.c:250
 msgid "Another session was activated while waiting"
-msgstr "Se inició otra sesión mientras se estaba en espera"
+msgstr "Een andere sessie werd geactiveerd tijdens het wachten"
 
 #: src/ck-seat.c:275
 msgid "There is no Seat to activate"
-msgstr "No hay puesto de trabajo activo"
+msgstr "Er is geen Seat om te activeren"
 
 #: src/ck-seat.c:281
 msgid "Activation is not supported for this kind of seat"
-msgstr "La activación no está disponible para este tipo de puesto de trabajo"
+msgstr "Activeren wordt niet ondersteund voor dit type seat"
 
 #: src/ck-seat.c:286
 msgid "Unknown session id"
-msgstr "El Id de sesión desconocido"
+msgstr "Onbekend sessie id"
 
 #: src/ck-seat.c:297 src/ck-seat.c:330 src/ck-vt-monitor.c:129
 msgid "Unable to activate session"
-msgstr "No se pudo activar la sesión"
+msgstr "Kan geen sessie activeren"
 
 #: src/ck-seat.c:322
 msgid "Session already active"
-msgstr "La sesión ya está activa"
+msgstr "Sessie is al actief"
 
 #: src/ck-seat.c:685
 msgid "Session is not attached to this seat"
-msgstr "La sesión no está adjunta a este puesto de trabajo"
+msgstr "Sessie is niet gekoppeld aan deze seat"
 
 #: src/ck-seat.c:970
 msgid "Seat has no sessions"
-msgstr "El puesto de trabajo no tiene sesiones"
+msgstr "Seat heeft geen sessies"
 
 #: src/main.c:226
 msgid "Enable debugging code"
-msgstr "Habilitar código de depuración"
+msgstr "Activeer code voor foutoplossing"
 
 #: src/main.c:227
 msgid "Don't become a daemon"
-msgstr "No convertirse en un demonio"
+msgstr "Word geen achtergrondproces"
 
 #: src/main.c:228
 msgid "Exit after a time - for debugging"
-msgstr "Salir después de un tiempo - para depurar"
+msgstr "Sluit pas af na zekere tijd - voor foutoplossing"
 
 #: src/main.c:253 tools/ck-collect-session-info.c:453
 msgid "You must be root to run this program"
-msgstr "Debe ser superusuario para ejecutar este programa"
+msgstr "Je moet root zijn om dit programma te starten"
 
 #: src/main.c:257
 msgid "Console kit daemon"
-msgstr "Kit de demonio de consola"
+msgstr "Console kit achtergrondproces"
 
 #: src/ck-vt-monitor.c:110
 msgid "Session is already active"
-msgstr "La sesión está activa"
+msgstr "Sessie is al actief"
 
 #: src/ck-vt-monitor.c:118 src/ck-vt-monitor.c:151
 msgid "No consoles available"
-msgstr "No hay consolas disponibles"
+msgstr "Geen consoles beschikbaar"
 
 #: src/ck-manager.c:851
 #, c-format
 msgid "Not Authorized: %s"
-msgstr "No está autorizado: %s"
+msgstr "Niet Geauthoriseerd: %s"
 
 #: src/ck-manager.c:858
 msgid "Authorization is required"
-msgstr "Se requiere atorización"
+msgstr "Authorisatie is vereist"
 
 #: src/ck-manager.c:861
 msgid "Not Authorized"
-msgstr "No está autorizado"
+msgstr "Niet Geauthoriseerd"
 
 #: src/ck-manager.c:1294
 #, c-format
 msgid "Unable to %s system: %s"
-msgstr "No se puede %s al sistema: %s"
+msgstr "Kan systeem niet %s: %s"
 
 #: src/ck-manager.c:1347 src/ck-manager.c:1454 src/ck-manager.c:1709
 #: src/ck-manager.c:1841 src/ck-manager.c:1973
 msgid "Attempting to perform a system action while one is in progress"
-msgstr ""
+msgstr "Poging om een systeem actie uit te voeren terwijl er al een in uitvoering is"
 
 #: src/ck-manager.c:1359
 msgid "failed to allocate memory to perform restart"
-msgstr ""
+msgstr "kon geen geheugen vrijmaken voor een herstart"
 
 #: src/ck-manager.c:1406 src/ck-manager.c:1506 src/ck-manager.c:1563
 #: src/ck-manager.c:1642 src/ck-manager.c:1769 src/ck-manager.c:1901
 #: src/ck-manager.c:2033
 msgid "Operation is being inhibited"
-msgstr ""
+msgstr "Operatie wordt tegengehouden"
 
 #: src/ck-manager.c:1466
 msgid "failed to allocate memory to perform shutdown"
-msgstr ""
+msgstr "kon geen geheugen vrijmaken om systeem te stoppen"
 
 #: src/ck-manager.c:1721
 msgid "failed to allocate memory to perform suspend"
-msgstr ""
+msgstr "kon geen geheugen vrijmaken om systeem te pauzeren"
 
 #: src/ck-manager.c:1853
 msgid "failed to allocate memory to perform hibernate"
-msgstr ""
+msgstr "kon geen geheugen vrijmaken om systeem in slaapstand te zetten"
 
 #: src/ck-manager.c:1985
 msgid "failed to allocate memory to perform hybrid sleep"
-msgstr ""
+msgstr "kon geen geheugen vrijmaken om systeem in hybride slaapstand te zetten"
 
 #: src/ck-manager.c:2126 src/ck-manager.c:2153
 msgid "Error creating the inhibit lock"
-msgstr ""
+msgstr "Fout bij het aanmaken van het inhibit lock"
 
 #: src/ck-manager.c:2131 src/ck-manager.c:2193
 msgid "Inhibit manager failed to initialize"
-msgstr ""
+msgstr "Inhibit manager kon niet worden geïnitialiseerd"
 
 #: src/ck-manager.c:2147
 msgid "Invalid input when creating inhibit lock"
-msgstr ""
+msgstr "Ongeldige invoer bij het aanmaken van het inhibit lock"
 
 #: src/ck-manager.c:2150
 msgid "Unable to create inhibit lock, insufficient memory"
-msgstr ""
+msgstr "Kon geen inhibit lock aanmaken, onvoldoende geheugen"
 
 #: src/ck-manager.c:2200
 msgid "There is nothing currently inhibited"
-msgstr ""
+msgstr "Momenteel worden er geen operaties tegengehouden"
 
 #: src/ck-manager.c:2839 src/ck-manager.c:2923 src/ck-manager.c:2971
 msgid "Unable to get information about the calling process"
-msgstr "No se puede buscar información acerca de las llamadas a proceso"
+msgstr "Kan geen informatie krijgen over het aanroepende proces"
 
 #: src/ck-manager.c:2853 src/ck-manager.c:3171 src/ck-session.c:390
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
-msgstr "No se puede buscar información acerca de las llamadas al proceso «%d»"
+msgstr "Kan geen informatie opzoeken over aanroepende proces '%d'"
 
 #: src/ck-manager.c:2864 src/ck-manager.c:2871 src/ck-manager.c:3120
 msgid "Unable to find session for cookie"
-msgstr "No se pudo encontrar la sesión para la galleta"
+msgstr "Kan geen sessie vinden bij het cookie"
 
 #: src/ck-manager.c:2906
 msgid "pid must be > 1"
-msgstr "el pid debe ser > 1"
+msgstr "PID moet > 1 zijn"
 
 #: src/ck-manager.c:2931
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
-msgstr "No se puede buscar información de la sesión para el proceso «%d»"
+msgstr "Kan geen sessie informatie opzoeken voor proces '%d'"
 
 #: src/ck-manager.c:3128
 msgid "User ID does not match the owner of cookie"
-msgstr "El Id del usuario no concuerda con el propietario de la galleta"
+msgstr "Gebruikers ID klopt niet met de eigenaar van het cookie"
 
 #: src/ck-manager.c:3138
 msgid "Process ID does not match the owner of cookie"
-msgstr "El id del proceso no concuerda con el propietario de la cookie"
+msgstr "Proces ID klopt niet met de eigenaar van het cookie"
 
 #: src/ck-manager.c:3362
 msgid "User has no sessions"
-msgstr "El usuario está sin sesión"
+msgstr "Gebruiker heeft geen sessies"
 
 #: src/ck-manager.c:3398
 msgid "User has no seats"
-msgstr "El usuario no tiene un puesto de trabajo"
+msgstr "Gebruiker heeft geen seats"
 
 #: src/ck-manager.c:3424
 msgid "There are no sessions"
-msgstr "No hay sesiones"
+msgstr "Er zijn geen sessies"
 
 #: src/ck-session.c:396
 msgid "Only session owner may set idle hint state"
-msgstr "Solo el propietario de la sesión puede establecer el estado de de inactividad"
+msgstr "Enkel de sessie eigenaar mag de idle hint status zetten"
 
 #: src/ck-session.c:468
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
-msgstr "No se pudo manejar la señal de activación. La sesión no se adjuntará al puesto de trabajo o el puesto no soporta cambios de activación"
+msgstr "Signaal activatie niet afgehandeld. Sessie niet gekoppeld aan seat, of de seat ondersteunt geen activatie wijziging"
 
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
@@ -205,7 +205,7 @@ msgstr "No se pudo manejar la señal de activación. La sesión no se adjuntará
 #: src/ck-process-group.c:111
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
-msgstr ""
+msgstr "Kon geen verbinding maken met cgmanager. Is het cgmanager achtergrondproces actief?"
 
 #. TRANSLATORS: There is an error with cgmanager, we're just
 #. * printing it out. Please ensure you keep the %s in the
@@ -214,7 +214,7 @@ msgstr ""
 #: src/ck-process-group.c:127
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
-msgstr ""
+msgstr "Er trad een fout op bij het initialiseren van cgmanager, de melding was: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -222,7 +222,7 @@ msgstr ""
 #: src/ck-process-group.c:232
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
-msgstr ""
+msgstr "Kon geen cgroup aanmaken, de foutmelding was: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -230,7 +230,7 @@ msgstr ""
 #: src/ck-process-group.c:242
 #, c-format
 msgid "Failed to move the session leader process to cgroup, the error was: %s"
-msgstr ""
+msgstr "Kon het session leader proces niet naar cgroup verplaatsen, de foutmelding was: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -240,7 +240,7 @@ msgstr ""
 msgid ""
 "Failed to let cgmanager know that it can remove the cgroup when it's empty, "
 "the error was: %s"
-msgstr ""
+msgstr "Kon cgmanager niet informeren dat het de lege cgroup mag verwijderen, de foutmelding was: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -248,68 +248,68 @@ msgstr ""
 #: src/ck-process-group.c:291
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
-msgstr ""
+msgstr "Kon de sessie id niet verkrijgen van cgmanager, de foutmelding was: %s"
 
 #: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"
-msgstr "La versión de esta aplicación"
+msgstr "Versie van deze applicatie"
 
 #: tools/ck-history.c:904
 msgid "Show listing of frequent users"
-msgstr "Lista los usuario frecuentes"
+msgstr "Toon overzicht van frequente gebruikers"
 
 #: tools/ck-history.c:905
 msgid "Show listing of last logged in users"
-msgstr "Muestra la lista de los últimos usuarios conectados"
+msgstr "Toon overzicht van recent ingelogde gebruikers"
 
 #: tools/ck-history.c:906
 msgid "Show 'last' compatible listing of last logged in users"
-msgstr "Muestra la «última» lista compatible de los últimos usuarios conectados"
+msgstr "Toon overzicht van recent ingelogde gebruikers dat compatibel is met het 'last' commando"
 
 #: tools/ck-history.c:907
 msgid "Show full event log"
-msgstr "Muestra todo el registro de eventos"
+msgstr "Toon volledig logboek van gebeurtenissen"
 
 #: tools/ck-history.c:908
 msgid "Show entries for the specified seat"
-msgstr "Muestra las entradas específicas por el puesto de trabajo"
+msgstr "Toon logboekvermeldingen van de genoemde seat"
 
 #: tools/ck-history.c:908
 msgid "SEAT"
-msgstr "PUESTO DE TRABAJO"
+msgstr "SEAT"
 
 #: tools/ck-history.c:909
 msgid "Show entries for the specified session type"
-msgstr "Mostrar las entradas específicas para el tipo de sesión"
+msgstr "Toon vermeldingen van het genoemde sessie type"
 
 #: tools/ck-history.c:909
 msgid "TYPE"
-msgstr "TIPO"
+msgstr "TYPE"
 
 #: tools/ck-history.c:910
 msgid "Show entries for the specified user"
-msgstr "Muestra las entradas específicas para el usuario"
+msgstr "Toon vermeldingen van de genoemde gebruiker"
 
 #: tools/ck-history.c:910
 msgid "NAME"
-msgstr "NOMBRE"
+msgstr "NAAM"
 
 #: tools/ck-history.c:911
 msgid "Show entries since the specified time (ISO 8601 format)"
-msgstr "Muestra las entradas específicas para la fecha (en formato ISO 8601)"
+msgstr "Toon vermeldingen vanaf het genoemde tijdstip (ISO 8601 formaat)"
 
 #: tools/ck-history.c:911
 msgid "DATETIME"
-msgstr "FECHA Y HORA"
+msgstr "DAGTIJD"
 
 #: tools/ck-get-x11-display-device.c:166
 msgid "display name"
-msgstr "Mostrar nombre"
+msgstr "Toon naam"
 
 #: tools/ck-collect-session-info.c:438
 msgid "User ID"
-msgstr "Id de usuario"
+msgstr "Gebruikers ID"
 
 #: tools/ck-collect-session-info.c:439
 msgid "Process ID"
-msgstr "Id de proceso"
+msgstr "Proces ID"
