@@ -141,6 +141,27 @@ static gpointer manager_object = NULL;
 G_DEFINE_TYPE_WITH_CODE (CkManager, ck_manager, CONSOLE_KIT_TYPE_MANAGER_SKELETON, G_IMPLEMENT_INTERFACE (CONSOLE_KIT_TYPE_MANAGER, ck_manager_iface_init));
 
 static void
+dump_manager_seat_iter (char      *id,
+                        CkSeat    *seat,
+                        GString   *str)
+{
+        char   *seat_id;
+        GError *error;
+
+        error = NULL;
+        if (! ck_seat_get_id (seat, &seat_id, &error)) {
+                g_warning ("Cannot get seat id from manager: %s", error->message);
+                g_error_free (error);
+        } else {
+                if (str->len > 0) {
+                        g_string_append_c (str, ' ');
+                }
+                g_string_append (str, seat_id);
+                g_free (seat_id);
+        }
+}
+
+static void
 dump_state_seat_iter (char     *id,
                       CkSeat   *seat,
                       GKeyFile *key_file)
@@ -169,7 +190,9 @@ do_dump (CkManager *manager,
          int        fd)
 {
         char     *str;
+        char     *s;
         gsize     str_len;
+        GString  *seats_string;
         GKeyFile *key_file;
         GError   *error;
         gboolean  ret;
@@ -179,6 +202,13 @@ do_dump (CkManager *manager,
         ret = FALSE;
 
         key_file = g_key_file_new ();
+
+        /* Create the [seats] section listing all the seats */
+        seats_string = g_string_new (NULL);
+        g_hash_table_foreach (manager->priv->seats, (GHFunc) dump_manager_seat_iter, seats_string);
+        s = g_string_free (seats_string, FALSE);
+        g_key_file_set_string (key_file, "Seats", "seats", s);
+        g_free (s);
 
         g_hash_table_foreach (manager->priv->seats, (GHFunc) dump_state_seat_iter, key_file);
         g_hash_table_foreach (manager->priv->sessions, (GHFunc) dump_state_session_iter, key_file);
