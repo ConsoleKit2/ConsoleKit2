@@ -502,7 +502,7 @@ ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 
         TRACE ();
 
-        opts = g_strdup_printf ("mode=0700,size=8M,uid=%d,guid=%d", uid, gid);
+        opts = g_strdup_printf ("mode=0700,uid=%d", uid);
 
         result = mount("tmpfs", dest, 0, opts);
 
