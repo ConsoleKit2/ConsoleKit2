@@ -52,6 +52,7 @@ static struct {
         { "session-type",       "s", G_TYPE_STRING },
         { "is-local",           "b", G_TYPE_BOOLEAN },
         { "unix-user",          "i", G_TYPE_INT },
+        { "user",               "i", G_TYPE_INT },
 };
 
 struct CkSessionLeaderPrivate
@@ -294,6 +295,12 @@ save_parameters (CkSessionLeader *leader,
                                 g_free (prop_name);
                                 g_variant_unref (value);
                                 continue;
+                        }
+
+                        /* Convert legacy user property to unix-user */
+                        if (g_strcmp0 (prop_name, "user") == 0) {
+                                g_free (prop_name);
+                                prop_name = g_strdup ("unix-user");
                         }
 
                         g_debug ("Setting override parameters for: %s", prop_name);
