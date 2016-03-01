@@ -666,8 +666,8 @@ ck_unix_pid_get_login_session_id (pid_t  pid,
                 goto out;
         }
 
-        /* Will be G_MAXULONG if it isn't set */
-        if (ulong_value == G_MAXULONG) {
+        /* Will be G_MAXUINT32 if it isn't set */
+        if (ulong_value == G_MAXUINT32) {
                 goto out;
         }
 
