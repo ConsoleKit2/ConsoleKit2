@@ -3436,13 +3436,33 @@ ck_manager_class_init (CkManagerClass *klass)
         g_type_class_add_private (klass, sizeof (CkManagerPrivate));
 }
 
+typedef struct {
+        guint       uid;
+        GHashTable *hash;
+} GetSessionsData;
+
+static void
+collect_sessions_for_user (char            *ssid,
+                           CkSession       *session,
+                           GetSessionsData *data)
+{
+        guint    uid;
+
+        uid = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION(session));
+
+        if (uid == data->uid) {
+                g_hash_table_add (data->hash, g_strdup (ssid));
+        }
+}
+
 static gboolean
 dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
                                  GDBusMethodInvocation *context,
                                  guint                  uid)
 {
-        CkManager    *manager;
-        const gchar **sessions;
+        CkManager        *manager;
+        GetSessionsData  *data;
+        const gchar     **sessions;
 
         TRACE ();
 
@@ -3450,16 +3470,28 @@ dbus_get_sessions_for_unix_user (ConsoleKitManager     *ckmanager,
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
+        data = g_new0 (GetSessionsData, 1);
+        data->uid = uid;
+
+        /* Create a new hash table that we can fill with the ssids that belong to the user */
+        data->hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+        g_hash_table_foreach (manager->priv->sessions, (GHFunc)collect_sessions_for_user, data);
+
+        /* pull out the session ids in a format gdbus likes */
+        sessions = (const gchar**)g_hash_table_get_keys_as_array (data->hash, NULL);
 
         /* gdbus/gvariant requires that we throw an error to return NULL */
         if (sessions == NULL) {
                 throw_error (context, CK_MANAGER_ERROR_NO_SESSIONS, _("User has no sessions"));
+                g_hash_table_destroy (data->hash);
+                g_free (data);
                 return TRUE;
         }
 
         console_kit_manager_complete_get_sessions_for_unix_user (ckmanager, context, sessions);
-        g_free (sessions);
+        g_hash_table_destroy (data->hash);
+        g_free (data);
         return TRUE;
 }
 
