@@ -342,7 +342,7 @@ pam_sm_open_session (pam_handle_t *pamh,
                         ck_pam_syslog (pamh, LOG_INFO, "using '%s' as X11 display device (from CKCON_X11_DISPLAY_DEVICE)", x11_display_device);
                 }
         } else if ((s = pam_getenv (pamh, "XDG_VTNR")) != NULL) {
-                int len = strlen (s) + 9; /* room for "/dev/ttyX\0" */
+                int len = strlen (s) + 10; /* room for "/dev/ttyXX\0" */
                 xdd = malloc (len);
                 snprintf (xdd, len, "/dev/tty%s", s);
                 x11_display_device = xdd;
