@@ -135,6 +135,8 @@ static void     ck_manager_finalize    (GObject                *object);
 static void     remove_sessions_for_connection (CkManager   *manager,
                                                 const gchar *service_name);
 static void     create_seats                   (CkManager *manager);
+static gboolean session_is_real_user           (CkSession *session,
+                                                char     **userp);
 
 static gpointer manager_object = NULL;
 
@@ -153,8 +155,11 @@ dump_manager_seat_iter (char      *id,
                 g_warning ("Cannot get seat id from manager: %s", error->message);
                 g_error_free (error);
         } else {
+                /* ; is the seperator between elements in the list.
+                 * per keyfile standards
+                 */
                 if (str->len > 0) {
-                        g_string_append_c (str, ' ');
+                        g_string_append_c (str, ';');
                 }
                 g_string_append (str, seat_id);
                 g_free (seat_id);
@@ -185,6 +190,124 @@ dump_state_leader_iter (char            *id,
         ck_session_leader_dump (leader, key_file);
 }
 
+typedef struct {
+        GString *sessions;
+        gboolean is_local;
+} UserDataDump;
+
+static void
+dump_user_iter (guint        *uid,
+                UserDataDump *data,
+                GKeyFile     *key_file)
+{
+        gchar *user_group = NULL;
+        gchar *session_list = NULL;
+
+        TRACE ();
+
+        if (data == NULL) {
+                g_critical ("ck-manager: dump_user_iter: data == NULL");
+                return;
+        }
+
+        user_group = g_strdup_printf ("User %u", *uid);
+        if (user_group == NULL) {
+                g_critical ("ck-manager: dump_user_iter: user_group == NULL, OOM");
+                return;
+        }
+
+        session_list = g_string_free(data->sessions, FALSE);
+
+        g_key_file_set_boolean (key_file, user_group, "is_local", data->is_local);
+        g_key_file_set_string  (key_file, user_group, "sessions", session_list);
+
+        g_free (user_group);
+        g_free (session_list);
+}
+
+static void
+collect_user_data_dump (const char *ssid,
+                        CkSession  *session,
+                        GHashTable *hash)
+{
+        char         *username;
+        guint         uid;
+        gboolean      is_local;
+        UserDataDump *data;
+
+        TRACE ();
+
+        g_debug ("ssid %s", ssid);
+
+        /* ensure we filter out DMs and stuff */
+        if (session_is_real_user (session, &username)) {
+                if (username != NULL) {
+                        uid = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION (session));
+                        /* Try to get the existing data */
+                        data = g_hash_table_lookup (hash, &uid);
+                        if (data == NULL) {
+                                data = g_new0 (UserDataDump, 1);
+                                if (data == NULL) {
+                                        g_critical ("ck-manager: collect_user_data_dump: OOM");
+                                        return;
+                                }
+
+                                /* allocate space for our sessions string */
+                                data->sessions = g_string_new(NULL);
+                                if (data->sessions == NULL) {
+                                        g_critical ("ck-manager: collect_user_data_dump: OOM");
+                                        return;
+                                }
+
+                                /* place the data into the hash table */
+                                g_hash_table_insert (hash, &uid, data);
+                        }
+
+                        if (data->sessions == NULL) {
+                                g_critical ("ck-manager: collect_user_data_dump: failed sanity check");
+                                return;
+                        }
+
+                        /* ; is the seperator between elements in the list.
+                         * per keyfile standards
+                         */
+                        if (data->sessions->len > 0) {
+                                g_string_append_c (data->sessions, ';');
+                        }
+
+                        /* add the new ssid to the list */
+                        g_string_append (data->sessions, ssid);
+
+                        /* update the is_local property, we set this to True
+                         * if one seat/session is local */
+                        is_local = console_kit_session_get_is_local (CONSOLE_KIT_SESSION (session));
+                        if (is_local) {
+                                data->is_local = is_local;
+                        }
+                }
+        }
+}
+
+static void
+dump_user_section (CkManager *manager,
+                   GKeyFile *key_file)
+{
+        GHashTable      *users_hash;
+
+        TRACE ();
+
+        /* using direct since there is no g_uint_hash or g_uint_equal */
+        users_hash = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, g_free);
+
+        /* populate the users_hash filling in the user details */
+        g_hash_table_foreach (manager->priv->sessions, (GHFunc)collect_user_data_dump, users_hash);
+
+        /* now print out each entry in a user section */
+        g_hash_table_foreach (users_hash, (GHFunc)dump_user_iter, key_file);
+
+        g_hash_table_destroy (users_hash);
+}
+
 static gboolean
 do_dump (CkManager *manager,
          int        fd)
@@ -213,6 +336,8 @@ do_dump (CkManager *manager,
         g_hash_table_foreach (manager->priv->seats, (GHFunc) dump_state_seat_iter, key_file);
         g_hash_table_foreach (manager->priv->sessions, (GHFunc) dump_state_session_iter, key_file);
         g_hash_table_foreach (manager->priv->leaders, (GHFunc) dump_state_leader_iter, key_file);
+
+        dump_user_section (manager, key_file);
 
         str = g_key_file_to_data (key_file, &str_len, &error);
         g_key_file_free (key_file);
