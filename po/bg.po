@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the ConsoleKit2 package.
 # 
 # Translators:
-# Ivailo Monev <xakepa10@gmail.com>, 2015
+# Ivailo Monev <xakepa10@gmail.com>, 2015-2016
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2016-01-13 11:50+0300\n"
-"PO-Revision-Date: 2015-08-27 19:36+0000\n"
+"POT-Creation-Date: 2016-02-18 19:54+0300\n"
+"PO-Revision-Date: 2016-03-09 01:08+0000\n"
 "Last-Translator: Ivailo Monev <xakepa10@gmail.com>\n"
 "Language-Team: Bulgarian (http://www.transifex.com/consolekit2/consolekit2/language/bg/)\n"
 "MIME-Version: 1.0\n"
@@ -78,114 +78,114 @@ msgstr "Сесията вече е активна"
 msgid "No consoles available"
 msgstr "Няма налични конзоли"
 
-#: src/ck-manager.c:851
+#: src/ck-manager.c:881
 #, c-format
 msgid "Not Authorized: %s"
 msgstr "Не е Ауторизиран: %s"
 
-#: src/ck-manager.c:858
+#: src/ck-manager.c:888
 msgid "Authorization is required"
 msgstr "Нужна е ауторизация"
 
-#: src/ck-manager.c:861
+#: src/ck-manager.c:891
 msgid "Not Authorized"
 msgstr "Не е Ауторизиран"
 
-#: src/ck-manager.c:1294
+#: src/ck-manager.c:1358
 #, c-format
 msgid "Unable to %s system: %s"
 msgstr "Невъзможно %s на системата: %s"
 
-#: src/ck-manager.c:1347 src/ck-manager.c:1454 src/ck-manager.c:1709
-#: src/ck-manager.c:1841 src/ck-manager.c:1973
+#: src/ck-manager.c:1411 src/ck-manager.c:1518 src/ck-manager.c:1773
+#: src/ck-manager.c:1905 src/ck-manager.c:2037
 msgid "Attempting to perform a system action while one is in progress"
 msgstr "Опит за изпълнение на системно действие докато друго е в прогрес"
 
-#: src/ck-manager.c:1359
+#: src/ck-manager.c:1423
 msgid "failed to allocate memory to perform restart"
 msgstr "невъзможно алокиране на памет за изпълняването на рестарт"
 
-#: src/ck-manager.c:1406 src/ck-manager.c:1506 src/ck-manager.c:1563
-#: src/ck-manager.c:1642 src/ck-manager.c:1769 src/ck-manager.c:1901
-#: src/ck-manager.c:2033
+#: src/ck-manager.c:1470 src/ck-manager.c:1570 src/ck-manager.c:1627
+#: src/ck-manager.c:1706 src/ck-manager.c:1833 src/ck-manager.c:1965
+#: src/ck-manager.c:2097
 msgid "Operation is being inhibited"
 msgstr "Операцията се задържа"
 
-#: src/ck-manager.c:1466
+#: src/ck-manager.c:1530
 msgid "failed to allocate memory to perform shutdown"
 msgstr "невъзможно алокиране на памет за изпълняването на изключване"
 
-#: src/ck-manager.c:1721
+#: src/ck-manager.c:1785
 msgid "failed to allocate memory to perform suspend"
 msgstr "невъзможно алокиране на памет за изпълняването на заспиване"
 
-#: src/ck-manager.c:1853
+#: src/ck-manager.c:1917
 msgid "failed to allocate memory to perform hibernate"
 msgstr "невъзможно алокиране на памет за изпълняването на хибернация"
 
-#: src/ck-manager.c:1985
+#: src/ck-manager.c:2049
 msgid "failed to allocate memory to perform hybrid sleep"
 msgstr "невъзможно алокиране на памет за изпълняването на хибридно заспиване"
 
-#: src/ck-manager.c:2126 src/ck-manager.c:2153
+#: src/ck-manager.c:2190 src/ck-manager.c:2217
 msgid "Error creating the inhibit lock"
 msgstr "Грешка при създаване ключъ за задържане"
 
-#: src/ck-manager.c:2131 src/ck-manager.c:2193
+#: src/ck-manager.c:2195 src/ck-manager.c:2257
 msgid "Inhibit manager failed to initialize"
 msgstr "Задържащият мениджър не успя да се инициализира"
 
-#: src/ck-manager.c:2147
+#: src/ck-manager.c:2211
 msgid "Invalid input when creating inhibit lock"
-msgstr ""
+msgstr "Невалиден вход при създаване на ключ за инхибация"
 
-#: src/ck-manager.c:2150
+#: src/ck-manager.c:2214
 msgid "Unable to create inhibit lock, insufficient memory"
 msgstr "Невъзможно създаването на задържащ ключ, недостатъчно памет"
 
-#: src/ck-manager.c:2200
+#: src/ck-manager.c:2264
 msgid "There is nothing currently inhibited"
 msgstr "В момента няма нищо за задържане"
 
-#: src/ck-manager.c:2839 src/ck-manager.c:2923 src/ck-manager.c:2971
+#: src/ck-manager.c:2920 src/ck-manager.c:3004 src/ck-manager.c:3052
 msgid "Unable to get information about the calling process"
 msgstr "Невъзможно извличане на информация за извикващият процес"
 
-#: src/ck-manager.c:2853 src/ck-manager.c:3171 src/ck-session.c:390
+#: src/ck-manager.c:2934 src/ck-manager.c:3266 src/ck-session.c:390
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "Невъзможно намиране на информация за извикващият процес '%d'"
 
-#: src/ck-manager.c:2864 src/ck-manager.c:2871 src/ck-manager.c:3120
+#: src/ck-manager.c:2945 src/ck-manager.c:2952 src/ck-manager.c:3215
 msgid "Unable to find session for cookie"
 msgstr "Невъзможно намиране на сесия за бизквитка"
 
-#: src/ck-manager.c:2906
+#: src/ck-manager.c:2987
 msgid "pid must be > 1"
 msgstr "pid трябва да е > 1"
 
-#: src/ck-manager.c:2931
+#: src/ck-manager.c:3012
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Невъзможно намиране на сесиина информация за процес '%d'"
 
-#: src/ck-manager.c:3128
+#: src/ck-manager.c:3223
 msgid "User ID does not match the owner of cookie"
 msgstr "Потребилското ID несъвпада с това на притежателя на бизквитката"
 
-#: src/ck-manager.c:3138
+#: src/ck-manager.c:3233
 msgid "Process ID does not match the owner of cookie"
 msgstr "Процесното ID несъвпада с това на притежателя на бизквитката"
 
-#: src/ck-manager.c:3362
+#: src/ck-manager.c:3457
 msgid "User has no sessions"
 msgstr "Потребителя няма сесии"
 
-#: src/ck-manager.c:3398
+#: src/ck-manager.c:3493
 msgid "User has no seats"
 msgstr "Потребителя няма седалки"
 
-#: src/ck-manager.c:3424
+#: src/ck-manager.c:3519
 msgid "There are no sessions"
 msgstr "Няма сесии"
 
@@ -199,10 +199,14 @@ msgid ""
 "doesn't support activation changes"
 msgstr "Сигнал за активиране не е обработен. Сесия не е прикачена към седалка, или седалката не поддържа промени на активацията"
 
+#: src/ck-session.c:879
+msgid "Failed to create the XDG_RUNTIME_DIR"
+msgstr "Грешка при създаването на XDG_RUNTIME_DIR"
+
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
 #. * running.
-#: src/ck-process-group.c:111
+#: src/ck-process-group.c:113
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
 msgstr "Неуспех при отварянето на връзка към cgmanager. cgmanager демонът пуснат ли е?"
@@ -211,7 +215,7 @@ msgstr "Неуспех при отварянето на връзка към cgma
 #. * printing it out. Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:127
+#: src/ck-process-group.c:129
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
 msgstr "Възникна грешка при инициализирането на cgmanager, грешката беше: %s"
@@ -219,7 +223,7 @@ msgstr "Възникна грешка при инициализирането н
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:232
+#: src/ck-process-group.c:235
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
 msgstr "Неуспех при създаването на cgroup, грешката беше: %s"
@@ -227,28 +231,38 @@ msgstr "Неуспех при създаването на cgroup, грешкат
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:242
+#: src/ck-process-group.c:252
 #, c-format
-msgid "Failed to move the session leader process to cgroup, the error was: %s"
-msgstr ""
+msgid ""
+"Failed to change owner of the new cgroup to owner of the session leader, the"
+" error was: %s"
+msgstr "Неуспех при промяна притежателя на нова cgroup към притежател на сесийният водач, грешката беше: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:252
+#: src/ck-process-group.c:262
+#, c-format
+msgid "Failed to move the session leader process to cgroup, the error was: %s"
+msgstr "Неуспех при преместването на сесийният водачен процес към cgroup, грешката веше: %s"
+
+#. TRANSLATORS: Please ensure you keep the %s in the
+#. * string somewhere. It's the detailed error message from
+#. * cgmanager.
+#: src/ck-process-group.c:272
 #, c-format
 msgid ""
 "Failed to let cgmanager know that it can remove the cgroup when it's empty, "
 "the error was: %s"
-msgstr ""
+msgstr "Грешка при опит за известяване на cgmanager че може да премахне cgroup когато е празен, грешка беше: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:291
+#: src/ck-process-group.c:311
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
-msgstr ""
+msgstr "Грешка при опит за откриване на id от cgmanager, грешка беше: %s"
 
 #: tools/ck-history.c:903 tools/list-sessions.c:350
 msgid "Version of this application"
@@ -272,7 +286,7 @@ msgstr "Покажи пълен лог на случките"
 
 #: tools/ck-history.c:908
 msgid "Show entries for the specified seat"
-msgstr ""
+msgstr "Покажи включвания за специфицираната седалка"
 
 #: tools/ck-history.c:908
 msgid "SEAT"
@@ -280,7 +294,7 @@ msgstr "СЕДАЛКА"
 
 #: tools/ck-history.c:909
 msgid "Show entries for the specified session type"
-msgstr ""
+msgstr "Покажи включвания за специфицираният тип сесия"
 
 #: tools/ck-history.c:909
 msgid "TYPE"
@@ -288,7 +302,7 @@ msgstr "ТИП"
 
 #: tools/ck-history.c:910
 msgid "Show entries for the specified user"
-msgstr ""
+msgstr "Покажи включвания за специфицираният потребител"
 
 #: tools/ck-history.c:910
 msgid "NAME"
@@ -296,7 +310,7 @@ msgstr "ИМЕ"
 
 #: tools/ck-history.c:911
 msgid "Show entries since the specified time (ISO 8601 format)"
-msgstr ""
+msgstr "Покажи включвания от специфицираното време (ISO 8601 формат)"
 
 #: tools/ck-history.c:911
 msgid "DATETIME"
