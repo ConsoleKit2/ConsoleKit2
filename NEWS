@@ -1,4 +1,29 @@
 ==============
+Version 1.1.0
+==============
+[Please note that this is a development release.]
+
+Development release of ConsoleKit2 targeting the 1.0 release.
+Please report all problems to
+https://github.com/ConsoleKit2/ConsoleKit2/issues
+
+Changes:
+- Add a 'User' section to the CK database
+- Add a 'Seats' section to the CK database
+- Properly filter the sessions for the specified user
+- pam-ck allow VTNR to be double-digit
+- login_session_id will be G_MAXUINT32 when unset
+- Handle the legacy 'user' property as an override setting
+- Change owner of newly created cgroup to owner of progress group leader
+- Create cgroup on all controllers managed by cgmanager 
+- Implement XDG_RUNTIME_DIR 
+- When assigning session to active VT prefer graphical sessions 
+- Fix undefined behavior in ck-log-system-start
+
+Translation Updates: Bulgarian, Spanish, Spanish (Latin America),
+                     Dutch, Russian
+
+==============
 Version 1.0.1
 ==============
 
