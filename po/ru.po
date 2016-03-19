@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2016-01-13 11:50+0300\n"
+"POT-Creation-Date: 2016-03-19 18:19+0300\n"
 "PO-Revision-Date: 2015-08-10 06:58+0000\n"
 "Last-Translator: bizdelnick <bizdelnick@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/consolekit2/consolekit2/"
@@ -180,15 +180,15 @@ msgstr "ID пользователя не соответствует владел
 msgid "Process ID does not match the owner of cookie"
 msgstr "ID процесса не соответствует владельцу cookie"
 
-#: src/ck-manager.c:3362
+#: src/ck-manager.c:3391
 msgid "User has no sessions"
 msgstr "У пользователя нет сессий"
 
-#: src/ck-manager.c:3398
+#: src/ck-manager.c:3430
 msgid "User has no seats"
 msgstr "У пользователя нет рабочих мест"
 
-#: src/ck-manager.c:3424
+#: src/ck-manager.c:3456
 msgid "There are no sessions"
 msgstr "Нет сессий"
 

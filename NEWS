@@ -1,4 +1,20 @@
 ==============
+Version 1.0.2
+==============
+
+Stable release of ConsoleKit2. Thank you to everyone who submitted
+pull requests.
+
+Bug fixes:
+- Fix undefined behavior in ck-log-system-start
+- When assigning session to active VT prefer graphical sessions
+- XDG_VTNR support
+- Handle the legacy 'user' property as an override setting
+- login_session_id will be G_MAXUINT32 when unset
+- pam-ck allow VTNR to be double-digit
+- Properly filter the sessions for the specified user
+
+==============
 Version 1.0.1
 ==============
 
