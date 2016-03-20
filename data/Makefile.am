@@ -113,8 +113,7 @@ install-logrotate: $(LOGROTATE_CONFS)
 
 install-90-consolekit: $(XINITRC_CONFS)
 	$(MKDIR_P) $(DESTDIR)$(XINITRC_DIR)/
-	$(INSTALL_PROGRAM) 90-consolekit $(DESTDIR)$(XINITRC_DIR) && \
-		chmod +x $(DESTDIR)$(XINITRC_DIR)/90-consolekit
+	$(INSTALL_SCRIPT) 90-consolekit $(DESTDIR)$(XINITRC_DIR)
 
 uninstall-logrotate:
 	rm -f $(DESTDIR)$(sysconfdir)/logrotate.d/consolekit
