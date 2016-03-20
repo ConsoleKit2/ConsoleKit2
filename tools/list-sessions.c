@@ -147,6 +147,7 @@ list_session (GDBusConnection *connection,
         char       *remote_host_name;
         char       *creation_time;
         char       *idle_since_hint;
+        char       *runtime_dir;
         gboolean    is_active;
         gboolean    is_local;
         char       *short_sid;
@@ -189,6 +190,7 @@ list_session (GDBusConnection *connection,
         get_boolean (proxy, "IsLocal", &is_local);
         get_string (proxy, "GetCreationTime", &creation_time);
         get_string (proxy, "GetIdleSinceHint", &idle_since_hint);
+        get_string (proxy, "GetXDGRuntimeDir", &runtime_dir);
 
         realname = get_real_name (uid);
 
@@ -202,7 +204,7 @@ list_session (GDBusConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'\n\tlogin-session-id = '%s'",
+        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'\n\tlogin-session-id = '%s'\n\tXDG_RUNTIME_DIR = '%s'",
                 short_ssid,
                 uid,
                 realname,
@@ -215,7 +217,8 @@ list_session (GDBusConnection *connection,
                 remote_host_name,
                 is_local ? "TRUE" : "FALSE",
                 creation_time,
-                lsid);
+                lsid,
+                runtime_dir);
         if (idle_since_hint != NULL && idle_since_hint[0] != '\0') {
                 printf ("\n\tidle-since-hint = '%s'", idle_since_hint);
         }
@@ -231,6 +234,7 @@ list_session (GDBusConnection *connection,
         g_free (x11_display);
         g_free (x11_display_device);
         g_free (display_device);
+        g_free (runtime_dir);
         g_object_unref (proxy);
 }
 

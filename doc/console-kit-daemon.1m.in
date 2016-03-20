@@ -124,6 +124,19 @@ graphical VT displays on the console)\&.
 .sp
 .sp 1
 .in -4
+.sp
+.ne 2
+.mk
+\fB\fBXDG_RUNTIME_DIR\fR\fR
+.sp .6
+.in +4
+The XDG_RUNTIME_DIR defines the base directory to which user-specific files
+and objects should be stored. The XDG_RUNTIME_DIR is the same for all
+sessions of the same user and will be automatically removed once the
+last session of the user is closed.
+.sp
+.sp 1
+.in -4
 .PP
 The following environment variables are set when \fBconsole-kit-daemon\fR
 runs the \fBrun-seat\&.d\fR scripts\&.  These values correspond to those

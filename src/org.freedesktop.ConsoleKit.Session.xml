@@ -88,6 +88,8 @@
         <doc:description><doc:para>Returns the XDG_RUNTIME_DIR location of the session.
         The XDG_RUNTIME_DIR is the same for all sessions of the same user and will be automatically
         removed once the last session of the user is closed.</doc:para>
+        <doc:para>May fail with: CK_SESSION_ERROR_FAILED if it failed to create a runtime dir for the user (such as root).</doc:para>
+        <doc:para>Since 1.1.0</doc:para>
         </doc:description>
       </doc:doc>
     </method>
