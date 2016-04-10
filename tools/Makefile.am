@@ -172,7 +172,11 @@ ck_remove_directory_LDADD =		\
 if ENABLE_UDEV_ACL
 udevrulesdir = $(UDEVDIR)/rules.d
 
-dist_udevrules_DATA = 70-udev-acl.rules
+dist_udevrules_DATA =	\
+	70-udev-acl.rules	\
+	71-udev-seat.rules	\
+	73-udev-seat-late.rules
+
 libexec_PROGRAMS += udev-acl
 
 udev_acl_SOURCES = udev-acl.c
