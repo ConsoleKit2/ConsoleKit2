@@ -51,11 +51,6 @@ become_user (uid_t uid, const gchar* dest)
         int            res;
         struct passwd *pwent;
 
-        if (uid < 1) {
-                g_critical ("invalid UID");
-                exit (1);
-        }
-
         if (dest == NULL) {
                 g_critical ("invalid dest");
                 exit (1);
@@ -145,11 +140,6 @@ main (int    argc,
         if (! ret) {
                 g_warning ("%s", error->message);
                 g_error_free (error);
-                exit (1);
-        }
-
-        if (user_id < 1) {
-                g_warning ("Invalid UID");
                 exit (1);
         }
 
