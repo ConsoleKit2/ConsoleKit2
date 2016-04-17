@@ -255,12 +255,22 @@ ck_process_group_create (CkProcessGroup *pgroup,
 
         ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "all", ssid, process);
         if (ret != 0) {
-                /* TRANSLATORS: Please ensure you keep the %s in the
-                 * string somewhere. It's the detailed error message from
-                 * cgmanager.
+                NihError *nerr = nih_error_get ();
+                g_debug ("Failed to move the session leader process to cgroup, the error was: %s", nerr->message);
+                nih_free (nerr);
+
+                /* We failed to move the process into all the cgroups, but
+                 * we really only require the cpuacct for our internal use.
+                 * So try that as a fallback now.
                  */
-                throw_nih_warning (_("Failed to move the session leader process to cgroup, the error was: %s"));
-                return FALSE;
+                ret = cgmanager_move_pid_abs_sync (NULL, priv->cgmanager_proxy, "cpuacct", ssid, process);
+                if (ret != 0) {
+                        /* TRANSLATORS: Please ensure you keep the %s in the
+                         * string somewhere. It's the detailed error message from
+                         * cgmanager.
+                         */
+                        throw_nih_warning (_("Failed to move the session leader process to 'cpuacct' cgroup, the error was: %s"));
+                }
         }
 
         ret = cgmanager_remove_on_empty_sync (NULL, priv->cgmanager_proxy, "all", ssid);
@@ -270,7 +280,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
                  * cgmanager.
                  */
                 throw_nih_warning (_("Failed to let cgmanager know that it can remove the cgroup when it's empty, the error was: %s"));
-                return FALSE;
+                /* this is not an issue if it fails */
         }
 
         return TRUE;

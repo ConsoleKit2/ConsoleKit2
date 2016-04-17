@@ -409,11 +409,6 @@ ck_generate_runtime_dir_for_user (guint uid)
 
         TRACE ();
 
-        if (uid < 1) {
-                g_debug ("We do not create runtime dirs for root");
-                return NULL;
-        }
-
         errno = 0;
         pwent = getpwuid (uid);
         if (pwent == NULL) {
