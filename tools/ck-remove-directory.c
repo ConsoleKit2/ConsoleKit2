@@ -153,7 +153,5 @@ main (int    argc,
 
         become_user (user_id, dest);
 
-        ret = remove_dest_dir (dest);
-
-        return ret != TRUE;
+        return remove_dest_dir (dest) == 0 ? 0 : 1;
 }
