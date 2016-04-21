@@ -46,15 +46,10 @@
 
 
 static void
-become_user (uid_t uid, const gchar* dest)
+become_user (uid_t uid)
 {
         int            res;
         struct passwd *pwent;
-
-        if (dest == NULL) {
-                g_critical ("invalid dest");
-                exit (1);
-        }
 
         errno = 0;
         pwent = getpwuid (uid);
@@ -151,7 +146,7 @@ main (int    argc,
                 exit (1);
         }
 
-        become_user (user_id, dest);
+        become_user (user_id);
 
         return remove_dest_dir (dest) == 0 ? 0 : 1;
 }
