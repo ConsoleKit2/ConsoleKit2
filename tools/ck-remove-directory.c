@@ -46,15 +46,10 @@
 
 
 static void
-become_user (uid_t uid, const gchar* dest)
+become_user (uid_t uid)
 {
         int            res;
         struct passwd *pwent;
-
-        if (dest == NULL) {
-                g_critical ("invalid dest");
-                exit (1);
-        }
 
         errno = 0;
         pwent = getpwuid (uid);
@@ -65,17 +60,17 @@ become_user (uid_t uid, const gchar* dest)
 
         /* set the group */
         errno = 0;
-        res = setgid (pwent->pw_gid);
+        res = setegid (pwent->pw_gid);
         if (res == -1) {
-                g_warning ("Error performing setgid: %s", g_strerror (errno));
+                g_warning ("Error performing setegid: %s", g_strerror (errno));
                 exit (1);
         }
 
         /* become the user */
         errno = 0;
-        res = setuid (uid);
+        res = seteuid (uid);
         if (res == -1) {
-                g_warning ("Error performing setuid: %s", g_strerror (errno));
+                g_warning ("Error performing seteuid: %s", g_strerror (errno));
                 exit (1);
         }
 }
@@ -86,7 +81,7 @@ unlink_cb (const char        *fpath,
            int                typeflag,
            struct FTW        *ftwbuf)
 {
-        int ret = remove (fpath);
+        int ret = ftwbuf->level > 0 ? remove (fpath) : 0;
 
         if (ret) {
                 g_error ("Failed to remove %s, reason was: %s", fpath, strerror(errno));
@@ -99,7 +94,26 @@ unlink_cb (const char        *fpath,
 static int
 remove_dest_dir (const gchar *dest)
 {
-        return nftw(dest, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+        int ret;
+
+        if (ret = nftw(dest, unlink_cb, 64, FTW_DEPTH | FTW_PHYS)) {
+                return ret;
+        }
+
+        errno = 0;
+        ret = seteuid (getuid ());
+        if (ret == -1) {
+                g_warning ("Error performing seteuid: %s", g_strerror (errno));
+                exit (1);
+        }
+
+        ret = remove (dest);
+        if (ret) {
+                g_error ("Failed to remove %s, reason was: %s", dest, strerror (errno));
+                errno = 0;
+        }
+
+        return ret;
 }
 
 int
@@ -151,9 +165,7 @@ main (int    argc,
                 exit (1);
         }
 
-        become_user (user_id, dest);
+        become_user (user_id);
 
-        ret = remove_dest_dir (dest);
-
-        return ret != TRUE;
+        return remove_dest_dir (dest) == 0 ? 0 : 1;
 }
