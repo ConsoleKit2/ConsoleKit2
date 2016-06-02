@@ -35,12 +35,22 @@
 #include <linux/tty.h>
 #include <linux/kd.h>
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif /* HAVE_PATHS_H */
 
 #ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
+#endif
+
+#ifdef HAVE_SELINUX
+#include <selinux/selinux.h>
+#include <selinux/label.h>
+#include <selinux/get_default_type.h>
+#include <selinux/context.h>
 #endif
 
 #include "ck-sysdeps.h"
@@ -103,6 +113,10 @@ typedef struct tty_map_node {
 } tty_map_node;
 
 static tty_map_node *tty_map = NULL;
+
+#ifdef HAVE_SELINUX
+static struct selabel_handle *label_hnd = NULL;
+#endif
 
 /* adapted from procps */
 /* Load /proc/tty/drivers for device name mapping use. */
@@ -902,6 +916,81 @@ gboolean
 ck_system_can_hybrid_sleep (void)
 {
         return linux_supports_sleep_state ("suspend-hybrid");
+}
+
+static gboolean
+ck_selinux_open(void)
+{
+#ifdef HAVE_SELINUX
+        TRACE ();
+
+        if (label_hnd)
+                return TRUE;
+
+        if (is_selinux_enabled() <= 0)
+                return TRUE;
+
+        label_hnd = selabel_open(SELABEL_CTX_FILE, NULL, 0);
+        if (label_hnd) {
+                return TRUE;
+        } else {
+                g_info ("Failed to open selabel handle, reason was: %s", strerror(errno));
+                errno = 0;
+
+                // do not fail in permissive mode
+                return (security_getenforce() == 1) ? FALSE : TRUE;
+        }
+#endif
+
+        return TRUE;
+}
+
+static void
+ck_selinux_close(void)
+{
+#ifdef HAVE_SELINUX
+        if (label_hnd) {
+                selabel_close(label_hnd);
+                label_hnd = NULL;
+        }
+#endif
+}
+
+static gchar*
+ck_selinux_lookup_context(const gchar *dest)
+{
+#ifdef HAVE_SELINUX
+        int rc;
+        GStatBuf st;
+        mode_t mode = 0;
+        security_context_t con;
+        gchar *constr;
+
+        if (!label_hnd)
+                return NULL;
+
+        errno = 0;
+        memset(&st, 0, sizeof(st));
+        rc = g_lstat(dest, &st);
+        if (rc == 0)
+                mode = st.st_mode;
+        else if (errno != ENOENT)
+                return NULL;
+
+        errno = 0;
+        rc = selabel_lookup_raw(label_hnd, &con, dest, mode);
+        if (rc < 0 && errno != ENOENT) {
+                errno = 0;
+                return NULL;
+        }
+
+        constr = g_strdup(con);
+        freecon(con);
+
+        return constr;
+#endif
+
+        return NULL;
 }
 
 gboolean
