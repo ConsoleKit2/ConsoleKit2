@@ -998,14 +998,22 @@ ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 {
 #ifdef HAVE_SYS_MOUNT_H
         gchar        *opts;
+        gchar        *context;
         int           result;
 
         TRACE ();
 
-        opts = g_strdup_printf ("mode=0700,uid=%d", uid);
+        context = ck_selinux_lookup_context(dest);
+        if (context) {
+                opts = g_strdup_printf ("mode=0700,uid=%d,rootcontext=%s", uid, context);
+        } else {
+                opts = g_strdup_printf ("mode=0700,uid=%d", uid);
+        }
 
+        g_debug ("mounting tmpfs. uid=%d, gid=%d, dest=%s, opts=%s", uid, gid, dest, opts);
         result = mount("none", dest, "tmpfs", 0, opts);
 
+        g_free (context);
         g_free (opts);
 
         if (result == 0) {
