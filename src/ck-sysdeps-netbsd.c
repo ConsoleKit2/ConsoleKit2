@@ -530,3 +530,14 @@ ck_remove_tmpfs (guint uid, const gchar *dest)
 
         return FALSE;
 }
+
+gboolean
+ck_sysdeps_init (void)
+{
+        return TRUE;
+}
+
+void
+ck_sysdeps_fini (void)
+{
+}

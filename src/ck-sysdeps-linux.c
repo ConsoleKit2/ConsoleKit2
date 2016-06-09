@@ -1173,3 +1173,15 @@ ck_wait_for_console_switch (gint sys_fd, gint32 *num)
         return new_vt < 0 ? FALSE : TRUE;
 }
 #endif /* HAVE_SYS_VT_SIGNAL */
+
+gboolean
+ck_sysdeps_init (void)
+{
+        return ck_selinux_open();
+}
+
+void
+ck_sysdeps_fini (void)
+{
+        ck_selinux_close();
+}
