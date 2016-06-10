@@ -302,6 +302,25 @@ AS_IF([test "x$have_cgmanager" = "xyes"], [
 AM_CONDITIONAL([HAVE_CGMANAGER], [test "x$have_cgmanager" = "xyes"])
 AC_SUBST(HAVE_CGMANAGER)
 
+# selinux
+have_selinux=no
+AC_ARG_ENABLE([selinux],
+  AS_HELP_STRING([--enable-selinux], [Enable selinux support @<:@default=auto@:>@]),
+  [enable_selinux=$enableval],
+  [enable_selinux=auto])
+AS_IF([test "x$enable_selinux" != "xno"], [
+  PKG_CHECK_MODULES([SELINUX], [libselinux], [have_selinux=yes], [have_selinux=no])
+  if test "x$enable_selinux" = "xyes" -a "x$have_selinux" = "xno"; then
+    AC_MSG_ERROR([selinux support explicitly requested but dependencies not found])
+  fi
+])
+AS_IF([test "x$have_selinux" = "xyes"], [
+  AC_DEFINE([HAVE_SELINUX], [], [Define if we have selinux])
+])
+AM_CONDITIONAL([HAVE_SELINUX], [test "x$have_selinux" = "xyes"])
+AC_SUBST(HAVE_SELINUX)
+AC_SUBST(SELINUX_LIBS)
+
 dnl ------------------------------------------------------------------------------
 dnl udev-acl - apply ACLs for users with local forground sessions
 dnl ------------------------------------------------------------------------------
@@ -583,6 +602,7 @@ echo "
         Build PAM module:         ${msg_pam_module}
         Build udev-acl:           ${enable_udev_acl}
         cgroup support:           ${have_cgmanager}
+        SELinux support:          ${have_selinux}
         Build docs:               ${enable_docbook_docs}
         xinitrc dir:              ${XINITRC_DIR}
 

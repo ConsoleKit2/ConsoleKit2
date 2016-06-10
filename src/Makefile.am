@@ -50,6 +50,7 @@ if CK_COMPILE_LINUX
 libck_la_SOURCES +=		\
 	ck-sysdeps-linux.c	\
 	$(NULL)
+libck_la_LIBADD += $(SELINUX_LIBS)
 endif
 if CK_COMPILE_SOLARIS
 libck_la_SOURCES +=		\

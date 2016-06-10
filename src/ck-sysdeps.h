@@ -29,6 +29,9 @@ G_BEGIN_DECLS
 
 typedef struct _CkProcessStat CkProcessStat;
 
+gboolean     ck_sysdeps_init                  (void);
+void         ck_sysdeps_fini                  (void);
+
 gboolean     ck_process_stat_new_for_unix_pid (pid_t           pid,
                                                CkProcessStat **stat,
                                                GError        **error);

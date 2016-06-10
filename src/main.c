@@ -63,6 +63,8 @@ bus_acquired (GDBusConnection *connection,
 
         g_debug ("bus_acquired %s\n", name);
 
+        ck_sysdeps_init();
+
         manager = ck_manager_new (connection);
 
         if (manager == NULL) {
@@ -84,6 +86,8 @@ name_lost (GDBusConnection *connection,
            gpointer user_data)
 {
         g_debug ("name_lost\n");
+
+        ck_sysdeps_fini();
 
         /* Release the  object */
         g_debug ("Disconnected from D-Bus");
