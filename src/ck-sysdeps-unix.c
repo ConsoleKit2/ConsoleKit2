@@ -167,7 +167,8 @@ ck_get_socket_peer_credentials   (int      socket_fd,
  */
 
 gboolean
-ck_fd_is_a_console (int fd)
+ck_fd_is_a_console (int fd,
+                    const gchar *fnam)
 {
 #if defined(__linux__) || defined(__NetBSD__) || defined(__OpenBSD__)
         struct vt_stat vts;
@@ -185,7 +186,11 @@ ck_fd_is_a_console (int fd)
         kb_ok = 1;
 #endif
 
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined (__DragonFly__)
+        return ((isatty (fd) || g_strcmp0 (fnam, "/dev/consolectl") == 0) && kb_ok);
+#else
         return (isatty (fd) && kb_ok);
+#endif
 }
 
 static int
@@ -219,7 +224,7 @@ again:
         if (fd < 0)
                 return -1;
 
-        if (! ck_fd_is_a_console (fd)) {
+        if (! ck_fd_is_a_console (fd, fnam)) {
                 close (fd);
                 fd = -1;
         }
@@ -300,7 +305,7 @@ ck_get_a_console_fd (void)
         }
 
         for (fd = 0; fd < 3; fd++) {
-                if (ck_fd_is_a_console (fd)) {
+                if (ck_fd_is_a_console (fd, "")) {
                         goto done;
                 }
         }

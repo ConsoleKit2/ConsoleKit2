@@ -59,7 +59,8 @@ gboolean     ck_get_socket_peer_credentials   (int             socket_fd,
 
 int          ck_get_a_console_fd              (void);
 
-gboolean     ck_fd_is_a_console               (int             fd);
+gboolean     ck_fd_is_a_console               (int             fd,
+                                               const gchar    *fnam);
 
 gboolean     ck_is_root_user                  (void);
 

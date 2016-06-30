@@ -58,7 +58,7 @@ is_console (const char *device)
                 goto out;
         }
 
-        ret = ck_fd_is_a_console (fd);
+        ret = ck_fd_is_a_console (fd, device);
 
         close (fd);
 
