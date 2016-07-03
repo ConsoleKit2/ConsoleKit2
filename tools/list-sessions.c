@@ -72,11 +72,40 @@ get_value (GDBusProxy *proxy,
 }
 
 static gboolean
+get_property (GDBusProxy *proxy,
+              const char *property,
+              const char *variant_type,
+              gpointer    val)
+{
+        GVariant *res;
+
+        res = g_dbus_proxy_get_cached_property (proxy, property);
+
+        if (res == NULL) {
+                g_debug ("failed accessing %s", property);
+                return FALSE;
+        } else {
+                g_variant_get (res, variant_type, val, NULL);
+                g_variant_unref (res);
+        }
+
+        return TRUE;
+}
+
+static gboolean
 get_uint (GDBusProxy *proxy,
           const char *method,
           guint      *val)
 {
         return get_value (proxy, method, "(u)", val);
+}
+
+static gboolean
+get_uint_property (GDBusProxy *proxy,
+                   const char *property,
+                   guint      *val)
+{
+        return get_property (proxy, property, "u", val);
 }
 
 static gboolean
@@ -152,6 +181,7 @@ list_session (GDBusConnection *connection,
         gboolean    is_local;
         char       *short_sid;
         const char *short_ssid;
+        guint       vtnum;
         GError     *error = NULL;
 
         proxy = g_dbus_proxy_new_sync (connection,
@@ -177,6 +207,7 @@ list_session (GDBusConnection *connection,
         remote_host_name = NULL;
         creation_time = NULL;
         idle_since_hint = NULL;
+        vtnum = -1;
 
         get_uint (proxy, "GetUnixUser", &uid);
         get_path (proxy, "GetSeatId", &sid);
@@ -191,6 +222,7 @@ list_session (GDBusConnection *connection,
         get_string (proxy, "GetCreationTime", &creation_time);
         get_string (proxy, "GetIdleSinceHint", &idle_since_hint);
         get_string (proxy, "GetXDGRuntimeDir", &runtime_dir);
+        get_uint_property (proxy, "VTNr", &vtnum);
 
         realname = get_real_name (uid);
 
@@ -204,7 +236,11 @@ list_session (GDBusConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'\n\tlogin-session-id = '%s'\n\tXDG_RUNTIME_DIR = '%s'",
+        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n"
+                "\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n"
+                "\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n"
+                "\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'\n"
+                "\tlogin-session-id = '%s'\n\tXDG_RUNTIME_DIR = '%s'",
                 short_ssid,
                 uid,
                 realname,
@@ -219,6 +255,9 @@ list_session (GDBusConnection *connection,
                 creation_time,
                 lsid,
                 runtime_dir);
+        if (vtnum != 0) {
+                printf ("\n\tVTNr = '%u'", vtnum);
+        }
         if (idle_since_hint != NULL && idle_since_hint[0] != '\0') {
                 printf ("\n\tidle-since-hint = '%s'", idle_since_hint);
         }

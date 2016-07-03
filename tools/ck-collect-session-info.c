@@ -34,6 +34,11 @@
 
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <sys/ioctl.h>
+#include <glib/gstdio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 
 #include "ck-sysdeps.h"
 
@@ -41,6 +46,7 @@ typedef struct {
         uid_t    uid;
         pid_t    pid;
         char    *login_session_id;
+        guint    vtnum;
         char    *display_device;
         char    *x11_display_device;
         char    *x11_display;
@@ -214,6 +220,7 @@ get_x11_server_pid (SessionInfo *si,
         g_free (err);
 }
 
+
 /* Looking at the XFree86_VT property on the root window
  * doesn't work very well because it is difficult to
  * distinguish local from remote systems and the value
@@ -339,6 +346,33 @@ gotit:
         si->remote_host_name = NULL;
 }
 
+static guint
+get_vtnr (SessionInfo *si)
+{
+        guint        vtnr;
+        const char  *device = NULL;
+
+        if (si->x11_display_device != NULL)
+        {
+                device = si->x11_display_device;
+        }
+        else if (si->display_device != NULL)
+        {
+                device = si->display_device;
+        }
+
+        if (device != NULL)
+        {
+                if (ck_get_console_num_from_device (device, &vtnr) == FALSE)
+                {
+                        return 0;
+                }
+                return vtnr;
+        }
+
+        return 0;
+}
+
 static gboolean
 fill_session_info (SessionInfo *si)
 {
@@ -347,6 +381,7 @@ fill_session_info (SessionInfo *si)
         gboolean       res;
 
         error = NULL;
+
         res = ck_process_stat_new_for_unix_pid (si->pid, &stat, &error);
         if (! res) {
                 if (error != NULL) {
@@ -360,7 +395,11 @@ fill_session_info (SessionInfo *si)
         si->display_device = ck_process_stat_get_tty (stat);
         ck_process_stat_free (stat);
 
-        fill_x11_info (si);
+        if (si->x11_display_device == NULL) {
+                /* If our DM set the display device we don't need to look
+                 * it up here */
+                fill_x11_info (si);
+        }
 
 #ifndef HAVE_PAM
         if (! si->is_local_is_set) {
@@ -376,6 +415,8 @@ fill_session_info (SessionInfo *si)
                 si->login_session_id = NULL;
         }
 
+        si->vtnum = get_vtnr (si);
+
         return TRUE;
 }
 
@@ -383,6 +424,7 @@ static void
 print_session_info (SessionInfo *si)
 {
         printf ("unix-user = %u\n", si->uid);
+        printf ("vtnr = %u\n", si->vtnum);
         if (si->x11_display != NULL) {
                 printf ("x11-display = %s\n", si->x11_display);
         }
@@ -404,8 +446,9 @@ print_session_info (SessionInfo *si)
 }
 
 static gboolean
-collect_session_info (uid_t uid,
-                      pid_t pid)
+collect_session_info (uid_t  uid,
+                      pid_t  pid,
+                      gchar *x11_display_device)
 {
         SessionInfo *si;
         gboolean     ret;
@@ -414,6 +457,7 @@ collect_session_info (uid_t uid,
 
         si->uid = uid;
         si->pid = pid;
+        si->x11_display_device = x11_display_device;
 
         ret = fill_session_info (si);
         if (ret) {
@@ -434,9 +478,11 @@ main (int    argc,
         GError             *error;
         static int          user_id = -1;
         static int          process_id = -1;
+        static gchar       *x11_display_device = NULL;
         static GOptionEntry entries [] = {
-                { "uid", 0, 0, G_OPTION_ARG_INT, &user_id, N_("User ID"), NULL },
-                { "pid", 0, 0, G_OPTION_ARG_INT, &process_id, N_("Process ID"), NULL },
+                { "uid", 0, 0, G_OPTION_ARG_INT, &user_id, "User ID", NULL },
+                { "pid", 0, 0, G_OPTION_ARG_INT, &process_id, "Process ID", NULL },
+                { "x11-display-device", 0, 0, G_OPTION_ARG_STRING, &x11_display_device, "X11 display device", NULL },
                 { NULL }
         };
 
@@ -476,7 +522,7 @@ main (int    argc,
                 exit (1);
         }
 
-        ret = collect_session_info (user_id, process_id);
+        ret = collect_session_info (user_id, process_id, x11_display_device);
 
         return ret != TRUE;
 }

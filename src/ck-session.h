@@ -83,7 +83,7 @@ void                ck_session_run_programs           (CkSession             *se
 
 gboolean            ck_session_set_active             (CkSession             *session,
                                                        gboolean               active,
-                                                       GError               **error);
+                                                       gboolean               force);
 gboolean            ck_session_set_is_local           (CkSession             *session,
                                                        gboolean               is_local,
                                                        GError               **error);
@@ -105,6 +105,8 @@ gboolean            ck_session_set_remote_host_name   (CkSession             *se
 gboolean            ck_session_set_session_type       (CkSession             *session,
                                                        const char            *type,
                                                        GError               **error);
+void                ck_session_set_session_controller (CkSession             *session,
+                                                       const gchar           *bus_name);
 
 /* Authoritative properties */
 gboolean            ck_session_get_id                 (CkSession             *session,

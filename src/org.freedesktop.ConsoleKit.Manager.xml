@@ -508,6 +508,7 @@
         </doc:description>
       </doc:doc>
     </method>
+
     <method name="GetSessionForUnixProcess">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="pid" direction="in" type="u">
@@ -529,6 +530,29 @@
         </doc:description>
       </doc:doc>
     </method>
+    <method name="GetSessionByPID">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="pid" direction="in" type="u">
+        <doc:doc>
+          <doc:summary>The POSIX process ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="ssid" direction="out" type="o">
+        <doc:doc>
+          <doc:summary>The object identifier for the current session</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Attempts to determine the session ID for the specified
+          POSIX process ID (pid).
+          </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="GetCurrentSession">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="ssid" direction="out" type="o">
@@ -648,6 +672,44 @@
         <doc:description>
           <doc:para>Emitted when a Seat has been removed from the system.
           </doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+    <signal name="SessionNew">
+      <arg name="session_id" type="s">
+        <doc:doc>
+          <doc:summary>The Session ID for the added session</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="object_path" type="o">
+        <doc:doc>
+          <doc:summary>The object path for the added session</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when a session has been added to the system.
+          </doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+    <signal name="SessionRemoved">
+      <arg name="session_id" type="s">
+        <doc:doc>
+          <doc:summary>The Session ID for the removed session</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="object_path" type="o">
+        <doc:doc>
+          <doc:summary>The object path for the removed session</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted when a session has been removed from the system.
+          </doc:para>
+          <doc:para>Since 1.1.1</doc:para>
         </doc:description>
       </doc:doc>
     </signal>

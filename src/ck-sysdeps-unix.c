@@ -193,8 +193,8 @@ ck_fd_is_a_console (int fd,
 #endif
 }
 
-static int
-open_a_console (char *fnam)
+int
+ck_open_a_console (char *fnam)
 {
         int fd;
 
@@ -242,7 +242,7 @@ ck_get_a_console_fd (void)
 #ifdef __FreeBSD__
         /* On FreeBSD, try /dev/consolectl first as this will survive
          * /etc/ttys initialization. */
-        fd = open_a_console ("/dev/consolectl");
+        fd = ck_open_a_console ("/dev/consolectl");
         if (fd >= 0) {
                 goto done;
         }
@@ -250,25 +250,25 @@ ck_get_a_console_fd (void)
 
 #ifdef __sun
         /* On Solaris, first try Sun VT device. */
-        fd = open_a_console ("/dev/vt/active");
+        fd = ck_open_a_console ("/dev/vt/active");
         if (fd >= 0) {
                 goto done;
         }
-        fd = open_a_console ("/dev/vt/0");
+        fd = ck_open_a_console ("/dev/vt/0");
         if (fd >= 0) {
                 goto done;
         }
 #endif
 
 #if defined(__NetBSD__)
-        fd = open_a_console ("/dev/ttyE0");
+        fd = ck_open_a_console ("/dev/ttyE0");
         if (fd >= 0) {
                 goto done;
         }
 #endif
 
 #if defined(__OpenBSD__)
-        fd = open_a_console ("/dev/ttyC0");
+        fd = ck_open_a_console ("/dev/ttyC0");
         if (fd >= 0) {
                 goto done;
         }
@@ -276,30 +276,30 @@ ck_get_a_console_fd (void)
 
 
 #ifdef _PATH_TTY
-        fd = open_a_console (_PATH_TTY);
+        fd = ck_open_a_console (_PATH_TTY);
         if (fd >= 0) {
                 goto done;
         }
 #endif
 
-        fd = open_a_console ("/dev/tty");
+        fd = ck_open_a_console ("/dev/tty");
         if (fd >= 0) {
                 goto done;
         }
 
-	fd = open_a_console ("/dev/tty0");
+	fd = ck_open_a_console ("/dev/tty0");
 	if (fd >= 0) {
 		goto done;
 	}
 
 #ifdef _PATH_CONSOLE
-        fd = open_a_console (_PATH_CONSOLE);
+        fd = ck_open_a_console (_PATH_CONSOLE);
         if (fd >= 0) {
                 goto done;
         }
 #endif
 
-        fd = open_a_console ("/dev/console");
+        fd = ck_open_a_console ("/dev/console");
         if (fd >= 0) {
                 goto done;
         }

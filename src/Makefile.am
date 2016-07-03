@@ -27,6 +27,8 @@ AM_CFLAGS =							\
 	$(WARN_CFLAGS)						\
 	$(DEBUG_CFLAGS)						\
 	$(DBUS_CFLAGS)						\
+	$(LIBUDEV_CFLAGS)					\
+	$(LIBDRM_CFLAGS)					\
 	$(NULL)
 
 noinst_LTLIBRARIES =            \
@@ -82,6 +84,7 @@ libck_la_SOURCES +=		\
 	$(NULL)
 libck_la_LIBADD += $(KVM_LIBS)
 endif
+
 
 EXTRA_libck_la_SOURCES =		\
 	ck-sysdeps-linux.c		\
@@ -170,6 +173,7 @@ console_kit_daemon_SOURCES =	\
 	ck-inhibit-manager.h	\
 	ck-process-group.h	\
 	ck-process-group.c	\
+	ck-device.h 		\
 	$(BUILT_SOURCES)	\
 	$(NULL)
 
@@ -181,6 +185,16 @@ endif
 
 console_kit_daemon_SOURCES += $(FILE_MONITOR_BACKEND)
 
+if HAVE_LIBUDEV
+console_kit_daemon_SOURCES += \
+	ck-device-udev.c \
+	$(NULL)
+else
+console_kit_daemon_SOURCES += \
+	ck-device-none.c \
+	$(NULL)
+endif
+
 EXTRA_console_kit_daemon_SOURCES = 	\
 	ck-file-monitor-inotify.c	\
 	ck-file-monitor-dummy.c		\
@@ -191,6 +205,8 @@ console_kit_daemon_LDADD =	\
 	$(POLKIT_LIBS)		\
 	$(RBAC_LIBS)		\
 	$(CGMANAGER_LIBS)	\
+	$(LIBUDEV_LIBS)		\
+	$(LIBDRM_LIBS)		\
 	libck.la		\
 	libck-event-log.la	\
 	$(NULL)

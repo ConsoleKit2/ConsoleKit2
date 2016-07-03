@@ -48,6 +48,7 @@ po/*.sed
 po/*.sin
 po/POTFILES
 po/Rules-quot
+po/stamp-po
 m4/*
 autotools/*
 cov-int/*

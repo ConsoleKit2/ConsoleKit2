@@ -146,6 +146,8 @@ throw_error (GDBusMethodInvocation *context,
         message = g_strdup_vprintf (format, args);
         va_end (args);
 
+        g_debug ("seat: throwing error: %s", message);
+
         g_dbus_method_invocation_return_error (context, CK_SEAT_ERROR, error_code, "%s", message);
 
         g_free (message);
@@ -312,6 +314,11 @@ _seat_activate_session (CkSeat                *seat,
 
         g_debug ("Attempting to activate VT %u", num);
 
+        if (seat->priv->active_session != session) {
+                /* let the old session know it's about to change */
+                ck_session_set_active (seat->priv->active_session, FALSE, TRUE);
+        }
+
         vt_error = NULL;
         ret = ck_vt_monitor_set_active (seat->priv->vt_monitor, num, &vt_error);
         if (! ret) {
@@ -319,9 +326,8 @@ _seat_activate_session (CkSeat                *seat,
                         g_debug ("Session already active, calling ck_session_set_active to ensure session is marked active");
                         g_clear_error (&vt_error);
 
-                        g_set_error (&vt_error, CK_SEAT_ERROR, CK_SEAT_ERROR_ALREADY_ACTIVE, _("Session already active"));
                         /* ensure the session knows it's active */
-                        ck_session_set_active (session, TRUE, NULL);
+                        ck_session_set_active (session, TRUE, TRUE);
                 } else {
                         /* Change the error code for CkSeat */
                         if (vt_error) {
@@ -381,6 +387,48 @@ dbus_activate_session (ConsoleKitSeat        *ckseat,
                 console_kit_seat_complete_activate_session (ckseat, context);
         }
 
+        return TRUE;
+}
+
+static gboolean
+find_session_by_vt (gpointer key,
+                    gpointer value,
+                    guint   *vtnum)
+{
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (value);
+        if (console_kit_session_get_vtnr (cksession) == *vtnum) {
+                return TRUE;
+        }
+        return FALSE;
+}
+
+static gboolean
+dbus_switch_to (ConsoleKitSeat *ckseat,
+                GDBusMethodInvocation *invocation,
+                guint arg_vtnr)
+{
+        CkSeat    *seat = CK_SEAT (ckseat);
+        CkSession *session;
+        char      *ssid = NULL;
+
+        TRACE ();
+
+        g_return_val_if_fail (CK_IS_SEAT (ckseat), FALSE);
+
+        session = g_hash_table_find (seat->priv->sessions, (GHRFunc)find_session_by_vt, &arg_vtnr);
+
+        if (session == NULL) {
+                throw_error (invocation, CK_SEAT_ERROR_GENERAL, _("Unable to find session for VT"));
+                return TRUE;
+        }
+
+        if (ck_session_get_id (session, &ssid, NULL)) {
+                dbus_activate_session (ckseat, invocation, ssid);
+                g_free (ssid);
+                return TRUE;
+        }
+
+        throw_error (invocation, CK_SEAT_ERROR_GENERAL, _("Unable to get ssid for session"));
         return TRUE;
 }
 
@@ -567,7 +615,7 @@ change_active_session (CkSeat    *seat,
                 g_debug ("ckseat: change_active_session: seat->priv->active_session == session");
                 /* ensure session knows it's active */
                 if (session != NULL) {
-                        ck_session_set_active (session, TRUE, NULL);
+                        ck_session_set_active (session, TRUE, TRUE);
                 }
                 return;
         }
@@ -578,7 +626,7 @@ change_active_session (CkSeat    *seat,
                 char *old_ssid;
                 ck_session_get_id (old_session, &old_ssid, NULL);
                 g_debug ("ckseat: change_active_session: old session %s no longer active", old_ssid ? old_ssid : "(null)");
-                ck_session_set_active (old_session, FALSE, NULL);
+                ck_session_set_active (old_session, FALSE, TRUE);
         }
 
         seat->priv->active_session = session;
@@ -587,7 +635,7 @@ change_active_session (CkSeat    *seat,
         if (session != NULL) {
                 g_object_ref (session);
                 ck_session_get_id (session, &ssid, NULL);
-                ck_session_set_active (session, TRUE, NULL);
+                ck_session_set_active (session, TRUE, TRUE);
         }
 
         g_debug ("Active session changed: %s", ssid ? ssid : "(null)");
@@ -883,6 +931,20 @@ dbus_get_id (ConsoleKitSeat        *ckseat,
         return TRUE;
 }
 
+static gboolean
+dbus_get_name (ConsoleKitSeat        *ckseat,
+               GDBusMethodInvocation *context)
+{
+        CkSeat *seat = CK_SEAT (ckseat);
+
+        TRACE ();
+
+        g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
+
+        console_kit_seat_complete_get_name (ckseat, context, console_kit_seat_get_name (ckseat));
+        return TRUE;
+}
+
 static void
 active_vt_changed (CkVtMonitor    *vt_monitor,
                    guint           num,
@@ -1046,6 +1108,13 @@ _ck_seat_set_kind (CkSeat    *seat,
                    CkSeatKind kind)
 {
         seat->priv->kind = kind;
+        if (kind == CK_SEAT_KIND_STATIC) {
+                console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), "seat0");
+        } else {
+                /* FIXME: At some point we should properly map this to the
+                 * udev/devattr seat name when we do multi-seat */
+                console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), g_strrstr(seat->priv->id, "/"));
+        }
 }
 
 static void
@@ -1233,7 +1302,9 @@ ck_seat_iface_init (ConsoleKitSeatIface *iface)
         iface->handle_get_active_session    = dbus_get_active_session;
         iface->handle_get_devices           = dbus_get_devices;
         iface->handle_get_id                = dbus_get_id;
+        iface->handle_get_name              = dbus_get_name;
         iface->handle_get_sessions          = dbus_get_sessions;
+        iface->handle_switch_to             = dbus_switch_to;
 }
 
 CkSeat *

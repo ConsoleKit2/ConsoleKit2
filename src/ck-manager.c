@@ -511,6 +511,8 @@ throw_error (GDBusMethodInvocation *context,
         message = g_strdup_vprintf (format, args);
         va_end (args);
 
+        g_debug ("manager: throwing error: %s", message);
+
         g_dbus_method_invocation_return_error (context, CK_MANAGER_ERROR, error_code, "%s", message);
 
         g_free (message);
@@ -2827,9 +2829,6 @@ open_session_for_leader (CkManager             *manager,
 
         ck_seat_add_session (seat, session, NULL);
 
-        /* FIXME: connect to signals */
-        /* FIXME: add weak ref */
-
         /* set the is_local flag for the session */
         g_debug ("setting session %s is_local %s", ssid, is_local ? "TRUE" : "FALSE");
         ck_session_set_is_local (session, is_local, NULL);
@@ -2838,6 +2837,9 @@ open_session_for_leader (CkManager             *manager,
         g_signal_connect (CONSOLE_KIT_SESSION (session), "idle-hint-changed",
                           G_CALLBACK (session_idle_hint_changed),
                           manager);
+
+        /* let consumers know of the new session */
+        console_kit_manager_emit_session_new (CONSOLE_KIT_MANAGER (manager), ssid, ssid);
 
         g_object_unref (session);
         g_free (runtime_dir);
@@ -3149,6 +3151,15 @@ dbus_get_session_for_unix_process (ConsoleKitManager     *ckmanager,
         return TRUE;
 }
 
+static gboolean
+dbus_get_session_by_pid (ConsoleKitManager     *ckmanager,
+                         GDBusMethodInvocation *context,
+                         guint                  pid)
+{
+        dbus_get_session_for_unix_process (ckmanager, context, pid);
+        return TRUE;
+}
+
 /*
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
@@ -3303,6 +3314,11 @@ remove_session_for_cookie (CkManager  *manager,
         ck_manager_dump (manager);
 
         manager_update_system_idle_hint (manager);
+
+        /* let consumers know the session is gone */
+        console_kit_manager_emit_session_removed (CONSOLE_KIT_MANAGER (manager),
+                                                  orig_ssid,
+                                                  orig_ssid);
 
         if (get_runtime_dir_for_user (manager, unix_user) == NULL) {
                 /* We removed the session and now there's no runtime dir
@@ -3466,7 +3482,6 @@ destroy_entity(gpointer data)
 
     remove_session_for_cookie (ent->manager, ent->cookie, ent->leader, NULL);
     ck_session_leader_cancel (ent->leader);
-    g_free(ent->cookie);
     g_object_unref(ent->leader);
     g_free(ent);
 }
@@ -3485,14 +3500,13 @@ remove_sessions_for_connection (CkManager   *manager,
         data.entities = g_ptr_array_new_with_free_func(destroy_entity);
 
         n = g_hash_table_foreach_steal (manager->priv->leaders,
-                (GHRFunc)remove_leader_for_connection,
-                &data);
+                                        (GHRFunc)remove_leader_for_connection,
+                                        &data);
         while (n-- > 0) {
-            g_ptr_array_remove_index_fast(data.entities, 0);
+            g_ptr_array_remove_index_fast (data.entities, 0);
         }
         g_assert (data.entities->len == 0);
-        g_ptr_array_free(data.entities, TRUE);
-
+        g_ptr_array_free (data.entities, TRUE);
 }
 
 #ifdef HAVE_POLKIT
@@ -3520,16 +3534,11 @@ on_name_owner_notify (GDBusConnection *connection,
         CkManager *manager = CK_MANAGER (user_data);
         gchar     *service_name, *old_service_name, *new_service_name;
 
-        TRACE ();
-
         g_variant_get (parameters, "(sss)", &service_name, &old_service_name, &new_service_name);
 
         if (strlen (new_service_name) == 0) {
                 remove_sessions_for_connection (manager, old_service_name);
         }
-
-        g_debug ("NameOwnerChanged: service_name='%s', old_service_name='%s' new_service_name='%s'",
-                 service_name, old_service_name, new_service_name);
 }
 
 static gboolean
@@ -3968,6 +3977,7 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_get_sessions_for_user        = dbus_get_sessions_for_user;
         iface->handle_get_session_for_cookie       = dbus_get_session_for_cookie;
         iface->handle_get_session_for_unix_process = dbus_get_session_for_unix_process;
+        iface->handle_get_session_by_pid           = dbus_get_session_by_pid;
         iface->handle_get_current_session          = dbus_get_current_session;
         iface->handle_open_session                 = dbus_open_session;
         iface->handle_open_session_with_parameters = dbus_open_session_with_parameters;

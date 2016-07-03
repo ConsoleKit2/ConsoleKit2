@@ -23,6 +23,20 @@ seat at a time.</doc:para>
       </doc:doc>
     </method>
 
+    <method name="GetName">
+      <arg name="name" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Seat Name</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Returns the name for Seat, such as Seat0.</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="GetSessions">
       <arg name="sessions" direction="out" type="ao">
         <doc:doc>
@@ -101,6 +115,26 @@ seat at a time.</doc:para>
       </doc:doc>
     </method>
 
+    <method name="SwitchTo">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="vtnr" direction="in" type="u">
+        <doc:doc>
+          <doc:summary>Virtual Terminal to switch to.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Attempt to activate the specified VT.  In most
+          cases, if successful, this will cause the session to
+          become visible and take control of the hardware that is
+          associated with this seat.</doc:para>
+          <doc:para>May fail with: CK_SEAT_ERROR_FAILED, CK_SEAT_ERROR_ALREADY_ACTIVE, CK_SEAT_ERROR_NOT_SUPPORTED, CK_SEAT_ERROR_GENERAL</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="method" to="Session.Activate">Activate()</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
     <signal name="ActiveSessionChanged">
       <arg name="ssid" type="o">
         <doc:doc>
@@ -161,5 +195,15 @@ seat at a time.</doc:para>
         </doc:description>
       </doc:doc>
     </signal>
+
+
+    <property name="name" type="s" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The Seat's name, such as Seat0</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
   </interface>
 </node>

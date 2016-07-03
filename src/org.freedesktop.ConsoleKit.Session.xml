@@ -293,6 +293,202 @@
       </doc:doc>
     </method>
 
+    <method name="TakeControl">
+      <arg name="force" type="b" direction="in">
+        <doc:doc>
+          <doc:summary>If set to TRUE, an existing session controller is replaced.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Allows a single process per session to request ConsoleKit2
+          managed devices by calling <doc:ref type="method" to="Session.TakeDevice">TakeDevice</doc:ref>.
+          </doc:para>
+          <doc:para>Use of this method is restricted to the user
+          that owns the session or root. The force argument will be honored for
+          root only.</doc:para>
+          <doc:para>May fail with: CK_SESSION_ERROR_FAILED, CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, CK_SESSION_ERROR_GENERAL, CK_SESSION_ERROR_NOT_SUPPORTED</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="ReleaseControl">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The process that previously successfully called
+          <doc:ref type="method" to="Session.TakeControl">TakeControl</doc:ref>
+          may use this to reliqunish control. Any devices acquired with
+          <doc:ref type="method" to="Session.TakeDevice">TakeDevice</doc:ref>
+          will be released. If the session controller closes the dbus-connection,
+          this will implicitly call ReleaseControl.
+          </doc:para>
+          <doc:para>Use of this method is restricted to the process that
+          called <doc:ref type="method" to="Session.TakeControl">TakeControl</doc:ref>.</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="TakeDevice">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="2"/>
+      <arg name="major" type="u" direction="in">
+        <doc:doc>
+          <doc:summary>Major number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="minor" type="u" direction="in">
+        <doc:doc>
+          <doc:summary>Minor number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="fd" type="h" direction="out">
+        <doc:doc>
+            <doc:summary>Returns a file descriptor for the specified device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="inactive" type="b" direction="out">
+        <doc:doc>
+          <doc:summary>boolean value if the deivce is currently inactive.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>ConsoleKit2 automatically mutes the file-descriptor if the
+          session is inactive and resumes it once the session gets active again.
+          This guarantees that a session can only access session-devices if the
+          session is active. Note that this revoke/resume mechanism is asynchronous
+          and may happen at any given time. This only works on devices that are
+          attached to the seat of the given session. A process is not required
+          to have direct access to the device-node. Also note that any device
+          can only be requested once. As long as you don't release it, further
+          calls will fail.
+          </doc:para>
+          <doc:para>Use of this method is restricted to the session-controller,
+          see <doc:ref type="method" to="Session.TakeControl">TakeControl</doc:ref>.</doc:para>
+          <doc:para>May fail with: CK_SESSION_ERROR_FAILED, CK_SESSION_ERROR_GENERAL, CK_SESSION_ERROR_NOT_SUPPORTED</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="ReleaseDevice">
+      <arg name="major" type="u" direction="in">
+        <doc:doc>
+          <doc:summary>Major number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="minor" type="u" direction="in">
+        <doc:doc>
+          <doc:summary>Minor number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Release a previously acquired device.
+          </doc:para>
+          <doc:para>Use of this method is restricted to the session-controller,
+          see <doc:ref type="method" to="Session.TakeControl">TakeControl</doc:ref>.</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="PauseDeviceComplete">
+      <arg name="major" type="u" direction="in">
+        <doc:doc>
+          <doc:summary>Major number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="minor" type="u" direction="in">
+        <doc:doc>
+          <doc:summary>Minor number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Allows the session controller to synchronously pause a
+          device in response to the
+          <doc:ref type="signal" to="Session::PauseDevice">PauseDevice</doc:ref>
+          signal. Forced signals are automatically completed by ConsoleKit2.
+          </doc:para>
+          <doc:para>Use of this method is restricted to the session-controller,
+          see <doc:ref type="method" to="Session.TakeControl">TakeControl</doc:ref>.</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+
+
+    <signal name="PauseDevice">
+      <arg name="major" type="u">
+        <doc:doc>
+          <doc:summary>Major number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="minor" type="u">
+        <doc:doc>
+          <doc:summary>Minor number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="type" type="s">
+        <doc:doc>
+          <doc:summary>Will either be: force, pause, or gone</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted for any device requested with
+          <doc:ref type="method" to="Session.TakeDevice">TakeDevice</doc:ref>.
+          A device may remain paused for unknown reasons even though the Session
+          is active. A type of 'force' means the device got paused by ConsoleKit2
+          already and this is only a notification. A type of 'pause' means
+          ConsoleKit2 is requesting to pause the device and grants the session
+          controller a limited amount of time to pause it. The session controller
+          must respond to this via
+          <doc:ref type="method" to="Session.PauseDeviceComplete">PauseDeviceComplete</doc:ref>.
+          This synchronous pausing-mechanism is used for backwards-compatibility
+          to VTs and ConsoleKit2 is free to not make use of it. ConsoleKit2 may
+          also send a force PauseDevice if you don't respond in a timely manner
+          (or for any other reason). A type of 'gone' means the device was unplugged from
+          the system and you will no longer get any notifications about it.</doc:para>
+          <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+
+    <signal name="ResumeDevice">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="2"/>
+      <arg name="major" type="u">
+        <doc:doc>
+          <doc:summary>Major number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="minor" type="u">
+        <doc:doc>
+          <doc:summary>Minor number of the character-device.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="fd" type="h">
+        <doc:doc>
+          <doc:summary>Will either be: force, pause, or gone</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Emitted for any device requested with
+          <doc:ref type="method" to="Session.TakeDevice">TakeDevice</doc:ref>.
+           Sent whenever a session is active and a device is resumed.
+           It carries the major/minor as arguments and provides a new open
+           file-descriptor. You should switch to the new descriptor and close
+           the old one. They are not guaranteed to have the same underlying
+           file descriptor.</doc:para>
+           <doc:para>Since 1.1.1</doc:para>
+        </doc:description>
+      </doc:doc>
+    </signal>
+
     <signal name="ActiveChanged">
       <arg name="is_active" type="b">
         <doc:doc>
@@ -345,6 +541,15 @@
       <doc:doc>
         <doc:description>
           <doc:para>The user assigned to the session.</doc:para>
+        </doc:description>
+        <doc:deprecated version="0.1.3" instead="unix-user"/>
+      </doc:doc>
+    </property>
+    <property name="Seat" type="(so)" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The seat the session is assigned to. It is comprised of the
+          seat id and object path of the seat.</doc:para>
         </doc:description>
         <doc:deprecated version="0.1.3" instead="unix-user"/>
       </doc:doc>
@@ -402,7 +607,14 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="active" type="b" access="readwrite">
+    <property name="VTNr" type="u" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The virtual terminal the session runs on, if any, 0 otherwise.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+    <property name="active" type="b" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>

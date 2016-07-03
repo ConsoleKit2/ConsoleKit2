@@ -34,12 +34,15 @@ Minimum Requirements
 * xsltproc
 * PolicyKit/Polkit 0.92 (optional)
 * PAM (optional)
-* libudev (optional)
+* libudev or libdevattr (optional, for session-controller support)
+* libdrm (optional, for session-controller support)
+* proplib (optional, for session-controller support)
 * xmlto (optional, for documentation)
 * inotify (optional)
 * RBAC (optional)
 * pm-utils (optional, but required for suspend/hibernate on Linux)
-* cgmanager (recommended on Linux, for process tracking)
+* cgmanager + libnih (recommended on Linux, for process tracking)
+* selinux (optional)
 
 Additionally, on Linux CONFIG_AUDITSYSCALL=y is required for
 pam_ck_connector.so to work (PAM support).
@@ -48,7 +51,7 @@ More Information
 ================
 
 Documentation is available at:
-http://consolekit2.github.io/ConsoleKit2
+https://consolekit2.github.io/ConsoleKit2
 
 Report bugs and feature requests to:
 https://github.com/ConsoleKit2/ConsoleKit2/issues

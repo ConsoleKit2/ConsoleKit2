@@ -27,11 +27,31 @@
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
+#include <pwd.h>
+#include <sys/ioctl.h>
+
+#ifdef HAVE_SYS_VT_H
+#include <sys/vt.h>
+#endif
+
+#ifdef HAVE_SYS_KD_H
+#include <sys/kd.h>
+#endif
+
+#ifdef HAVE_SYS_CONSIO_H
+#include <sys/consio.h>
+#endif
+
+#ifdef HAVE_SYS_KBIO_H
+#include <sys/kbio.h>
+#endif
 
 #include <glib.h>
+#include <glib-unix.h>
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 
 #include "ck-tty-idle-monitor.h"
 #include "ck-session.h"
@@ -39,6 +59,7 @@
 #include "ck-marshal.h"
 #include "ck-run-programs.h"
 #include "ck-sysdeps.h"
+#include "ck-device.h"
 
 #define CK_SESSION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), CK_TYPE_SESSION, CkSessionPrivate))
 
@@ -48,6 +69,16 @@
 
 #define IDLE_TIME_SECS 60
 
+#ifndef KDSKBMUTE
+#define KDSKBMUTE 0x4B51
+#endif
+
+#ifdef K_OFF
+#define KBD_OFF_MODE K_OFF
+#else
+#define KBD_OFF_MODE K_RAW
+#endif
+
 struct CkSessionPrivate
 {
         char            *id;
@@ -55,6 +86,15 @@ struct CkSessionPrivate
         char            *seat_id;
         char            *runtime_dir;
         char            *login_session_id;
+
+        gchar           *session_controller;
+        guint            session_controller_watchid;
+        GList           *devices;
+        guint            pause_devices_timer;
+        gint             tty_fd;
+        gint             old_kbd_mode;
+        guint            sig_watch_s1;
+        guint            sig_watch_s2;
 
         GTimeVal         creation_time;
 
@@ -77,14 +117,16 @@ enum {
         PROP_ID,
         PROP_COOKIE,
         PROP_LOGIN_SESSION_ID,
+        PROP_SESSION_CONTROLLER,
 };
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_session_class_init  (CkSessionClass         *klass);
-static void     ck_session_init        (CkSession              *session);
-static void     ck_session_iface_init  (ConsoleKitSessionIface *iface);
-static void     ck_session_finalize    (GObject                *object);
+static void     ck_session_class_init           (CkSessionClass         *klass);
+static void     ck_session_init                 (CkSession              *session);
+static void     ck_session_iface_init           (ConsoleKitSessionIface *iface);
+static void     ck_session_finalize             (GObject                *object);
+static void     ck_session_remove_all_devices   (CkSession              *session);
 
 
 G_DEFINE_TYPE_WITH_CODE (CkSession, ck_session, CONSOLE_KIT_TYPE_SESSION_SKELETON, G_IMPLEMENT_INTERFACE (CONSOLE_KIT_TYPE_SESSION, ck_session_iface_init));
@@ -146,6 +188,8 @@ throw_error (GDBusMethodInvocation *context,
         va_start (args, format);
         message = g_strdup_vprintf (format, args);
         va_end (args);
+
+        g_debug ("session: throwing error: %s", message);
 
         g_dbus_method_invocation_return_error (context, CK_SESSION_ERROR, error_code, "%s", message);
 
@@ -420,10 +464,240 @@ dbus_get_session_type (ConsoleKitSession     *cksession,
         return TRUE;
 }
 
+static void
+ck_session_print_list_size (CkSession *session)
+{
+#if defined(CONSOLEKIT_DEBUGGING)
+        g_debug ("session %s list size is %d",
+                 session->priv->id,
+                 g_list_length (session->priv->devices));
+#endif
+}
+
+static void
+ck_session_check_paused_devices (CkSession *session)
+{
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (session);
+        GList             *itr;
+
+        TRACE ();
+
+        ck_session_print_list_size (session);
+
+        /* See if we've paused all the devices in the session */
+        for (itr = session->priv->devices; itr != NULL; itr = g_list_next (itr)) {
+                CkDevice *device = CK_DEVICE (itr->data);
+                if (ck_device_get_active (device)) {
+                        return;
+                }
+        }
+
+        /* If we didn't force the state change, do it now */
+        if (console_kit_session_get_active (cksession) != FALSE) {
+                g_debug ("marking session %s inactive", session->priv->id);
+
+                console_kit_session_set_active (cksession, FALSE);
+                console_kit_session_emit_active_changed (cksession, FALSE);
+        }
+
+        if (session->priv->pause_devices_timer != 0) {
+                g_source_remove (session->priv->pause_devices_timer);
+                session->priv->pause_devices_timer = 0;
+        }
+}
+
+static gboolean
+force_pause_devices (CkSession *session)
+{
+        GList *itr;
+
+        TRACE ();
+
+        ck_session_print_list_size (session);
+
+        for (itr = session->priv->devices; itr != NULL; itr = g_list_next (itr))
+        {
+                ck_device_set_active (CK_DEVICE (itr->data), FALSE);
+        }
+
+        session->priv->pause_devices_timer = 0;
+
+        ck_session_check_paused_devices (session);
+
+        return FALSE;
+}
+
+static void
+ck_session_pause_all_devices (CkSession *session,
+                              gboolean   force)
+{
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (session);
+        GList             *itr;
+
+        TRACE ();
+
+        ck_session_print_list_size (session);
+
+        for (itr = session->priv->devices; itr != NULL; itr = g_list_next (itr))
+        {
+                CkDevice *device = CK_DEVICE (itr->data);
+
+                if (ck_device_get_active (device) == FALSE) {
+                        g_debug ("device already paused");
+                        continue;
+                }
+
+                /* Let the session controller know about the change */
+                g_debug ("emit pause device for %d, %d, type %s",
+                         ck_device_get_major (device),
+                         ck_device_get_minor (device),
+                         force ? "force" : "pause");
+
+                console_kit_session_emit_pause_device (CONSOLE_KIT_SESSION (session),
+                                                       ck_device_get_major (device),
+                                                       ck_device_get_minor (device),
+                                                       force ? "force" : "pause");
+
+                if (force) {
+                        ck_device_set_active (device, FALSE);
+                }
+        }
+
+        if (force || session->priv->devices == NULL) {
+                g_debug ("marking session %s inactive", session->priv->id);
+
+                console_kit_session_set_active (cksession, FALSE);
+                console_kit_session_emit_active_changed (cksession, FALSE);
+        } else {
+                session->priv->pause_devices_timer = g_timeout_add_seconds (3, (GSourceFunc)force_pause_devices, session);
+        }
+}
+
+static void
+ck_session_debug_print_dbus_message (CkSession    *session,
+                                     GDBusMessage *message)
+{
+#if defined(CONSOLEKIT_DEBUGGING)
+        gchar  *string = g_dbus_message_print (message, 4);
+        gchar **split_string = g_strsplit (string, "\n", 0);
+        gint    i;
+
+        for (i = 0; split_string != NULL && split_string[i] != NULL; i++) {
+                g_debug ("%s", split_string[i]);
+        }
+
+        g_strfreev (split_string);
+        g_free (string);
+#endif
+}
+
+static void
+ck_session_resume_all_devices (CkSession *session)
+{
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (session);
+        GList             *itr;
+        gint               vtnr;
+
+        TRACE ();
+
+        vtnr = console_kit_session_get_vtnr (cksession);
+
+        /* Give ownership of the active console device to the user */
+        if (vtnr > 0) {
+                struct passwd *pwent;
+                gint           fd;
+                gint           uid;
+
+                uid = console_kit_session_get_unix_user (cksession);
+
+                fd = ck_open_a_console (ck_get_console_device_for_num (vtnr));
+                if (fd >= 0) {
+                        errno = 0;
+                        pwent = getpwuid (uid);
+                        if (pwent == NULL) {
+                                g_warning ("Unable to lookup UID: %s", g_strerror (errno));
+                                errno = 0;
+                        } else {
+                                if (fchown (fd, uid, pwent->pw_gid) != 0) {
+                                        g_warning ("Failed to chown console device, reason was: %s", strerror(errno));
+                                        errno = 0;
+                                }
+                        }
+                }
+        }
+
+        /* without a controller, we just mark ourselved active */
+        if (session->priv->session_controller == NULL) {
+                g_debug ("no session controller: marking session active");
+                console_kit_session_set_active (cksession, TRUE);
+                console_kit_session_emit_active_changed (cksession, TRUE);
+                return;
+        }
+
+        ck_session_print_list_size (session);
+
+        for (itr = session->priv->devices; itr != NULL; itr = g_list_next (itr))
+        {
+                CkDevice     *device = CK_DEVICE (itr->data);
+                GVariant     *body;
+                GDBusMessage *message;
+                GUnixFDList  *out_fd_list = NULL;
+                gint          fd = -1;
+                gint          fd2 = -1;
+
+                ck_device_set_active (device, TRUE);
+
+                fd = ck_device_get_fd (device);
+
+                if (fd < 0) {
+                        g_debug ("Unable to signal ResumeDevice, failed to get device");
+                        continue;
+                }
+
+                message = g_dbus_message_new_signal (session->priv->id,
+                                                     CK_SESSION_DBUS_NAME,
+                                                     "ResumeDevice");
+
+                /* We always send to the session controller */
+                g_dbus_message_set_destination (message, session->priv->session_controller);
+
+                body = g_variant_new ("(uu@h)",
+                                      ck_device_get_major (device),
+                                      ck_device_get_minor (device),
+                                      g_variant_new_handle (0));
+
+                g_dbus_message_set_body (message, body);
+
+                /* we need to copy this, because gdbus closes the fd on us */
+                fd2 = dup (fd);
+                out_fd_list = g_unix_fd_list_new_from_array (&fd2, 1);
+                g_dbus_message_set_unix_fd_list (message, out_fd_list);
+
+                g_debug ("sending ResumeDevice signal to session controller");
+
+                ck_session_debug_print_dbus_message (session, message);
+
+                /* Let only the session controller know about the change and
+                 * give them the new fd. */
+                g_dbus_connection_send_message (session->priv->connection,
+                                                message,
+                                                G_DBUS_SEND_MESSAGE_FLAGS_NONE,
+                                                NULL,
+                                                NULL);
+
+                g_clear_object (&out_fd_list);
+                g_clear_object (&message);
+        }
+
+        g_debug ("marking session active");
+        console_kit_session_set_active (cksession, TRUE);
+        console_kit_session_emit_active_changed (cksession, TRUE);
+}
+
 gboolean
-ck_session_set_active (CkSession      *session,
-                       gboolean        active,
-                       GError        **error)
+ck_session_set_active (CkSession *session,
+                       gboolean   active,
+                       gboolean   force)
 {
         ConsoleKitSession *cksession;
 
@@ -433,10 +707,27 @@ ck_session_set_active (CkSession      *session,
 
         cksession = CONSOLE_KIT_SESSION (session);
 
-        if (console_kit_session_get_active (cksession) != active) {
-                g_debug ("marking session %s %s", session->priv->id, active ? "active" : "not active");
-                console_kit_session_set_active (cksession, active);
-                console_kit_session_emit_active_changed (cksession, active);
+        if (console_kit_session_get_active (cksession) == active) {
+                /* redundant call, we shouldn't need to do anything */
+                return TRUE;
+        }
+
+
+        if (session->priv->pause_devices_timer != 0) {
+                g_source_remove (session->priv->pause_devices_timer);
+                session->priv->pause_devices_timer = 0;
+        }
+
+        g_debug ("ck_session_set_active: session %s changing to %s, forced? %s",
+                 session->priv->id,
+                 active ? "active" : "not active",
+                 force ? "yes" : "no");
+
+        /* We handle device events then change the active state */
+        if (active == FALSE) {
+                ck_session_pause_all_devices (session, force);
+        } else {
+                ck_session_resume_all_devices (session);
         }
 
         return TRUE;
@@ -481,7 +772,7 @@ dbus_activate (ConsoleKitSession     *cksession,
                 /* translate and throw the error */
                 switch (error->code) {
                 case CK_SEAT_ERROR_ALREADY_ACTIVE:
-                        throw_error (context, CK_SESSION_ERROR_ALREADY_ACTIVE, error->message);
+                        /* Don't care */
                         break;
                 case CK_SEAT_ERROR_NOT_SUPPORTED:
                         throw_error (context, CK_SESSION_ERROR_NOT_SUPPORTED, error->message);
@@ -824,11 +1115,18 @@ ck_session_set_seat_id (CkSession      *session,
                         const char     *id,
                         GError        **error)
 {
+        GVariant *seat = NULL;
+
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         g_free (session->priv->seat_id);
         session->priv->seat_id = g_strdup (id);
 
+        if (id != NULL) {
+                seat = g_variant_new ("(so)", id, id);
+        }
+
+        console_kit_session_set_seat (CONSOLE_KIT_SESSION (session), seat);
         return TRUE;
 }
 
@@ -933,6 +1231,469 @@ ck_session_set_session_type (CkSession      *session,
         return TRUE;
 }
 
+static gboolean
+vt_leave_handler (gpointer data)
+{
+        CkSession *session = CK_SESSION (data);
+
+        TRACE ();
+
+        /* g_unix_signal_add_full returns this callback in the GMainContext
+         * so we don't have the limitations of POSIX signal handlers */
+
+        /* Forcably disable all devices, we have to do this
+         * now or we'll crash Xorg if it's running as root on
+         * the new VT */
+        ck_session_pause_all_devices (session, TRUE);
+
+        /* release control */
+        ioctl (session->priv->tty_fd, VT_RELDISP, 1);
+
+        return TRUE;
+}
+
+static gboolean
+vt_acquire_handler (gpointer data)
+{
+        CkSession *session = CK_SESSION (data);
+
+        TRACE ();
+
+        /* g_unix_signal_add_full returns this callback in the GMainContext
+         * so we don't have the limitations of POSIX signal handlers */
+
+        /* ack that we are getting control, but let the normal
+         * process handle granting access */
+        ioctl (session->priv->tty_fd, VT_RELDISP, VT_ACKACQ);
+
+        return TRUE;
+}
+
+static void
+ck_session_setup_vt_signal (CkSession *session,
+                            guint      vtnr)
+{
+        struct vt_mode mode = { 0 };
+        int    graphical_mode;
+
+        session->priv->tty_fd = ck_open_a_console (ck_get_console_device_for_num (vtnr));
+
+        if (session->priv->tty_fd < 0) {
+                return;
+        }
+
+        ioctl(session->priv->tty_fd, KDGKBMODE, &session->priv->old_kbd_mode);
+
+        /* So during setup here, we need to ensure we're in graphical mode,
+         * otherwise it will try to draw stuff in the background */
+        if (ioctl (session->priv->tty_fd, KDGETMODE, &graphical_mode) != 0) {
+                g_warning ("failed to get current VT mode");
+                return;
+        }
+
+        if (graphical_mode == KD_TEXT) {
+                if (ioctl (session->priv->tty_fd, KDSETMODE, KD_GRAPHICS) != 0) {
+                        g_warning ("failed to change VT to graphical mode");
+                        return;
+                }
+        } else {
+                g_debug ("already running in graphical mode? not messing with the tty or VT");
+                return;
+        }
+
+#if defined(__linux__)
+        if (ioctl (session->priv->tty_fd, KDSKBMUTE, 1) != 0) {
+                g_warning ("failed to mute FD with KDSKBMUTE");
+        }
+#endif
+
+        if (ioctl (session->priv->tty_fd, KDSKBMODE, KBD_OFF_MODE) != 0) {
+                g_warning ("failed to turn off keyboard");
+        }
+
+        mode.mode = VT_PROCESS;
+        mode.relsig = SIGUSR1;
+        mode.acqsig = SIGUSR2;
+        mode.frsig = SIGIO; /* not used, but has to be set anyway */
+
+        if (ioctl (session->priv->tty_fd, VT_SETMODE, &mode) < 0) {
+                g_warning ("failed to take control of vt handling");
+                return;
+        }
+
+        session->priv->sig_watch_s1 = g_unix_signal_add_full (G_PRIORITY_HIGH,
+                                                              SIGUSR1,
+                                                              (GSourceFunc)vt_leave_handler,
+                                                              session,
+                                                              NULL);
+        session->priv->sig_watch_s2 = g_unix_signal_add_full (G_PRIORITY_HIGH,
+                                                              SIGUSR2,
+                                                              (GSourceFunc)vt_acquire_handler,
+                                                              session,
+                                                              NULL);
+}
+
+static void
+session_controller_vanished (GDBusConnection *connection,
+                             const gchar *name,
+                             gpointer user_data)
+{
+        CkSession *session = CK_SESSION (user_data);
+
+        TRACE ();
+
+        session->priv->session_controller_watchid = 0;
+
+        ck_session_set_session_controller (session, NULL);
+}
+
+static void
+ck_session_controller_cleanup (CkSession *session)
+{
+        TRACE ();
+
+        if (session->priv->session_controller_watchid != 0) {
+                g_bus_unwatch_name (session->priv->session_controller_watchid);
+                session->priv->session_controller_watchid = 0;
+        }
+
+        if (session->priv->pause_devices_timer != 0) {
+                g_source_remove (session->priv->pause_devices_timer);
+                session->priv->pause_devices_timer = 0;
+        }
+
+        if (session->priv->session_controller) {
+                g_free (session->priv->session_controller);
+                session->priv->session_controller = NULL;
+        }
+
+        ck_session_remove_all_devices (session);
+
+        /* Remove the old signal call backs, restore VT switching to auto
+         * and text mode (put it back the way we found it) */
+        if (session->priv->sig_watch_s1 != 0) {
+                struct vt_mode mode = { 0 };
+                mode.mode = VT_AUTO;
+
+#if defined(__linux__)
+                if (ioctl (session->priv->tty_fd, KDSKBMUTE, 0) != 0) {
+                        g_warning ("failed to unmute FD with KDSKBMUTE");
+                }
+#endif
+                if (ioctl(session->priv->tty_fd, KDSKBMODE, session->priv->old_kbd_mode) != 0) {
+                        g_warning ("failed to restore old keyboard mode");
+                }
+
+                if (ioctl (session->priv->tty_fd, VT_SETMODE, &mode) < 0) {
+                        g_warning ("failed to return control of vt handling");
+                }
+
+                if (ioctl (session->priv->tty_fd, KDSETMODE, KD_TEXT) < 0) {
+                        g_warning ("failed to return to text mode for the VT");
+                }
+
+                g_source_remove (session->priv->sig_watch_s1);
+                session->priv->sig_watch_s1 = 0;
+                g_source_remove (session->priv->sig_watch_s2);
+                session->priv->sig_watch_s2 = 0;
+        }
+
+        /* Close the old tty fd */
+        if (session->priv->tty_fd != -1) {
+                g_close (session->priv->tty_fd, NULL);
+                session->priv->tty_fd = -1;
+        }
+}
+
+void
+ck_session_set_session_controller (CkSession   *session,
+                                   const gchar *bus_name)
+{
+        guint vtnr;
+
+        TRACE ();
+
+        /* clean up after the old controller */
+        ck_session_controller_cleanup (session);
+
+        /* There's no reason to go further if we're removing the session
+         * controller */
+        if (bus_name == NULL)
+        {
+                return;
+        }
+
+        session->priv->session_controller = g_strdup (bus_name);
+
+        /* if the session controller crashes or exits, we need to drop access
+         * to all the devices it requested and let someone else become the
+         * session controller.
+         */
+        session->priv->session_controller_watchid = g_bus_watch_name_on_connection (session->priv->connection,
+                                                                                    bus_name,
+                                                                                    G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                                                                    NULL,
+                                                                                    session_controller_vanished,
+                                                                                    session,
+                                                                                    NULL);
+
+        vtnr = console_kit_session_get_vtnr (CONSOLE_KIT_SESSION (session));
+        if (vtnr > 0) {
+                ck_session_setup_vt_signal (session, vtnr);
+        }
+}
+
+static gboolean
+dbus_take_control (ConsoleKitSession *object,
+                   GDBusMethodInvocation *invocation,
+                   gboolean arg_force)
+{
+        CkSession   *session = CK_SESSION (object);
+        uid_t        uid = 0;
+        pid_t        pid = 0;
+        const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+
+        TRACE ();
+
+        if (!ck_device_is_server_managed ()) {
+                throw_error (invocation, CK_SESSION_ERROR_NOT_SUPPORTED, _("Server managed devices not supported"));
+                return TRUE;
+        }
+
+        if (!get_caller_info (session, sender, &uid, &pid))
+        {
+                throw_error (invocation, CK_SESSION_ERROR_GENERAL, _("Failed to get uid of dbus caller"));
+                return TRUE;
+        }
+
+        if (g_strcmp0 (session->priv->session_controller, sender) == 0)
+        {
+                /* The current session controller is trying to take control
+                 * again? Odd, but we'll just do nothing here.
+                 */
+        }
+        else if (session->priv->session_controller == NULL || (arg_force == TRUE && uid == 0))
+        {
+                ck_session_set_session_controller (CK_SESSION (session), sender);
+        }
+        else
+        {
+                if (arg_force == TRUE) {
+                        throw_error (invocation, CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, _("Failed to replace the current session controller"));
+                } else {
+                        throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Session controller already present"));
+                }
+                return TRUE;
+        }
+
+        console_kit_session_complete_take_control (object, invocation);
+        return TRUE;
+}
+
+static gboolean
+dbus_release_control (ConsoleKitSession *object,
+                      GDBusMethodInvocation *invocation)
+{
+        CkSession   *session = CK_SESSION (object);
+        const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+
+        TRACE ();
+
+        /* only the session controller can release it */
+        if (g_strcmp0 (session->priv->session_controller, sender) == 0) {
+                ck_session_set_session_controller (CK_SESSION (object), NULL);
+        } else {
+                throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Only the session controller may use this function"));
+                return TRUE;
+        }
+
+        console_kit_session_complete_release_control (object, invocation);
+        return TRUE;
+}
+
+static CkDevice*
+ck_session_get_device (CkSession *session,
+                       guint major,
+                       guint minor)
+{
+        GList *iter;
+
+        TRACE ();
+
+        ck_session_print_list_size (session);
+
+        for (iter = session->priv->devices; iter != NULL; iter = g_list_next (iter)) {
+                if (ck_device_compare (iter->data, major, minor)) {
+                        g_debug ("found device");
+                        return iter->data;
+                }
+        }
+
+        g_debug ("failed to find deivce");
+        return NULL;
+}
+
+static CkDevice*
+ck_session_create_device (CkSession *session,
+                          guint      major,
+                          guint      minor)
+{
+        CkDevice *device = ck_session_get_device (session, major, minor);
+
+        /* If the device already exists for this session don't
+         * create it again */
+        if (device == NULL) {
+                g_debug ("creating new device");
+
+                device = ck_device_new (major, minor,
+                                        console_kit_session_get_active (CONSOLE_KIT_SESSION (session)));
+
+                if (device != NULL && CK_IS_DEVICE (device)) {
+                        g_debug ("adding device to the list");
+                        session->priv->devices = g_list_prepend (session->priv->devices, device);
+                        ck_session_print_list_size (session);
+                }
+        }
+
+        return device;
+}
+
+static void
+ck_session_remove_device (CkSession *session,
+                          CkDevice  *device)
+{
+        TRACE ();
+        ck_session_print_list_size (session);
+        session->priv->devices = g_list_remove (session->priv->devices, device);
+        ck_session_print_list_size (session);
+}
+
+static void
+ck_session_remove_all_devices (CkSession *session)
+{
+        TRACE ();
+        ck_session_print_list_size (session);
+        g_list_free_full (session->priv->devices, g_object_unref);
+        session->priv->devices = NULL;
+        g_debug ("list size is now 0");
+}
+
+static gboolean
+dbus_take_device (ConsoleKitSession *object,
+                  GDBusMethodInvocation *invocation,
+                  GUnixFDList *fd_list,
+                  guint arg_major,
+                  guint arg_minor)
+{
+        CkSession   *session = CK_SESSION (object);
+        CkDevice    *device;
+        const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+        gint         fd = -1;
+        GUnixFDList *out_fd_list = NULL;
+
+
+        TRACE ();
+
+        /* only the session controller can call us */
+        if (g_strcmp0 (session->priv->session_controller, sender) != 0) {
+                throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Only the session controller may call this function"));
+                return TRUE;
+        }
+
+        /* you can't request the device again, that's confusing */
+        if (ck_session_get_device (session, arg_major, arg_minor)) {
+                throw_error (invocation, CK_SESSION_ERROR_GENERAL, _("Device has already been requested"));
+                return TRUE;
+        }
+
+        device = ck_session_create_device (session, arg_major, arg_minor);
+
+        if (device == NULL) {
+                throw_error (invocation, CK_SESSION_ERROR_NOT_SUPPORTED, _("Failed to create device"));
+                return TRUE;
+        }
+
+        fd = ck_device_get_fd (device);
+
+        if (fd == -1) {
+                throw_error (invocation, CK_SESSION_ERROR_NOT_SUPPORTED, _("Failed to get file descriptor for device"));
+                return TRUE;
+        }
+
+        out_fd_list = g_unix_fd_list_new_from_array (&fd, 1);
+
+        console_kit_session_complete_take_device (object, invocation,
+                                                  out_fd_list, g_variant_new_handle (0),
+                                                  console_kit_session_get_active (object));
+        return TRUE;
+}
+
+static gboolean
+dbus_release_device (ConsoleKitSession *object,
+                     GDBusMethodInvocation *invocation,
+                     guint arg_major,
+                     guint arg_minor)
+{
+        CkSession   *session = CK_SESSION (object);
+        CkDevice    *device;
+        const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+
+
+        TRACE ();
+
+        /* only the session controller can call us */
+        if (g_strcmp0 (session->priv->session_controller, sender) != 0) {
+                throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Only the session controller may call this function"));
+                return TRUE;
+        }
+
+        device = ck_session_get_device (session, arg_major, arg_minor);
+
+        if (device == NULL) {
+                throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Device doesn't exist"));
+                return TRUE;
+        }
+
+        ck_session_remove_device (session, device);
+        g_object_unref (device);
+
+        console_kit_session_complete_release_device (object, invocation);
+        return TRUE;
+}
+
+static gboolean
+dbus_pause_device_complete (ConsoleKitSession *object,
+                            GDBusMethodInvocation *invocation,
+                            guint arg_major,
+                            guint arg_minor)
+{
+        CkSession   *session = CK_SESSION (object);
+        CkDevice    *device;
+        const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+
+        TRACE ();
+
+        /* only the session controller can call us */
+        if (g_strcmp0 (session->priv->session_controller, sender) != 0) {
+                throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Only the session controller may call this function"));
+                return TRUE;
+        }
+
+        device = ck_session_get_device (session, arg_major, arg_minor);
+
+        if (device == NULL) {
+                throw_error (invocation, CK_SESSION_ERROR_FAILED, _("Device doesn't exist"));
+                return TRUE;
+        }
+
+        ck_device_set_active (device, FALSE);
+
+        ck_session_check_paused_devices (session);
+
+        console_kit_session_complete_pause_device_complete (object, invocation);
+        return TRUE;
+}
+
 static void
 ck_session_set_property (GObject            *object,
                          guint               prop_id,
@@ -952,6 +1713,9 @@ ck_session_set_property (GObject            *object,
                 break;
         case PROP_LOGIN_SESSION_ID:
                 ck_session_set_login_session_id (self, g_value_get_string (value), NULL);
+                break;
+        case PROP_SESSION_CONTROLLER:
+                ck_session_set_session_controller (self, g_value_get_string (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -978,6 +1742,9 @@ ck_session_get_property (GObject    *object,
                 break;
         case PROP_LOGIN_SESSION_ID:
                 g_value_set_string (value, self->priv->login_session_id);
+                break;
+        case PROP_SESSION_CONTROLLER:
+                g_value_set_string (value, self->priv->session_controller);
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1105,6 +1872,14 @@ ck_session_class_init (CkSessionClass *klass)
                                                               NULL,
                                                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+        g_object_class_install_property (object_class,
+                                         PROP_SESSION_CONTROLLER,
+                                         g_param_spec_string ("session-controller",
+                                                              "session-controller",
+                                                              "session-controller",
+                                                              NULL,
+                                                              G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+
         g_type_class_add_private (klass, sizeof (CkSessionPrivate));
 }
 
@@ -1115,6 +1890,8 @@ ck_session_init (CkSession *session)
 
         /* FIXME: should we have a property for this? */
         g_get_current_time (&session->priv->creation_time);
+
+        session->priv->tty_fd = -1;
 }
 
 static void
@@ -1140,6 +1917,11 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_unlock                 = dbus_unlock;
         iface->handle_get_idle_hint          = dbus_get_idle_hint;
         iface->handle_get_xdgruntime_dir     = dbus_get_runtime_dir;
+        iface->handle_take_control           = dbus_take_control;
+        iface->handle_release_control        = dbus_release_control;
+        iface->handle_take_device            = dbus_take_device;
+        iface->handle_release_device         = dbus_release_device;
+        iface->handle_pause_device_complete  = dbus_pause_device_complete;
 }
 
 static void
@@ -1158,13 +1940,28 @@ ck_session_finalize (GObject *object)
 
         session_remove_activity_watch (session);
 
+        ck_session_set_session_controller (session, NULL);
+
+        ck_session_remove_all_devices (session);
+
         g_free (session->priv->id);
         g_free (session->priv->cookie);
         g_free (session->priv->login_session_id);
         g_free (session->priv->runtime_dir);
         g_free (session->priv->seat_id);
+        g_free (session->priv->session_controller);
+
         if (session->priv->bus_proxy) {
             g_object_unref(session->priv->bus_proxy);
+        }
+
+        if (session->priv->session_controller_watchid != 0) {
+                g_bus_unwatch_name (session->priv->session_controller_watchid);
+        }
+
+        if (session->priv->pause_devices_timer != 0) {
+                g_source_remove (session->priv->pause_devices_timer);
+                session->priv->pause_devices_timer = 0;
         }
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
@@ -1244,6 +2041,8 @@ ck_session_new_with_parameters (const char      *ssid,
                                 g_debug ("Skipping NULL parameter");
                                 goto cleanup;
                         }
+
+                        g_debug ("prop_name = '%s'", prop_name);
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {

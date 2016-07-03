@@ -53,6 +53,7 @@ static struct {
         { "is-local",           "b", G_TYPE_BOOLEAN },
         { "unix-user",          "i", G_TYPE_INT },
         { "user",               "i", G_TYPE_INT },
+        { "vtnr",               "u", G_TYPE_UINT },
 };
 
 struct CkSessionLeaderPrivate
@@ -189,7 +190,7 @@ parse_output (CkSessionLeader *leader,
                 const char *variant_type;
                 GVariant   *element;
                 GType       gtype;
-                glong       unix_user;
+                glong       untrusted_int;
                 gboolean    is_local = FALSE;
 
                 vals = g_strsplit (lines[i], " = ", 2);
@@ -198,8 +199,11 @@ parse_output (CkSessionLeader *leader,
                         continue;
                 }
 
+                g_debug ("looking at prop %s", vals[0]);
+
                 /* we're going to override this anyway so just shortcut out */
                 if (have_override_parameter (leader, vals[0])) {
+                        g_debug ("skipping, we're going to override it");
                         g_strfreev (vals);
                         continue;
                 }
@@ -212,9 +216,11 @@ parse_output (CkSessionLeader *leader,
 
                 switch (gtype) {
                 case G_TYPE_STRING:
+                        g_debug ("creating string");
                         element = g_variant_new (variant_type, vals[1]);
                         break;
                 case G_TYPE_BOOLEAN:
+                        g_debug ("creating boolean");
                         if(g_ascii_strncasecmp (vals[1], "TRUE", 4) == 0) {
                                 is_local = TRUE;
                         }
@@ -222,22 +228,56 @@ parse_output (CkSessionLeader *leader,
                         element = g_variant_new (variant_type, is_local);
                         break;
                 case G_TYPE_INT:
-                        unix_user = strtol (vals[1], NULL, 10);
+                        g_debug ("creating int");
+                        untrusted_int = strtol (vals[1], NULL, 10);
 
                         /* Error checking for untrusted input */
-                        if ((errno == ERANGE && (unix_user == LONG_MAX || unix_user == LONG_MIN)) || (errno != 0 && unix_user == 0))
+                        if ((errno == ERANGE && (untrusted_int == LONG_MAX || untrusted_int == LONG_MIN)) || (errno != 0 && untrusted_int == 0))
                         {
+                                g_debug ("skipping: out of range, ERANGE");
                                 continue;
                         }
 
                         /* Sanity checks */
-                        if (unix_user > INT_MAX)
+                        if (untrusted_int > INT_MAX)
+                        {
+                                g_debug ("skipping: out of range, INT_MAX");
                                 continue;
+                        }
 
-                        if (unix_user < 0)
+                        if (untrusted_int < 0)
+                        {
+                                g_debug ("skipping: out of range, negative");
                                 continue;
+                        }
 
-                        element = g_variant_new (variant_type, (uid_t)unix_user);
+                        element = g_variant_new (variant_type, (uid_t)untrusted_int);
+                        break;
+                case G_TYPE_UINT:
+                        g_debug ("creating uint");
+                        untrusted_int = strtol (vals[1], NULL, 10);
+
+                        /* Error checking for untrusted input */
+                        if ((errno == ERANGE && (untrusted_int == LONG_MAX || untrusted_int == LONG_MIN)) || (errno != 0 && untrusted_int == 0))
+                        {
+                                g_debug ("skipping: out of range, ERANGE");
+                                continue;
+                        }
+
+                        /* Sanity checks */
+                        if (untrusted_int > G_MAXUINT)
+                        {
+                                g_debug ("skipping: out of range, G_MAXUINT");
+                                continue;
+                        }
+
+                        if (untrusted_int < 0)
+                        {
+                                g_debug ("skipping: out of range, negative");
+                                continue;
+                        }
+
+                        element = g_variant_new (variant_type, (guint)untrusted_int);
                         break;
                 default:
                         g_warning ("ck-session-leader unsupported type");
@@ -376,6 +416,7 @@ ck_session_leader_collect_parameters (CkSessionLeader        *session_leader,
         gboolean     ret;
         CkJob       *job;
         JobData     *data;
+        const gchar *x11_display_device = NULL;
 
         ret = FALSE;
 
@@ -385,10 +426,26 @@ ck_session_leader_collect_parameters (CkSessionLeader        *session_leader,
         data->user_data = user_data;
         data->context = context;
 
-        command = g_strdup_printf ("%s --uid %u --pid %u",
-                                   LIBEXECDIR "/ck-collect-session-info",
-                                   session_leader->priv->uid,
-                                   session_leader->priv->pid);
+        if (have_override_parameter (session_leader, "x11-display-device")) {
+                GVariant *var = g_hash_table_lookup (session_leader->priv->override_parameters, "x11-display-device");
+                x11_display_device = g_variant_get_string (var, NULL);
+        }
+
+        if (x11_display_device != NULL && g_strcmp0 (x11_display_device, "") != 0) {
+                command = g_strdup_printf ("%s --uid %u --pid %u --x11-display-device %s",
+                                           LIBEXECDIR "/ck-collect-session-info",
+                                           session_leader->priv->uid,
+                                           session_leader->priv->pid,
+                                           x11_display_device);
+        }
+        else
+        {
+                command = g_strdup_printf ("%s --uid %u --pid %u",
+                                           LIBEXECDIR "/ck-collect-session-info",
+                                           session_leader->priv->uid,
+                                           session_leader->priv->pid);
+        }
+
         job = ck_job_new ();
         ck_job_set_command (job, command);
         g_free (command);
