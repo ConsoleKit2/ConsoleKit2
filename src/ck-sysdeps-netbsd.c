@@ -121,7 +121,7 @@ ck_process_stat_get_tty (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, NULL);
 
-        if (stat->tty != NODEV){
+        if (stat->tty == NODEV){
                 return NULL;
         }
 
