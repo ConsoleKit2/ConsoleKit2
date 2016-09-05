@@ -59,7 +59,8 @@ CkProcessGroup   *ck_process_group_get              (void);
 
 gboolean          ck_process_group_create           (CkProcessGroup *pgroup,
                                                      pid_t process,
-                                                     const gchar *ssid);
+                                                     const gchar *ssid,
+                                                     guint unix_user);
 
 gchar            *ck_process_group_get_ssid         (CkProcessGroup *pgroup,
                                                      pid_t process);
