@@ -207,7 +207,8 @@ ck_process_group_finalize (GObject *object)
 gboolean
 ck_process_group_create (CkProcessGroup *pgroup,
                          pid_t process,
-                         const gchar *ssid)
+                         const gchar *ssid,
+                         guint unix_user)
 {
 #ifdef HAVE_CGMANAGER
         CkProcessGroupPrivate *priv = CK_PROCESS_GROUP_GET_PRIVATE (pgroup);
@@ -237,7 +238,7 @@ ck_process_group_create (CkProcessGroup *pgroup,
         }
 
         errno = 0;
-        pwent = getpwuid (ck_unix_pid_get_uid(process));
+        pwent = getpwuid (unix_user);
         if (pwent == NULL) {
                 g_warning ("Unable to lookup UID: %s", g_strerror (errno));
                 return FALSE;

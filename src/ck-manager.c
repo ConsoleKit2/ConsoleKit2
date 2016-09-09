@@ -2808,7 +2808,8 @@ open_session_for_leader (CkManager             *manager,
         pgroup = ck_process_group_get ();
         ck_process_group_create (pgroup,
                                  ck_session_leader_get_pid (leader),
-                                 ssid);
+                                 ssid,
+                                 unix_user);
 
         g_hash_table_insert (manager->priv->sessions,
                              g_strdup (ssid),
