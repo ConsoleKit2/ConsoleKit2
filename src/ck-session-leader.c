@@ -335,13 +335,14 @@ job_completed (CkJob     *job,
                 ck_job_get_stdout (job, &output);
                 g_debug ("Job output: %s", output);
 
-                parameters = parse_output (data->leader, output);
+                parameters = g_variant_ref_sink(parse_output (data->leader, output));
                 g_free (output);
 
                 data->done_cb (data->leader,
                                parameters,
                                data->context,
                                data->user_data);
+                g_variant_unref(parameters);
         } else {
                 data->done_cb (data->leader,
                                NULL,

@@ -1162,6 +1162,10 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->cookie);
         g_free (session->priv->login_session_id);
         g_free (session->priv->runtime_dir);
+        g_free (session->priv->seat_id);
+        if (session->priv->bus_proxy) {
+            g_object_unref(session->priv->bus_proxy);
+        }
 
         G_OBJECT_CLASS (ck_session_parent_class)->finalize (object);
 }
@@ -1238,24 +1242,24 @@ ck_session_new_with_parameters (const char      *ssid,
 
                         if (prop_name == NULL) {
                                 g_debug ("Skipping NULL parameter");
-                                continue;
+                                goto cleanup;
                         }
 
                         if (strcmp (prop_name, "id") == 0
                             || strcmp (prop_name, "cookie") == 0) {
                                 g_debug ("Skipping restricted parameter: %s", prop_name);
-                                continue;
+                                goto cleanup;
                         }
 
                         pspec = g_object_class_find_property (class, prop_name);
                         if (! pspec) {
                                 g_debug ("Skipping unknown parameter: %s", prop_name);
-                                continue;
+                                goto cleanup;
                         }
 
                         if (!(pspec->flags & G_PARAM_WRITABLE)) {
                                 g_debug ("property '%s' is not writable", pspec->name);
-                                continue;
+                                goto cleanup;
                         }
 
                         params[n_params].name = g_strdup (prop_name);
@@ -1265,11 +1269,17 @@ ck_session_new_with_parameters (const char      *ssid,
                         res = g_value_transform (&val_struct, &params[n_params].value);
                         if (! res) {
                                 g_debug ("unable to transform property value for '%s'", pspec->name);
-                                continue;
+                                goto cleanup;
                         }
 
                         n_params++;
+cleanup:
+                        g_free(prop_name);
+                        if (value) {
+                            g_variant_unref(value);
+                        }
                 }
+                g_variant_iter_free (iter);
         }
 
         object = g_object_newv (object_type, n_params, params);
