@@ -3217,11 +3217,11 @@ dbus_open_session_with_parameters (ConsoleKitManager     *ckmanager,
 static gboolean
 remove_session_for_cookie (CkManager  *manager,
                            const char *cookie,
+                           CkSessionLeader *leader,
                            GError    **error)
 {
         CkSession       *orig_session;
         char            *orig_ssid;
-        CkSessionLeader *leader;
         char            *sid;
         guint            unix_user;
         gboolean         res;
@@ -3233,14 +3233,16 @@ remove_session_for_cookie (CkManager  *manager,
 
         g_debug ("Removing session for cookie: %s", cookie);
 
-        leader = g_hash_table_lookup (manager->priv->leaders, cookie);
-
         if (leader == NULL) {
+            leader = g_hash_table_lookup (manager->priv->leaders, cookie);
+
+            if (leader == NULL) {
                 g_set_error (error,
                              CK_MANAGER_ERROR,
                              CK_MANAGER_ERROR_GENERAL,
                              "Unable to find session for cookie");
                 goto out;
+            }
         }
 
         /* Need to get the original key/value */
@@ -3403,7 +3405,7 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
         }
 
         error = NULL;
-        res = remove_session_for_cookie (manager, cookie, &error);
+        res = remove_session_for_cookie (manager, cookie, NULL, &error);
         if (! res) {
                 throw_error (context, CK_MANAGER_ERROR_FAILED, "%s", error->message);
                 g_clear_error (&error);
@@ -3417,8 +3419,15 @@ dbus_close_session (ConsoleKitManager     *ckmanager,
 }
 
 typedef struct {
+    CkManager *manager;
+    const char *cookie;
+    CkSessionLeader *leader;
+} RemoveEntity;
+
+typedef struct {
         const char *service_name;
-        CkManager  *manager;
+        CkManager *manager;
+        GPtrArray *entities;
 } RemoveLeaderData;
 
 static gboolean
@@ -3433,12 +3442,29 @@ remove_leader_for_connection (const char       *cookie,
 
         name = ck_session_leader_peek_service_name (leader);
         if (strcmp (name, data->service_name) == 0) {
-                remove_session_for_cookie (data->manager, cookie, NULL);
-                ck_session_leader_cancel (leader);
-                return TRUE;
+                RemoveEntity *entity = g_malloc(sizeof(*entity));
+                if (entity) {
+                    entity->manager = data->manager;
+                    entity->cookie = cookie;
+                    entity->leader = leader;
+                    g_ptr_array_add(data->entities, entity);
+                    return TRUE;
+                }
         }
 
         return FALSE;
+}
+
+static void
+destroy_entity(gpointer data)
+{
+    RemoveEntity *ent = data;
+
+    remove_session_for_cookie (ent->manager, ent->cookie, ent->leader, NULL);
+    ck_session_leader_cancel (ent->leader);
+    g_free(ent->cookie);
+    g_object_unref(ent->leader);
+    g_free(ent);
 }
 
 static void
@@ -3446,15 +3472,22 @@ remove_sessions_for_connection (CkManager   *manager,
                                 const gchar *service_name)
 {
         RemoveLeaderData data;
-
-        data.service_name = service_name;
-        data.manager = manager;
+        guint n;
 
         g_debug ("Removing sessions for service name: %s", service_name);
 
-        g_hash_table_foreach_remove (manager->priv->leaders,
-                                     (GHRFunc)remove_leader_for_connection,
-                                     &data);
+        data.manager = manager;
+        data.service_name = service_name;
+        data.entities = g_ptr_array_new_with_free_func(destroy_entity);
+
+        n = g_hash_table_foreach_steal (manager->priv->leaders,
+                (GHRFunc)remove_leader_for_connection,
+                &data);
+        while (n-- > 0) {
+            g_ptr_array_remove_index_fast(data.entities, 0);
+        }
+        g_assert (data.entities->len == 0);
+        g_ptr_array_free(data.entities, TRUE);
 
 }
 
