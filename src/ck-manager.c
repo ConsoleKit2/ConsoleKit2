@@ -2909,6 +2909,7 @@ verify_and_open_session_for_leader (CkManager             *manager,
                 g_free (prop_name);
                 g_variant_unref (value);
         }
+        g_variant_iter_free (iter);
 
         g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
 
