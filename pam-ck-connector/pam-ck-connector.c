@@ -197,7 +197,8 @@ _util_name_to_uid (const char *username,
 
         bufsize = sysconf (_SC_GETPW_R_SIZE_MAX);
         if (bufsize == -1) {
-                return res;
+		// assume 1024, not all systems (e.g musl) have _SC_GETPW_R_SIZE_MAX
+		bufsize = 1024;
         }
         buf = calloc (sizeof (char), bufsize);
         rc = getpwnam_r (username, &pwd, buf, bufsize, &pwdp);
