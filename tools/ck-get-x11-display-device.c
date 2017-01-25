@@ -140,6 +140,8 @@ get_tty_for_display (Display *xdisplay)
 
 #if defined(__NetBSD__)
         display = g_strdup_printf ("/dev/ttyE%ld", vt - 1);
+#elif defined(__OpenBSD__)
+        display = g_strdup_printf ("/dev/ttyC%ld", vt - 1);
 #else
         display = g_strdup_printf ("/dev/tty%ld", vt);
 #endif
