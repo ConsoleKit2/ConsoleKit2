@@ -1267,9 +1267,12 @@ session_is_real_user (CkSession *session,
         username = get_user_name (uid);
 
         /* filter out GDM/SDDM/KDM user */
-        if (g_strcmp0 (username, "gdm")  == 0 ||
-            g_strcmp0 (username, "sddm") == 0 ||
-            g_strcmp0 (username, "kdm") == 0) {
+        if (g_strcmp0 (username, "gdm")   == 0 ||
+            g_strcmp0 (username, "_gdm")  == 0 ||
+            g_strcmp0 (username, "sddm")  == 0 ||
+            g_strcmp0 (username, "_sddm") == 0 ||
+            g_strcmp0 (username, "kdm")   == 0 ||
+            g_strcmp0 (username, "_kdm")  == 0) {
                 ret = FALSE;
                 goto out;
         }
