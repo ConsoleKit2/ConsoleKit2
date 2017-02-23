@@ -539,6 +539,7 @@ ck_vt_monitor_finalize (GObject *object)
 
         if (vt_monitor->priv->event_queue != NULL) {
                 g_async_queue_unref (vt_monitor->priv->event_queue);
+                vt_monitor->priv->event_queue = NULL;
         }
 
         if (vt_monitor->priv->vt_thread_hash != NULL) {
