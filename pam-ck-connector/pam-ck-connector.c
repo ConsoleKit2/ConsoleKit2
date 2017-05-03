@@ -245,6 +245,7 @@ pam_sm_open_session (pam_handle_t *pamh,
         const char *x11_display;
         const char *x11_display_device;
         const char *remote_host_name;
+        const char *runtime_dir;
         const char *s;
         uid_t       uid;
         char        buf[256];
@@ -420,14 +421,17 @@ pam_sm_open_session (pam_handle_t *pamh,
 
         /* and set the runtime dir */
         buf[sizeof (buf) - 1] = '\0';
-        snprintf (buf, sizeof (buf) - 1, "XDG_RUNTIME_DIR=%s", ck_connector_get_runtime_dir (ckc, &error));
-        if (pam_putenv (pamh, buf) != PAM_SUCCESS) {
-                ck_pam_syslog (pamh, LOG_ERR, "unable to set XDG_RUNTIME_DIR in environment");
-                /* tear down session the hard way */
-                ck_connector_unref (ckc);
-                ckc = NULL;
+        runtime_dir = ck_connector_get_runtime_dir (ckc, &error);
+        if (runtime_dir != NULL) {
+                snprintf (buf, sizeof (buf) - 1, "XDG_RUNTIME_DIR=%s", runtime_dir);
+                if (pam_putenv (pamh, buf) != PAM_SUCCESS) {
+                        ck_pam_syslog (pamh, LOG_ERR, "unable to set XDG_RUNTIME_DIR in environment");
+                        /* tear down session the hard way */
+                        ck_connector_unref (ckc);
+                        ckc = NULL;
 
-                goto out;
+                        goto out;
+                }
         }
 
         if (opt_debug) {

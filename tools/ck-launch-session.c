@@ -58,7 +58,7 @@ main (int argc, char **argv)
 
         /* Setup for i18n */
         setlocale(LC_ALL, "");
- 
+
 #ifdef ENABLE_NLS
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);
@@ -68,6 +68,7 @@ main (int argc, char **argv)
         if (ckc != NULL) {
                 dbus_error_init (&error);
                 if (ck_connector_open_session (ckc, &error)) {
+                        const char *runtime_dir = NULL;
                         pid = fork ();
                         switch (pid) {
                         case -1:
@@ -77,8 +78,10 @@ main (int argc, char **argv)
                                 setenv ("XDG_SESSION_COOKIE",
                                        ck_connector_get_cookie (ckc), 1);
 
-                                setenv ("XDG_RUNTIME_DIR",
-                                       ck_connector_get_runtime_dir (ckc, &error), 1);
+                                runtime_dir = ck_connector_get_runtime_dir (ckc, &error);
+                                if (runtime_dir != NULL) {
+                                        setenv ("XDG_RUNTIME_DIR", runtime_dir, 1);
+                                }
                                 break;
                         default:
                                 waitpid (pid, &status, 0);
