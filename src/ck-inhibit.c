@@ -288,6 +288,11 @@ emit_initial_inhibit_signals (CkInhibit *inhibit)
 
         g_return_if_fail (CK_IS_INHIBIT (inhibit));
 
+        /* keep a ref to ourselves so we don't get destroyed before
+         * all the messages are sent. Probably not going to happen
+         * during the initial inhibit signals but better to be safe. */
+        g_object_ref (inhibit);
+
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
         if (priv->inhibitors[CK_INHIBIT_EVENT_SHUTDOWN]) {
@@ -317,6 +322,8 @@ emit_initial_inhibit_signals (CkInhibit *inhibit)
         if (priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH]) {
                 g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_LID_SWITCH, TRUE);
         }
+
+        g_object_unref (inhibit);
 }
 
 /* When the named pipe is closed we set them to FALSE and send off the
@@ -326,7 +333,13 @@ emit_final_uninhibit_signals (CkInhibit *inhibit)
 {
         CkInhibitPrivate *priv;
 
-        g_return_if_fail (CK_IS_INHIBIT (inhibit));
+        if (inhibit == NULL || !CK_IS_INHIBIT (inhibit)) {
+                return;
+        }
+
+        /* keep a ref to ourselves so we don't get destroyed before
+         * all the messages are sent */
+        g_object_ref (inhibit);
 
         priv = CK_INHIBIT_GET_PRIVATE (inhibit);
 
@@ -364,6 +377,8 @@ emit_final_uninhibit_signals (CkInhibit *inhibit)
                 priv->inhibitors[CK_INHIBIT_EVENT_LID_SWITCH] = FALSE;
                 g_signal_emit(G_OBJECT (inhibit), __signals[SIG_CHANGED_EVENT], 0, priv->mode, CK_INHIBIT_EVENT_LID_SWITCH, FALSE);
         }
+
+        g_object_unref (inhibit);
 }
 
 /*
