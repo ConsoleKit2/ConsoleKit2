@@ -493,7 +493,10 @@ ck_unix_pid_get_env_hash (pid_t pid)
                                    &length,
                                    &error);
         if (! res) {
-                g_warning ("Couldn't read %s: %s", path, error->message);
+                /* This is pretty harmless, usually it means the process
+                 * was short lived and we didn't get around to looking at
+                 * it before it died. */
+                g_debug ("Couldn't read %s: %s", path, error->message);
                 g_error_free (error);
                 goto out;
         }
