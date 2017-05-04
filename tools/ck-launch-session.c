@@ -44,8 +44,26 @@
 #include <unistd.h>
 #include <libintl.h>
 #include <locale.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include "ck-connector.h"
+
+
+
+static gboolean
+check_shell (const gchar *shell)
+{
+        if (shell == NULL || *shell == '\0') {
+                return FALSE;
+        }
+
+        if (!g_file_test (shell, G_FILE_TEST_IS_EXECUTABLE)) {
+                return FALSE;
+        }
+
+        return TRUE;
+}
 
 int
 main (int argc, char **argv)
@@ -99,7 +117,7 @@ main (int argc, char **argv)
                 execvp (argv[1], argv + 1);
         } else {
                 shell = getenv ("SHELL");
-                if (shell == NULL) {
+                if (!check_shell (shell)) {
                         shell = _PATH_BSHELL;
                 }
                 execlp (shell, shell, NULL);
