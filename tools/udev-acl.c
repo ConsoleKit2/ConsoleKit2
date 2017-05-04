@@ -236,7 +236,7 @@ static int consolekit_called(const char *ck_action, uid_t *uid, uid_t *uid2, con
                 if (strcmp(s, "true") != 0 && strcmp(s2, "true") != 0)
                         return 0;
 
-                if (strcmp(s, "true") == 0 && strcmp(s, "true") == 0) {
+                if (strcmp(s, "true") == 0 && strcmp(s2, "true") == 0) {
                         /* process the change */
                         if (u == u2) {
                                 /* special case: we noop if we are
