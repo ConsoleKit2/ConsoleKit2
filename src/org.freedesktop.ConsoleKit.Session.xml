@@ -551,16 +551,12 @@
           <doc:para>The seat the session is assigned to. It is comprised of the
           seat id and object path of the seat.</doc:para>
         </doc:description>
-        <doc:deprecated version="0.1.3" instead="unix-user"/>
       </doc:doc>
     </property>
     <property name="session-type" type="s" access="readwrite">
       <doc:doc>
         <doc:description>
           <doc:para>The type of the session.</doc:para>
-          <doc:para>Warning: we haven't yet defined the allowed values for this property.
-          It is probably best to avoid this until we do.
-          </doc:para>
         </doc:description>
       </doc:doc>
     </property>
