@@ -623,6 +623,8 @@ ck_session_resume_all_devices (CkSession *session)
                                         errno = 0;
                                 }
                         }
+
+                        g_close (fd, NULL);
                 }
         }
 
