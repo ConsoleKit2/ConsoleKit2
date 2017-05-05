@@ -263,10 +263,10 @@ ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
 
                         /* Found it! Remove it from the list and unref the object */
                         priv->inhibit_list = g_list_remove (priv->inhibit_list, inhibit);
-                        ck_inhibit_remove_lock (inhibit);
                         g_signal_handlers_disconnect_by_func (inhibit,
                                                               G_CALLBACK (cb_changed_event),
                                                               manager);
+                        ck_inhibit_remove_lock (inhibit);
                         g_object_unref (inhibit);
                         return TRUE;
                 }
