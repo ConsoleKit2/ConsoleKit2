@@ -96,7 +96,7 @@ remove_dest_dir (const gchar *dest)
 {
         int ret;
 
-        if (ret = nftw(dest, unlink_cb, 64, FTW_DEPTH | FTW_PHYS)) {
+        if ((ret = nftw(dest, unlink_cb, 64, FTW_DEPTH | FTW_PHYS))) {
                 return ret;
         }
 
