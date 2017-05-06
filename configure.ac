@@ -618,7 +618,6 @@ Makefile
 src/Makefile
 tools/70-udev-acl.rules
 tools/71-udev-seat.rules
-tools/73-udev-seat-late.rules
 tools/Makefile
 tools/linux/Makefile
 tools/freebsd/Makefile

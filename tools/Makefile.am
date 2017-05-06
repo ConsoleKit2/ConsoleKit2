@@ -174,8 +174,7 @@ udevrulesdir = $(UDEVDIR)/rules.d
 
 dist_udevrules_DATA =	\
 	70-udev-acl.rules	\
-	71-udev-seat.rules	\
-	73-udev-seat-late.rules
+	71-udev-seat.rules
 
 libexec_PROGRAMS += udev-acl
 
