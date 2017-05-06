@@ -1177,7 +1177,9 @@ ck_wait_for_console_switch (gint sys_fd, gint32 *num)
                 if (new_vt >= 0) {
                         g_debug ("ck_wait_for_console_switch: read successful");
                         /* success, update */
-                        *num = new_vt;
+                        if (num != NULL) {
+                                *num = new_vt;
+                        }
                 }
         }
 

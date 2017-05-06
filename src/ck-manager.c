@@ -210,6 +210,11 @@ dump_user_iter (guint        *uid,
                 return;
         }
 
+        if (uid == NULL) {
+                g_critical ("ck-manager: dump_user_iter: uid == NULL");
+                return;
+        }
+
         user_group = g_strdup_printf ("User %u", *uid);
         if (user_group == NULL) {
                 g_critical ("ck-manager: dump_user_iter: user_group == NULL, OOM");
