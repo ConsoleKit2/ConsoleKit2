@@ -293,6 +293,27 @@
       </doc:doc>
     </method>
 
+    <method name="SetLockedHint">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="locked_hint" type="b" direction="in">
+        <doc:doc>
+          <doc:summary>boolean value to set the locked-hint to</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para> This is used by Desktop Environments to update the
+          <doc:ref type="property" to="Session:LockedHint">LockedHint</doc:ref>
+          property. Calling <doc:ref type="method" to="Session.Lock">Lock()</doc:ref>
+          or <doc:ref type="method" to="Session.Unlock">Unlock()</doc:ref> will also
+          update the <doc:ref type="property" to="Session:LockedHint">LockedHint</doc:ref>
+          value.</doc:para>
+          <doc:para>Use of this method is restricted to the user
+          that owns the session.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="TakeControl">
       <arg name="force" type="b" direction="in">
         <doc:doc>
@@ -525,7 +546,8 @@
       <doc:doc>
         <doc:description>
           <doc:para>Emitted in response to a call to the <doc:ref type="method" to="Session.Unlock">Unlock()</doc:ref> method.</doc:para>
-          <doc:para>It is intended that the screensaver for the session should unlock the screen in response to this signal.</doc:para>
+          <doc:para>It is intended that the screensaver for the session should unlock the screen in response to this signal.
+                    Which may involve showing the password unlock dialog, depending on the screensaver policy.</doc:para>
         </doc:description>
       </doc:doc>
     </signal>
@@ -655,6 +677,17 @@
         </doc:description>
       </doc:doc>
     </property>
+    <property name="LockedHint" type="b" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+          This is a hint used by Desktop Environments to indicate that the
+          session may be locked.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+
 
   </interface>
 </node>

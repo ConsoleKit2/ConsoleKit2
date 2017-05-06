@@ -254,9 +254,8 @@ register_session (CkSession *session, GDBusConnection *connection)
 }
 
 /*
-  lock and unlock are separate functions because:
-   1. we don't maintain state for locked
-   2. so security policy can be handled separately
+  lock and unlock are separate functions because we may want
+  security policy to be handled separately
 */
 static gboolean
 dbus_lock (ConsoleKitSession     *cksession,
@@ -269,6 +268,7 @@ dbus_lock (ConsoleKitSession     *cksession,
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         g_debug ("Emitting lock for session %s", session->priv->id);
+        console_kit_session_set_locked_hint (cksession, TRUE);
         console_kit_session_emit_lock (cksession);
 
         console_kit_session_complete_lock (cksession, context);
@@ -286,6 +286,7 @@ dbus_unlock (ConsoleKitSession     *cksession,
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
         g_debug ("Emitting unlock for session %s", session->priv->id);
+        console_kit_session_set_locked_hint (cksession, FALSE);
         console_kit_session_emit_unlock (cksession);
 
         console_kit_session_complete_unlock (cksession, context);
@@ -442,6 +443,55 @@ dbus_set_idle_hint (ConsoleKitSession     *cksession,
         }
 
         session_set_idle_hint_internal (session, idle_hint);
+
+        console_kit_session_complete_set_idle_hint (cksession, context);
+        return TRUE;
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Session1 \
+  org.freedesktop.ConsoleKit.Session.SetLockedHint boolean:TRUE
+*/
+static gboolean
+dbus_set_locked_hint (ConsoleKitSession     *cksession,
+                      GDBusMethodInvocation *context,
+                      gboolean               arg_locked_hint)
+{
+        const char *sender;
+        uid_t       calling_uid = 0;
+        pid_t       calling_pid = 0;
+        gboolean    res;
+        CkSession *session;
+
+        TRACE ();
+
+        g_return_val_if_fail (CK_IS_SESSION (cksession), FALSE);
+
+        session = CK_SESSION(cksession);
+
+        sender = g_dbus_method_invocation_get_sender (context);
+
+        res = get_caller_info (session,
+                               sender,
+                               &calling_uid,
+                               &calling_pid);
+
+        if (! res) {
+                g_warning ("stat on pid %d failed", calling_pid);
+                throw_error (context, CK_SESSION_ERROR_FAILED, _("Unable to lookup information about calling process '%d'"), calling_pid);
+                return TRUE;
+        }
+
+        /* only restrict this by UID for now */
+        if (console_kit_session_get_unix_user (cksession) != calling_uid) {
+                throw_error (context, CK_SESSION_ERROR_INSUFFICIENT_PERMISSION, _("Only session owner may set locked hint state"));
+                return TRUE;
+        }
+
+        console_kit_session_set_locked_hint (cksession, arg_locked_hint);
 
         console_kit_session_complete_set_idle_hint (cksession, context);
         return TRUE;
@@ -1901,6 +1951,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
 {
         iface->handle_activate               = dbus_activate;
         iface->handle_set_idle_hint          = dbus_set_idle_hint;
+        iface->handle_set_locked_hint        = dbus_set_locked_hint;
         iface->handle_get_unix_user          = dbus_get_unix_user;
         iface->handle_get_seat_id            = dbus_get_seat_id;
         iface->handle_get_login_session_id   = dbus_get_login_session_id;
