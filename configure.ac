@@ -1,16 +1,16 @@
 
-AC_COPYRIGHT([Copyright 2014-2015 The ConsoleKit2 Team])
+AC_COPYRIGHT([Copyright 2014-2017 The ConsoleKit2 Team])
 
 AC_PREREQ([2.50])
 AC_INIT([ConsoleKit2],
-        [1.1.0],
+        [1.1.1],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
         [ConsoleKit2])
 VERSION_MAJOR=1
 VERSION_MINOR=1
-VERSION_REVISION=0
+VERSION_REVISION=1
 
-COPYRIGHT_YEARS="2014 2015"
+COPYRIGHT_YEARS="2014 2017"
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([autotools])

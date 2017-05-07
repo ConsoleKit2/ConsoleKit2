@@ -1,9 +1,39 @@
 ==============
+Version 1.1.1
+==============
+[Please note that this is a development release.]
+
+Changes:
+- Don't try to run "chmod +x" on 90-consolekit, it is not a executable.
+- Use INSTALL_SCRIPT instead of INSTALL_PROGRAM for 90-consolekit.
+- Remove the root restriction for XDG_RUNTIME_DIR.
+- cgroups: Attempt to use 'cpuaccount' if 'all' cgroup fails on pid move
+- ck-remove-directory: return exit code 0 on success
+- ck-remove-directory: remove unused dest parameter on become_user
+- ck-remove-directory: remove dest dir as real user
+- Add support for selinux
+- Freebsd 10.3: Fix session activation
+- Fix a reversed condition for invalid device on NetBSD
+- cgroups: Use UID of logged in user instead UID of session leader process
+- Fix memory leaks and a memory corruption issue.
+- OpenBSD: adapt to recent kvm(3) restrictions
+- Fix pam-ck-connector on musl
+- Fix for OpenBSD and FreeBSD VT device naming scheme.
+- Add a few more display manager users to filter out.
+- Update udev rules.
+- Handle XDG_RUNTIME_DIR not being created/set.
+- Add support for server managed FDs.
+- Prevent a use-after-free when emitting signal changes.
+- Fix coverity and gcc warnings.
+- Add a LockedHint property.
+
+
+==============
 Version 1.1.0
 ==============
 [Please note that this is a development release.]
 
-Development release of ConsoleKit2 targeting the 1.0 release.
+Development release of ConsoleKit2 targeting the 1.2 release.
 Please report all problems to
 https://github.com/ConsoleKit2/ConsoleKit2/issues
 

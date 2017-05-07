@@ -36,7 +36,7 @@ Minimum Requirements
 * PAM (optional)
 * libudev or libdevattr (optional, for session-controller support)
 * libdrm (optional, for session-controller support)
-* proplib (optional, for session-controller support)
+* proplib (optional, for session-controller support on DragonFlyBSD)
 * xmlto (optional, for documentation)
 * inotify (optional)
 * RBAC (optional)
