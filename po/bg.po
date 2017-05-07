@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR The ConsoleKit2 Team
 # This file is distributed under the same license as the ConsoleKit2 package.
-#
+# 
 # Translators:
 # Ivailo Monev <xakepa10@gmail.com>, 2015-2016
 msgid ""
@@ -9,14 +9,13 @@ msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2017-05-04 02:26+0300\n"
-"PO-Revision-Date: 2016-03-09 01:08+0000\n"
-"Last-Translator: Ivailo Monev <xakepa10@gmail.com>\n"
-"Language-Team: Bulgarian (http://www.transifex.com/consolekit2/consolekit2/"
-"language/bg/)\n"
-"Language: bg\n"
+"PO-Revision-Date: 2017-05-04 04:45+0000\n"
+"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
+"Language-Team: Bulgarian (http://www.transifex.com/consolekit2/consolekit2/language/bg/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: bg\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/ck-seat.c:252
@@ -25,7 +24,7 @@ msgstr "Друга сесия беше активиранa докато се ч�
 
 #: src/ck-seat.c:277
 msgid "There is no Seat to activate"
-msgstr "Няма активна Седалка"
+msgstr "Няма Седалка за активиране"
 
 #: src/ck-seat.c:283
 msgid "Activation is not supported for this kind of seat"
@@ -40,14 +39,12 @@ msgid "Unable to activate session"
 msgstr "Невъзможно активиране на сесията"
 
 #: src/ck-seat.c:421
-#, fuzzy
 msgid "Unable to find session for VT"
-msgstr "Невъзможно намиране на сесия за бизквитка"
+msgstr ""
 
 #: src/ck-seat.c:431
-#, fuzzy
 msgid "Unable to get ssid for session"
-msgstr "Невъзможно активиране на сесията"
+msgstr ""
 
 #: src/ck-seat.c:733
 msgid "Session is not attached to this seat"
@@ -63,7 +60,7 @@ msgstr "Включи код за дебъгване"
 
 #: src/main.c:231
 msgid "Don't become a daemon"
-msgstr "Не демонизирай"
+msgstr "Не даемонизирай"
 
 #: src/main.c:232
 msgid "Exit after a time - for debugging"
@@ -75,7 +72,7 @@ msgstr "Трябва да сте root за да пуснете тази прог
 
 #: src/main.c:261
 msgid "Console kit daemon"
-msgstr "Console kit демон"
+msgstr "Console kit даемон"
 
 #: src/ck-vt-monitor.c:110
 msgid "Session is already active"
@@ -204,9 +201,7 @@ msgstr "Само сесииният водач може да зададе под
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
-msgstr ""
-"Сигнал за активиране не е обработен. Сесия не е прикачена към седалка, или "
-"седалката не поддържа промени на активацията"
+msgstr "Сигнал за активиране не е обработен. Сесия не е прикачена към седалка, или седалката не поддържа промени на активацията"
 
 #: src/ck-session.c:1177
 msgid "Failed to create the XDG_RUNTIME_DIR"
@@ -225,28 +220,24 @@ msgid "Failed to replace the current session controller"
 msgstr ""
 
 #: src/ck-session.c:1484
-#, fuzzy
 msgid "Session controller already present"
-msgstr "Сесията вече е активна"
+msgstr ""
 
 #: src/ck-session.c:1506
-#, fuzzy
 msgid "Only the session controller may use this function"
-msgstr "Само сесииният водач може да зададе подсказка за статус"
+msgstr ""
 
 #: src/ck-session.c:1599 src/ck-session.c:1646 src/ck-session.c:1678
-#, fuzzy
 msgid "Only the session controller may call this function"
-msgstr "Само сесииният водач може да зададе подсказка за статус"
+msgstr ""
 
 #: src/ck-session.c:1605
 msgid "Device has already been requested"
 msgstr ""
 
 #: src/ck-session.c:1612
-#, fuzzy
 msgid "Failed to create device"
-msgstr "Грешка при създаването на XDG_RUNTIME_DIR"
+msgstr ""
 
 #: src/ck-session.c:1619
 msgid "Failed to get file descriptor for device"
@@ -259,19 +250,15 @@ msgstr ""
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
 #. * running.
-#.
 #: src/ck-process-group.c:113
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
-msgstr ""
-"Неуспех при отварянето на връзка към cgmanager. cgmanager демонът пуснат ли "
-"е?"
+msgstr "Неуспех при отварянето на връзка към cgmanager. cgmanager демонът пуснат ли е?"
 
 #. TRANSLATORS: There is an error with cgmanager, we're just
 #. * printing it out. Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:129
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
@@ -280,7 +267,6 @@ msgstr "Възникна грешка при инициализирането н
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:236
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
@@ -289,50 +275,40 @@ msgstr "Неуспех при създаването на cgroup, грешкат
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:253
 #, c-format
 msgid ""
-"Failed to change owner of the new cgroup to owner of the session leader, the "
-"error was: %s"
-msgstr ""
-"Неуспех при промяна притежателя на нова cgroup към притежател на сесийният "
-"водач, грешката беше: %s"
+"Failed to change owner of the new cgroup to owner of the session leader, the"
+" error was: %s"
+msgstr "Неуспех при промяна притежателя на нова cgroup към притежател на сесийният водач, грешката беше: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:273
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to move the session leader process to 'cpuacct' cgroup, the error "
 "was: %s"
 msgstr ""
-"Неуспех при преместването на сесийният водачен процес към cgroup, грешката "
-"веше: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:283
 #, c-format
 msgid ""
 "Failed to let cgmanager know that it can remove the cgroup when it's empty, "
 "the error was: %s"
-msgstr ""
-"Грешка при опит за известяване на cgmanager че може да премахне cgroup "
-"когато е празен, грешка беше: %s"
+msgstr "Грешка при опит за известяване на cgmanager че може да премахне cgroup когато е празен, грешката беше: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:322
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
-msgstr "Грешка при опит за откриване на id от cgmanager, грешка беше: %s"
+msgstr "Грешка при опит за откриване на id от cgmanager, грешката беше: %s"
 
 #: tools/ck-history.c:903 tools/list-sessions.c:393
 msgid "Version of this application"
@@ -389,12 +365,3 @@ msgstr "ДАТА"
 #: tools/ck-get-x11-display-device.c:170
 msgid "display name"
 msgstr "име на дисплей"
-
-#~ msgid "Session already active"
-#~ msgstr "Сесията вече е активна"
-
-#~ msgid "User ID"
-#~ msgstr "Потребителско ID"
-
-#~ msgid "Process ID"
-#~ msgstr "Процесно ID"

@@ -1,22 +1,22 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR The ConsoleKit2 Team
 # This file is distributed under the same license as the ConsoleKit2 package.
-#
+# 
 # Translators:
-# Pablo Roberto Francisco Lezaeta Reyes <prflr88@gmail.com>, 2015
+# Pablo Roberto “Jristz” Lezaeta Reyes <prflr88@gmail.com>, 2015
+# Pablo Roberto “Jristz” Lezaeta Reyes <prflr88@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2017-05-04 02:26+0300\n"
-"PO-Revision-Date: 2016-02-19 09:41+0000\n"
+"PO-Revision-Date: 2017-05-04 04:45+0000\n"
 "Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
-"Language-Team: Spanish (http://www.transifex.com/consolekit2/consolekit2/"
-"language/es/)\n"
-"Language: es\n"
+"Language-Team: Spanish (http://www.transifex.com/consolekit2/consolekit2/language/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/ck-seat.c:252
@@ -40,14 +40,12 @@ msgid "Unable to activate session"
 msgstr "No se pudo activar la sesión"
 
 #: src/ck-seat.c:421
-#, fuzzy
 msgid "Unable to find session for VT"
-msgstr "No se pudo encontrar la sesión para la cookie"
+msgstr ""
 
 #: src/ck-seat.c:431
-#, fuzzy
 msgid "Unable to get ssid for session"
-msgstr "No se pudo activar la sesión"
+msgstr ""
 
 #: src/ck-seat.c:733
 msgid "Session is not attached to this seat"
@@ -198,21 +196,17 @@ msgstr "Sin sesiones"
 
 #: src/ck-session.c:440
 msgid "Only session owner may set idle hint state"
-msgstr ""
-"Solo el propietario de la sesión puede establecer el estado de toque de "
-"inactividad"
+msgstr "Solo el propietario de la sesión puede establecer el estado de toque de inactividad"
 
 #: src/ck-session.c:759
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
-msgstr ""
-"La señal de activación no se ha manejada. La sesión no se pudo unir al "
-"puesto de trabajo, o el puesto de trabajo no admite cambios de activación."
+msgstr "La señal de activación no se ha manejada. La sesión no se pudo unir al puesto de trabajo, o el puesto de trabajo no admite cambios de activación."
 
 #: src/ck-session.c:1177
 msgid "Failed to create the XDG_RUNTIME_DIR"
-msgstr ""
+msgstr "No se pudo crear XDG_RUNTIME_DIR"
 
 #: src/ck-session.c:1459
 msgid "Server managed devices not supported"
@@ -227,23 +221,16 @@ msgid "Failed to replace the current session controller"
 msgstr ""
 
 #: src/ck-session.c:1484
-#, fuzzy
 msgid "Session controller already present"
-msgstr "La sesión está activa"
+msgstr ""
 
 #: src/ck-session.c:1506
-#, fuzzy
 msgid "Only the session controller may use this function"
 msgstr ""
-"Solo el propietario de la sesión puede establecer el estado de toque de "
-"inactividad"
 
 #: src/ck-session.c:1599 src/ck-session.c:1646 src/ck-session.c:1678
-#, fuzzy
 msgid "Only the session controller may call this function"
 msgstr ""
-"Solo el propietario de la sesión puede establecer el estado de toque de "
-"inactividad"
 
 #: src/ck-session.c:1605
 msgid "Device has already been requested"
@@ -264,7 +251,6 @@ msgstr ""
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
 #. * running.
-#.
 #: src/ck-process-group.c:113
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
@@ -274,7 +260,6 @@ msgstr ""
 #. * printing it out. Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:129
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
@@ -283,7 +268,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:236
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
@@ -292,18 +276,16 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:253
 #, c-format
 msgid ""
-"Failed to change owner of the new cgroup to owner of the session leader, the "
-"error was: %s"
+"Failed to change owner of the new cgroup to owner of the session leader, the"
+" error was: %s"
 msgstr ""
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:273
 #, c-format
 msgid ""
@@ -314,7 +296,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:283
 #, c-format
 msgid ""
@@ -325,7 +306,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:322
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
@@ -345,8 +325,7 @@ msgstr "Muestra la lista de los últimos usuarios conectados"
 
 #: tools/ck-history.c:906
 msgid "Show 'last' compatible listing of last logged in users"
-msgstr ""
-"Muestra la «última» lista compatible de los últimos usuarios conectados"
+msgstr "Muestra la «última» lista compatible de los últimos usuarios conectados"
 
 #: tools/ck-history.c:907
 msgid "Show full event log"
@@ -387,12 +366,3 @@ msgstr "FECHA Y HORA"
 #: tools/ck-get-x11-display-device.c:170
 msgid "display name"
 msgstr "Mostrar nombre"
-
-#~ msgid "Session already active"
-#~ msgstr "La sesión ya está activa"
-
-#~ msgid "User ID"
-#~ msgstr "Id de usuario"
-
-#~ msgid "Process ID"
-#~ msgstr "Id de proceso"
