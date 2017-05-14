@@ -87,7 +87,7 @@ static struct {
 static int
 lookup_parameter_type (const char *name)
 {
-        int i;
+        unsigned int i;
         int type;
 
         type = DBUS_TYPE_INVALID;

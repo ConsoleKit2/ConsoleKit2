@@ -102,7 +102,7 @@ get_filtered_environment (pid_t pid)
 {
         GPtrArray  *env;
         GHashTable *hash;
-        int         i;
+        guint       i;
         static const char *allowed_env_vars [] = {
                 "DISPLAY",
                 "XAUTHORITY",
@@ -147,7 +147,7 @@ get_x11_server_pid (SessionInfo *si,
         char      *err;
         char      *out;
         int        status;
-        int        i;
+        guint      i;
         GError    *error;
         guint      num;
         char      *argv[4];
@@ -239,7 +239,7 @@ fill_x11_info (SessionInfo *si)
         char          *err;
         char          *out;
         int            status;
-        int            i;
+        guint          i;
         char          *argv[4];
         GPtrArray     *env;
 
