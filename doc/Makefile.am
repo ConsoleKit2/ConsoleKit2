@@ -1,4 +1,4 @@
-SUBDIRS = dbus
+SUBDIRS = dbus libconsolekit
 
 manpagedir = $(mandir)/man1
 manpage_DATA =            \

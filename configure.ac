@@ -1,7 +1,7 @@
 
 AC_COPYRIGHT([Copyright 2014-2017 The ConsoleKit2 Team])
 
-AC_PREREQ([2.60])
+AC_PREREQ([2.62])
 AC_INIT([ConsoleKit2],
         [1.1.1],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
@@ -410,6 +410,14 @@ dnl Check for xsltproc
 dnl ---------------------------------------------------------------------------
 AC_PATH_PROG([XSLTPROC], [xsltproc])
 
+
+# check for gtk-doc
+m4_ifdef([GTK_DOC_CHECK], [
+GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+],[
+AM_CONDITIONAL([ENABLE_GTK_DOC], false)
+])
+
 dnl ---------------------------------------------------------------------------
 dnl check for inotify
 dnl ---------------------------------------------------------------------------
@@ -456,6 +464,9 @@ AC_MSG_RESULT($enable_tests)
 dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
+
+# Check for introspection for libck2
+GOBJECT_INTROSPECTION_CHECK([1.30.0])
 
 # Enable Debug
 XDT_FEATURE_DEBUG
@@ -515,6 +526,9 @@ doc/Makefile
 doc/console-kit-daemon.1m
 doc/dbus/ConsoleKit.xml
 doc/dbus/Makefile
+doc/libconsolekit/Makefile
+libconsolekit/Makefile
+libconsolekit/libconsolekit.pc
 libck-connector/Makefile
 libck-connector/ck-connector.pc
 pam-ck-connector/Makefile

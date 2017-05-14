@@ -4,10 +4,11 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL =
 
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 SUBDIRS =		\
 	src			\
+	libconsolekit		\
 	libck-connector         \
 	tools			\
 	data			\
@@ -26,6 +27,7 @@ EXTRA_DIST = config.rpath \
 	NEWS			\
 	ChangeLog		\
 	m4				\
+	gtk-doc.make	\
 	$(NULL)
 
 DISTCLEANFILES =		\
@@ -70,4 +72,6 @@ $(srcdir)/ChangeLog:
 .PHONY: ChangeLog $(srcdir)/ChangeLog
 
 DISTCHECK_CONFIGURE_FLAGS = \
+	--enable-introspection \
+	--enable-gtk-doc \
 	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
