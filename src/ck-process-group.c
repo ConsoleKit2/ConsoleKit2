@@ -68,8 +68,6 @@ struct CkProcessGroupPrivate
 #endif
 };
 
-static void     ck_process_group_class_init  (CkProcessGroupClass *klass);
-static void     ck_process_group_init        (CkProcessGroup      *pgroup);
 static void     ck_process_group_finalize    (GObject             *object);
 
 G_DEFINE_TYPE (CkProcessGroup, ck_process_group, G_TYPE_OBJECT)

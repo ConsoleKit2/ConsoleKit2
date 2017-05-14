@@ -80,8 +80,6 @@ static guint __signals[SIG_N_SIGNALS] = { 0, };
 
 
 
-static void     ck_inhibit_class_init  (CkInhibitClass *klass);
-static void     ck_inhibit_init        (CkInhibit      *inhibit);
 static void     ck_inhibit_finalize    (GObject        *object);
 
 static void     close_named_pipe (CkInhibit *inhibit);

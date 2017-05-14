@@ -76,8 +76,6 @@ enum {
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_seat_class_init  (CkSeatClass *klass);
-static void     ck_seat_init        (CkSeat      *seat);
 static void     ck_seat_finalize    (GObject     *object);
 static void     ck_seat_iface_init  (ConsoleKitSeatIface *iface);
 

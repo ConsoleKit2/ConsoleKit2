@@ -58,8 +58,6 @@ enum {
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_job_class_init  (CkJobClass *klass);
-static void     ck_job_init        (CkJob      *job);
 static void     ck_job_finalize    (GObject     *object);
 
 G_DEFINE_TYPE (CkJob, ck_job, G_TYPE_OBJECT)

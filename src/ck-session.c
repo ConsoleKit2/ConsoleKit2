@@ -122,8 +122,6 @@ enum {
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_session_class_init           (CkSessionClass         *klass);
-static void     ck_session_init                 (CkSession              *session);
 static void     ck_session_iface_init           (ConsoleKitSessionIface *iface);
 static void     ck_session_finalize             (GObject                *object);
 static void     ck_session_remove_all_devices   (CkSession              *session);

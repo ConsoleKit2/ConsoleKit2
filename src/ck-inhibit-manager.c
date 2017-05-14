@@ -59,8 +59,6 @@ typedef enum {
 static guint __signals[SIG_N_SIGNALS] = { 0, };
 
 
-static void     ck_inhibit_manager_class_init  (CkInhibitManagerClass *klass);
-static void     ck_inhibit_manager_init        (CkInhibitManager      *manager);
 static void     ck_inhibit_manager_finalize    (GObject               *object);
 
 G_DEFINE_TYPE (CkInhibitManager, ck_inhibit_manager, G_TYPE_OBJECT)

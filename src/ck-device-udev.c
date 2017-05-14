@@ -88,8 +88,6 @@
 #endif
 
 
-static void     ck_device_class_init  (CkDeviceClass *klass);
-static void     ck_device_init        (CkDevice      *device);
 static void     ck_device_finalize    (GObject       *object);
 
 

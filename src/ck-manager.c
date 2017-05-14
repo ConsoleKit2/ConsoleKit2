@@ -127,8 +127,6 @@ struct CkManagerPrivate
         CkInhibitManager *inhibit_manager;
 };
 
-static void     ck_manager_class_init  (CkManagerClass         *klass);
-static void     ck_manager_init        (CkManager              *manager);
 static void     ck_manager_iface_init  (ConsoleKitManagerIface *iface);
 static void     ck_manager_finalize    (GObject                *object);
 
