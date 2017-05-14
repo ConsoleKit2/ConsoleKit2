@@ -39,8 +39,6 @@
 /* The number of wall-clock seconds a program is allowed to run before we kill it */
 #define TIMEOUT_SECONDS 15
 
-/* Guaranteed by POSIX; see 'man environ' for details */
-extern char **environ;
 
 typedef struct {
         int      refcount;
