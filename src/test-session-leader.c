@@ -41,7 +41,7 @@
 CkSessionLeader *leader = NULL;
 
 static void
-collect_parameters_cb (CkSessionLeader       *leader,
+collect_parameters_cb (CkSessionLeader       *ckleader,
                        GVariant              *parameters,
                        GDBusMethodInvocation *context,
                        GMainLoop             *loop)

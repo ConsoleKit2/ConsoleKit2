@@ -834,7 +834,7 @@ ck_seat_has_device (CkSeat      *seat,
                     gboolean    *result,
                     GError      *error)
 {
-        int i;
+        guint i;
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
@@ -1332,7 +1332,7 @@ ck_seat_new_with_devices (const char            *sid,
                           GDBusConnection       *connection)
 {
         GObject *object;
-        int      i;
+        guint    i;
 
         object = g_object_new (CK_TYPE_SEAT,
                                "id", sid,
@@ -1513,7 +1513,7 @@ ck_seat_run_programs (CkSeat    *seat,
 
         extra_env[n++] = NULL;
 
-        g_assert(n <= G_N_ELEMENTS(extra_env));
+        g_assert((guint)n <= G_N_ELEMENTS(extra_env));
 
         ck_run_programs (SYSCONFDIR "/ConsoleKit/run-seat.d", action, extra_env);
         ck_run_programs (LIBDIR "/ConsoleKit/run-seat.d", action, extra_env);
@@ -1551,7 +1551,7 @@ ck_seat_dump (CkSeat   *seat,
         char    *group_name;
         GString *str;
         char    *s;
-        int      n;
+        guint    n;
 
         group_name = g_strdup_printf ("Seat %s", seat->priv->id);
 
@@ -1566,7 +1566,7 @@ ck_seat_dump (CkSeat   *seat,
         str = g_string_new (NULL);
         if (seat->priv->devices != NULL) {
                 for (n = 0; n < seat->priv->devices->len; n++) {
-                        int          m;
+                        guint        m;
                         GValueArray *va;
 
                         va = seat->priv->devices->pdata[n];

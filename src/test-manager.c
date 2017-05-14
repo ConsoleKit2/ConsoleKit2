@@ -304,7 +304,7 @@ out:
 }
 
 static gboolean
-validate_stuff ()
+validate_stuff (void)
 {
     gint      fd;
     GVariant *session_var = NULL, *close_var = NULL;

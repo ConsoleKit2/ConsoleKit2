@@ -348,10 +348,10 @@ do_dump (CkManager *manager,
                 ssize_t written;
 
                 written = 0;
-                while (written < str_len) {
-                        ssize_t ret;
-                        ret = write (fd, str + written, str_len - written);
-                        if (ret < 0) {
+                while ((size_t)written < str_len) {
+                        ssize_t num_written;
+                        num_written = write (fd, str + written, str_len - written);
+                        if (num_written < 0) {
                                 if (errno == EAGAIN || errno == EINTR) {
                                         continue;
                                 } else {
@@ -359,7 +359,7 @@ do_dump (CkManager *manager,
                                         goto out;
                                 }
                         }
-                        written += ret;
+                        written += num_written;
                 }
         } else {
                 g_warning ("Couldn't construct state file: %s", error->message);

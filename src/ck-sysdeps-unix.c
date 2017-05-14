@@ -49,7 +49,7 @@
 #include <sys/vt.h>
 #endif
 
-#if HAVE_SYS_CONSIO_H
+#ifdef HAVE_SYS_CONSIO_H
 #include <sys/consio.h>
 #endif
 
@@ -78,10 +78,6 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         uid_t    uid_read;
         pid_t    pid_read;
 
-        pid_read = -1;
-        uid_read = -1;
-        ret = FALSE;
-
 #ifdef SO_PEERCRED
 #ifndef __OpenBSD__
         struct ucred cr;
@@ -89,6 +85,10 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         struct sockpeercred cr;
 #endif
         socklen_t    cr_len;
+
+        pid_read = -1;
+        uid_read = -1;
+        ret = FALSE;
 
         cr_len = sizeof (cr);
 

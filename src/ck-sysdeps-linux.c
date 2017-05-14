@@ -477,7 +477,7 @@ ck_unix_pid_get_env_hash (pid_t pid)
         gsize       length;
         GError     *error;
         GHashTable *hash;
-        int         i;
+        gsize       i;
         gboolean    last_was_null;
 
         g_return_val_if_fail (pid > 1, NULL);
@@ -542,7 +542,7 @@ ck_unix_pid_get_env (pid_t       pid,
         char      *val;
         gsize      length;
         GError    *error;
-        int        i;
+        guint      i;
         char      *prefix;
         int        prefix_len;
         gboolean   last_was_null;

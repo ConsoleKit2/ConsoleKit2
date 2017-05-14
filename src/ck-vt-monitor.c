@@ -69,8 +69,7 @@ enum {
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_vt_monitor_class_init  (CkVtMonitorClass *klass);
-static void     ck_vt_monitor_init        (CkVtMonitor      *vt_monitor);
+
 static void     ck_vt_monitor_finalize    (GObject          *object);
 
 static void     vt_add_watches            (CkVtMonitor      *vt_monitor);
@@ -310,14 +309,16 @@ vt_thread_start (ThreadData *data)
         CkVtMonitor *vt_monitor;
         gboolean     res;
         gint32       num;
+#ifdef HAVE_SYS_VT_SIGNAL
+        /* Get our FD */
+        gint sys_fd = ck_get_vt_signal_fd ();
+#endif
 
         vt_monitor = data->vt_monitor;
         num = data->num;
 
-#ifdef HAVE_SYS_VT_SIGNAL
-        /* Get our FD */
-        gint sys_fd = ck_get_vt_signal_fd ();
 
+#ifdef HAVE_SYS_VT_SIGNAL
         while (sys_fd >= 0) {
                 res = ck_wait_for_console_switch (sys_fd, &num);
                 if (! res) {
@@ -424,8 +425,9 @@ vt_add_watches (CkVtMonitor *vt_monitor)
         ioctl (vt_monitor->priv->vfd, I_SETSIG, S_MSG);
 #elif defined (HAVE_SYS_VT_SIGNAL)
         /* We have a method to poll for vt changes, use it */
-        G_LOCK (hash_lock);
         gpointer id;
+
+        G_LOCK (hash_lock);
         id = GINT_TO_POINTER (1);
         if (g_hash_table_lookup (vt_monitor->priv->vt_thread_hash, id) == NULL)
                 vt_add_watch_unlocked (vt_monitor, 1);

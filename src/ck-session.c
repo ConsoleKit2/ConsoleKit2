@@ -2080,7 +2080,7 @@ ck_session_new_with_parameters (const char      *ssid,
                                 GDBusConnection *connection)
 {
         GObject      *object;
-        gboolean      res;
+        gboolean      session_registered;
         GParameter   *params;
         guint         n_allocated_params;
         guint         n_params;
@@ -2175,8 +2175,8 @@ cleanup:
         g_free (params);
         g_type_class_unref (class);
 
-        res = register_session (CK_SESSION (object), connection);
-        if (! res) {
+        session_registered = register_session (CK_SESSION (object), connection);
+        if (! session_registered) {
                 g_object_unref (object);
                 return NULL;
         }
@@ -2189,7 +2189,7 @@ ck_session_run_programs (CkSession  *session,
                          const char *action)
 {
         ConsoleKitSession *cksession;
-        int   n;
+        guint n;
         char *extra_env[11]; /* be sure to adjust this as needed */
 
         TRACE ();

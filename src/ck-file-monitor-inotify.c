@@ -89,8 +89,7 @@ enum {
         PROP_0,
 };
 
-static void     ck_file_monitor_class_init  (CkFileMonitorClass *klass);
-static void     ck_file_monitor_init        (CkFileMonitor      *file_monitor);
+
 static void     ck_file_monitor_finalize    (GObject            *object);
 
 G_DEFINE_TYPE (CkFileMonitor, ck_file_monitor, G_TYPE_OBJECT)

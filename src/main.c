@@ -48,9 +48,9 @@ static GMainLoop *loop = NULL;
 
 
 static gboolean
-timed_exit_cb (GMainLoop *loop)
+timed_exit_cb (GMainLoop *l)
 {
-        g_main_loop_quit (loop);
+        g_main_loop_quit (l);
         return FALSE;
 }
 
@@ -200,7 +200,7 @@ create_pid_file (void)
         if ((pf = open (CONSOLE_KIT_PID_FILE, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL, 0644)) >= 0) {
                 snprintf (pid, sizeof (pid), "%lu\n", (long unsigned) getpid ());
                 written = write (pf, pid, strlen (pid));
-                if (written != strlen(pid)) {
+                if (written < 1 || (size_t)written != strlen(pid)) {
                         g_warning ("unable to write pid file %s: %s",
                                    CONSOLE_KIT_PID_FILE,
                                    g_strerror (errno));

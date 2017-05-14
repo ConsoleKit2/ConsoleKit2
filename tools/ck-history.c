@@ -648,7 +648,7 @@ generate_report_last (int         uid,
                         CkLogSeatSessionAddedEvent *e;
                         e = (CkLogSeatSessionAddedEvent *)event;
 
-                        if (uid >= 0 && e->session_unix_user != uid) {
+                        if (uid >= 0 && e->session_unix_user != (guint)uid) {
                                 continue;
                         }
 
@@ -693,7 +693,7 @@ generate_report_last_compat (int         uid,
                         CkLogSeatSessionAddedEvent *e;
                         e = (CkLogSeatSessionAddedEvent *)event;
 
-                        if (uid >= 0 && e->session_unix_user != uid) {
+                        if (uid >= 0 && e->session_unix_user != (guint)uid) {
                                 continue;
                         }
 
@@ -774,7 +774,7 @@ generate_report_frequent (int         uid,
 
                 e = (CkLogSeatSessionAddedEvent *)event;
 
-                if (uid >= 0 && e->session_unix_user != uid) {
+                if (uid >= 0 && e->session_unix_user != (guint)uid) {
                         continue;
                 }
 

@@ -125,7 +125,7 @@ test_unref_inhibit (void)
 }
 
 static void
-cb_changed_event (CkInhibitManager *manager, gint inhibit_mode, gint event, gboolean enabled, gpointer user_data)
+cb_changed_event (CkInhibitManager *ckmanager, gint inhibit_mode, gint event, gboolean enabled, gpointer user_data)
 {
     g_print ("cb_changed_event: mode %s event %d is now %s\n",
              inhibit_mode == CK_INHIBIT_MODE_BLOCK ? "CK_INHIBIT_MODE_BLOCK" :

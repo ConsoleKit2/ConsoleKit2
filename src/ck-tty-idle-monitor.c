@@ -66,8 +66,7 @@ enum {
 
 static guint signals [LAST_SIGNAL] = { 0, };
 
-static void     ck_tty_idle_monitor_class_init  (CkTtyIdleMonitorClass *klass);
-static void     ck_tty_idle_monitor_init        (CkTtyIdleMonitor      *tty_idle_monitor);
+
 static void     ck_tty_idle_monitor_finalize    (GObject               *object);
 
 static void     schedule_tty_check              (CkTtyIdleMonitor      *monitor,

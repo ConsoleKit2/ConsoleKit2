@@ -55,8 +55,7 @@ enum {
         PROP_LOG_FILENAME
 };
 
-static void     ck_event_logger_class_init  (CkEventLoggerClass *klass);
-static void     ck_event_logger_init        (CkEventLogger      *event_logger);
+
 static void     ck_event_logger_finalize    (GObject            *object);
 
 G_DEFINE_TYPE (CkEventLogger, ck_event_logger, G_TYPE_OBJECT)
