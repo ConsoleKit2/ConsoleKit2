@@ -146,6 +146,8 @@ gboolean            ck_session_set_login_session_id   (CkSession             *se
                                                        const char            *login_session_id,
                                                        GError               **error);
 
+void                ck_session_lock                   (CkSession             *session);
+void                ck_session_unlock                 (CkSession             *session);
 
 G_END_DECLS
 

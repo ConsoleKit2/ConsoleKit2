@@ -492,6 +492,45 @@
       </doc:doc>
     </method>
 
+    <method name="LockSession">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="session_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The session to lock</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This will cause a <doc:ref type="signal" to="Session::Lock">Lock</doc:ref>
+          signal to be emitted for this session.
+          </doc:para>
+        </doc:description>
+        <doc:permission>This method is restricted to privileged users by D-Bus policy.</doc:permission>
+        <doc:seealso><doc:ref type="signal" to="Session::Lock">Lock signal</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
+    <method name="UnlockSession">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="session_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The session to unlock</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This will cause an <doc:ref type="signal" to="Session::Unlock">Unlock</doc:ref>
+          signal to be emitted for this session.
+          </doc:para>
+          <doc:para>This can be used by login managers to unlock a session before it is
+          re-activated during fast-user-switching.
+          </doc:para>
+        </doc:description>
+        <doc:permission>This method is restricted to privileged users by D-Bus policy.</doc:permission>
+        <doc:seealso><doc:ref type="signal" to="Session::Unlock">Unlock signal</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao">
         <doc:doc>

@@ -257,19 +257,45 @@ register_session (CkSession *session, GDBusConnection *connection)
   lock and unlock are separate functions because we may want
   security policy to be handled separately
 */
-static gboolean
-dbus_lock (ConsoleKitSession     *cksession,
-           GDBusMethodInvocation *context)
+void
+ck_session_lock (CkSession *session)
 {
-        CkSession *session = CK_SESSION (cksession);
+        ConsoleKitSession     *cksession;
 
         TRACE ();
 
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+        g_return_if_fail (CK_IS_SESSION (session));
+
+        cksession = CONSOLE_KIT_SESSION (session);
 
         g_debug ("Emitting lock for session %s", session->priv->id);
         console_kit_session_set_locked_hint (cksession, TRUE);
         console_kit_session_emit_lock (cksession);
+}
+
+void
+ck_session_unlock (CkSession *session)
+{
+        ConsoleKitSession     *cksession;
+
+        TRACE ();
+
+        g_return_if_fail (CK_IS_SESSION (session));
+
+        cksession = CONSOLE_KIT_SESSION (session);
+
+        g_debug ("Emitting unlock for session %s", session->priv->id);
+        console_kit_session_set_locked_hint (cksession, FALSE);
+        console_kit_session_emit_unlock (cksession);
+}
+
+static gboolean
+dbus_lock (ConsoleKitSession     *cksession,
+           GDBusMethodInvocation *context)
+{
+        TRACE ();
+
+        ck_session_lock (CK_SESSION (cksession));
 
         console_kit_session_complete_lock (cksession, context);
         return TRUE;
@@ -279,15 +305,9 @@ static gboolean
 dbus_unlock (ConsoleKitSession     *cksession,
              GDBusMethodInvocation *context)
 {
-        CkSession *session = CK_SESSION (cksession);
-
         TRACE ();
 
-        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
-
-        g_debug ("Emitting unlock for session %s", session->priv->id);
-        console_kit_session_set_locked_hint (cksession, FALSE);
-        console_kit_session_emit_unlock (cksession);
+        ck_session_unlock (CK_SESSION (cksession));
 
         console_kit_session_complete_unlock (cksession, context);
         return TRUE;
