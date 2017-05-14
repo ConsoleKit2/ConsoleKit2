@@ -39,9 +39,18 @@ AM_CFLAGS =							\
 	-I$(srcdir)						\
 	-I$(top_srcdir)/src					\
 	-I$(top_srcdir)/libck-connector				\
-	-U_FORTIFY_SOURCE						\
-	$(CONSOLE_KIT_CFLAGS)					\
-	$(XLIB_CFLAGS)							\
+	$(GLIB_CFLAGS)							\
+	$(GIO_CFLAGS)							\
+	$(GIO_UNIX_CFLAGS)						\
+	$(POLKIT_CFLAGS)					\
+	$(LIBDBUS_CFLAGS)						\
+	$(CGMANAGER_CFLAGS)					\
+	$(LIBUDEV_CFLAGS)					\
+	$(LIBDRM_CFLAGS)					\
+	$(SELINUX_CFLAGS)					\
+	$(LIBEVDEV_CFLAGS)					\
+	$(RBAC_CFLAGS)					\
+	$(LIBX11_CFLAGS)							\
 	$(DISABLE_DEPRECATED_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
@@ -52,11 +61,23 @@ AM_CFLAGS =							\
 	-DLOCALSTATEDIR=\""$(localstatedir)"\" 			\
 	-DRUNDIR=\""$(RUNDIR)"\" 			\
 	-DLOCALEDIR=\"$(localedir)\"		\
-	$(HISTORY_CFLAGS)					\
-	$(WARN_CFLAGS)						\
-	$(DEBUG_CFLAGS)						\
-	$(DBUS_CFLAGS)						\
 	$(NULL)
+
+CONSOLE_KIT_LIBS = \
+	$(CK2_LIBS)			\
+	$(TOOLS_LIBS)		\
+	$(GLIB_LIBS)		\
+	$(GIO_LIBS)			\
+	$(GIO_UNIX_LIBS)	\
+	$(LIBDBUS_LIBS)		\
+	$(SELINUX_LIBS)		\
+	$(LIBEVDEV_LIBS)	\
+	$(POLKIT_LIBS)		\
+	$(RBAC_LIBS)		\
+	$(CGMANAGER_LIBS)	\
+	$(LIBUDEV_LIBS)		\
+	$(LIBDRM_LIBS)		\
+	$(LIBX11_LIBS)
 
 bin_PROGRAMS = \
 	ck-launch-session		\
@@ -93,7 +114,7 @@ ck_history_SOURCES =			\
 	$(NULL)
 
 ck_history_LDADD =			\
-	$(HISTORY_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(Z_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
@@ -103,7 +124,7 @@ ck_log_system_start_SOURCES =		\
 	$(NULL)
 
 ck_log_system_start_LDADD =		\
-	$(HISTORY_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
 
@@ -112,7 +133,7 @@ ck_log_system_restart_SOURCES =		\
 	$(NULL)
 
 ck_log_system_restart_LDADD =		\
-	$(HISTORY_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
 
@@ -121,7 +142,7 @@ ck_log_system_stop_SOURCES =		\
 	$(NULL)
 
 ck_log_system_stop_LDADD =		\
-	$(HISTORY_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(top_builddir)/src/libck-event-log.la	\
 	$(NULL)
 
@@ -137,7 +158,7 @@ ck_collect_session_info_SOURCES =	\
 	$(NULL)
 
 ck_collect_session_info_LDADD =		\
-	$(TOOLS_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(top_builddir)/src/libck.la	\
 	$(NULL)
 
@@ -146,7 +167,7 @@ ck_get_x11_server_pid_SOURCES =		\
 	$(NULL)
 
 ck_get_x11_server_pid_LDADD =		\
-	$(TOOLS_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(XLIB_LIBS)			\
 	$(top_builddir)/src/libck.la	\
 	$(NULL)
@@ -156,7 +177,7 @@ ck_get_x11_display_device_SOURCES =	\
 	$(NULL)
 
 ck_get_x11_display_device_LDADD =	\
-	$(TOOLS_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(top_builddir)/src/libck.la	\
 	$(NULL)
 
@@ -165,7 +186,7 @@ ck_remove_directory_SOURCES =	\
 	$(NULL)
 
 ck_remove_directory_LDADD =		\
-	$(TOOLS_LIBS)			\
+	$(CONSOLE_KIT_LIBS)			\
 	$(top_builddir)/src/libck.la	\
 	$(NULL)
 

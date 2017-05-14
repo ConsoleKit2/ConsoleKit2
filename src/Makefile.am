@@ -9,11 +9,18 @@ SUBDIRS = \
 AM_CFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
-	-U_FORTIFY_SOURCE				\
-	$(CONSOLE_KIT_CFLAGS)					\
+	$(GLIB_CFLAGS)							\
+	$(GIO_CFLAGS)							\
+	$(GIO_UNIX_CFLAGS)						\
 	$(POLKIT_CFLAGS)					\
+	$(LIBDBUS_CFLAGS)						\
 	$(CGMANAGER_CFLAGS)					\
-	$(DISABLE_DEPRECATED_CFLAGS)				\
+	$(LIBUDEV_CFLAGS)					\
+	$(LIBDRM_CFLAGS)					\
+	$(SELINUX_CFLAGS)					\
+	$(LIBEVDEV_CFLAGS)					\
+	$(RBAC_CFLAGS)					\
+	$(LIBX11_CFLAGS)				\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -24,12 +31,23 @@ AM_CFLAGS =							\
 	-DRUNDIR=\""$(RUNDIR)"\" 				\
 	-DCONSOLE_KIT_PID_FILE=\""$(CONSOLE_KIT_PID_FILE)"\"	\
 	-DLOCALEDIR=\"$(localedir)\"		\
-	$(WARN_CFLAGS)						\
-	$(DEBUG_CFLAGS)						\
-	$(DBUS_CFLAGS)						\
-	$(LIBUDEV_CFLAGS)					\
-	$(LIBDRM_CFLAGS)					\
 	$(NULL)
+
+CONSOLE_KIT_LIBS = \
+	$(CK2_LIBS)			\
+	$(GLIB_LIBS)		\
+	$(GIO_LIBS)			\
+	$(GIO_UNIX_LIBS)	\
+	$(LIBDBUS_LIBS)		\
+	$(SELINUX_LIBS)		\
+	$(LIBEVDEV_LIBS)	\
+	$(POLKIT_LIBS)		\
+	$(RBAC_LIBS)		\
+	$(CGMANAGER_LIBS)	\
+	$(LIBUDEV_LIBS)		\
+	$(LIBDRM_LIBS)		\
+	$(LIBX11_LIBS)
+
 
 noinst_LTLIBRARIES =            \
         libck.la		\
@@ -201,13 +219,8 @@ EXTRA_console_kit_daemon_SOURCES = 	\
 	$(NULL)
 
 console_kit_daemon_LDADD =	\
-	$(CONSOLE_KIT_LIBS)	\
-	$(POLKIT_LIBS)		\
-	$(RBAC_LIBS)		\
-	$(CGMANAGER_LIBS)	\
-	$(LIBUDEV_LIBS)		\
-	$(LIBDRM_LIBS)		\
-	libck.la		\
+	$(CONSOLE_KIT_LIBS) \
+	libck.la			\
 	libck-event-log.la	\
 	$(NULL)
 

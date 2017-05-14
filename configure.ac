@@ -1,16 +1,18 @@
 
 AC_COPYRIGHT([Copyright 2014-2017 The ConsoleKit2 Team])
 
-AC_PREREQ([2.50])
+AC_PREREQ([2.60])
 AC_INIT([ConsoleKit2],
         [1.1.1],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
-        [ConsoleKit2])
+        [ConsoleKit2],
+        [https://github.com/ConsoleKit2/ConsoleKit2])
 VERSION_MAJOR=1
 VERSION_MINOR=1
 VERSION_REVISION=1
 
-COPYRIGHT_YEARS="2014 2017"
+
+COPYRIGHT_YEARS="2014 - 2017"
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([autotools])
@@ -19,7 +21,7 @@ AC_CONFIG_SRCDIR([src/ck-manager.c])
 
 AM_INIT_AUTOMAKE([1.9 dist-bzip2 tar-ustar no-dist-gzip])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-AM_MAINTAINER_MODE
+AM_MAINTAINER_MODE([enable])
 
 # for O_NOFOLLOW support
 AC_USE_SYSTEM_EXTENSIONS
@@ -38,6 +40,7 @@ AC_PATH_X
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
+AC_TYPE_UID_T
 
 AC_SUBST(VERSION)
 
@@ -52,11 +55,13 @@ AM_GNU_GETTEXT([external])
 AM_NLS
 
 # Dependencies
-
-DBUS_REQUIRED_VERSION=0.82
-GLIB_REQUIRED_VERSION=2.40
-X11_REQUIRED_VERSION=1.0.0
-POLKIT_REQUIRED_VERSION=0.92
+m4_define([glib_minimum_version], [2.40])
+m4_define([dbus_minimum_version], [0.82])
+m4_define([x11_minimum_version], [1.0.0])
+m4_define([polkit_minimum_version], [0.92])
+m4_define([cgmanager_minimum_version], [0.0.0])
+m4_define([libevdev_minimum_version], [0.2])
+m4_define([selinux_minimum_version], [1.0])
 
 AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/ioctl.h sys/param.h sys/socket.h syslog.h kvm.h \
@@ -76,60 +81,38 @@ AC_CHECK_FILE(/sys/class/tty/tty0/active,
               [AC_DEFINE([HAVE_SYS_VT_SIGNAL], [1], [System has a means of signaling VT changes])],
               [])
 
-AC_TYPE_UID_T
 
-PKG_CHECK_MODULES(CONSOLE_KIT,
-  dbus-1 >= $DBUS_REQUIRED_VERSION
-  gobject-2.0 >= $GLIB_REQUIRED_VERSION
-  gthread-2.0 >= $GLIB_REQUIRED_VERSION
-  gio-unix-2.0 >= $GLIB_REQUIRED_VERSION
-)
+XDT_CHECK_PACKAGE([LIBDBUS], [dbus-1], [dbus_minimum_version])
+XDT_CHECK_PACKAGE([GLIB], [glib-2.0], [glib_minimum_version])
+XDT_CHECK_PACKAGE([GIO], [gio-2.0], [glib_minimum_version])
+XDT_CHECK_PACKAGE([GIO_UNIX], [gio-unix-2.0], [glib_minimum_version])
 
-PKG_CHECK_MODULES([XLIB], [x11])
 
-have_polkit=no
-AC_ARG_ENABLE([polkit],
-  AS_HELP_STRING([--enable-polkit], [Enable PolicyKit support @<:@default=auto@:>@]),
-  [enable_polkit=$enableval],
-  [enable_polkit=auto])
-AS_IF([test "x$enable_polkit" != "xno"], [
-  PKG_CHECK_MODULES([POLKIT], [polkit-gobject-1 >= $POLKIT_REQUIRED_VERSION], [have_polkit=yes], [have_polkit=no])
-  if test "x$enable_polkit"  = "xyes" -a "x$have_polkit" = "xno"; then
-    AC_MSG_ERROR([PolicyKit support explicitly requested but dependencies not found])
-  fi
-])
-AS_IF([test "x$have_polkit" = "xyes"], [
-  AC_DEFINE([HAVE_POLKIT], [], [Define if we have polkit])
-])
-AM_CONDITIONAL([HAVE_POLKIT], [test "x$have_polkit" = "xyes"])
-AC_SUBST(HAVE_POLKIT)
+AC_DEFINE(GLIB_VERSION_MIN_REQUIRED, GLIB_VERSION_2_40, [Ignore post 2.40 deprecations])
+AC_DEFINE(GLIB_VERSION_MAX_ALLOWED, GLIB_VERSION_2_40, [Prevent post 2.40 APIs])
 
-PKG_CHECK_MODULES(LIBDBUS,
-  dbus-1 >= $DBUS_REQUIRED_VERSION
-)
-PKG_CHECK_MODULES(TOOLS,
-  x11 >= $X11_REQUIRED_VERSION
-  glib-2.0 >= $GLIB_REQUIRED_VERSION
-)
 
-PKG_CHECK_MODULES(HISTORY,
-  glib-2.0 >= $GLIB_REQUIRED_VERSION
-)
+# Check for X11 installed
+XDT_CHECK_LIBX11_REQUIRE()
+
+# Check for Polkit/PolicyKit
+XDT_CHECK_OPTIONAL_PACKAGE([POLKIT], [polkit-gobject-1], [polkit_minimum_version],
+                           [polkit], [Enable PolicyKit support @<:@default=auto@:>@])
+
 
 AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
-EXTRA_COMPILE_WARNINGS(yes)
 
 # Solaris requires libresolv for daemon()
 case "$host_os" in
 	solaris*)
-		AC_CHECK_LIB(resolv, daemon, [CONSOLE_KIT_LIBS="$CONSOLE_KIT_LIBS -lresolv"])
+		AC_CHECK_LIB(resolv, daemon, [CK2_LIBS="$CK2_LIBS -lresolv"])
 	;;
 	kfreebsd*-gnu)
 		have_getpeereid=no
 		AC_CHECK_LIB(bsd, getpeereid, have_getpeereid=yes)
 		if test "x$have_getpeereid" = "xyes"; then
-			CONSOLE_KIT_LIBS="${CONSOLE_KIT_LIBS} -lbsd"
+			CK2_LIBS="${CK2_LIBS} -lbsd"
 			TOOLS_LIBS="${TOOLS_LIBS} -lbsd"
 			AC_DEFINE(HAVE_GETPEEREID, [], [Define if we have getpeereid])
 		fi
@@ -288,59 +271,19 @@ AM_CONDITIONAL(HAVE_LINUXPAM, test "x$have_linuxpam" = "xyes")
 
 
 # cgroups - Using the kernel to track processes instead of the cookie
-have_cgmanager=no
-AC_ARG_ENABLE([cgroups],
-  AS_HELP_STRING([--enable-cgroups], [Enable cgroup support @<:@default=auto@:>@]),
-  [enable_cgroups=$enableval],
-  [enable_cgroups=auto])
-AS_IF([test "x$enable_cgroups" != "xno"], [
-  PKG_CHECK_MODULES([CGMANAGER], [libcgmanager libnih >= 1.0.2 libnih-dbus >= 1.0.0], [have_cgmanager=yes], [have_cgmanager=no])
-  if test "x$enable_cgroups"  = "xyes" -a "x$have_cgmanager" = "xno"; then
-    AC_MSG_ERROR([cgroup support explicitly requested but dependencies not found])
-  fi
-])
-AS_IF([test "x$have_cgmanager" = "xyes"], [
-  AC_DEFINE([HAVE_CGMANAGER], [], [Define if we have cgmanager])
-])
-AM_CONDITIONAL([HAVE_CGMANAGER], [test "x$have_cgmanager" = "xyes"])
-AC_SUBST(HAVE_CGMANAGER)
+XDT_CHECK_OPTIONAL_PACKAGE([CGMANAGER], [libcgmanager], [cgmanager_minimum_version],
+    [libcgmanager],
+    [cgmanager - Using the kernel to track processes instead of a session cookie])
 
-# libevdev - for handling VT switching with a session controller
-have_libevdev=no
-AC_ARG_ENABLE([libevdev],
-  AS_HELP_STRING([--enable-libevdev], [Enable evdev support @<:@default=auto@:>@]),
-  [enable_libevdev=$enableval],
-  [enable_libevdev=auto])
-AS_IF([test "x$enable_libevdev" != "xno"], [
-  PKG_CHECK_MODULES([LIBEVDEV], [libevdev], [have_libevdev=yes], [have_libevdev=no])
-  if test "x$enable_libevdev"  = "xyes" -a "x$have_libevdev" = "xno"; then
-    AC_MSG_ERROR([libevdev support explicitly requested but dependencies not found])
-  fi
-])
-AS_IF([test "x$have_libevdev" = "xyes"], [
-  AC_DEFINE([HAVE_LIBEVDEV], [], [Define if we have libevdev])
-])
-AM_CONDITIONAL([HAVE_LIBEVDEV], [test "x$have_libevdev" = "xyes"])
-AC_SUBST(HAVE_LIBEVDEV)
+# libevdev - for device management with a session controller
+XDT_CHECK_OPTIONAL_PACKAGE([LIBEVDEV], [libevdev], [libevdev_minimum_version],
+    [libevdev],
+    [libevdev - for device management with a sessions controller])
 
 # selinux
-have_selinux=no
-AC_ARG_ENABLE([selinux],
-  AS_HELP_STRING([--enable-selinux], [Enable selinux support @<:@default=auto@:>@]),
-  [enable_selinux=$enableval],
-  [enable_selinux=auto])
-AS_IF([test "x$enable_selinux" != "xno"], [
-  PKG_CHECK_MODULES([SELINUX], [libselinux], [have_selinux=yes], [have_selinux=no])
-  if test "x$enable_selinux" = "xyes" -a "x$have_selinux" = "xno"; then
-    AC_MSG_ERROR([selinux support explicitly requested but dependencies not found])
-  fi
-])
-AS_IF([test "x$have_selinux" = "xyes"], [
-  AC_DEFINE([HAVE_SELINUX], [], [Define if we have selinux])
-])
-AM_CONDITIONAL([HAVE_SELINUX], [test "x$have_selinux" = "xyes"])
-AC_SUBST(HAVE_SELINUX)
-AC_SUBST(SELINUX_LIBS)
+XDT_CHECK_OPTIONAL_PACKAGE([SELINUX], [libselinux], [selinux_minimum_version], [libselinux],
+                           [Security-Enhanced Linux support])
+
 
 dnl ------------------------------------------------------------------------------
 dnl udev-acl - apply ACLs for users with local forground sessions
@@ -514,79 +457,22 @@ dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
-# Turn on the additional warnings last, so -Werror doesn't affect other tests.
-
-AC_ARG_ENABLE(more-warnings,
-	[AS_HELP_STRING([--enable-more-warnings],[Maximum compiler warnings])],
-	set_more_warnings="$enableval",[
-        	if test -d $srcdir/.git; then
-        		set_more_warnings=yes
-              	else
-                  	set_more_warnings=no
-              	fi
-        ])
-AC_MSG_CHECKING(for more warnings)
-if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
-        AC_MSG_RESULT(yes)
-        CFLAGS="\
-        -Wall \
-        -Wchar-subscripts -Wmissing-declarations -Wmissing-prototypes \
-        -Wnested-externs -Wpointer-arith \
-        -Wcast-align -Wsign-compare -Wp,-D_FORTIFY_SOURCE=2 \
-        $CFLAGS"
-
-        for option in -Wno-strict-aliasing -Wno-sign-compare; do
-                SAVE_CFLAGS="$CFLAGS"
-                CFLAGS="$CFLAGS $option"
-                AC_MSG_CHECKING([whether gcc understands $option])
-                AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[has_option=yes],[has_option=no])
-                if test $has_option = no; then
-                        CFLAGS="$SAVE_CFLAGS"
-                fi
-                AC_MSG_RESULT($has_option)
-                unset has_option
-                unset SAVE_CFLAGS
-        done
-        unset option
-else
-        AC_MSG_RESULT(no)
-fi
-
-#
 # Enable Debug
-#
-AC_ARG_ENABLE(debug,
-	[AS_HELP_STRING([--enable-debug@<:@=no|yes|full@:>@],[change debugging level @<:@default=@<:@yes@:>@@:>@])],
-	, enable_debug=yes)
-AC_MSG_CHECKING([whether to enable debugging])
-if test "$enable_debug" = "yes"; then
-	DEBUG_CFLAGS="-DG_ENABLE_DEBUG"
-	AC_MSG_RESULT(yes)
-else
-	if test "x$enable_debug" = "xno"; then
-		DEBUG_CFLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
-		AC_MSG_RESULT(no)
-	elif test "$enable_debug" = "full"; then
-		DEBUG_CFLAGS="-DG_ENABLE_DEBUG -DCONSOLEKIT_DEBUGGING"
-		AC_MSG_RESULT(yes)
-	else
-		DEBUG_CFLAGS=
-		AC_MSG_RESULT(yes)
-  	fi
-fi
-AC_SUBST(DEBUG_CFLAGS)
+XDT_FEATURE_DEBUG
+
+# Check for linker optimizations
+XDT_FEATURE_LINKER_OPTS()
 
 # Flags
 
-AC_SUBST(CONSOLE_KIT_CFLAGS)
-AC_SUBST(CONSOLE_KIT_LIBS)
+AC_SUBST(CK2_LIBS)
+AC_SUBST(TOOLS_LIBS)
 
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
 # systemd
-
 AC_ARG_WITH([systemdsystemunitdir],
         AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files]),
         [], [with_systemdsystemunitdir=no])
@@ -653,10 +539,8 @@ echo "
 	source code location:	  ${srcdir}
 	compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
-	debug cflags:	          ${DEBUG_CFLAGS}
+        Debugging support:        $enable_debug
 	build tests:              ${enable_tests}
-        Base libs:                ${CONSOLE_KIT_LIBS}
-        Tools libs:               ${TOOLS_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
 
         dbus-1 system.d dir:      ${DBUS_SYS_DIR}
@@ -664,17 +548,39 @@ echo "
         PAM module dir:           ${PAM_MODULE_DIR}
         Build PAM module:         ${msg_pam_module}
         Build udev-acl:           ${enable_udev_acl}
-	udev support:             ${have_libudev}
-        cgroup support:           ${have_cgmanager}
-        libevdev support:         ${have_libevdev}
-        SELinux support:          ${have_selinux}
-        Build docs:               ${enable_docbook_docs}
-        xinitrc dir:              ${XINITRC_DIR}
+	udev support:             ${have_libudev}"
 
-        PolicyKit support         ${have_polkit}
-        RBAC (Solaris) support:   ${msg_rbac_shutdown}
-"
-if test x${have_polkit} = xno -a x${msg_rbac_shutdown} = xno; then
+if test x"$CGMANAGER_FOUND" = x"yes"; then
+echo "        cgroup support            yes"
+else
+echo "        cgroup support            no"
+fi
+
+if test x"$LIBEVDEV_FOUND" = x"yes"; then
+echo "        libevdev support          yes"
+else
+echo "        libevdev support          no"
+fi
+
+if test x"$POLKIT_FOUND" = x"yes"; then
+echo "        SELinux support:          yes"
+else
+echo "        SELinux support:          no"
+fi
+
+echo "
+        Build docs:               ${enable_docbook_docs}
+        xinitrc dir:              ${XINITRC_DIR}"
+
+if test x"$POLKIT_FOUND" = x"yes"; then
+echo "        PolicyKit support         yes"
+else
+echo "        PolicyKit support         no"
+fi
+
+echo "        RBAC (Solaris) support:   ${msg_rbac_shutdown}"
+
+if test x"$POLKIT_FOUND" != x"yes" -a x${msg_rbac_shutdown} = xno; then
    echo "WARNING: PolicyKit and RBAC are disabled. You need to manually edit the ConsoleKit.conf"
    echo "         file to lock down the service. Failure to do so may be"
    echo "         a huge SECURITY HOLE. I repeat: YOU NEED TO EDIT THE FILE"
