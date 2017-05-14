@@ -125,6 +125,10 @@ gboolean            ck_seat_can_activate_sessions (CkSeat                *seat,
                                                    gboolean              *can_activate,
                                                    GError               **error);
 
+gpointer            ck_seat_activate_session      (CkSeat                *seat,
+                                                   CkSession             *session,
+                                                   GDBusMethodInvocation *context);
+
 G_END_DECLS
 
 #endif /* __CK_SEAT_H */

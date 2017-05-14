@@ -3683,6 +3683,99 @@ dbus_get_sessions_for_user (ConsoleKitManager     *ckmanager,
 }
 
 static gboolean
+dbus_activate_session_on_seat (ConsoleKitManager *ckmanager,
+                               GDBusMethodInvocation *context,
+                               const gchar *arg_session_id,
+                               const gchar *arg_seat_id)
+{
+        CkManager *manager;
+        gpointer session = NULL;
+        gpointer seat = NULL;
+        GError  *error;
+
+        TRACE ();
+
+        manager = CK_MANAGER (ckmanager);
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        if (arg_session_id == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid session"));
+                return TRUE;
+        }
+
+        if (arg_seat_id == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid seat"));
+                return TRUE;
+        }
+
+        session = g_hash_table_lookup (manager->priv->sessions, arg_session_id);
+
+        if (!CK_IS_SESSION (session)) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid session"));
+                return TRUE;
+        }
+
+        seat = g_hash_table_lookup (manager->priv->seats, arg_seat_id);
+
+        if (!CK_IS_SEAT (seat)) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid seat"));
+                return TRUE;
+        }
+
+        error = ck_seat_activate_session (seat, session, NULL);
+
+        if (error != NULL) {
+                throw_error (context, CK_MANAGER_ERROR_FAILED, error->message);
+                g_clear_error (&error);
+                return TRUE;
+        }
+
+        console_kit_manager_complete_activate_session_on_seat (ckmanager, context);
+        return TRUE;
+}
+
+static gboolean
+dbus_activate_session (ConsoleKitManager *ckmanager,
+                       GDBusMethodInvocation *context,
+                       const gchar *arg_session_id)
+{
+        CkManager *manager;
+        gpointer session = NULL;
+        gchar   *seat_id = NULL;
+
+        TRACE ();
+
+        manager = CK_MANAGER (ckmanager);
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        if (arg_session_id == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid session"));
+                return TRUE;
+        }
+
+        session = g_hash_table_lookup (manager->priv->sessions, arg_session_id);
+
+        if (!CK_IS_SESSION (session)) {
+                throw_error (context, CK_MANAGER_ERROR_INVALID_INPUT, _("Invalid session"));
+                return TRUE;
+        }
+
+        ck_session_get_seat_id (CK_SESSION (session), &seat_id, NULL);
+
+        if (seat_id == NULL) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SEATS, _("Session is not attached to a seat"));
+                return TRUE;
+        }
+
+        dbus_activate_session_on_seat (ckmanager, context, arg_session_id, seat_id);
+
+        g_free (seat_id);
+        return TRUE;
+}
+
+static gboolean
 dbus_get_seats (ConsoleKitManager     *ckmanager,
                 GDBusMethodInvocation *context)
 {
@@ -3988,4 +4081,6 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_open_session_with_parameters = dbus_open_session_with_parameters;
         iface->handle_get_system_idle_hint         = dbus_get_system_idle_hint;
         iface->handle_get_system_idle_since_hint   = dbus_get_system_idle_since_hint;
+        iface->handle_activate_session             = dbus_activate_session;
+        iface->handle_activate_session_on_seat     = dbus_activate_session_on_seat;
 }

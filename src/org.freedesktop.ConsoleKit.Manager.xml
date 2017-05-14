@@ -454,6 +454,44 @@
       </doc:doc>
     </method>
 
+    <method name="ActivateSession">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="session_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The session to activate</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method is used to activate the specified session.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INVALID_INPUT, CK_MANAGER_ERROR_NO_SEATS, CK_MANAGER_ERROR_GENERAL</doc:para>
+          <doc:para>Since 1.2.0</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
+    <method name="ActivateSessionOnSeat">
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <arg name="session_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The session to activate</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="seat_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The seat to activate the session on</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>This method is used to activate the specified session as
+          as long as it's on the seat_id.</doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_INVALID_INPUT, CK_MANAGER_ERROR_GENERAL</doc:para>
+          <doc:para>Since 1.2.0</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao">
         <doc:doc>

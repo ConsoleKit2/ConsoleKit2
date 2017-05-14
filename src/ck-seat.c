@@ -247,18 +247,22 @@ activated_cb (CkVtMonitor    *vt_monitor,
               ActivateData   *adata)
 {
         if (adata->num == num) {
-                g_dbus_method_invocation_return_value (adata->context, g_variant_new_boolean (TRUE));
+                if (adata->context != NULL) {
+                        g_dbus_method_invocation_return_value (adata->context, g_variant_new_boolean (TRUE));
+                }
         } else {
-                throw_error (adata->context, CK_SEAT_ERROR_GENERAL, _("Another session was activated while waiting"));
+                if (adata->context != NULL) {
+                        throw_error (adata->context, CK_SEAT_ERROR_GENERAL, _("Another session was activated while waiting"));
+                }
         }
 
         g_signal_handler_disconnect (vt_monitor, adata->handler_id);
 }
 
-static gpointer
-_seat_activate_session (CkSeat                *seat,
-                        CkSession             *session,
-                        GDBusMethodInvocation *context)
+gpointer
+ck_seat_activate_session (CkSeat                *seat,
+                          CkSession             *session,
+                          GDBusMethodInvocation *context)
 {
         gboolean      res;
         gboolean      ret;
@@ -378,7 +382,7 @@ dbus_activate_session (ConsoleKitSeat        *ckseat,
                 session = g_hash_table_lookup (seat->priv->sessions, ssid);
         }
 
-        error = _seat_activate_session (seat, session, context);
+        error = ck_seat_activate_session (seat, session, context);
 
         if (error != NULL) {
                 throw_error (context, error->code, error->message);
@@ -699,7 +703,7 @@ session_activate (CkSession             *session,
 {
         TRACE ();
 
-        return _seat_activate_session (seat, session, context);
+        return ck_seat_activate_session (seat, session, context);
 
 }
 
