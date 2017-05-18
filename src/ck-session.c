@@ -250,6 +250,9 @@ register_session (CkSession *session, GDBusConnection *connection)
                 g_error_free (error);
         }
 
+        /* default to unspecified for the session type on startup */
+        console_kit_session_set_session_type (CONSOLE_KIT_SESSION (session), "unspecified");
+
         return TRUE;
 }
 
@@ -526,8 +529,8 @@ dbus_get_session_type (ConsoleKitSession     *cksession,
         TRACE ();
 
         if (session_type == NULL) {
-                /* GDBus/GVariant doesn't like NULL strings */
-                session_type = "";
+                /* default to unspecified */
+                session_type = "unspecified";
         }
 
         console_kit_session_complete_get_session_type (cksession, context, session_type);

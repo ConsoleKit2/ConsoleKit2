@@ -45,10 +45,13 @@
       </arg>
       <doc:doc>
         <doc:description>
-          <doc:para>Returns the type of the session.</doc:para>
-          <doc:para>Warning: we haven't yet defined the allowed values for this property.
-          It is probably best to avoid this until we do.
-          </doc:para>
+          <doc:para>Returns the display type of the provided session. The following type may be returned:</doc:para>
+          <doc:para>"x11"         - An X11/Xorg based session</doc:para>
+          <doc:para>"wayland"     - A Wayland based session</doc:para>
+          <doc:para>"tty"         - A text console based session</doc:para>
+          <doc:para>"mir"         - A session using the Mir display server</doc:para>
+          <doc:para>"unspecified" - Unknown session type.</doc:para>
+          <doc:para>Note: Additional types may be added in the future.</doc:para>
         </doc:description>
         <doc:seealso><doc:ref type="property" to="Session:session-type">session-type</doc:ref></doc:seealso>
       </doc:doc>
@@ -546,8 +549,7 @@
       <doc:doc>
         <doc:description>
           <doc:para>Emitted in response to a call to the <doc:ref type="method" to="Session.Unlock">Unlock()</doc:ref> method.</doc:para>
-          <doc:para>It is intended that the screensaver for the session should unlock the screen in response to this signal.
-                    Which may involve showing the password unlock dialog, depending on the screensaver policy.</doc:para>
+          <doc:para>It is intended that the screensaver for the session should unlock the screen in response to this signal.</doc:para>
         </doc:description>
       </doc:doc>
     </signal>
