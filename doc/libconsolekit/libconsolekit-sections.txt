@@ -8,11 +8,13 @@ lib_consolekit_seat_get_sessions
 lib_consolekit_seat_can_multi_session
 lib_consolekit_session_is_active
 lib_consolekit_session_is_remote
+lib_consolekit_session_get_class
 lib_consolekit_session_get_uid
 lib_consolekit_session_get_seat
 lib_consolekit_session_get_display
 lib_consolekit_session_get_remote_host
 lib_consolekit_session_get_tty
+lib_consolekit_session_get_type
 lib_consolekit_session_get_vt
 lib_consolekit_pid_get_session
 <SUBSECTION Standard>
@@ -24,5 +26,4 @@ LIB_IS_CONSOLEKIT_CLASS
 LIB_TYPE_CONSOLEKIT
 LibConsoleKit
 lib_consolekit_get_type
-lib_consolekit_session_get_type
 </SECTION>

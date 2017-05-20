@@ -840,6 +840,98 @@ lib_consolekit_session_get_type (LibConsoleKit *ck,
 }
 
 /**
+ * lib_consolekit_session_get_class:
+ * @ck            : A #LibConsoleKit
+ * @session       : The session to query
+ * @session_class : (out) (transfer full): The session's class
+ * @error         : (out) (allow-none) (transfer full): The error message if something failed
+ *
+ * Returns the class of the provided session. The following classes
+ * may be returned:
+ * "user"        - A normal user session, the default
+ * "greeter"     - Display Manager pseudo session
+ * "lock-screen" - Screensaver based session
+ * "background"  - A long running background process that requires its own session
+ *
+ * Note: Additional classes may be added in the future. Free the session_class
+ * string with g_free.
+ *
+ * Return value: TRUE on Success.
+ *
+ * Since: 1.0
+ **/
+gboolean
+lib_consolekit_session_get_class (LibConsoleKit *ck,
+                                  const gchar *session,
+                                  gchar **session_class,
+                                  GError **error)
+{
+        GDBusProxy *session_proxy = NULL;
+        GVariant   *variant = NULL;
+
+        if (ck == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Invalid LibConsoleKit");
+                return FALSE;
+        }
+
+        if (session == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Session must not be NULL");
+                return FALSE;
+        }
+
+        if (session_class == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "session_class must not be NULL");
+                return FALSE;
+        }
+
+        /* connect to the ConsoleKit session */
+        session_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                                       NULL,
+                                                       CK_NAME,
+                                                       session,
+                                                       CK_SESSION_NAME,
+                                                       NULL,
+                                                       error);
+
+        /* failed to connect */
+        if (session_proxy == NULL) {
+                return FALSE;
+        }
+
+        variant = g_dbus_proxy_call_sync (session_proxy,
+                                          "GetSessionClass",
+                                          g_variant_new ("()"),
+                                          G_DBUS_CALL_FLAGS_NONE,
+                                          -1,
+                                          NULL,
+                                          error);
+
+        /* We're done with the session proxy */
+        g_clear_object(&session_proxy);
+
+        if (variant == NULL) {
+                return FALSE;
+        }
+
+        g_variant_get_child (variant, 0, "s", session_class);
+
+        g_variant_unref (variant);
+        variant = NULL;
+
+        return TRUE;
+}
+
+/**
  * lib_consolekit_session_get_display:
  * @ck      : A #LibConsoleKit
  * @session : The session to query

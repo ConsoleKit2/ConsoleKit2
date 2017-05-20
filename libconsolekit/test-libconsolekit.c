@@ -232,6 +232,24 @@ test_session_get_type (LibConsoleKit *ck,
 }
 
 static void
+test_session_get_class (LibConsoleKit *ck,
+                        const gchar *session)
+{
+    gchar *session_class = NULL;
+    GError *error = NULL;
+
+    lib_consolekit_session_get_class (ck, session, &session_class, &error);
+    if (!error) {
+        g_print ("lib_consolekit_session_get_class (session %s) : session class %s\n", session, session_class);
+    } else {
+        g_print ("lib_consolekit_session_get_class (session %s) : error %s\n", session, error->message);
+        g_clear_error (&error);
+    }
+
+    g_free (session_class);
+}
+
+static void
 test_session_get_tty (LibConsoleKit *ck,
                       const gchar *session)
 {
@@ -351,6 +369,8 @@ main (int   argc,
     test_session_get_remote_host (ck, opt_session);
 
     test_session_get_type (ck, opt_session);
+
+    test_session_get_class (ck, opt_session);
 
     test_session_get_tty (ck, opt_session);
 

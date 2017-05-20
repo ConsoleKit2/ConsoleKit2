@@ -106,6 +106,11 @@ gboolean        lib_consolekit_session_get_type        (LibConsoleKit *ck,
                                                         gchar **type,
                                                         GError **error);
 
+gboolean        lib_consolekit_session_get_class       (LibConsoleKit *ck,
+                                                        const gchar *session,
+                                                        gchar **session_class,
+                                                        GError **error);
+
 gboolean        lib_consolekit_session_get_display     (LibConsoleKit *ck,
                                                         const gchar *session,
                                                         gchar **display,

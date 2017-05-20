@@ -197,7 +197,7 @@ throw_error (GDBusMethodInvocation *context,
 static gboolean
 register_session (CkSession *session, GDBusConnection *connection)
 {
-        GError   *error = NULL;
+        GError *error = NULL;
 
         g_debug ("register session");
 
@@ -249,7 +249,14 @@ register_session (CkSession *session, GDBusConnection *connection)
         }
 
         /* default to unspecified for the session type on startup */
-        console_kit_session_set_session_type (CONSOLE_KIT_SESSION (session), "unspecified");
+        if (console_kit_session_get_session_type (CONSOLE_KIT_SESSION (session)) == NULL) {
+                console_kit_session_set_session_type (CONSOLE_KIT_SESSION (session), "unspecified");
+        }
+
+        /* default to user for the session class on startup */
+        if (console_kit_session_get_session_class (CONSOLE_KIT_SESSION (session)) == NULL) {
+                console_kit_session_set_session_class (CONSOLE_KIT_SESSION (session), "user");
+        }
 
         return TRUE;
 }
@@ -532,6 +539,23 @@ dbus_get_session_type (ConsoleKitSession     *cksession,
         }
 
         console_kit_session_complete_get_session_type (cksession, context, session_type);
+        return TRUE;
+}
+
+static gboolean
+dbus_get_session_class (ConsoleKitSession     *cksession,
+                        GDBusMethodInvocation *context)
+{
+        const gchar *session_class = console_kit_session_get_session_class (cksession);
+
+        TRACE ();
+
+        if (session_class == NULL) {
+                /* default to user */
+                session_class = "user";
+        }
+
+        console_kit_session_complete_get_session_class (cksession, context, session_class);
         return TRUE;
 }
 
@@ -1988,6 +2012,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_login_session_id   = dbus_get_login_session_id;
         iface->handle_get_vtnr               = dbus_get_vtnr;
         iface->handle_get_session_type       = dbus_get_session_type;
+        iface->handle_get_session_class      = dbus_get_session_class;
         iface->handle_get_x11_display_device = dbus_get_x11_display_device;
         iface->handle_get_display_device     = dbus_get_display_device;
         iface->handle_get_x11_display        = dbus_get_x11_display;
