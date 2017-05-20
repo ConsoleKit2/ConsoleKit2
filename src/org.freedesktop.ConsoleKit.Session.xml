@@ -162,6 +162,20 @@
         </doc:description>
       </doc:doc>
     </method>
+    <method name="GetVTNr">
+       <arg name="VTNr" direction="out" type="u">
+        <doc:doc>
+          <doc:summary>The virtual terminal the session runs on, if any, 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description><doc:para>Returns the value of the virtual terminal that the
+        underlying session runs on. If the seat doesn't support VTs, then this will always
+        return 0.</doc:para>
+        <doc:para>Since 1.1.2</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
     <method name="IsActive">
       <arg name="active" direction="out" type="b">
         <doc:doc>

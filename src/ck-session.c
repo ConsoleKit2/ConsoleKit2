@@ -1279,6 +1279,16 @@ dbus_get_login_session_id (ConsoleKitSession     *cksession,
         return TRUE;
 }
 
+static gboolean
+dbus_get_vtnr (ConsoleKitSession     *cksession,
+               GDBusMethodInvocation *context)
+{
+        TRACE ();
+
+        console_kit_session_complete_get_vtnr (cksession, context, console_kit_session_get_vtnr (cksession));
+        return TRUE;
+}
+
 gboolean
 ck_session_set_login_session_id (CkSession      *session,
                                  const char     *login_session_id,
@@ -1978,6 +1988,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_unix_user          = dbus_get_unix_user;
         iface->handle_get_seat_id            = dbus_get_seat_id;
         iface->handle_get_login_session_id   = dbus_get_login_session_id;
+        iface->handle_get_vtnr               = dbus_get_vtnr;
         iface->handle_get_session_type       = dbus_get_session_type;
         iface->handle_get_x11_display_device = dbus_get_x11_display_device;
         iface->handle_get_display_device     = dbus_get_display_device;
