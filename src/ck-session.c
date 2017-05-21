@@ -258,6 +258,11 @@ register_session (CkSession *session, GDBusConnection *connection)
                 console_kit_session_set_session_class (CONSOLE_KIT_SESSION (session), "user");
         }
 
+        /* default to online for the session state on startup */
+        if (console_kit_session_get_session_class (CONSOLE_KIT_SESSION (session)) == NULL) {
+                console_kit_session_set_session_class (CONSOLE_KIT_SESSION (session), "online");
+        }
+
         return TRUE;
 }
 
@@ -559,6 +564,23 @@ dbus_get_session_class (ConsoleKitSession     *cksession,
         return TRUE;
 }
 
+static gboolean
+dbus_get_session_state (ConsoleKitSession     *cksession,
+                        GDBusMethodInvocation *context)
+{
+        const gchar *state = console_kit_session_get_session_state (cksession);
+
+        TRACE ();
+
+        if (state == NULL) {
+                /* default to online, but this shouldn't really happen */
+                state = "online";
+        }
+
+        console_kit_session_complete_get_session_state (cksession, context, state);
+        return TRUE;
+}
+
 static void
 ck_session_print_list_size (CkSession *session)
 {
@@ -593,6 +615,7 @@ ck_session_check_paused_devices (CkSession *session)
 
                 console_kit_session_set_active (cksession, FALSE);
                 console_kit_session_emit_active_changed (cksession, FALSE);
+                console_kit_session_set_session_state (cksession, "online");
         }
 
         if (session->priv->pause_devices_timer != 0) {
@@ -663,6 +686,7 @@ ck_session_pause_all_devices (CkSession *session,
 
                 console_kit_session_set_active (cksession, FALSE);
                 console_kit_session_emit_active_changed (cksession, FALSE);
+                console_kit_session_set_session_state (cksession, "online");
         } else {
                 session->priv->pause_devices_timer = g_timeout_add_seconds (3, (GSourceFunc)force_pause_devices, session);
         }
@@ -728,6 +752,7 @@ ck_session_resume_all_devices (CkSession *session)
                 g_debug ("no session controller: marking session active");
                 console_kit_session_set_active (cksession, TRUE);
                 console_kit_session_emit_active_changed (cksession, TRUE);
+                console_kit_session_set_session_state (cksession, "active");
                 return;
         }
 
@@ -789,6 +814,7 @@ ck_session_resume_all_devices (CkSession *session)
         g_debug ("marking session active");
         console_kit_session_set_active (cksession, TRUE);
         console_kit_session_emit_active_changed (cksession, TRUE);
+        console_kit_session_set_session_state (cksession, "active");
 }
 
 gboolean
@@ -2013,6 +2039,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_vtnr               = dbus_get_vtnr;
         iface->handle_get_session_type       = dbus_get_session_type;
         iface->handle_get_session_class      = dbus_get_session_class;
+        iface->handle_get_session_state      = dbus_get_session_state;
         iface->handle_get_x11_display_device = dbus_get_x11_display_device;
         iface->handle_get_display_device     = dbus_get_display_device;
         iface->handle_get_x11_display        = dbus_get_x11_display;

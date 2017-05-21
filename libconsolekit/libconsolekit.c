@@ -932,6 +932,97 @@ lib_consolekit_session_get_class (LibConsoleKit *ck,
 }
 
 /**
+ * lib_consolekit_session_get_state:
+ * @ck            : A #LibConsoleKit
+ * @session       : The session to query
+ * @state         : (out) (transfer full): The session's state
+ * @error         : (out) (allow-none) (transfer full): The error message if something failed
+ *
+ * Returns the current state of the provided session. The following states
+ * may be returned:
+ * "online"      - Session is logged in but not active
+ * "active"      - Session is logged in and active
+ * "closing"     - Session is in the process of shutting down
+ *
+ * Note: Additional states may be added in the future. Free the state
+ * string with g_free.
+ *
+ * Return value: TRUE on Success.
+ *
+ * Since: 1.0
+ **/
+gboolean
+lib_consolekit_session_get_state (LibConsoleKit *ck,
+                                  const gchar *session,
+                                  gchar **state,
+                                  GError **error)
+{
+        GDBusProxy *session_proxy = NULL;
+        GVariant   *variant = NULL;
+
+        if (ck == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Invalid LibConsoleKit");
+                return FALSE;
+        }
+
+        if (session == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Session must not be NULL");
+                return FALSE;
+        }
+
+        if (state == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "state must not be NULL");
+                return FALSE;
+        }
+
+        /* connect to the ConsoleKit session */
+        session_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                                       NULL,
+                                                       CK_NAME,
+                                                       session,
+                                                       CK_SESSION_NAME,
+                                                       NULL,
+                                                       error);
+
+        /* failed to connect */
+        if (session_proxy == NULL) {
+                return FALSE;
+        }
+
+        variant = g_dbus_proxy_call_sync (session_proxy,
+                                          "GetSessionState",
+                                          g_variant_new ("()"),
+                                          G_DBUS_CALL_FLAGS_NONE,
+                                          -1,
+                                          NULL,
+                                          error);
+
+        /* We're done with the session proxy */
+        g_clear_object(&session_proxy);
+
+        if (variant == NULL) {
+                return FALSE;
+        }
+
+        g_variant_get_child (variant, 0, "s", state);
+
+        g_variant_unref (variant);
+        variant = NULL;
+
+        return TRUE;
+}
+
+/**
  * lib_consolekit_session_get_display:
  * @ck      : A #LibConsoleKit
  * @session : The session to query
@@ -1183,7 +1274,7 @@ lib_consolekit_session_get_tty (LibConsoleKit *ck,
 
         /* We're not running X11, try for just the display device */
         if (strlen (*tty) == 0) {
-                g_free (tty);
+                g_free (*tty);
 
                 variant = g_dbus_proxy_call_sync (session_proxy,
                                                   "GetDisplayDevice",

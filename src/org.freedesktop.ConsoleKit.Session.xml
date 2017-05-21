@@ -64,7 +64,7 @@
       </arg>
       <doc:doc>
         <doc:description>
-          <doc:para>Returns the display type of the provided session. The following type may be returned:</doc:para>
+          <doc:para>Returns the display type of the provided session. The following classes may be returned:</doc:para>
           <doc:para>"user"        - A normal user session, the default</doc:para>
           <doc:para>"greeter"     - Display Manager pseudo session</doc:para>
           <doc:para>"lock-screen" - Screensaver based session</doc:para>
@@ -73,6 +73,24 @@
           <doc:para>Since 1.1.2</doc:para>
         </doc:description>
         <doc:seealso><doc:ref type="property" to="Session:session-class">session-class</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+    <method name="GetSessionState">
+      <arg name="type" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Session state</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Returns the current state of the session. The following states may be returned:</doc:para>
+          <doc:para>"online"    - Session is logged in but not active</doc:para>
+          <doc:para>"active"    - Session is logged in and active</doc:para>
+          <doc:para>"closing"   - Session is in the process of shutting down</doc:para>
+          <doc:para>Note: Additional classes may be added in the future.</doc:para>
+          <doc:para>Since 1.1.2</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="property" to="Session:session-state">session-state</doc:ref></doc:seealso>
       </doc:doc>
     </method>
     <method name="GetUser">
@@ -610,17 +628,24 @@
         </doc:description>
       </doc:doc>
     </property>
-    <property name="session-type" type="s" access="readwrite">
+    <property name="session-type" type="s" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>The type of the session.</doc:para>
         </doc:description>
       </doc:doc>
     </property>
-    <property name="session-class" type="s" access="readwrite">
+    <property name="session-class" type="s" access="read">
       <doc:doc>
         <doc:description>
           <doc:para>The class of the session.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+    <property name="session-state" type="s" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The state of the session.</doc:para>
         </doc:description>
       </doc:doc>
     </property>

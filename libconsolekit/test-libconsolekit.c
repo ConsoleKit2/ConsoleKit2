@@ -250,6 +250,24 @@ test_session_get_class (LibConsoleKit *ck,
 }
 
 static void
+test_session_get_state (LibConsoleKit *ck,
+                        const gchar *session)
+{
+    gchar *state = NULL;
+    GError *error = NULL;
+
+    lib_consolekit_session_get_state (ck, session, &state, &error);
+    if (!error) {
+        g_print ("lib_consolekit_session_get_state (session %s) : session state %s\n", session, state);
+    } else {
+        g_print ("lib_consolekit_session_get_state (session %s) : error %s\n", session, error->message);
+        g_clear_error (&error);
+    }
+
+    g_free (state);
+}
+
+static void
 test_session_get_tty (LibConsoleKit *ck,
                       const gchar *session)
 {
@@ -371,6 +389,8 @@ main (int   argc,
     test_session_get_type (ck, opt_session);
 
     test_session_get_class (ck, opt_session);
+
+    test_session_get_state (ck, opt_session);
 
     test_session_get_tty (ck, opt_session);
 

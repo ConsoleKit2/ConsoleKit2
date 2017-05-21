@@ -84,6 +84,8 @@ doc/libconsolekit/setup-build.stamp
 doc/libconsolekit/libconsolekit-scan.c
 doc/libconsolekit/libconsolekit-decl.txt
 doc/libconsolekit/libconsolekit-decl-list.txt
+doc/libconsolekit/libconsolekit-decl-list.txt.bak
+doc/libconsolekit/libconsolekit-decl.txt.bak
 doc/libconsolekit/.libs/
 doc/libconsolekit/gtkdoc-check.log
 doc/libconsolekit/gtkdoc-check.test
