@@ -8,5 +8,5 @@ Name: libconsolekit
 Description: Helper library to query various ConsoleKit properties
 Version: @VERSION@
 Requires: glib-2.0 gio-2.0 gobject-2.0
-Libs: -L${libdir} -llibconsolekit-1
+Libs: -L${libdir} -lconsolekit
 Cflags: -I${includedir}/ConsoleKit/
