@@ -170,6 +170,8 @@ list_session (GDBusConnection *connection,
         char       *sid;
         char       *lsid;
         char       *session_type;
+        char       *session_class;
+        char       *session_state;
         char       *x11_display;
         char       *x11_display_device;
         char       *display_device;
@@ -201,6 +203,8 @@ list_session (GDBusConnection *connection,
         sid = NULL;
         lsid = NULL;
         session_type = NULL;
+        session_class = NULL;
+        session_state = NULL;
         x11_display = NULL;
         x11_display_device = NULL;
         display_device = NULL;
@@ -213,6 +217,8 @@ list_session (GDBusConnection *connection,
         get_path (proxy, "GetSeatId", &sid);
         get_string (proxy, "GetLoginSessionId", &lsid);
         get_string (proxy, "GetSessionType", &session_type);
+        get_string (proxy, "GetSessionClass", &session_class);
+        get_string (proxy, "GetSessionState", &session_state);
         get_string (proxy, "GetX11Display", &x11_display);
         get_string (proxy, "GetX11DisplayDevice", &x11_display_device);
         get_string (proxy, "GetDisplayDevice", &display_device);
@@ -236,16 +242,29 @@ list_session (GDBusConnection *connection,
                 short_ssid = ssid + strlen (CK_PATH) + 1;
         }
 
-        printf ("%s:\n\tunix-user = '%d'\n\trealname = '%s'\n\tseat = '%s'\n"
-                "\tsession-type = '%s'\n\tactive = %s\n\tx11-display = '%s'\n"
-                "\tx11-display-device = '%s'\n\tdisplay-device = '%s'\n"
-                "\tremote-host-name = '%s'\n\tis-local = %s\n\ton-since = '%s'\n"
-                "\tlogin-session-id = '%s'\n\tXDG_RUNTIME_DIR = '%s'",
+        printf ("%s:\n"
+                "\tunix-user = '%d'\n"
+                "\trealname = '%s'\n"
+                "\tseat = '%s'\n"
+                "\tsession-type = '%s'\n"
+                "\tsession-class = '%s'\n"
+                "\tsession-state = '%s'\n"
+                "\tactive = %s\n"
+                "\tx11-display = '%s'\n"
+                "\tx11-display-device = '%s'\n"
+                "\tdisplay-device = '%s'\n"
+                "\tremote-host-name = '%s'\n"
+                "\tis-local = %s\n"
+                "\ton-since = '%s'\n"
+                "\tlogin-session-id = '%s'\n"
+                "\tXDG_RUNTIME_DIR = '%s'",
                 short_ssid,
                 uid,
                 realname,
                 short_sid,
                 session_type,
+                session_class,
+                session_state,
                 is_active ? "TRUE" : "FALSE",
                 x11_display,
                 x11_display_device,
@@ -270,6 +289,8 @@ list_session (GDBusConnection *connection,
         g_free (sid);
         g_free (lsid);
         g_free (session_type);
+        g_free (session_class);
+        g_free (session_state);
         g_free (x11_display);
         g_free (x11_display_device);
         g_free (display_device);
