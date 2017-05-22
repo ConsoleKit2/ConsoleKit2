@@ -101,8 +101,32 @@ The ID for the ConsoleKit Seat associated with the session\&.
 \fBsession-type\fR
 .in +24n
 .rt
-The ConsoleKit session type\&.  This value is specified by the "Type"
-key in the ConsoleKit session configuration file associated with this session\&.
+The ConsoleKit session type\&.  This value is set by the process that opens
+the session and will usually be set to the display protocol used, i\&.e\&.
+x11, wayland, tty, mir, or unspecified\&.
+.sp
+.sp 1
+.in -24n
+.sp
+.ne 2
+.mk
+\fBsession-class\fR
+.in +24n
+.rt
+The ConsoleKit session class\&.  This value is set by the process that opens
+the session and will usually be set to user for normal sessions or
+greeter, lock-screen, or background for special purpose sessions\&.
+.sp
+.sp 1
+.in -24n
+.sp
+.ne 2
+.mk
+\fBsession-state\fR
+.in +24n
+.rt
+The current state of the ConsoleKit session\&. It is managed by ConsoleKit
+and will either return online, active, or closing\&.
 .sp
 .sp 1
 .in -24n
@@ -180,6 +204,16 @@ The display device associated with the session\&.
 .rt
 If the session is not local, the value is the host name associated with the
 session\&.  If the session is local, the value is empty\&.
+.sp
+.sp 1
+.in -24n
+.sp
+.ne 2
+.mk
+\fBVTNr\fR
+.in +24n
+.rt
+The virtual terminal the ConsoleKit session is on, if any\&.
 .sp
 .sp 1
 .in -24n
