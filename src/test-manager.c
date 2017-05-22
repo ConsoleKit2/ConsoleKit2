@@ -157,6 +157,10 @@ validate_session (const gchar *path)
 
     print_reply (session, "GetSessionType");
 
+    print_reply (session, "GetSessionClass");
+
+    print_reply (session, "GetSessionState");
+
     print_reply (session, "GetUser");
 
     print_reply (session, "GetUnixUser");
@@ -166,6 +170,8 @@ validate_session (const gchar *path)
     print_reply (session, "GetX11DisplayDevice");
 
     print_reply (session, "GetDisplayDevice");
+
+    print_reply (session, "GetVTNr");
 
     print_reply (session, "GetRemoteHostName");
 
@@ -207,7 +213,8 @@ open_print_and_test_session (GDBusProxy *proxy, const gchar *method)
     g_variant_builder_init (&ck_parameters, G_VARIANT_TYPE ("(a(sv))"));
     g_variant_builder_open (&ck_parameters, G_VARIANT_TYPE ("a(sv)"));
     g_variant_builder_add (&ck_parameters, "(sv)", "unix-user", g_variant_new_int32 (9000));
-    g_variant_builder_add (&ck_parameters, "(sv)", "session-type", g_variant_new_string ("LoginWindow"));
+    g_variant_builder_add (&ck_parameters, "(sv)", "session-type", g_variant_new_string ("tty"));
+    g_variant_builder_add (&ck_parameters, "(sv)", "session-class", g_variant_new_string ("greeter"));
     g_variant_builder_add (&ck_parameters, "(sv)", "x11-display", g_variant_new_string (":0.0"));
     g_variant_builder_add (&ck_parameters, "(sv)", "x11-display-device", g_variant_new_string ("/dev/tty15"));
     g_variant_builder_add (&ck_parameters, "(sv)", "is-local", g_variant_new_boolean (TRUE));

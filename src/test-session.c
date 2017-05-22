@@ -109,6 +109,10 @@ validate_stuff (const gchar *path)
 
     print_reply (session, "GetSessionType");
 
+    print_reply (session, "GetSessionClass");
+
+    print_reply (session, "GetSessionState");
+
     print_reply (session, "GetUser");
 
     print_reply (session, "GetUnixUser");
@@ -118,6 +122,8 @@ validate_stuff (const gchar *path)
     print_reply (session, "GetX11DisplayDevice");
 
     print_reply (session, "GetDisplayDevice");
+
+    print_reply (session, "GetVTNr");
 
     print_reply (session, "GetRemoteHostName");
 
