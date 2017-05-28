@@ -89,7 +89,7 @@ AC_HELP_STRING([--disable-debug], [Include no debugging support]),
     fi
 
     if test x"$enable_debug" = x"full"; then
-      AC_DEFINE([DEBUG_TRACE], [1], [Define for tracing support])
+      AC_DEFINE([CONSOLEKIT_DEBUGGING], [1], [Define for full ConsoleKit debugging support])
       xdt_cv_additional_CFLAGS="$xdt_cv_additional_CFLAGS -O0 -g -Werror"
       CPPFLAGS="$CPPFLAGS -DG_ENABLE_DEBUG"
       AC_MSG_RESULT([full])
