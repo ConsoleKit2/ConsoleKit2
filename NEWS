@@ -1,4 +1,36 @@
 ==============
+Version 1.1.2
+==============
+[Please note that this is a development release.]
+
+New Features:
+- add a session-state property and method
+- Add session-class dbus property and get method
+- introduce libconsolekit
+- Add dbus method GetVTNr to Session
+- add dbus LockSession/UnlockSession
+- add dbus ActivateSession/ActivateSessionOnSeat
+
+Bug Fixes:
+- add session class + state to ck-list-sessions
+- Allow session-class property to be set via OpenSessionWithParameters
+- wrong lib linked in libconsolekit.pc.in
+- remove the rest of the gcc warnings
+- remove warnings about signed/unsigned comparisons
+- remove warning about redeclaration
+- remove warnings about redundant function declarations
+- fix --enable-libudev configure flag
+- coverity: 180820 remove dead code
+
+Misc Changes:
+- add CONSOLEKIT_DEBUGGING support back in
+- update ck-list-sessions man page
+- update tests for new methods added
+- simplify configure.ac
+- document session types allowed
+-
+
+==============
 Version 1.1.1
 ==============
 [Please note that this is a development release.]

@@ -62,10 +62,6 @@ https://www.transifex.com/projects/p/consolekit2/
 The main development follows the standard github work flow and happens at:
 https://github.com/ConsoleKit2/ConsoleKit2
 
-Communication can be done through github comments/issues as well as on IRC:
-#ConsoleKit2 on freenode
-You can easily join the channel by going to http://webchat.freenode.net/
-
 ConsoleKit2 is a fork of ConsoleKit since it is no longer maintained.
 Information on ConsoleKit can be found at:
 http://freedesktop.org/wiki/Software/ConsoleKit/

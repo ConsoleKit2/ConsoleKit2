@@ -3,13 +3,13 @@ AC_COPYRIGHT([Copyright 2014-2017 The ConsoleKit2 Team])
 
 AC_PREREQ([2.62])
 AC_INIT([ConsoleKit2],
-        [1.1.1],
+        [1.1.2],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
         [ConsoleKit2],
         [https://github.com/ConsoleKit2/ConsoleKit2])
 VERSION_MAJOR=1
 VERSION_MINOR=1
-VERSION_REVISION=1
+VERSION_REVISION=2
 
 
 COPYRIGHT_YEARS="2014 - 2017"

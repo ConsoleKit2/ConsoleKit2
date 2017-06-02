@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ConsoleKit2 1.1.1\n"
+"Project-Id-Version: ConsoleKit2 1.1.2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-05-20 09:50+0300\n"
+"POT-Creation-Date: 2017-06-02 04:26+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -154,8 +154,8 @@ msgstr ""
 msgid "Unable to get information about the calling process"
 msgstr ""
 
-#: src/ck-manager.c:3069 src/ck-manager.c:3417 src/ck-session.c:456
-#: src/ck-session.c:505
+#: src/ck-manager.c:3069 src/ck-manager.c:3417 src/ck-session.c:468
+#: src/ck-session.c:517
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr ""
@@ -206,61 +206,61 @@ msgstr ""
 msgid "There are no sessions"
 msgstr ""
 
-#: src/ck-session.c:462
+#: src/ck-session.c:474
 msgid "Only session owner may set idle hint state"
 msgstr ""
 
-#: src/ck-session.c:511
+#: src/ck-session.c:523
 msgid "Only session owner may set locked hint state"
 msgstr ""
 
-#: src/ck-session.c:832
+#: src/ck-session.c:882
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
 msgstr ""
 
-#: src/ck-session.c:1250
+#: src/ck-session.c:1300
 msgid "Failed to create the XDG_RUNTIME_DIR"
 msgstr ""
 
-#: src/ck-session.c:1542
+#: src/ck-session.c:1592
 msgid "Server managed devices not supported"
 msgstr ""
 
-#: src/ck-session.c:1548
+#: src/ck-session.c:1598
 msgid "Failed to get uid of dbus caller"
 msgstr ""
 
-#: src/ck-session.c:1565
+#: src/ck-session.c:1615
 msgid "Failed to replace the current session controller"
 msgstr ""
 
-#: src/ck-session.c:1567
+#: src/ck-session.c:1617
 msgid "Session controller already present"
 msgstr ""
 
-#: src/ck-session.c:1589
+#: src/ck-session.c:1639
 msgid "Only the session controller may use this function"
 msgstr ""
 
-#: src/ck-session.c:1682 src/ck-session.c:1729 src/ck-session.c:1761
+#: src/ck-session.c:1732 src/ck-session.c:1779 src/ck-session.c:1811
 msgid "Only the session controller may call this function"
 msgstr ""
 
-#: src/ck-session.c:1688
+#: src/ck-session.c:1738
 msgid "Device has already been requested"
 msgstr ""
 
-#: src/ck-session.c:1695
+#: src/ck-session.c:1745
 msgid "Failed to create device"
 msgstr ""
 
-#: src/ck-session.c:1702
+#: src/ck-session.c:1752
 msgid "Failed to get file descriptor for device"
 msgstr ""
 
-#: src/ck-session.c:1736 src/ck-session.c:1768
+#: src/ck-session.c:1786 src/ck-session.c:1818
 msgid "Device doesn't exist"
 msgstr ""
 
@@ -323,7 +323,7 @@ msgstr ""
 msgid "Failed to get the session id from cgmanager, the error was: %s"
 msgstr ""
 
-#: tools/ck-history.c:903 tools/list-sessions.c:393
+#: tools/ck-history.c:903 tools/list-sessions.c:414
 msgid "Version of this application"
 msgstr ""
 
