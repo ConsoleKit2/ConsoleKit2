@@ -219,10 +219,6 @@ lib_consolekit_seat_get_active (LibConsoleKit *ck,
         g_variant_unref (variant);
         variant = NULL;
 
-        if (session == NULL) {
-                return FALSE;
-        }
-
         /* Don't care about uid? We're done */
         if (uid == NULL) {
                 return TRUE;
