@@ -32,6 +32,8 @@ Minimum Requirements
 * zlib
 * libkvm (required for OpenBSD, FreeBSD, kfreebsd, and DragonFlyBSD)
 * xsltproc
+* gtk-doc (optional)
+* GObject Introspection (optional)
 * PolicyKit/Polkit 0.92 (optional)
 * PAM (optional)
 * libudev or libdevattr (optional, for session-controller support)
