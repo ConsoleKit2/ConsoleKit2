@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the ConsoleKit2 package.
 # 
 # Translators:
-# Eric Hameleers <eric.hameleers@gmail.com>, 2015-2016
+# Eric Hameleers <eric.hameleers@gmail.com>, 2015-2017
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-05-04 02:26+0300\n"
-"PO-Revision-Date: 2017-05-04 04:45+0000\n"
-"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
+"POT-Creation-Date: 2017-06-02 04:26+0300\n"
+"PO-Revision-Date: 2017-06-07 10:20+0000\n"
+"Last-Translator: Eric Hameleers <eric.hameleers@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/consolekit2/consolekit2/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,39 +18,39 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/ck-seat.c:252
+#: src/ck-seat.c:253
 msgid "Another session was activated while waiting"
 msgstr "Een andere sessie werd geactiveerd tijdens het wachten"
 
-#: src/ck-seat.c:277
+#: src/ck-seat.c:279
 msgid "There is no Seat to activate"
 msgstr "Er is geen Seat om te activeren"
 
-#: src/ck-seat.c:283
+#: src/ck-seat.c:285
 msgid "Activation is not supported for this kind of seat"
 msgstr "Activeren wordt niet ondersteund voor dit type seat"
 
-#: src/ck-seat.c:288
+#: src/ck-seat.c:290
 msgid "Unknown session id"
 msgstr "Onbekend sessie id"
 
-#: src/ck-seat.c:299 src/ck-seat.c:336 src/ck-vt-monitor.c:129
+#: src/ck-seat.c:301 src/ck-seat.c:338 src/ck-vt-monitor.c:128
 msgid "Unable to activate session"
 msgstr "Kan geen sessie activeren"
 
-#: src/ck-seat.c:421
+#: src/ck-seat.c:423
 msgid "Unable to find session for VT"
-msgstr ""
+msgstr "Kon geen sessie vinden voor VT"
 
-#: src/ck-seat.c:431
+#: src/ck-seat.c:433
 msgid "Unable to get ssid for session"
-msgstr ""
+msgstr "Kon geen ssid krijgen voor sessie"
 
-#: src/ck-seat.c:733
+#: src/ck-seat.c:735
 msgid "Session is not attached to this seat"
 msgstr "Sessie is niet gekoppeld aan deze seat"
 
-#: src/ck-seat.c:1032
+#: src/ck-seat.c:1034
 msgid "Seat has no sessions"
 msgstr "Seat heeft geen sessies"
 
@@ -74,183 +74,201 @@ msgstr "Je moet root zijn om dit programma te starten"
 msgid "Console kit daemon"
 msgstr "Console kit achtergrondproces"
 
-#: src/ck-vt-monitor.c:110
+#: src/ck-vt-monitor.c:109
 msgid "Session is already active"
 msgstr "Sessie is al actief"
 
-#: src/ck-vt-monitor.c:118 src/ck-vt-monitor.c:151
+#: src/ck-vt-monitor.c:117 src/ck-vt-monitor.c:150
 msgid "No consoles available"
 msgstr "Geen consoles beschikbaar"
 
-#: src/ck-manager.c:1008
+#: src/ck-manager.c:1011
 #, c-format
 msgid "Not Authorized: %s"
 msgstr "Niet Geauthoriseerd: %s"
 
-#: src/ck-manager.c:1015
+#: src/ck-manager.c:1018
 msgid "Authorization is required"
 msgstr "Authorisatie is vereist"
 
-#: src/ck-manager.c:1018
+#: src/ck-manager.c:1021
 msgid "Not Authorized"
 msgstr "Niet Geauthoriseerd"
 
-#: src/ck-manager.c:1488
+#: src/ck-manager.c:1491
 #, c-format
 msgid "Unable to %s system: %s"
 msgstr "Kan systeem niet %s: %s"
 
-#: src/ck-manager.c:1541 src/ck-manager.c:1648 src/ck-manager.c:1903
-#: src/ck-manager.c:2035 src/ck-manager.c:2167
+#: src/ck-manager.c:1544 src/ck-manager.c:1651 src/ck-manager.c:1906
+#: src/ck-manager.c:2038 src/ck-manager.c:2170
 msgid "Attempting to perform a system action while one is in progress"
 msgstr "Poging om een systeem actie uit te voeren terwijl er al een in uitvoering is"
 
-#: src/ck-manager.c:1553
+#: src/ck-manager.c:1556
 msgid "failed to allocate memory to perform restart"
 msgstr "kon geen geheugen vrijmaken voor een herstart"
 
-#: src/ck-manager.c:1600 src/ck-manager.c:1700 src/ck-manager.c:1757
-#: src/ck-manager.c:1836 src/ck-manager.c:1963 src/ck-manager.c:2095
-#: src/ck-manager.c:2227
+#: src/ck-manager.c:1603 src/ck-manager.c:1703 src/ck-manager.c:1760
+#: src/ck-manager.c:1839 src/ck-manager.c:1966 src/ck-manager.c:2098
+#: src/ck-manager.c:2230
 msgid "Operation is being inhibited"
 msgstr "Operatie wordt tegengehouden"
 
-#: src/ck-manager.c:1660
+#: src/ck-manager.c:1663
 msgid "failed to allocate memory to perform shutdown"
 msgstr "kon geen geheugen vrijmaken om systeem te stoppen"
 
-#: src/ck-manager.c:1915
+#: src/ck-manager.c:1918
 msgid "failed to allocate memory to perform suspend"
 msgstr "kon geen geheugen vrijmaken om systeem te pauzeren"
 
-#: src/ck-manager.c:2047
+#: src/ck-manager.c:2050
 msgid "failed to allocate memory to perform hibernate"
 msgstr "kon geen geheugen vrijmaken om systeem in slaapstand te zetten"
 
-#: src/ck-manager.c:2179
+#: src/ck-manager.c:2182
 msgid "failed to allocate memory to perform hybrid sleep"
 msgstr "kon geen geheugen vrijmaken om systeem in hybride slaapstand te zetten"
 
-#: src/ck-manager.c:2320 src/ck-manager.c:2347
+#: src/ck-manager.c:2323 src/ck-manager.c:2350
 msgid "Error creating the inhibit lock"
 msgstr "Fout bij het aanmaken van het inhibit lock"
 
-#: src/ck-manager.c:2325 src/ck-manager.c:2387
+#: src/ck-manager.c:2328 src/ck-manager.c:2390
 msgid "Inhibit manager failed to initialize"
 msgstr "Inhibit manager kon niet worden geïnitialiseerd"
 
-#: src/ck-manager.c:2341
+#: src/ck-manager.c:2344
 msgid "Invalid input when creating inhibit lock"
 msgstr "Ongeldige invoer bij het aanmaken van het inhibit lock"
 
-#: src/ck-manager.c:2344
+#: src/ck-manager.c:2347
 msgid "Unable to create inhibit lock, insufficient memory"
 msgstr "Kon geen inhibit lock aanmaken, onvoldoende geheugen"
 
-#: src/ck-manager.c:2394
+#: src/ck-manager.c:2397
 msgid "There is nothing currently inhibited"
 msgstr "Momenteel worden er geen operaties tegengehouden"
 
-#: src/ck-manager.c:3052 src/ck-manager.c:3136 src/ck-manager.c:3193
+#: src/ck-manager.c:3055 src/ck-manager.c:3139 src/ck-manager.c:3196
 msgid "Unable to get information about the calling process"
 msgstr "Kan geen informatie krijgen over het aanroepende proces"
 
-#: src/ck-manager.c:3066 src/ck-manager.c:3414 src/ck-session.c:434
+#: src/ck-manager.c:3069 src/ck-manager.c:3417 src/ck-session.c:468
+#: src/ck-session.c:517
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "Kan geen informatie opzoeken over aanroepende proces '%d'"
 
-#: src/ck-manager.c:3077 src/ck-manager.c:3084 src/ck-manager.c:3363
+#: src/ck-manager.c:3080 src/ck-manager.c:3087 src/ck-manager.c:3366
 msgid "Unable to find session for cookie"
 msgstr "Kan geen sessie vinden bij het cookie"
 
-#: src/ck-manager.c:3119
+#: src/ck-manager.c:3122
 msgid "pid must be > 1"
 msgstr "PID moet > 1 zijn"
 
-#: src/ck-manager.c:3144
+#: src/ck-manager.c:3147
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Kan geen sessie informatie opzoeken voor proces '%d'"
 
-#: src/ck-manager.c:3371
+#: src/ck-manager.c:3374
 msgid "User ID does not match the owner of cookie"
 msgstr "Gebruikers ID klopt niet met de eigenaar van het cookie"
 
-#: src/ck-manager.c:3381
+#: src/ck-manager.c:3384
 msgid "Process ID does not match the owner of cookie"
 msgstr "Proces ID klopt niet met de eigenaar van het cookie"
 
-#: src/ck-manager.c:3658
+#: src/ck-manager.c:3661
 msgid "User has no sessions"
 msgstr "Gebruiker heeft geen sessies"
 
-#: src/ck-manager.c:3697
+#: src/ck-manager.c:3725 src/ck-manager.c:3770 src/ck-manager.c:3803
+#: src/ck-manager.c:3829
+msgid "Invalid session"
+msgstr "Ongeldige sessie"
+
+#: src/ck-manager.c:3730 src/ck-manager.c:3737
+msgid "Invalid seat"
+msgstr "Ongeldige seat"
+
+#: src/ck-manager.c:3777
+msgid "Session is not attached to a seat"
+msgstr "Sessie is niet gekoppeld aan een seat"
+
+#: src/ck-manager.c:3856
 msgid "User has no seats"
 msgstr "Gebruiker heeft geen seats"
 
-#: src/ck-manager.c:3723
+#: src/ck-manager.c:3882
 msgid "There are no sessions"
 msgstr "Er zijn geen sessies"
 
-#: src/ck-session.c:440
+#: src/ck-session.c:474
 msgid "Only session owner may set idle hint state"
 msgstr "Enkel de sessie eigenaar mag de idle hint status zetten"
 
-#: src/ck-session.c:759
+#: src/ck-session.c:523
+msgid "Only session owner may set locked hint state"
+msgstr "Enkel de sessie eigenaar mag de locked hint status zetten"
+
+#: src/ck-session.c:882
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
 msgstr "Signaal activatie niet afgehandeld. Sessie niet gekoppeld aan seat, of de seat ondersteunt geen activatie wijziging"
 
-#: src/ck-session.c:1177
+#: src/ck-session.c:1300
 msgid "Failed to create the XDG_RUNTIME_DIR"
 msgstr "Kon XDG_RUNTIME_DIR niet aanmaken"
 
-#: src/ck-session.c:1459
+#: src/ck-session.c:1592
 msgid "Server managed devices not supported"
-msgstr ""
+msgstr "Door server beheerde apparaten worden niet ondersteund"
 
-#: src/ck-session.c:1465
+#: src/ck-session.c:1598
 msgid "Failed to get uid of dbus caller"
-msgstr ""
+msgstr "Kon uid niet vinden van dbus caller"
 
-#: src/ck-session.c:1482
+#: src/ck-session.c:1615
 msgid "Failed to replace the current session controller"
-msgstr ""
+msgstr "Kon de huidige sessie controller niet vervangen"
 
-#: src/ck-session.c:1484
+#: src/ck-session.c:1617
 msgid "Session controller already present"
-msgstr ""
+msgstr "Sessie controller bestaat al"
 
-#: src/ck-session.c:1506
+#: src/ck-session.c:1639
 msgid "Only the session controller may use this function"
-msgstr ""
+msgstr "Alleen de sessie controller mag deze functie gebruiken"
 
-#: src/ck-session.c:1599 src/ck-session.c:1646 src/ck-session.c:1678
+#: src/ck-session.c:1732 src/ck-session.c:1779 src/ck-session.c:1811
 msgid "Only the session controller may call this function"
-msgstr ""
+msgstr "Alleen de sessie controller mag deze functie aanroepen"
 
-#: src/ck-session.c:1605
+#: src/ck-session.c:1738
 msgid "Device has already been requested"
-msgstr ""
+msgstr "Apparaat is reeds aangevraagd"
 
-#: src/ck-session.c:1612
+#: src/ck-session.c:1745
 msgid "Failed to create device"
-msgstr ""
+msgstr "Kon apparaat niet aanmaken"
 
-#: src/ck-session.c:1619
+#: src/ck-session.c:1752
 msgid "Failed to get file descriptor for device"
-msgstr ""
+msgstr "Kon geen bestandindicator verkrijgen voor apparaat"
 
-#: src/ck-session.c:1653 src/ck-session.c:1685
+#: src/ck-session.c:1786 src/ck-session.c:1818
 msgid "Device doesn't exist"
-msgstr ""
+msgstr "Apparaat bestaat niet"
 
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
 #. * running.
-#: src/ck-process-group.c:113
+#: src/ck-process-group.c:111
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
 msgstr "Kon geen verbinding maken met cgmanager. Is het cgmanager achtergrondproces actief?"
@@ -259,7 +277,7 @@ msgstr "Kon geen verbinding maken met cgmanager. Is het cgmanager achtergrondpro
 #. * printing it out. Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:129
+#: src/ck-process-group.c:127
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
 msgstr "Er trad een fout op bij het initialiseren van cgmanager, de melding was: %s"
@@ -267,7 +285,7 @@ msgstr "Er trad een fout op bij het initialiseren van cgmanager, de melding was:
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:236
+#: src/ck-process-group.c:234
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
 msgstr "Kon geen cgroup aanmaken, de foutmelding was: %s"
@@ -275,7 +293,7 @@ msgstr "Kon geen cgroup aanmaken, de foutmelding was: %s"
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:253
+#: src/ck-process-group.c:251
 #, c-format
 msgid ""
 "Failed to change owner of the new cgroup to owner of the session leader, the"
@@ -285,32 +303,22 @@ msgstr "Kon de eigenaar van de nieuwe cgroup niet veranderen naar de eigenaar va
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:273
+#: src/ck-process-group.c:270
 #, c-format
 msgid ""
 "Failed to move the session leader process to 'cpuacct' cgroup, the error "
 "was: %s"
-msgstr ""
+msgstr "Kon het session leader proces niet naar 'cpuacct' cgroup verplaatsen, de foutmelding was: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#: src/ck-process-group.c:283
-#, c-format
-msgid ""
-"Failed to let cgmanager know that it can remove the cgroup when it's empty, "
-"the error was: %s"
-msgstr "Kon cgmanager niet informeren dat het de lege cgroup mag verwijderen, de foutmelding was: %s"
-
-#. TRANSLATORS: Please ensure you keep the %s in the
-#. * string somewhere. It's the detailed error message from
-#. * cgmanager.
-#: src/ck-process-group.c:322
+#: src/ck-process-group.c:309
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
 msgstr "Kon de sessie id niet verkrijgen van cgmanager, de foutmelding was: %s"
 
-#: tools/ck-history.c:903 tools/list-sessions.c:393
+#: tools/ck-history.c:903 tools/list-sessions.c:414
 msgid "Version of this application"
 msgstr "Versie van deze applicatie"
 

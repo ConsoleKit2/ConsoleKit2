@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR The ConsoleKit2 Team
 # This file is distributed under the same license as the ConsoleKit2 package.
-#
+# 
 # Translators:
 # Ivailo Monev <xakepa10@gmail.com>, 2015-2016
 msgid ""
@@ -9,14 +9,13 @@ msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
 "POT-Creation-Date: 2017-06-02 04:26+0300\n"
-"PO-Revision-Date: 2017-05-04 04:45+0000\n"
+"PO-Revision-Date: 2017-05-21 03:33+0000\n"
 "Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
-"Language-Team: Bulgarian (http://www.transifex.com/consolekit2/consolekit2/"
-"language/bg/)\n"
-"Language: bg\n"
+"Language-Team: Bulgarian (http://www.transifex.com/consolekit2/consolekit2/language/bg/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: bg\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/ck-seat.c:253
@@ -197,9 +196,8 @@ msgid "Invalid seat"
 msgstr ""
 
 #: src/ck-manager.c:3777
-#, fuzzy
 msgid "Session is not attached to a seat"
-msgstr "Сесията не е прикачена към тази седалка"
+msgstr ""
 
 #: src/ck-manager.c:3856
 msgid "User has no seats"
@@ -214,17 +212,14 @@ msgid "Only session owner may set idle hint state"
 msgstr "Само сесииният водач може да зададе подсказка за статус"
 
 #: src/ck-session.c:523
-#, fuzzy
 msgid "Only session owner may set locked hint state"
-msgstr "Само сесииният водач може да зададе подсказка за статус"
+msgstr ""
 
 #: src/ck-session.c:882
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
-msgstr ""
-"Сигнал за активиране не е обработен. Сесия не е прикачена към седалка, или "
-"седалката не поддържа промени на активацията"
+msgstr "Сигнал за активиране не е обработен. Сесия не е прикачена към седалка, или седалката не поддържа промени на активацията"
 
 #: src/ck-session.c:1300
 msgid "Failed to create the XDG_RUNTIME_DIR"
@@ -273,19 +268,15 @@ msgstr ""
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
 #. * running.
-#.
 #: src/ck-process-group.c:111
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
-msgstr ""
-"Неуспех при отварянето на връзка към cgmanager. cgmanager демонът пуснат ли "
-"е?"
+msgstr "Неуспех при отварянето на връзка към cgmanager. cgmanager демонът пуснат ли е?"
 
 #. TRANSLATORS: There is an error with cgmanager, we're just
 #. * printing it out. Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:127
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
@@ -294,7 +285,6 @@ msgstr "Възникна грешка при инициализирането н
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:234
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
@@ -303,20 +293,16 @@ msgstr "Неуспех при създаването на cgroup, грешкат
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:251
 #, c-format
 msgid ""
-"Failed to change owner of the new cgroup to owner of the session leader, the "
-"error was: %s"
-msgstr ""
-"Неуспех при промяна притежателя на нова cgroup към притежател на сесийният "
-"водач, грешката беше: %s"
+"Failed to change owner of the new cgroup to owner of the session leader, the"
+" error was: %s"
+msgstr "Неуспех при промяна притежателя на нова cgroup към притежател на сесийният водач, грешката беше: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:270
 #, c-format
 msgid ""
@@ -327,7 +313,6 @@ msgstr ""
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
 #. * cgmanager.
-#.
 #: src/ck-process-group.c:309
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
@@ -388,10 +373,3 @@ msgstr "ДАТА"
 #: tools/ck-get-x11-display-device.c:170
 msgid "display name"
 msgstr "име на дисплей"
-
-#~ msgid ""
-#~ "Failed to let cgmanager know that it can remove the cgroup when it's "
-#~ "empty, the error was: %s"
-#~ msgstr ""
-#~ "Грешка при опит за известяване на cgmanager че може да премахне cgroup "
-#~ "когато е празен, грешката беше: %s"
