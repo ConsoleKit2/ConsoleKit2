@@ -75,8 +75,8 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                                   GError **error)
 {
         gboolean ret;
-        uid_t    uid_read;
-        pid_t    pid_read;
+        uid_t    uid_read = 0;
+        pid_t    pid_read = 0;
 
 #ifdef SO_PEERCRED
 #ifndef __OpenBSD__

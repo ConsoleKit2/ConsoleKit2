@@ -85,7 +85,7 @@ AC_HELP_STRING([--disable-debug], [Include no debugging support]),
 
     dnl # signal.h inline is crapy on openbsd
     if test x`uname` != x"OpenBSD"; then
-      xdt_cv_additional_CFLAGS="$xdt_cv_additional_CFLAGS -Wredundant-decls"
+      xdt_cv_additional_CFLAGS="$xdt_cv_additional_CFLAGS"
     fi
 
     if test x"$enable_debug" = x"full"; then
