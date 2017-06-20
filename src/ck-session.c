@@ -1380,7 +1380,9 @@ vt_leave_handler (gpointer data)
         ck_session_pause_all_devices (session, TRUE);
 
         /* release control */
+#ifdef HAVE_SYS_VT_H
         ioctl (session->priv->tty_fd, VT_RELDISP, 1);
+#endif
 
         return TRUE;
 }
@@ -1397,7 +1399,9 @@ vt_acquire_handler (gpointer data)
 
         /* ack that we are getting control, but let the normal
          * process handle granting access */
+#ifdef HAVE_SYS_VT_H
         ioctl (session->priv->tty_fd, VT_RELDISP, VT_ACKACQ);
+#endif
 
         return TRUE;
 }
@@ -1406,6 +1410,7 @@ static void
 ck_session_setup_vt_signal (CkSession *session,
                             guint      vtnr)
 {
+#ifdef HAVE_SYS_VT_H
         struct vt_mode mode = { 0 };
         int    graphical_mode;
 
@@ -1438,7 +1443,7 @@ ck_session_setup_vt_signal (CkSession *session,
         if (ioctl (session->priv->tty_fd, KDSKBMUTE, 1) != 0) {
                 g_warning ("failed to mute FD with KDSKBMUTE");
         }
-#endif
+#endif /* defined(__linux__) */
 
         if (ioctl (session->priv->tty_fd, KDSKBMODE, KBD_OFF_MODE) != 0) {
                 g_warning ("failed to turn off keyboard");
@@ -1464,6 +1469,7 @@ ck_session_setup_vt_signal (CkSession *session,
                                                               (GSourceFunc)vt_acquire_handler,
                                                               session,
                                                               NULL);
+#endif /* HAVE_SYS_VT_H */
 }
 
 static void
@@ -1502,6 +1508,7 @@ ck_session_controller_cleanup (CkSession *session)
 
         ck_session_remove_all_devices (session);
 
+#ifdef HAVE_SYS_VT_H
         /* Remove the old signal call backs, restore VT switching to auto
          * and text mode (put it back the way we found it) */
         if (session->priv->sig_watch_s1 != 0) {
@@ -1512,7 +1519,8 @@ ck_session_controller_cleanup (CkSession *session)
                 if (ioctl (session->priv->tty_fd, KDSKBMUTE, 0) != 0) {
                         g_warning ("failed to unmute FD with KDSKBMUTE");
                 }
-#endif
+#endif /* defined(__linux__) */
+
                 if (ioctl(session->priv->tty_fd, KDSKBMODE, session->priv->old_kbd_mode) != 0) {
                         g_warning ("failed to restore old keyboard mode");
                 }
@@ -1536,6 +1544,7 @@ ck_session_controller_cleanup (CkSession *session)
                 g_close (session->priv->tty_fd, NULL);
                 session->priv->tty_fd = -1;
         }
+#endif /* HAVE_SYS_VT_H */
 }
 
 void
