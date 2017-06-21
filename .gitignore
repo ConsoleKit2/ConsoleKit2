@@ -60,6 +60,9 @@ libconsolekit/test-libconsolekit
 libconsolekit/libconsolekit.pc
 libconsolekit/.deps/
 libconsolekit/.libs/
+libconsolekit/libconsolekit.la
+libconsolekit/libconsolekit.lo
+libconsolekit/test-libconsolekit.o
 src/ck-manager-generated.c
 src/ck-manager-generated.h
 src/ck-seat-generated.c
