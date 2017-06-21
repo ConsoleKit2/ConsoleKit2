@@ -1380,7 +1380,7 @@ vt_leave_handler (gpointer data)
         ck_session_pause_all_devices (session, TRUE);
 
         /* release control */
-#ifdef HAVE_SYS_VT_H
+#if defined(VT_RELDISP)
         ioctl (session->priv->tty_fd, VT_RELDISP, 1);
 #endif
 
@@ -1399,7 +1399,7 @@ vt_acquire_handler (gpointer data)
 
         /* ack that we are getting control, but let the normal
          * process handle granting access */
-#ifdef HAVE_SYS_VT_H
+#if defined(VT_RELDISP)
         ioctl (session->priv->tty_fd, VT_RELDISP, VT_ACKACQ);
 #endif
 
@@ -1410,7 +1410,7 @@ static void
 ck_session_setup_vt_signal (CkSession *session,
                             guint      vtnr)
 {
-#ifdef HAVE_SYS_VT_H
+#if defined(KDGKBMODE) && defined(KDGETMODE) && defined(KDSETMODE) && defined(KD_GRAPHICS)
         struct vt_mode mode = { 0 };
         int    graphical_mode;
 
@@ -1469,7 +1469,7 @@ ck_session_setup_vt_signal (CkSession *session,
                                                               (GSourceFunc)vt_acquire_handler,
                                                               session,
                                                               NULL);
-#endif /* HAVE_SYS_VT_H */
+#endif /* defined(KDGKBMODE) && defined(KDGETMODE) && defined(KDSETMODE) && defined(KD_GRAPHICS) */
 }
 
 static void
@@ -1508,7 +1508,7 @@ ck_session_controller_cleanup (CkSession *session)
 
         ck_session_remove_all_devices (session);
 
-#ifdef HAVE_SYS_VT_H
+#if defined(VT_SETMODE)
         /* Remove the old signal call backs, restore VT switching to auto
          * and text mode (put it back the way we found it) */
         if (session->priv->sig_watch_s1 != 0) {
@@ -1544,7 +1544,7 @@ ck_session_controller_cleanup (CkSession *session)
                 g_close (session->priv->tty_fd, NULL);
                 session->priv->tty_fd = -1;
         }
-#endif /* HAVE_SYS_VT_H */
+#endif /* defined(VT_SETMODE) */
 }
 
 void
