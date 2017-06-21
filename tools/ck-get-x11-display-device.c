@@ -132,7 +132,7 @@ get_tty_for_display (Display *xdisplay)
                 goto out;
         }
 
-        vt = *((glong *) return_value);
+        memcpy(&vt, return_value, sizeof(glong));
 
         if (vt <= 0) {
                 goto out;

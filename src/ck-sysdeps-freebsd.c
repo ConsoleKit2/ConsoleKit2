@@ -219,7 +219,7 @@ stat2proc (pid_t        pid,
 {
         struct kinfo_proc p;
         char              *ttname;
-        int               num;
+        guint             num;
         int               tty_maj;
         int               tty_min;
 
@@ -414,8 +414,8 @@ ck_unix_pid_get_login_session_id (pid_t  pid,
 gboolean
 ck_get_max_num_consoles (guint *num)
 {
-        int      max_consoles;
-        int      i;
+        guint    max_consoles;
+        guint    i;
         glob_t   g;
 
         max_consoles = 0;

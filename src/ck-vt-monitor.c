@@ -447,7 +447,7 @@ vt_add_watches (CkVtMonitor *vt_monitor)
                 /* FIXME: this can fail on solaris and freebsd */
         }
 
-        for (i = 1; i < max_consoles; i++) {
+        for (i = 1; (guint)i < max_consoles; i++) {
                 gpointer id;
 
                 /* don't wait on the active vc */
