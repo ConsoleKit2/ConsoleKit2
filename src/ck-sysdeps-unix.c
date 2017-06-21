@@ -74,7 +74,7 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                                   uid_t   *uid,
                                   GError **error)
 {
-        gboolean ret;
+        gboolean ret = FALSE;
         uid_t    uid_read = 0;
         pid_t    pid_read = 0;
 
@@ -88,7 +88,6 @@ ck_get_socket_peer_credentials   (int      socket_fd,
 
         pid_read = -1;
         uid_read = -1;
-        ret = FALSE;
 
         cr_len = sizeof (cr);
 
