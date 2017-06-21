@@ -203,7 +203,7 @@ endif
 
 console_kit_daemon_SOURCES += $(FILE_MONITOR_BACKEND)
 
-if HAVE_LIBUDEV
+if USE_UDEV_BACKEND
 console_kit_daemon_SOURCES += \
 	ck-device-udev.c \
 	$(NULL)
