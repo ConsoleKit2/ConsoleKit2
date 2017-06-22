@@ -2627,6 +2627,7 @@ find_seat_for_session (CkManager *manager,
         const char    *x11_display_device;
         const char    *x11_display;
         const char    *remote_host_name;
+        guint vtnr;
         gboolean is_local;
 
         is_static_text = FALSE;
@@ -2646,7 +2647,10 @@ find_seat_for_session (CkManager *manager,
         x11_display_device = console_kit_session_get_x11_display_device (cksession);
         x11_display        = console_kit_session_get_x11_display (cksession);
         remote_host_name   = console_kit_session_get_remote_host_name (cksession);
+        vtnr               = console_kit_session_get_vtnr (cksession);
         ck_session_is_local (session, &is_local, NULL);
+
+        g_debug ("find_seat_for_session vtnr returned: %d", vtnr);
 
         if (IS_STR_SET (x11_display)
             && IS_STR_SET (x11_display_device)
@@ -2661,7 +2665,7 @@ find_seat_for_session (CkManager *manager,
                 is_static_text = TRUE;
         }
 
-        if (is_static_x11 || is_static_text) {
+        if ((is_static_x11 || is_static_text) && vtnr > 0) {
                 char *sid;
                 sid = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, 1);
                 seat = g_hash_table_lookup (manager->priv->seats, sid);
