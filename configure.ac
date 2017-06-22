@@ -71,7 +71,7 @@ AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/wait.h sys/resource.h sys/mount.h sys/param.h ftw.h \
 		  sys/sysmacros.h sys/types.h libudev.h linux/input.h \
 		  sys/mkdev.h devattr.h sys/kd.h sys/kbio.h libprop/proplib.h \
-		  linux/kd.h])
+		  linux/kd.h sys/queue.h sys/stat.h sys/fcntl.h])
 
 AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
                 strerror strrchr strspn strstr strtol strtoul uname \
@@ -202,6 +202,11 @@ case "$host" in
                 AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD/DragonflyBSD]))
         if test "x$have_kvm" = "xyes"; then
                 KVM_LIBS="-lkvm"
+        fi
+	AC_CHECK_LIB(procstat, procstat_open_sysctl, have_procstat=yes,
+                AC_MSG_WARN([Unable to find libprocstat which is used on FreeBSD]))
+	if test "x$have_procstat" = "xyes"; then
+                KVM_LIBS="${KVM_LIBS} -lprocstat"
         fi
         ;;
         *-*-netbsd*)

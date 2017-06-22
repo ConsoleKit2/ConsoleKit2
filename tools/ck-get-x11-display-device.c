@@ -28,6 +28,33 @@
 #include <libintl.h>
 #include <locale.h>
 
+#ifdef HAVE_KVM_H
+#include <kvm.h>
+#endif
+
+#ifdef HAVE_SYS_QUEUE_H
+#include <sys/queue.h>
+#endif
+
+#ifdef HAVE_SYS_FCNTL_H
+#include <sys/fcntl.h>
+#endif
+#ifdef HAVE_SYS_USER_H
+#include <sys/user.h>
+#endif
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#ifdef HAVE_SYS_SYSCTL_H
+#include <sys/sysctl.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <glib.h>
@@ -35,6 +62,54 @@
 
 #include "ck-sysdeps.h"
 
+#ifdef __FreeBSD__
+#include <libprocstat.h>
+
+
+static char *
+get_tty_for_pid (int pid)
+{
+        gchar *device = NULL;
+        gboolean res;
+        char errstr[_POSIX2_LINE_MAX];
+        int cnt = 0;
+        struct vnstat vn;
+        struct filestat_list *head;
+        struct filestat *fst;
+        kvm_t* kd;
+        struct kinfo_proc * prc;
+        struct procstat *procstat;
+
+        kd = kvm_openfiles (NULL, "/dev/null", NULL, O_RDONLY, errstr);
+        prc = kvm_getprocs (kd, KERN_PROC_PID, pid, &cnt);
+        procstat = procstat_open_sysctl ();
+
+        for (int i = 0; i < cnt; i++) {
+                head = procstat_getfiles (procstat,&prc[i], 0);
+
+                STAILQ_FOREACH (fst, head, next) {
+                        if (fst->fs_type == PS_FST_TYPE_VNODE) {
+                                procstat_get_vnode_info (procstat, fst, &vn, NULL);
+
+                                if (vn.vn_type == PS_FST_VTYPE_VCHR) {
+                                        char *ctty = devname( prc[i].ki_tdev,S_IFCHR);
+                                        const char * pre = "ttyv";
+
+                                        if(strncmp (pre, vn.vn_devname, strlen (pre)) == 0 && strncmp (vn.vn_devname, ctty, strlen(ctty)) != 0) {
+                                                device = g_strdup_printf ("/dev/%s", vn.vn_devname);
+                                                procstat_freefiles (procstat, head);
+                                                res = TRUE;
+                                                return device;
+                                        }
+                                }
+                        }
+                }
+        }
+
+        procstat_freefiles(procstat, head);
+        return device;
+}
+#else /* __FreeBSD__ */
 static char *
 get_tty_for_pid (int pid)
 {
@@ -58,6 +133,7 @@ get_tty_for_pid (int pid)
         ck_process_stat_free (xorg_stat);
         return device;
 }
+#endif /* __FreeBSD__ */
 
 static Display *
 display_init (const char *display_name)

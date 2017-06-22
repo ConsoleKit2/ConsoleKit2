@@ -128,7 +128,7 @@ ck_process_stat_get_tty (CkProcessStat *stat)
 {
         g_return_val_if_fail (stat != NULL, NULL);
 
-        return g_strdup (stat->tty_text);
+        return g_strdup_printf ("/dev/%s", stat->tty_text);
 }
 
 static gboolean

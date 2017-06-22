@@ -57,6 +57,14 @@
 #include <ucred.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <kvm.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <sys/user.h>
+#include <paths.h>
+#endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -134,6 +142,10 @@ ck_get_socket_peer_credentials   (int      socket_fd,
         }
 #elif defined(HAVE_GETPEEREID)
 	gid_t dummy;
+        char errbuf[_POSIX2_LINE_MAX];
+        int cnt = 0;
+        kvm_t* kd;
+        struct kinfo_proc * prc;
 
         if (getpeereid (socket_fd, &uid_read, &dummy) == 0) {
                 ret = TRUE;
@@ -141,6 +153,23 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                 g_warning ("Failed to getpeereid() credentials: %s\n",
                            g_strerror (errno));
         }
+#ifdef __FreeBSD__
+        kd = kvm_openfiles (NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
+        if (kd == NULL) {
+                g_warning ("kvm_openfiles failed: %s", errbuf);
+                return FALSE;
+        }
+
+        prc = kvm_getprocs (kd, KERN_PROC_UID, uid_read, &cnt);
+        for (int i = 0; i < cnt; i++) {
+                if(strncmp (prc[i].ki_comm, "Xorg", 4) == 0) {
+                        pid_read = prc[i].ki_pid;
+                        break;
+                }
+        }
+
+        kvm_close(kd);
+#endif /* __FreeBSD__ */
 #else /* !SO_PEERCRED && !HAVE_GETPEERUCRED */
         g_warning ("Socket credentials not supported on this OS\n");
 #endif
@@ -237,15 +266,6 @@ ck_get_a_console_fd (void)
         int fd;
 
         fd = -1;
-
-#ifdef __FreeBSD__
-        /* On FreeBSD, try /dev/consolectl first as this will survive
-         * /etc/ttys initialization. */
-        fd = ck_open_a_console ("/dev/consolectl");
-        if (fd >= 0) {
-                goto done;
-        }
-#endif
 
 #ifdef __sun
         /* On Solaris, first try Sun VT device. */
