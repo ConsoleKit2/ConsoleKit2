@@ -33,7 +33,7 @@
 #include <sys/ioctl.h>
 #include <pwd.h>
 
-#ifdef __linux__
+#ifdef HAVE_LINUX_KD_H
 #include <linux/kd.h>
 #endif
 
@@ -57,11 +57,23 @@
 #include <ucred.h>
 #endif
 
-#ifdef __FreeBSD__
+#ifdef HAVE_KVM_H
 #include <kvm.h>
+#endif
+
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
+
+#ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
+#endif
+
+#ifdef HAVE_SYS_USER_H
 #include <sys/user.h>
+#endif
+
+#ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif
 
