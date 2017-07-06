@@ -1445,9 +1445,11 @@ ck_session_setup_vt_signal (CkSession *session,
         }
 #endif /* defined(__linux__) */
 
+#if defined(KDSKBMODE)
         if (ioctl (session->priv->tty_fd, KDSKBMODE, KBD_OFF_MODE) != 0) {
                 g_warning ("failed to turn off keyboard");
         }
+#endif
 
         mode.mode = VT_PROCESS;
         mode.relsig = SIGUSR1;
@@ -1521,9 +1523,11 @@ ck_session_controller_cleanup (CkSession *session)
                 }
 #endif /* defined(__linux__) */
 
+#if defined(KDSKBMODE)
                 if (ioctl(session->priv->tty_fd, KDSKBMODE, session->priv->old_kbd_mode) != 0) {
                         g_warning ("failed to restore old keyboard mode");
                 }
+#endif /* defined(KDSKBMODE) */
 
                 if (ioctl (session->priv->tty_fd, VT_SETMODE, &mode) < 0) {
                         g_warning ("failed to return control of vt handling");
