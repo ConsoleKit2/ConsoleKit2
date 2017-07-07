@@ -326,15 +326,34 @@ AM_CONDITIONAL([ENABLE_UDEV_ACL], [test "x$enable_udev_acl" = "xyes"])
 
 # DragonFly BSD supplies devattr, we already checked for the header above
 # make sure we can find the lib
-AC_CHECK_LIB([devattr], [udev_device_unref])
-AC_CHECK_LIB([prop], [prop_dictionary_get_cstring])
+have_devattr=no
+AC_CHECK_LIB([devattr], [udev_device_unref], [
+	LIBS="$LIBS -ldevattr"
+	have_devattr=yes
+	])
+
+have_libprop=no
+AC_CHECK_LIB([prop], [prop_dictionary_get_cstring], [
+	LIBS="$LIBS -lprop"
+	have_libprop=yes
+	])
 
 
-# we need both udev and libdrm for udev support
-AS_IF([test "x$LIBUDEV_FOUND" = "xyes" -a "x$LIBDRM_FOUND" = "xyes"], [
-  AC_DEFINE([USE_UDEV_BACKEND], [1], [Define if we have libudev and libdrm])
+use_udev=no
+if test ["x$LIBUDEV_FOUND" = "xyes" -a "x$LIBDRM_FOUND" = "xyes"]; then
+	use_udev=yes
+fi
+if test ["$have_devattr" = "yes" -a "$have_libprop" = "yes"]; then
+	use_udev=yes
+fi
+
+
+
+# we need both udev/devattr and libdrm for udev support
+AS_IF(test ["$use_udev" = "yes"], [
+  AC_DEFINE([USE_UDEV_BACKEND], [1], [Define if we meet requirements to use the udev backend])
 ])
-AM_CONDITIONAL([USE_UDEV_BACKEND], [test "x$LIBUDEV_FOUND" = "xyes" -a "x$LIBDRM_FOUND" = "xyes"])
+AM_CONDITIONAL([USE_UDEV_BACKEND], [test ["$use_udev" = "yes"]])
 AC_SUBST(USE_UDEV_BACKEND)
 
 
@@ -578,6 +597,12 @@ if test x"$LIBDRM_FOUND" = x"yes"; then
 echo "        libdrm support            yes"
 else
 echo "        libdrm support            no"
+fi
+
+if test "$use_udev" = "yes"; then
+echo "        session controller        udev"
+else
+echo "        session controller        none"
 fi
 
 if test x"$POLKIT_FOUND" = x"yes"; then
