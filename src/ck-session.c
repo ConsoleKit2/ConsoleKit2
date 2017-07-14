@@ -46,6 +46,14 @@
 #include <sys/kbio.h>
 #endif
 
+#ifdef HAVE_DEV_WSCONS_WSCONSIO_H
+#include <dev/wscons/wsconsio.h>
+#endif
+
+#ifdef HAVE_DEV_WSCONS_WSDISPLAY_USL_IO_H
+#include <dev/wscons/wsdisplay_usl_io.h>
+#endif
+
 #include <glib.h>
 #include <glib-unix.h>
 #include <glib/gi18n.h>
@@ -1410,9 +1418,9 @@ static void
 ck_session_setup_vt_signal (CkSession *session,
                             guint      vtnr)
 {
-#if defined(KDGKBMODE) && defined(KDGETMODE) && defined(KDSETMODE) && defined(KD_GRAPHICS)
+#if defined(KDGKBMODE) && defined(KDSETMODE) && defined(KD_GRAPHICS)
         struct vt_mode mode = { 0 };
-        int    graphical_mode;
+        int    graphical_mode = KD_TEXT;
 
         session->priv->tty_fd = ck_open_a_console (ck_get_console_device_for_num (vtnr));
 
@@ -1424,10 +1432,12 @@ ck_session_setup_vt_signal (CkSession *session,
 
         /* So during setup here, we need to ensure we're in graphical mode,
          * otherwise it will try to draw stuff in the background */
+#if defined(KDGETMODE)
         if (ioctl (session->priv->tty_fd, KDGETMODE, &graphical_mode) != 0) {
                 g_warning ("failed to get current VT mode");
                 return;
         }
+#endif
 
         if (graphical_mode == KD_TEXT) {
                 if (ioctl (session->priv->tty_fd, KDSETMODE, KD_GRAPHICS) != 0) {
@@ -1439,6 +1449,7 @@ ck_session_setup_vt_signal (CkSession *session,
                 return;
         }
 
+/* We define KDSKBMUTE above so we can't do the usual check */
 #if defined(__linux__)
         if (ioctl (session->priv->tty_fd, KDSKBMUTE, 1) != 0) {
                 g_warning ("failed to mute FD with KDSKBMUTE");
@@ -1471,7 +1482,7 @@ ck_session_setup_vt_signal (CkSession *session,
                                                               (GSourceFunc)vt_acquire_handler,
                                                               session,
                                                               NULL);
-#endif /* defined(KDGKBMODE) && defined(KDGETMODE) && defined(KDSETMODE) && defined(KD_GRAPHICS) */
+#endif /* defined(KDGKBMODE) && defined(KDSETMODE) && defined(KD_GRAPHICS) */
 }
 
 static void
@@ -1517,6 +1528,7 @@ ck_session_controller_cleanup (CkSession *session)
                 struct vt_mode mode = { 0 };
                 mode.mode = VT_AUTO;
 
+/* We define KDSKBMUTE above so we can't do the usual check */
 #if defined(__linux__)
                 if (ioctl (session->priv->tty_fd, KDSKBMUTE, 0) != 0) {
                         g_warning ("failed to unmute FD with KDSKBMUTE");
