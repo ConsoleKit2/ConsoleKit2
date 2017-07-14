@@ -417,20 +417,31 @@ dbus_switch_to (ConsoleKitSeat *ckseat,
 
         g_return_val_if_fail (CK_IS_SEAT (ckseat), FALSE);
 
+        /* See if there's a session on the seat with that vtnr and activate it */
         session = g_hash_table_find (seat->priv->sessions, (GHRFunc)find_session_by_vt, &arg_vtnr);
+        if (session != NULL) {
+                if (ck_session_get_id (session, &ssid, NULL)) {
+                        dbus_activate_session (ckseat, invocation, ssid);
+                        g_free (ssid);
+                        return TRUE;
+                }
+        }
 
-        if (session == NULL) {
-                throw_error (invocation, CK_SEAT_ERROR_GENERAL, _("Unable to find session for VT"));
+        /* Otherwise, if we have a VT monitor then attempt to activate the
+         * VT that way.
+         */
+        if (seat->priv->vt_monitor != NULL) {
+                GError *error = NULL;
+                if (ck_vt_monitor_set_active (seat->priv->vt_monitor, arg_vtnr, &error)) {
+                        console_kit_seat_complete_switch_to (ckseat, invocation);
+                        return TRUE;
+                }
+                throw_error (invocation, CK_SEAT_ERROR_FAILED, error->message);
                 return TRUE;
         }
 
-        if (ck_session_get_id (session, &ssid, NULL)) {
-                dbus_activate_session (ckseat, invocation, ssid);
-                g_free (ssid);
-                return TRUE;
-        }
-
-        throw_error (invocation, CK_SEAT_ERROR_GENERAL, _("Unable to get ssid for session"));
+        /* The seat may not support VTs at all */
+        throw_error (invocation, CK_SEAT_ERROR_GENERAL, _("Unable to change VT for seat"));
         return TRUE;
 }
 
