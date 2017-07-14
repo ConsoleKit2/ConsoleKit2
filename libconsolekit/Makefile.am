@@ -79,8 +79,8 @@ INTROSPECTION_SCANNER_ENV = CC="$(CC)"
 INTROSPECTION_SCANNER_ARGS = \
 	--add-include-path=$(srcdir) \
 	--warn-all \
-	--identifier-prefix=LibConsoleKit \
-	--symbol-prefix=lib_consolekit
+	--identifier-prefix=Lib \
+	--symbol-prefix=lib_
 INTROSPECTION_COMPILER_ARGS = \
 	--includedir=$(srcdir) \
 	--includedir=.
