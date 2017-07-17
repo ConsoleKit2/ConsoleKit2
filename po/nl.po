@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-06-02 04:26+0300\n"
-"PO-Revision-Date: 2017-06-07 10:20+0000\n"
-"Last-Translator: Eric Hameleers <eric.hameleers@gmail.com>\n"
+"POT-Creation-Date: 2017-07-15 04:38+0300\n"
+"PO-Revision-Date: 2017-07-15 04:30+0000\n"
+"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/consolekit2/consolekit2/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -38,19 +38,15 @@ msgstr "Onbekend sessie id"
 msgid "Unable to activate session"
 msgstr "Kan geen sessie activeren"
 
-#: src/ck-seat.c:423
-msgid "Unable to find session for VT"
-msgstr "Kon geen sessie vinden voor VT"
+#: src/ck-seat.c:444
+msgid "Unable to change VT for seat"
+msgstr ""
 
-#: src/ck-seat.c:433
-msgid "Unable to get ssid for session"
-msgstr "Kon geen ssid krijgen voor sessie"
-
-#: src/ck-seat.c:735
+#: src/ck-seat.c:746
 msgid "Session is not attached to this seat"
 msgstr "Sessie is niet gekoppeld aan deze seat"
 
-#: src/ck-seat.c:1034
+#: src/ck-seat.c:1045
 msgid "Seat has no sessions"
 msgstr "Seat heeft geen sessies"
 
@@ -151,117 +147,117 @@ msgstr "Kon geen inhibit lock aanmaken, onvoldoende geheugen"
 msgid "There is nothing currently inhibited"
 msgstr "Momenteel worden er geen operaties tegengehouden"
 
-#: src/ck-manager.c:3055 src/ck-manager.c:3139 src/ck-manager.c:3196
+#: src/ck-manager.c:3059 src/ck-manager.c:3143 src/ck-manager.c:3200
 msgid "Unable to get information about the calling process"
 msgstr "Kan geen informatie krijgen over het aanroepende proces"
 
-#: src/ck-manager.c:3069 src/ck-manager.c:3417 src/ck-session.c:468
-#: src/ck-session.c:517
+#: src/ck-manager.c:3073 src/ck-manager.c:3421 src/ck-session.c:476
+#: src/ck-session.c:525
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "Kan geen informatie opzoeken over aanroepende proces '%d'"
 
-#: src/ck-manager.c:3080 src/ck-manager.c:3087 src/ck-manager.c:3366
+#: src/ck-manager.c:3084 src/ck-manager.c:3091 src/ck-manager.c:3370
 msgid "Unable to find session for cookie"
 msgstr "Kan geen sessie vinden bij het cookie"
 
-#: src/ck-manager.c:3122
+#: src/ck-manager.c:3126
 msgid "pid must be > 1"
 msgstr "PID moet > 1 zijn"
 
-#: src/ck-manager.c:3147
+#: src/ck-manager.c:3151
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Kan geen sessie informatie opzoeken voor proces '%d'"
 
-#: src/ck-manager.c:3374
+#: src/ck-manager.c:3378
 msgid "User ID does not match the owner of cookie"
 msgstr "Gebruikers ID klopt niet met de eigenaar van het cookie"
 
-#: src/ck-manager.c:3384
+#: src/ck-manager.c:3388
 msgid "Process ID does not match the owner of cookie"
 msgstr "Proces ID klopt niet met de eigenaar van het cookie"
 
-#: src/ck-manager.c:3661
+#: src/ck-manager.c:3665
 msgid "User has no sessions"
 msgstr "Gebruiker heeft geen sessies"
 
-#: src/ck-manager.c:3725 src/ck-manager.c:3770 src/ck-manager.c:3803
-#: src/ck-manager.c:3829
+#: src/ck-manager.c:3729 src/ck-manager.c:3774 src/ck-manager.c:3807
+#: src/ck-manager.c:3833
 msgid "Invalid session"
 msgstr "Ongeldige sessie"
 
-#: src/ck-manager.c:3730 src/ck-manager.c:3737
+#: src/ck-manager.c:3734 src/ck-manager.c:3741
 msgid "Invalid seat"
 msgstr "Ongeldige seat"
 
-#: src/ck-manager.c:3777
+#: src/ck-manager.c:3781
 msgid "Session is not attached to a seat"
 msgstr "Sessie is niet gekoppeld aan een seat"
 
-#: src/ck-manager.c:3856
+#: src/ck-manager.c:3860
 msgid "User has no seats"
 msgstr "Gebruiker heeft geen seats"
 
-#: src/ck-manager.c:3882
+#: src/ck-manager.c:3886
 msgid "There are no sessions"
 msgstr "Er zijn geen sessies"
 
-#: src/ck-session.c:474
+#: src/ck-session.c:482
 msgid "Only session owner may set idle hint state"
 msgstr "Enkel de sessie eigenaar mag de idle hint status zetten"
 
-#: src/ck-session.c:523
+#: src/ck-session.c:531
 msgid "Only session owner may set locked hint state"
 msgstr "Enkel de sessie eigenaar mag de locked hint status zetten"
 
-#: src/ck-session.c:882
+#: src/ck-session.c:890
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
 msgstr "Signaal activatie niet afgehandeld. Sessie niet gekoppeld aan seat, of de seat ondersteunt geen activatie wijziging"
 
-#: src/ck-session.c:1300
+#: src/ck-session.c:1308
 msgid "Failed to create the XDG_RUNTIME_DIR"
 msgstr "Kon XDG_RUNTIME_DIR niet aanmaken"
 
-#: src/ck-session.c:1592
+#: src/ck-session.c:1617
 msgid "Server managed devices not supported"
 msgstr "Door server beheerde apparaten worden niet ondersteund"
 
-#: src/ck-session.c:1598
+#: src/ck-session.c:1623
 msgid "Failed to get uid of dbus caller"
 msgstr "Kon uid niet vinden van dbus caller"
 
-#: src/ck-session.c:1615
+#: src/ck-session.c:1640
 msgid "Failed to replace the current session controller"
 msgstr "Kon de huidige sessie controller niet vervangen"
 
-#: src/ck-session.c:1617
+#: src/ck-session.c:1642
 msgid "Session controller already present"
 msgstr "Sessie controller bestaat al"
 
-#: src/ck-session.c:1639
+#: src/ck-session.c:1664
 msgid "Only the session controller may use this function"
 msgstr "Alleen de sessie controller mag deze functie gebruiken"
 
-#: src/ck-session.c:1732 src/ck-session.c:1779 src/ck-session.c:1811
+#: src/ck-session.c:1757 src/ck-session.c:1804 src/ck-session.c:1836
 msgid "Only the session controller may call this function"
 msgstr "Alleen de sessie controller mag deze functie aanroepen"
 
-#: src/ck-session.c:1738
+#: src/ck-session.c:1763
 msgid "Device has already been requested"
 msgstr "Apparaat is reeds aangevraagd"
 
-#: src/ck-session.c:1745
+#: src/ck-session.c:1770
 msgid "Failed to create device"
 msgstr "Kon apparaat niet aanmaken"
 
-#: src/ck-session.c:1752
+#: src/ck-session.c:1777
 msgid "Failed to get file descriptor for device"
 msgstr "Kon geen bestandindicator verkrijgen voor apparaat"
 
-#: src/ck-session.c:1786 src/ck-session.c:1818
+#: src/ck-session.c:1811 src/ck-session.c:1843
 msgid "Device doesn't exist"
 msgstr "Apparaat bestaat niet"
 
@@ -370,6 +366,6 @@ msgstr "Toon vermeldingen vanaf het genoemde tijdstip (ISO 8601 formaat)"
 msgid "DATETIME"
 msgstr "DAGTIJD"
 
-#: tools/ck-get-x11-display-device.c:170
+#: tools/ck-get-x11-display-device.c:246
 msgid "display name"
 msgstr "Toon naam"

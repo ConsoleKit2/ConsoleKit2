@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-06-02 04:26+0300\n"
-"PO-Revision-Date: 2017-05-21 03:33+0000\n"
+"POT-Creation-Date: 2017-07-15 04:38+0300\n"
+"PO-Revision-Date: 2017-07-15 04:30+0000\n"
 "Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
 "Language-Team: Bulgarian (http://www.transifex.com/consolekit2/consolekit2/language/bg/)\n"
 "MIME-Version: 1.0\n"
@@ -38,19 +38,15 @@ msgstr "Непознато id на сесията"
 msgid "Unable to activate session"
 msgstr "Невъзможно активиране на сесията"
 
-#: src/ck-seat.c:423
-msgid "Unable to find session for VT"
+#: src/ck-seat.c:444
+msgid "Unable to change VT for seat"
 msgstr ""
 
-#: src/ck-seat.c:433
-msgid "Unable to get ssid for session"
-msgstr ""
-
-#: src/ck-seat.c:735
+#: src/ck-seat.c:746
 msgid "Session is not attached to this seat"
 msgstr "Сесията не е прикачена към тази седалка"
 
-#: src/ck-seat.c:1034
+#: src/ck-seat.c:1045
 msgid "Seat has no sessions"
 msgstr "Седалката няма сесии"
 
@@ -151,117 +147,117 @@ msgstr "Невъзможно създаването на задържащ клю
 msgid "There is nothing currently inhibited"
 msgstr "В момента няма нищо за задържане"
 
-#: src/ck-manager.c:3055 src/ck-manager.c:3139 src/ck-manager.c:3196
+#: src/ck-manager.c:3059 src/ck-manager.c:3143 src/ck-manager.c:3200
 msgid "Unable to get information about the calling process"
 msgstr "Невъзможно извличане на информация за извикващият процес"
 
-#: src/ck-manager.c:3069 src/ck-manager.c:3417 src/ck-session.c:468
-#: src/ck-session.c:517
+#: src/ck-manager.c:3073 src/ck-manager.c:3421 src/ck-session.c:476
+#: src/ck-session.c:525
 #, c-format
 msgid "Unable to lookup information about calling process '%d'"
 msgstr "Невъзможно намиране на информация за извикващият процес '%d'"
 
-#: src/ck-manager.c:3080 src/ck-manager.c:3087 src/ck-manager.c:3366
+#: src/ck-manager.c:3084 src/ck-manager.c:3091 src/ck-manager.c:3370
 msgid "Unable to find session for cookie"
 msgstr "Невъзможно намиране на сесия за бизквитка"
 
-#: src/ck-manager.c:3122
+#: src/ck-manager.c:3126
 msgid "pid must be > 1"
 msgstr "pid трябва да е > 1"
 
-#: src/ck-manager.c:3147
+#: src/ck-manager.c:3151
 #, c-format
 msgid "Unable to lookup session information for process '%d'"
 msgstr "Невъзможно намиране на сесиина информация за процес '%d'"
 
-#: src/ck-manager.c:3374
+#: src/ck-manager.c:3378
 msgid "User ID does not match the owner of cookie"
 msgstr "Потребилското ID несъвпада с това на притежателя на бизквитката"
 
-#: src/ck-manager.c:3384
+#: src/ck-manager.c:3388
 msgid "Process ID does not match the owner of cookie"
 msgstr "Процесното ID несъвпада с това на притежателя на бизквитката"
 
-#: src/ck-manager.c:3661
+#: src/ck-manager.c:3665
 msgid "User has no sessions"
 msgstr "Потребителя няма сесии"
 
-#: src/ck-manager.c:3725 src/ck-manager.c:3770 src/ck-manager.c:3803
-#: src/ck-manager.c:3829
+#: src/ck-manager.c:3729 src/ck-manager.c:3774 src/ck-manager.c:3807
+#: src/ck-manager.c:3833
 msgid "Invalid session"
 msgstr ""
 
-#: src/ck-manager.c:3730 src/ck-manager.c:3737
+#: src/ck-manager.c:3734 src/ck-manager.c:3741
 msgid "Invalid seat"
 msgstr ""
 
-#: src/ck-manager.c:3777
+#: src/ck-manager.c:3781
 msgid "Session is not attached to a seat"
 msgstr ""
 
-#: src/ck-manager.c:3856
+#: src/ck-manager.c:3860
 msgid "User has no seats"
 msgstr "Потребителя няма седалки"
 
-#: src/ck-manager.c:3882
+#: src/ck-manager.c:3886
 msgid "There are no sessions"
 msgstr "Няма сесии"
 
-#: src/ck-session.c:474
+#: src/ck-session.c:482
 msgid "Only session owner may set idle hint state"
 msgstr "Само сесииният водач може да зададе подсказка за статус"
 
-#: src/ck-session.c:523
+#: src/ck-session.c:531
 msgid "Only session owner may set locked hint state"
 msgstr ""
 
-#: src/ck-session.c:882
+#: src/ck-session.c:890
 msgid ""
 "Activate signal not handeled. Session not attached to seat, or the seat "
 "doesn't support activation changes"
 msgstr "Сигнал за активиране не е обработен. Сесия не е прикачена към седалка, или седалката не поддържа промени на активацията"
 
-#: src/ck-session.c:1300
+#: src/ck-session.c:1308
 msgid "Failed to create the XDG_RUNTIME_DIR"
 msgstr "Грешка при създаването на XDG_RUNTIME_DIR"
 
-#: src/ck-session.c:1592
+#: src/ck-session.c:1617
 msgid "Server managed devices not supported"
 msgstr ""
 
-#: src/ck-session.c:1598
+#: src/ck-session.c:1623
 msgid "Failed to get uid of dbus caller"
 msgstr ""
 
-#: src/ck-session.c:1615
+#: src/ck-session.c:1640
 msgid "Failed to replace the current session controller"
 msgstr ""
 
-#: src/ck-session.c:1617
+#: src/ck-session.c:1642
 msgid "Session controller already present"
 msgstr ""
 
-#: src/ck-session.c:1639
+#: src/ck-session.c:1664
 msgid "Only the session controller may use this function"
 msgstr ""
 
-#: src/ck-session.c:1732 src/ck-session.c:1779 src/ck-session.c:1811
+#: src/ck-session.c:1757 src/ck-session.c:1804 src/ck-session.c:1836
 msgid "Only the session controller may call this function"
 msgstr ""
 
-#: src/ck-session.c:1738
+#: src/ck-session.c:1763
 msgid "Device has already been requested"
 msgstr ""
 
-#: src/ck-session.c:1745
+#: src/ck-session.c:1770
 msgid "Failed to create device"
 msgstr ""
 
-#: src/ck-session.c:1752
+#: src/ck-session.c:1777
 msgid "Failed to get file descriptor for device"
 msgstr ""
 
-#: src/ck-session.c:1786 src/ck-session.c:1818
+#: src/ck-session.c:1811 src/ck-session.c:1843
 msgid "Device doesn't exist"
 msgstr ""
 
@@ -370,6 +366,6 @@ msgstr "Покажи включвания от специфицираното в
 msgid "DATETIME"
 msgstr "ДАТА"
 
-#: tools/ck-get-x11-display-device.c:170
+#: tools/ck-get-x11-display-device.c:246
 msgid "display name"
 msgstr "име на дисплей"
