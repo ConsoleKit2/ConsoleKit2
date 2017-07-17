@@ -1,4 +1,32 @@
 ==============
+Version 1.2.0
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.1.2
+New Features:
+- Add wscons headers for OpenBSD
+
+Bug Fixes:
+- Allow changing to VTs we don't have a session for
+- Correct introspection prefixes
+- Change configure.ac to enable the udev backend with devattr
+- Use KDSKBMODE if defined
+- Use #ifdef HEADER_H instead of #ifdef OS
+- FreeBSD session activation
+- Place sessions with a VT on the static Seat1
+- clean up clang warnings
+- correct uninitialized variable warning
+- Explicitly check for needed symbols
+- Correct build errors in OpenBSD
+- fix compiling on FreeBSD
+
+Misc Changes:
+- update gitignore
+- more autotools cleanup work
+- update readme with new deps
+
+==============
 Version 1.1.2
 ==============
 [Please note that this is a development release.]
