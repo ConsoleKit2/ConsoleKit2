@@ -1602,6 +1602,14 @@ ck_session_set_session_controller (CkSession   *session,
 }
 
 static gboolean
+dbus_can_control_session (ConsoleKitSession *object,
+                          GDBusMethodInvocation *invocation)
+{
+        console_kit_session_complete_can_control_session (object, invocation, ck_device_is_server_managed ());
+        return TRUE;
+}
+
+static gboolean
 dbus_take_control (ConsoleKitSession *object,
                    GDBusMethodInvocation *invocation,
                    gboolean arg_force)
@@ -2079,6 +2087,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_unlock                 = dbus_unlock;
         iface->handle_get_idle_hint          = dbus_get_idle_hint;
         iface->handle_get_xdgruntime_dir     = dbus_get_runtime_dir;
+        iface->handle_can_control_session    = dbus_can_control_session;
         iface->handle_take_control           = dbus_take_control;
         iface->handle_release_control        = dbus_release_control;
         iface->handle_take_device            = dbus_take_device;

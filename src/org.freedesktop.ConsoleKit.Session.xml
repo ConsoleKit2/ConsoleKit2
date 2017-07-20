@@ -368,6 +368,21 @@
       </doc:doc>
     </method>
 
+    <method name="CanControlSession">
+      <arg name="controller_supported" type="b" direction="out">
+        <doc:doc>
+          <doc:summary>Whether the system supports a session controller.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Returns TRUE if the system has Session Controller support. This means
+          the TakeControl call won't return CK_SESSION_ERROR_NOT_SUPPORTED.</doc:para>
+          <doc:para>Since 1.3.0</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="TakeControl">
       <arg name="force" type="b" direction="in">
         <doc:doc>
