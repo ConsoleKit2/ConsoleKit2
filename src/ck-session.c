@@ -1247,6 +1247,7 @@ ck_session_set_seat_id (CkSession      *session,
                         GError        **error)
 {
         GVariant *seat = NULL;
+        gchar **seat_split;
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
@@ -1254,7 +1255,16 @@ ck_session_set_seat_id (CkSession      *session,
         session->priv->seat_id = g_strdup (id);
 
         if (id != NULL) {
-                seat = g_variant_new ("(so)", id, id);
+                /* we need to remove the prefix from the first seat_id returned */
+                seat_split = g_strsplit (id, "/org/freedesktop/ConsoleKit/", 2);
+
+                if (seat_split[0] == NULL) {
+                        g_critical ("id %s is invalid or g_strsplit has changed", id);
+                        return FALSE;
+                }
+
+                seat = g_variant_new ("(so)", seat_split[1], id);
+                g_strfreev (seat_split);
         }
 
         console_kit_session_set_seat (CONSOLE_KIT_SESSION (session), seat);
