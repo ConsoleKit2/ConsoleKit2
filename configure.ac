@@ -196,7 +196,7 @@ case "$host" in
                 KVM_LIBS="-lkvm"
         fi
         ;;
-        *-*-freebsd* | *-*-kfreebsd*-gnu | *-*-dragonfly*)
+        *-*-freebsd* | *-*-kfreebsd*-gnu )
         CK_BACKEND="freebsd"
         AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
                 AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD/DragonflyBSD]))
@@ -207,6 +207,19 @@ case "$host" in
                 AC_MSG_WARN([Unable to find libprocstat which is used on FreeBSD]))
 	if test "x$have_procstat" = "xyes"; then
                 KVM_LIBS="${KVM_LIBS} -lprocstat"
+        fi
+        ;;
+        *-*-dragonfly*)
+        CK_BACKEND="dragonfly"
+        AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
+        AC_MSG_ERROR([Unable to find libkvm which is needed on DragonflyBSD]))
+        if test "x$have_kvm" = "xyes"; then
+        KVM_LIBS="-lkvm"
+        fi
+	      AC_CHECK_LIB(procstat, procstat_open_sysctl, have_procstat=yes,
+        AC_MSG_WARN([Unable to find libprocstat which is used on FreeBSD]))
+	      if test "x$have_procstat" = "xyes"; then
+        KVM_LIBS="${KVM_LIBS} -lprocstat"
         fi
         ;;
         *-*-netbsd*)
@@ -235,6 +248,7 @@ AC_SUBST(KVM_LIBS)
 
 AM_CONDITIONAL(CK_COMPILE_LINUX, test x$CK_BACKEND = xlinux, [Compiling for Linux])
 AM_CONDITIONAL(CK_COMPILE_FREEBSD, test x$CK_BACKEND = xfreebsd, [Compiling for FreeBSD])
+AM_CONDITIONAL(CK_COMPILE_DRAGONFLY, test x$CK_BACKEND = xdragonfly, [Compiling for DragonFly])
 AM_CONDITIONAL(CK_COMPILE_NETBSD, test x$CK_BACKEND = xnetbsd, [Compiling for NetBSD])
 AM_CONDITIONAL(CK_COMPILE_OPENBSD, test x$CK_BACKEND = xopenbsd, [Compiling for OpenBSD])
 AM_CONDITIONAL(CK_COMPILE_SOLARIS, test x$CK_BACKEND = xsolaris, [Compiling for Solaris])
