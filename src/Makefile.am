@@ -84,6 +84,12 @@ libck_la_SOURCES +=		\
 	$(NULL)
 libck_la_LIBADD += $(KVM_LIBS)
 endif
+if CK_COMPILE_DRAGONFLY
+libck_la_SOURCES +=		\
+	ck-sysdeps-dragonfly.c	\
+	$(NULL)
+libck_la_LIBADD += $(KVM_LIBS)
+endif
 if CK_COMPILE_OPENBSD
 libck_la_SOURCES +=		\
 	ck-sysdeps-openbsd.c	\

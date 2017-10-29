@@ -359,7 +359,11 @@ else
       hardcode_direct=yes
       hardcode_minus_L=yes
       ;;
-    freebsd* | kfreebsd*-gnu | dragonfly*)
+    freebsd* | kfreebsd*-gnu) 
+      hardcode_libdir_flag_spec='-R$libdir'
+      hardcode_direct=yes
+      ;;
+    dragonfly*)
       hardcode_libdir_flag_spec='-R$libdir'
       hardcode_direct=yes
       ;;

@@ -158,7 +158,7 @@ stat2proc (pid_t        pid,
 {
         struct kinfo_proc p;
         char              *ttname;
-        guint             num;
+        int               num;
         int               tty_maj;
         int               tty_min;
 
@@ -166,41 +166,41 @@ stat2proc (pid_t        pid,
                 return FALSE;
         }
 
-        num = OCOMMLEN;
+        num = MAXCOMLEN;
         if (num >= sizeof P->cmd) {
                 num = sizeof P->cmd - 1;
         }
 
-        memcpy (P->cmd, p.ki_ocomm, num);
+        memcpy (P->cmd, p.kp_comm, num);
 
         P->cmd[num]   = '\0';
-        P->pid        = p.ki_pid;
-        P->ppid       = p.ki_ppid;
-        P->pgrp       = p.ki_pgid;
-        P->session    = p.ki_sid;
-        P->rss        = p.ki_rssize;
-        P->vsize      = p.ki_size;
-        P->start_time = p.ki_start.tv_sec;
-        P->wchan      = (unsigned long) p.ki_wchan;
-        P->state      = p.ki_stat;
-        P->nice       = p.ki_nice;
-        P->flags      = p.ki_sflag;
-        P->tpgid      = p.ki_tpgid;
-        P->processor  = p.ki_oncpu;
-        P->nlwp       = p.ki_numthreads;
+        P->pid        = p.kp_pid;
+        P->ppid       = p.kp_ppid;
+        P->pgrp       = p.kp_pgid;
+        P->session    = p.kp_sid;
+        P->rss        = p.kp_vm_rssize;
+        P->vsize      = p.kp_vm_map_size;
+        P->start_time = p.kp_start.tv_sec;
+        P->wchan      = (unsigned long) p.kp_lwp.kl_wchan;
+        P->state      = p.kp_stat;
+        P->nice       = p.kp_nice;
+        P->flags      = p.kp_flags;
+        P->tpgid      = p.kp_tpgid;
+        P->processor  = p.kp_lwp.kl_cpuid;
+        P->nlwp       = p.kp_nthreads;
 
         /* we like it Linux-encoded :-) */
-        tty_maj = major (p.ki_tdev);
-        tty_min = minor (p.ki_tdev);
+        tty_maj = major (p.kp_tdev);
+        tty_min = minor (p.kp_tdev);
         P->tty = DEV_ENCODE (tty_maj,tty_min);
 
         snprintf (P->tty_text, sizeof P->tty_text, "%3d,%-3d", tty_maj, tty_min);
 
-        if (p.ki_tdev != NODEV && (ttname = devname (p.ki_tdev, S_IFCHR)) != NULL) {
+        if (p.kp_tdev != NODEV && (ttname = devname (p.kp_tdev, S_IFCHR)) != NULL) {
                 memcpy (P->tty_text, ttname, sizeof (P->tty_text));
         }
 
-        if (p.ki_tdev == NODEV) {
+        if (p.kp_tdev == NODEV) {
                 memcpy (P->tty_text, "   ?   ", sizeof (P->tty_text));
         }
 
@@ -330,7 +330,7 @@ ck_unix_pid_get_uid (pid_t pid)
         res = get_kinfo_proc (pid, &p);
 
         if (res) {
-                uid = p.ki_uid;
+                uid = p.kp_uid;
         }
 
         return uid;

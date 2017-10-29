@@ -165,7 +165,7 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                 g_warning ("Failed to getpeereid() credentials: %s\n",
                            g_strerror (errno));
         }
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__)
         kd = kvm_openfiles (NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
         if (kd == NULL) {
                 g_warning ("kvm_openfiles failed: %s", errbuf);
@@ -182,6 +182,23 @@ ck_get_socket_peer_credentials   (int      socket_fd,
 
         kvm_close(kd);
 #endif /* __FreeBSD__ */
+#if defined(__DragonFly__)
+        kd = kvm_openfiles (NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
+        if (kd == NULL) {
+                g_warning ("kvm_openfiles failed: %s", errbuf);
+                return FALSE;
+        }
+
+        prc = kvm_getprocs (kd, KERN_PROC_UID, uid_read, &cnt);
+        for (int i = 0; i < cnt; i++) {
+                if(strncmp (prc[i].kp_comm, "Xorg", 4) == 0) {
+                        pid_read = prc[i].kp_pid;
+                        break;
+                }
+        }
+
+        kvm_close(kd);
+#endif /* DragonFly */
 #else /* !SO_PEERCRED && !HAVE_GETPEERUCRED */
         g_warning ("Socket credentials not supported on this OS\n");
 #endif
