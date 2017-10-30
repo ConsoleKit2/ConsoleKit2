@@ -531,6 +531,24 @@
       </doc:doc>
     </method>
 
+    <method name="ListSeats">
+      <arg name="seats" direction="out" type="a(so)">
+        <doc:doc>
+          <doc:summary>an array of seat names and IDs</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Retrieves a list of all <doc:ref type="interface" to="Seat">Seats</doc:ref>
+          that are present on the system.</doc:para>
+          <doc:para>Like the logind method of the same name, this returns both the seat's name
+          (such as "seat0") and the D-Bus object path for the seat object that implements the
+          <doc:ref type="interface" to="Seat">Seat</doc:ref> interface.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="method" to="Manager.GetSeats">GetSeats()</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao">
         <doc:doc>
