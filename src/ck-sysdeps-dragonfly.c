@@ -48,6 +48,7 @@
 #ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
+#include <vfs/tmpfs/tmpfs_mount.h>
 
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -546,16 +547,19 @@ gboolean
 ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 {
 #ifdef HAVE_SYS_MOUNT_H
-        gchar        *opts;
-        int           result;
-
+        int                     result;
+        struct tmpfs_mount_info opts;
         TRACE ();
 
-        opts = g_strdup_printf ("mode=0700,uid=%d", uid);
+        opts.ta_version = TMPFS_ARGS_VERSION;
+        opts.ta_size_max = 0;
+        opts.ta_nodes_max = 0;
+        opts.ta_maxfsize_max = 0;
+        opts.ta_root_uid = uid;
+        opts.ta_root_gid = gid;
+        opts.ta_root_mode = 0x1c0; /* 0700 */
 
-        result = mount("tmpfs", dest, 0, opts);
-
-        g_free (opts);
+        result = mount("tmpfs", dest, 0, &opts);
 
         if (result == 0) {
                 return TRUE;
