@@ -476,70 +476,22 @@ ck_get_active_console_num (int    console_fd,
         return ret;
 }
 
-static gchar *
-get_string_sysctl (GError **err, const gchar *format, ...)
-{
-        va_list args;
-        gchar *name;
-        size_t value_len;
-        gchar *str = NULL;
-
-        g_return_val_if_fail(format != NULL, FALSE);
-
-        va_start (args, format);
-        name = g_strdup_vprintf (format, args);
-        va_end (args);
-
-        if (sysctlbyname (name, NULL, &value_len, NULL, 0) == 0) {
-                str = g_new (char, value_len + 1);
-                if (sysctlbyname (name, str, &value_len, NULL, 0) == 0) {
-                        str[value_len] = 0;
-                } else {
-                        g_free (str);
-                        str = NULL;
-                }
-        }
-
-        if (!str)
-                g_set_error (err, 0, 0, "%s", g_strerror(errno));
-
-        g_free(name);
-        return str;
-}
-
-static gboolean
-freebsd_supports_sleep_state (const gchar *state)
-{
-        gboolean ret = FALSE;
-        gchar *sleep_states;
-
-        sleep_states = get_string_sysctl (NULL, "hw.acpi.supported_sleep_state");
-        if (sleep_states != NULL) {
-                if (strstr (sleep_states, state) != NULL)
-                        ret = TRUE;
-        }
-
-        g_free (sleep_states);
-
-        return ret;
-}
-
+/* DragonFly has no support for suspend, hibernate, or sleep */
 gboolean
 ck_system_can_suspend (void)
 {
-        return freebsd_supports_sleep_state ("S3");
+        return FALSE;
 }
 
 gboolean
 ck_system_can_hibernate (void)
 {
-        return freebsd_supports_sleep_state ("S4");
+        return FALSE;
 }
 
 gboolean
 ck_system_can_hybrid_sleep (void)
 {
-        /* TODO: not implemented */
         return FALSE;
 }
 
