@@ -3841,6 +3841,44 @@ dbus_unlock_session (ConsoleKitManager *ckmanager,
 }
 
 static gboolean
+dbus_list_seats (ConsoleKitManager     *ckmanager,
+                 GDBusMethodInvocation *context)
+{
+        CkManager       *manager;
+        GVariantBuilder  seat_builder;
+        GVariant        *seat;
+        GHashTableIter   seat_iter;
+        const gchar     *key;
+        CkSeat          *value;
+
+        TRACE ();
+
+        manager = CK_MANAGER (ckmanager);
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        /* if we don't have seats, we need to return NULL */
+        if (g_hash_table_size (manager->priv->seats) == 0) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SEATS, _("User has no seats"));
+                return TRUE;
+        }
+
+        g_variant_builder_init (&seat_builder, G_VARIANT_TYPE_ARRAY);
+
+        g_hash_table_iter_init (&seat_iter, manager->priv->seats);
+        while (g_hash_table_iter_next (&seat_iter, &key, &value)) {
+                seat = g_variant_new("(so)",
+                                     console_kit_seat_get_name( CONSOLE_KIT_SEAT(value) ),
+                                     key);
+
+                g_variant_builder_add_value (&seat_builder, seat);
+        }
+
+        console_kit_manager_complete_list_seats (ckmanager, context, g_variant_builder_end (&seat_builder));
+        return TRUE;
+}
+
+static gboolean
 dbus_get_seats (ConsoleKitManager     *ckmanager,
                 GDBusMethodInvocation *context)
 {
@@ -4134,6 +4172,7 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_stop                         = dbus_stop;
         iface->handle_suspend                      = dbus_suspend;
         iface->handle_close_session                = dbus_close_session;
+        iface->handle_list_seats                   = dbus_list_seats;
         iface->handle_get_seats                    = dbus_get_seats;
         iface->handle_get_sessions                 = dbus_get_sessions;
         iface->handle_get_sessions_for_unix_user   = dbus_get_sessions_for_unix_user;
