@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the ConsoleKit2 package.
 # 
 # Translators:
-# Pablo Roberto “Jristz” Lezaeta Reyes <prflr88@gmail.com>, 2015
+# Pablo Lezaeta Reyes [pˈaβ̞lo lˌe̞θaˈeta rˈejɛ] <prflr88@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-07-15 04:38+0300\n"
-"PO-Revision-Date: 2017-07-15 04:30+0000\n"
+"POT-Creation-Date: 2017-07-17 12:23+0300\n"
+"PO-Revision-Date: 2017-09-21 23:25+0000\n"
 "Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
 "Language-Team: Spanish (Latin America) (http://www.transifex.com/consolekit2/consolekit2/language/es_419/)\n"
 "MIME-Version: 1.0\n"

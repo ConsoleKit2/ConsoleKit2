@@ -3,15 +3,16 @@
 # This file is distributed under the same license as the ConsoleKit2 package.
 # 
 # Translators:
-# Pablo Roberto “Jristz” Lezaeta Reyes <prflr88@gmail.com>, 2015
-# Pablo Roberto “Jristz” Lezaeta Reyes <prflr88@gmail.com>, 2016
+# Joel Barrios <darkshram@gmail.com>, 2017
+# Pablo Lezaeta Reyes [pˈaβ̞lo lˌe̞θaˈeta rˈejɛ] <prflr88@gmail.com>, 2015
+# Pablo Lezaeta Reyes [pˈaβ̞lo lˌe̞θaˈeta rˈejɛ] <prflr88@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-07-15 04:38+0300\n"
-"PO-Revision-Date: 2017-07-15 04:30+0000\n"
-"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
+"POT-Creation-Date: 2017-07-17 12:23+0300\n"
+"PO-Revision-Date: 2017-10-14 23:06+0000\n"
+"Last-Translator: Joel Barrios <darkshram@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/consolekit2/consolekit2/language/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,7 +42,7 @@ msgstr "No se pudo activar la sesión"
 
 #: src/ck-seat.c:444
 msgid "Unable to change VT for seat"
-msgstr ""
+msgstr "No se pudo cambiar VT para el asiento"
 
 #: src/ck-seat.c:746
 msgid "Session is not attached to this seat"
@@ -100,53 +101,53 @@ msgstr "No se pudo %s al sistema: %s"
 #: src/ck-manager.c:1544 src/ck-manager.c:1651 src/ck-manager.c:1906
 #: src/ck-manager.c:2038 src/ck-manager.c:2170
 msgid "Attempting to perform a system action while one is in progress"
-msgstr ""
+msgstr "Intentando realizar acción de sistema mientras hay otra en progreso"
 
 #: src/ck-manager.c:1556
 msgid "failed to allocate memory to perform restart"
-msgstr ""
+msgstr "No se pudo reasignar memoria para realizar reinicio"
 
 #: src/ck-manager.c:1603 src/ck-manager.c:1703 src/ck-manager.c:1760
 #: src/ck-manager.c:1839 src/ck-manager.c:1966 src/ck-manager.c:2098
 #: src/ck-manager.c:2230
 msgid "Operation is being inhibited"
-msgstr ""
+msgstr "Operación está siendo inhibida"
 
 #: src/ck-manager.c:1663
 msgid "failed to allocate memory to perform shutdown"
-msgstr ""
+msgstr "No se pudo reasignar memoria para realizar apagado"
 
 #: src/ck-manager.c:1918
 msgid "failed to allocate memory to perform suspend"
-msgstr ""
+msgstr "No se pudo reasignar memoria para realizar suspensión"
 
 #: src/ck-manager.c:2050
 msgid "failed to allocate memory to perform hibernate"
-msgstr ""
+msgstr "No se pudo reasignar memoria para realizar hibernación"
 
 #: src/ck-manager.c:2182
 msgid "failed to allocate memory to perform hybrid sleep"
-msgstr ""
+msgstr "No se pudo reasignar memoria para realizar suspensión híbrida"
 
 #: src/ck-manager.c:2323 src/ck-manager.c:2350
 msgid "Error creating the inhibit lock"
-msgstr ""
+msgstr "Error al crear el bloqueo de inhibición"
 
 #: src/ck-manager.c:2328 src/ck-manager.c:2390
 msgid "Inhibit manager failed to initialize"
-msgstr ""
+msgstr "Gestor de inhibición falló al inicializar"
 
 #: src/ck-manager.c:2344
 msgid "Invalid input when creating inhibit lock"
-msgstr ""
+msgstr "Entrada inválida al crear bloqueo de inhibición"
 
 #: src/ck-manager.c:2347
 msgid "Unable to create inhibit lock, insufficient memory"
-msgstr ""
+msgstr "No se puede crear bloqueo de inhibición, memoria insuficiente"
 
 #: src/ck-manager.c:2397
 msgid "There is nothing currently inhibited"
-msgstr ""
+msgstr "No hay nada siendo inhibido en este momento"
 
 #: src/ck-manager.c:3059 src/ck-manager.c:3143 src/ck-manager.c:3200
 msgid "Unable to get information about the calling process"
@@ -186,15 +187,15 @@ msgstr "El usuario no tiene sesión"
 #: src/ck-manager.c:3729 src/ck-manager.c:3774 src/ck-manager.c:3807
 #: src/ck-manager.c:3833
 msgid "Invalid session"
-msgstr ""
+msgstr "Sesión inválida"
 
 #: src/ck-manager.c:3734 src/ck-manager.c:3741
 msgid "Invalid seat"
-msgstr ""
+msgstr "Asiento inválido"
 
 #: src/ck-manager.c:3781
 msgid "Session is not attached to a seat"
-msgstr ""
+msgstr "Sesión no está unida al asiento"
 
 #: src/ck-manager.c:3860
 msgid "User has no seats"
@@ -210,7 +211,7 @@ msgstr "Solo el propietario de la sesión puede establecer el estado de toque de
 
 #: src/ck-session.c:531
 msgid "Only session owner may set locked hint state"
-msgstr ""
+msgstr "Sólo el propietario de la sesión puede bloquear el estado de sugerencia"
 
 #: src/ck-session.c:890
 msgid ""
@@ -224,43 +225,43 @@ msgstr "No se pudo crear XDG_RUNTIME_DIR"
 
 #: src/ck-session.c:1617
 msgid "Server managed devices not supported"
-msgstr ""
+msgstr "Dispositivos administrados por servidor no admitidos"
 
 #: src/ck-session.c:1623
 msgid "Failed to get uid of dbus caller"
-msgstr ""
+msgstr "Error al obtener uid de la llamada dbus"
 
 #: src/ck-session.c:1640
 msgid "Failed to replace the current session controller"
-msgstr ""
+msgstr "No se pudo reemplazar el controlador de sesión actual"
 
 #: src/ck-session.c:1642
 msgid "Session controller already present"
-msgstr ""
+msgstr "Controlador de sesión ya está presente"
 
 #: src/ck-session.c:1664
 msgid "Only the session controller may use this function"
-msgstr ""
+msgstr "Sólo el controlador de sesión puede utilizar esta función"
 
 #: src/ck-session.c:1757 src/ck-session.c:1804 src/ck-session.c:1836
 msgid "Only the session controller may call this function"
-msgstr ""
+msgstr "Sólo el controlador de sesión puede invocar esta función"
 
 #: src/ck-session.c:1763
 msgid "Device has already been requested"
-msgstr ""
+msgstr "Dispositivo ya ha sido solicitado"
 
 #: src/ck-session.c:1770
 msgid "Failed to create device"
-msgstr ""
+msgstr "No se pudo crear dispositivo"
 
 #: src/ck-session.c:1777
 msgid "Failed to get file descriptor for device"
-msgstr ""
+msgstr "Error al obtener el descriptor de archivo para el dispositivo"
 
 #: src/ck-session.c:1811 src/ck-session.c:1843
 msgid "Device doesn't exist"
-msgstr ""
+msgstr "Dispositivo inexistente"
 
 #. TRANSLATORS: This is letting the user know that cgmanager
 #. * support was compiled in, but the cgmanager daemon isn't
@@ -268,7 +269,7 @@ msgstr ""
 #: src/ck-process-group.c:111
 msgid ""
 "Failed to open connection to cgmanager. Is the cgmanager daemon running?"
-msgstr ""
+msgstr "No se pudo abrir conexión hacia cgmanager. ¿Se está ejecutando el servicio cgmanager?"
 
 #. TRANSLATORS: There is an error with cgmanager, we're just
 #. * printing it out. Please ensure you keep the %s in the
@@ -277,7 +278,7 @@ msgstr ""
 #: src/ck-process-group.c:127
 #, c-format
 msgid "There was an error while initializing cgmanager, the error was: %s"
-msgstr ""
+msgstr "Hubo un error al inicializar cgmanager, el error fue: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -285,7 +286,7 @@ msgstr ""
 #: src/ck-process-group.c:234
 #, c-format
 msgid "Failed to create cgroup, the error was: %s"
-msgstr ""
+msgstr "No se pudo crear el cgroup, el error fue: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -295,7 +296,7 @@ msgstr ""
 msgid ""
 "Failed to change owner of the new cgroup to owner of the session leader, the"
 " error was: %s"
-msgstr ""
+msgstr "No se pudo cambiar el propietario del nuevo cgroup al propietario de la sesión líder, el error fue: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -305,7 +306,7 @@ msgstr ""
 msgid ""
 "Failed to move the session leader process to 'cpuacct' cgroup, the error "
 "was: %s"
-msgstr ""
+msgstr "No se pudo mover el proceso de la seisón líder al cgroup 'cpuacct', el error fue: %s"
 
 #. TRANSLATORS: Please ensure you keep the %s in the
 #. * string somewhere. It's the detailed error message from
@@ -313,7 +314,7 @@ msgstr ""
 #: src/ck-process-group.c:309
 #, c-format
 msgid "Failed to get the session id from cgmanager, the error was: %s"
-msgstr ""
+msgstr "No se pudo obtener el id de sesión de cgmanager, el error fue: %s"
 
 #: tools/ck-history.c:903 tools/list-sessions.c:414
 msgid "Version of this application"

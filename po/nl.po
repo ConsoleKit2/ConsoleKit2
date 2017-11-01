@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-07-15 04:38+0300\n"
-"PO-Revision-Date: 2017-07-15 04:30+0000\n"
-"Last-Translator: Eric Koegel <eric.koegel@gmail.com>\n"
+"POT-Creation-Date: 2017-07-17 12:23+0300\n"
+"PO-Revision-Date: 2017-09-22 16:44+0000\n"
+"Last-Translator: Eric Hameleers <eric.hameleers@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/consolekit2/consolekit2/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,7 +40,7 @@ msgstr "Kan geen sessie activeren"
 
 #: src/ck-seat.c:444
 msgid "Unable to change VT for seat"
-msgstr ""
+msgstr "Kan VT niet aanpassen voor seat"
 
 #: src/ck-seat.c:746
 msgid "Session is not attached to this seat"
@@ -368,4 +368,4 @@ msgstr "DAGTIJD"
 
 #: tools/ck-get-x11-display-device.c:246
 msgid "display name"
-msgstr "Toon naam"
+msgstr "schermnaam"
