@@ -3866,7 +3866,7 @@ dbus_list_seats (ConsoleKitManager     *ckmanager,
         g_variant_builder_init (&seat_builder, G_VARIANT_TYPE_ARRAY);
 
         g_hash_table_iter_init (&seat_iter, manager->priv->seats);
-        while (g_hash_table_iter_next (&seat_iter, &key, &value)) {
+        while (g_hash_table_iter_next (&seat_iter,  (gpointer *)&key,  (gpointer *)&value)) {
                 seat = g_variant_new("(so)",
                                      console_kit_seat_get_name( CONSOLE_KIT_SEAT(value) ),
                                      key);
