@@ -71,7 +71,8 @@ AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
 		  sys/sysmacros.h sys/types.h libudev.h linux/input.h \
 		  sys/mkdev.h devattr.h sys/kd.h sys/kbio.h libprop/proplib.h \
 		  linux/kd.h sys/queue.h sys/stat.h sys/fcntl.h \
-		  dev/wscons/wsdisplay_usl_io.h dev/wscons/wsconsio.h])
+		  dev/wscons/wsdisplay_usl_io.h dev/wscons/wsconsio.h \
+		  vfs/tmpfs/tmpfs_mount.h])
 
 AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
                 strerror strrchr strspn strstr strtol strtoul uname \

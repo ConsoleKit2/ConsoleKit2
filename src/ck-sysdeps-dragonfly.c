@@ -48,7 +48,10 @@
 #ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
+
+#ifdef HAVE_VFS_TMPFS_TMPFS_MOUNT_H
 #include <vfs/tmpfs/tmpfs_mount.h>
+#endif
 
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -498,7 +501,7 @@ ck_system_can_hybrid_sleep (void)
 gboolean
 ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 {
-#ifdef HAVE_SYS_MOUNT_H
+#ifdef HAVE_VFS_TMPFS_TMPFS_MOUNT_H
         int                     result;
         struct tmpfs_mount_info opts;
         TRACE ();
@@ -528,7 +531,7 @@ ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 gboolean
 ck_remove_tmpfs (guint uid, const gchar *dest)
 {
-#ifdef HAVE_SYS_MOUNT_H
+#ifdef HAVE_VFS_TMPFS_TMPFS_MOUNT_H
         int           result;
 
         TRACE ();
