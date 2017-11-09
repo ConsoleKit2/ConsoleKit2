@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2 1.2.0\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-07-17 12:23+0300\n"
+"POT-Creation-Date: 2017-11-09 04:42+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -194,11 +194,11 @@ msgstr ""
 msgid "Session is not attached to a seat"
 msgstr ""
 
-#: src/ck-manager.c:3860
+#: src/ck-manager.c:3862 src/ck-manager.c:3898
 msgid "User has no seats"
 msgstr ""
 
-#: src/ck-manager.c:3886
+#: src/ck-manager.c:3924
 msgid "There are no sessions"
 msgstr ""
 
@@ -216,47 +216,47 @@ msgid ""
 "doesn't support activation changes"
 msgstr ""
 
-#: src/ck-session.c:1308
+#: src/ck-session.c:1318
 msgid "Failed to create the XDG_RUNTIME_DIR"
 msgstr ""
 
-#: src/ck-session.c:1617
+#: src/ck-session.c:1635
 msgid "Server managed devices not supported"
 msgstr ""
 
-#: src/ck-session.c:1623
+#: src/ck-session.c:1641
 msgid "Failed to get uid of dbus caller"
 msgstr ""
 
-#: src/ck-session.c:1640
+#: src/ck-session.c:1658
 msgid "Failed to replace the current session controller"
 msgstr ""
 
-#: src/ck-session.c:1642
+#: src/ck-session.c:1660
 msgid "Session controller already present"
 msgstr ""
 
-#: src/ck-session.c:1664
+#: src/ck-session.c:1682
 msgid "Only the session controller may use this function"
 msgstr ""
 
-#: src/ck-session.c:1757 src/ck-session.c:1804 src/ck-session.c:1836
+#: src/ck-session.c:1775 src/ck-session.c:1822 src/ck-session.c:1854
 msgid "Only the session controller may call this function"
 msgstr ""
 
-#: src/ck-session.c:1763
+#: src/ck-session.c:1781
 msgid "Device has already been requested"
 msgstr ""
 
-#: src/ck-session.c:1770
+#: src/ck-session.c:1788
 msgid "Failed to create device"
 msgstr ""
 
-#: src/ck-session.c:1777
+#: src/ck-session.c:1795
 msgid "Failed to get file descriptor for device"
 msgstr ""
 
-#: src/ck-session.c:1811 src/ck-session.c:1843
+#: src/ck-session.c:1829 src/ck-session.c:1861
 msgid "Device doesn't exist"
 msgstr ""
 
