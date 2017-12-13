@@ -620,7 +620,7 @@ else
 echo "        session controller        none"
 fi
 
-if test x"$POLKIT_FOUND" = x"yes"; then
+if test x"$SELINUX_FOUND" = x"yes"; then
 echo "        SELinux support:          yes"
 else
 echo "        SELinux support:          no"
