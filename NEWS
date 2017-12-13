@@ -1,4 +1,28 @@
 ==============
+Version 1.2.1
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.0
+New Features:
+- Add ListSeats method to Manager interface
+- Add CanControlSession dbus call
+
+Bug Fixes:
+- Correctly report SELinux support
+- Only use tmpfs mounts on DFly if supported
+- incompatible-pointer-type warning
+- Remove some redundant code probing for hibernation, suspend, and sleep
+- make_tmpfs for DragonFly
+- memory leak in ck-manager
+- Seat property on Session interface 
+
+Misc Changes:
+- Add DragonFlyBSD as a platform 
+- Remove DragonFly specific code from FreeBSD sysdeps
+- Switch away from AC_DISABLE_STATIC 
+
+==============
 Version 1.2.0
 ==============
 Stable release of ConsoleKit2
