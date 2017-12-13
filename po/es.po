@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ConsoleKit2\n"
 "Report-Msgid-Bugs-To: https://github.com/ConsoleKit2/ConsoleKit2/issues\n"
-"POT-Creation-Date: 2017-07-17 12:23+0300\n"
+"POT-Creation-Date: 2017-11-09 04:42+0300\n"
 "PO-Revision-Date: 2017-10-14 23:06+0000\n"
 "Last-Translator: Joel Barrios <darkshram@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/consolekit2/consolekit2/language/es/)\n"
@@ -197,11 +197,11 @@ msgstr "Asiento inválido"
 msgid "Session is not attached to a seat"
 msgstr "Sesión no está unida al asiento"
 
-#: src/ck-manager.c:3860
+#: src/ck-manager.c:3862 src/ck-manager.c:3898
 msgid "User has no seats"
 msgstr "El usuario no tiene puesto de trabajo"
 
-#: src/ck-manager.c:3886
+#: src/ck-manager.c:3924
 msgid "There are no sessions"
 msgstr "Sin sesiones"
 
@@ -219,47 +219,47 @@ msgid ""
 "doesn't support activation changes"
 msgstr "La señal de activación no se ha manejada. La sesión no se pudo unir al puesto de trabajo, o el puesto de trabajo no admite cambios de activación."
 
-#: src/ck-session.c:1308
+#: src/ck-session.c:1318
 msgid "Failed to create the XDG_RUNTIME_DIR"
 msgstr "No se pudo crear XDG_RUNTIME_DIR"
 
-#: src/ck-session.c:1617
+#: src/ck-session.c:1635
 msgid "Server managed devices not supported"
 msgstr "Dispositivos administrados por servidor no admitidos"
 
-#: src/ck-session.c:1623
+#: src/ck-session.c:1641
 msgid "Failed to get uid of dbus caller"
 msgstr "Error al obtener uid de la llamada dbus"
 
-#: src/ck-session.c:1640
+#: src/ck-session.c:1658
 msgid "Failed to replace the current session controller"
 msgstr "No se pudo reemplazar el controlador de sesión actual"
 
-#: src/ck-session.c:1642
+#: src/ck-session.c:1660
 msgid "Session controller already present"
 msgstr "Controlador de sesión ya está presente"
 
-#: src/ck-session.c:1664
+#: src/ck-session.c:1682
 msgid "Only the session controller may use this function"
 msgstr "Sólo el controlador de sesión puede utilizar esta función"
 
-#: src/ck-session.c:1757 src/ck-session.c:1804 src/ck-session.c:1836
+#: src/ck-session.c:1775 src/ck-session.c:1822 src/ck-session.c:1854
 msgid "Only the session controller may call this function"
 msgstr "Sólo el controlador de sesión puede invocar esta función"
 
-#: src/ck-session.c:1763
+#: src/ck-session.c:1781
 msgid "Device has already been requested"
 msgstr "Dispositivo ya ha sido solicitado"
 
-#: src/ck-session.c:1770
+#: src/ck-session.c:1788
 msgid "Failed to create device"
 msgstr "No se pudo crear dispositivo"
 
-#: src/ck-session.c:1777
+#: src/ck-session.c:1795
 msgid "Failed to get file descriptor for device"
 msgstr "Error al obtener el descriptor de archivo para el dispositivo"
 
-#: src/ck-session.c:1811 src/ck-session.c:1843
+#: src/ck-session.c:1829 src/ck-session.c:1861
 msgid "Device doesn't exist"
 msgstr "Dispositivo inexistente"
 
