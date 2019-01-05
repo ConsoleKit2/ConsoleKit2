@@ -1701,6 +1701,15 @@ ck_session_get_device (CkSession *session,
         for (iter = session->priv->devices; iter != NULL; iter = g_list_next (iter)) {
                 if (ck_device_compare (iter->data, major, minor)) {
                         g_debug ("found device");
+                        CkDevice *device = CK_DEVICE (iter->data);
+                        if (ck_device_get_category(device) == DEVICE_EVDEV) {
+                                struct stat st;
+                                if (fstat(ck_device_get_fd(device), &st) == -1 && errno == EBADF) {
+                                        g_debug ("but it was a dead input device, removing");
+                                        session->priv->devices = g_list_remove (session->priv->devices, device);
+                                        return NULL;
+                                }
+                        }
                         return iter->data;
                 }
         }
