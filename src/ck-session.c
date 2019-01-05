@@ -54,6 +54,10 @@
 #include <dev/wscons/wsdisplay_usl_io.h>
 #endif
 
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#include <termios.h>
+#endif
+
 #include <glib.h>
 #include <glib-unix.h>
 #include <glib/gi18n.h>
@@ -1482,6 +1486,16 @@ ck_session_setup_vt_signal (CkSession *session,
                 return;
         }
 
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+        /* Put the tty into raw mode */
+        struct termios tios;
+        if (tcgetattr (session->priv->tty_fd, &tios))
+          g_warning ("Failed to get terminal attributes");
+        cfmakeraw (&tios);
+        if (tcsetattr (session->priv->tty_fd, TCSAFLUSH, &tios))
+          g_warning ("Failed to set terminal attributes");
+#endif
+
         session->priv->sig_watch_s1 = g_unix_signal_add_full (G_PRIORITY_HIGH,
                                                               SIGUSR1,
                                                               (GSourceFunc)vt_leave_handler,
@@ -1550,6 +1564,19 @@ ck_session_controller_cleanup (CkSession *session)
                         g_warning ("failed to restore old keyboard mode");
                 }
 #endif /* defined(KDSKBMODE) */
+
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+                /* Restore sane mode */
+                struct termios tios;
+                if (tcgetattr (session->priv->tty_fd, &tios)) {
+                  g_warning ("Failed to get terminal attributes");
+                } else {
+                  cfmakesane (&tios);
+                  if (tcsetattr (session->priv->tty_fd, TCSAFLUSH, &tios)) {
+                    g_warning ("Failed to set terminal attributes");
+                  }
+                }
+#endif
 
                 if (ioctl (session->priv->tty_fd, VT_SETMODE, &mode) < 0) {
                         g_warning ("failed to return control of vt handling");
