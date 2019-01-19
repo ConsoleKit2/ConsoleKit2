@@ -476,18 +476,13 @@ ck_system_can_suspend (void)
 {
 /* needs acpi(4) */
 #if defined(__i386__) || defined(__amd64__) || defined(__aarch64__)
-	const char *apmdev = "/var/run/apmdev";
 	struct stat st;
 
-	if (stat(apmdev, &st) < 0) {
+	if (stat("/var/run/apmdev", &st) < 0) {
 		return FALSE;
 	}
 
 	if (!S_ISSOCK(st.st_mode)) {
-		return FALSE;
-	}
-
-	if (access(apmdev, W_OK) == -1) {
 		return FALSE;
 	}
 
