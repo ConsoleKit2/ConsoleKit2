@@ -7,6 +7,7 @@ SHUTDOWN_CMD_ARGS='-h now'
 # Check based on init
 if [ "$(ps -p 1 -o comm=)" = openrc-init ]; then
 	SHUTDOWN_CMD=openrc-shutdown
+	SHUTDOWN_CMD_ARGS='-p now'
 elif [ "$(ps -p 1 -o comm=)" = runit ]; then
 	SHUTDOWN_CMD=runit-init
 	SHUTDOWN_CMD_ARGS="0"
