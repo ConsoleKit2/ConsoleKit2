@@ -259,9 +259,15 @@ ck_open_a_console (char *fnam)
 again:
 #endif /* __linux__ */
 
+/* OpenBSD only allows change-setting ioctls when FWRITE is set on the fd */
+#ifdef __OpenBSD__
+        fd = open (fnam, O_WRONLY | O_NOCTTY);
+#else
         fd = open (fnam, O_RDONLY | O_NOCTTY);
         if (fd < 0 && errno == EACCES)
                 fd = open (fnam, O_WRONLY | O_NOCTTY);
+#endif
+
 #ifdef __linux__
 	if (fd < 0 && errno == EIO) {
 		/* Linux can return EIO if the tty is currently closing,
