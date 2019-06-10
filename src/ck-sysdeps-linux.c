@@ -561,7 +561,7 @@ ck_unix_pid_get_env (pid_t       pid,
                                    &length,
                                    &error);
         if (! res) {
-                g_warning ("Couldn't read %s: %s", path, error->message);
+                g_debug ("Couldn't read %s: %s", path, error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -665,13 +665,13 @@ ck_unix_pid_get_login_session_id (pid_t  pid,
                                    &length,
                                    &error);
         if (! res) {
-                g_warning ("Couldn't read %s: %s", path, error->message);
+                g_debug ("Couldn't read %s: %s", path, error->message);
                 g_error_free (error);
                 goto out;
         }
 
         if (contents[0] == '\0') {
-                g_warning ("Couldn't read %s: empty file", path);
+                g_debug ("Couldn't read %s: empty file", path);
                 goto out;
         }
 
@@ -683,7 +683,7 @@ ck_unix_pid_get_login_session_id (pid_t  pid,
         }
 
         if (errno == ERANGE) {
-                g_warning ("Couldn't read %s: %s", path, g_strerror (errno));
+                g_debug ("Couldn't read %s: %s", path, g_strerror (errno));
                 goto out;
         }
 
@@ -819,7 +819,7 @@ linux_get_used_swap (void)
         /* get memory data */
         ret = g_file_get_contents (filename, &contents, NULL, &error);
         if (!ret) {
-                g_warning ("failed to open %s: %s", filename, error->message);
+                g_debug ("failed to open %s: %s", filename, error->message);
                 g_error_free (error);
                 goto out;
         }
@@ -889,7 +889,7 @@ linux_supports_sleep_state (const gchar *state)
         g_debug ("excuting command: %s", command);
         ret = g_spawn_command_line_sync (command, NULL, NULL, &exit_status, &error);
         if (!ret) {
-                g_warning ("failed to run script: %s", error->message);
+                g_debug ("failed to run script: %s", error->message);
                 g_error_free (error);
                 goto out;
         }
