@@ -322,7 +322,7 @@ ck_get_a_console_fd (void)
 #endif
 
 #if defined(__OpenBSD__)
-        fd = ck_open_a_console ("/dev/ttyC0");
+        fd = ck_open_a_console ("/dev/ttyCcfg");
         if (fd >= 0) {
                 goto done;
         }
