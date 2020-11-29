@@ -101,6 +101,7 @@ const gchar    *ck_inhibit_get_what                    (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_who                     (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_why                     (CkInhibit   *inhibit);
 const gchar    *ck_inhibit_get_mode                    (CkInhibit   *inhibit);
+const gchar    *ck_inhibit_get_named_pipe_path         (CkInhibit   *inhibit);
 CkInhibitMode   ck_inhibit_get_inhibit_mode            (CkInhibit   *inhibit);
 uid_t           ck_inhibit_get_uid                     (CkInhibit   *inhibit);
 pid_t           ck_inhibit_get_pid                     (CkInhibit   *inhibit);

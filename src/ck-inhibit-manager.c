@@ -152,7 +152,7 @@ cb_changed_event (CkInhibit *inhibit,
 
                 /* When an inhibitor loses it lockes, remove the inhibitor from
                  * the list */
-                ck_inhibit_manager_remove_lock (manager, ck_inhibit_get_who (inhibit));
+                ck_inhibit_manager_remove_lock (manager, ck_inhibit_get_named_pipe_path (inhibit));
         }
 }
 
@@ -235,8 +235,7 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
 /**
  * ck_inhibit_manager_remove_lock:
  * @manager: The @CkInhibitManager object
- * @who:  A human-readable, descriptive string of who has taken
- *        the lock. Example: "Xfburn"
+ * @named_pipe_path:  The unique named pipe path to lock on.
  *
  * Finds the inhibit lock @who and removes it.
  *
@@ -244,7 +243,7 @@ ck_inhibit_manager_create_lock (CkInhibitManager *manager,
  **/
 gboolean
 ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
-                                const gchar      *who)
+                                const gchar      *named_pipe_path)
 {
         CkInhibitManagerPrivate *priv;
         GList                   *l;
@@ -256,7 +255,7 @@ ck_inhibit_manager_remove_lock (CkInhibitManager *manager,
         priv = CK_INHIBIT_MANAGER_GET_PRIVATE (manager);
 
         for (l = g_list_first (priv->inhibit_list); l != NULL; l = l->next) {
-                if (l->data && g_strcmp0 (ck_inhibit_get_who (l->data), who) == 0) {
+                if (l->data && g_strcmp0 (ck_inhibit_get_named_pipe_path (l->data), named_pipe_path) == 0) {
                         CkInhibit *inhibit = l->data;
 
                         /* Found it! Remove it from the list and unref the object */
