@@ -750,6 +750,21 @@ ck_inhibit_get_mode (CkInhibit   *inhibit)
 }
 
 /**
+ * ck_inhibit_get_named_pipe:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: the inhibit mode, either "delay" or "block" (or NULL on failure).
+ **/
+const gchar*
+ck_inhibit_get_named_pipe_path (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
+
+        return inhibit->priv->named_pipe_path;
+}
+
+
+/**
  * ck_inhibit_get_uid:
  * @inhibit: The @CkInhibit object
  *
