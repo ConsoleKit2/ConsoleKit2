@@ -36,7 +36,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/sysctl.h>
-#include <sys/user.h>
 #include <sys/ioctl.h>
 
 #ifdef HAVE_SYS_MOUNT_H
@@ -494,7 +493,7 @@ ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 
         opts = g_strdup_printf ("mode=0700,uid=%d", uid);
 
-        result = mount("tmpfs", dest, 0, opts);
+        result = mount("tmpfs", dest, 0, opts, strlen(opts));
 
         g_free (opts);
 
