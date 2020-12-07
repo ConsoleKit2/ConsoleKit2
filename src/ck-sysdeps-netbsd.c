@@ -493,7 +493,7 @@ ck_make_tmpfs (guint uid, guint gid, const gchar *dest)
 
         opts = g_strdup_printf ("mode=0700,uid=%d", uid);
 
-        result = mount("tmpfs", dest, 0, opts);
+        result = mount("tmpfs", dest, 0, opts, strlen(opts));
 
         g_free (opts);
 
