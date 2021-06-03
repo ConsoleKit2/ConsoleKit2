@@ -1,4 +1,17 @@
 ==============
+Version 1.2.3
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.2
+Bug Fixes:
+- Fix a crash with glib debugging enable by not unreferencing
+  an instance object which was not referenced before while
+  removing the lock on it.
+
+Translation Updates: French
+
+==============
 Version 1.2.2
 ==============
 Stable release of ConsoleKit2
