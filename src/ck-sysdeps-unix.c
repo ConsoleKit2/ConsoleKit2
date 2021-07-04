@@ -314,6 +314,13 @@ ck_get_a_console_fd (void)
         }
 #endif
 
+#if defined(__FreeBSD__)
+        fd = ck_open_a_console ("/dev/ttyv0");
+        if (fd >= 0) {
+                goto done;
+        }
+#endif
+
 #if defined(__NetBSD__)
         fd = ck_open_a_console ("/dev/ttyE0");
         if (fd >= 0) {
