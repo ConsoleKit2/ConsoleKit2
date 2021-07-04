@@ -37,6 +37,20 @@
         <doc:seealso><doc:ref type="interface" to="Seat">org.freedesktop.ConsoleKit.Seat</doc:ref></doc:seealso>
       </doc:doc>
     </method>
+    <method name="GetSessionService">
+      <arg name="type" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Session service</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Returns the service of the provided session. Defaults to:</doc:para>
+          <doc:para>"unspecified" - Unknown session type, the default.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="property" to="Session:session-service">session-service</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
     <method name="GetSessionType">
       <arg name="type" direction="out" type="s">
         <doc:doc>
@@ -640,6 +654,13 @@
         <doc:description>
           <doc:para>The seat the session is assigned to. It is comprised of the
           seat id and object path of the seat.</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
+    <property name="session-service" type="s" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>The service of the session.</doc:para>
         </doc:description>
       </doc:doc>
     </property>

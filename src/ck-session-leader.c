@@ -51,6 +51,7 @@ static struct {
         { "remote-host-name",   "s", G_TYPE_STRING },
         { "session-type",       "s", G_TYPE_STRING },
         { "session-class",      "s", G_TYPE_STRING },
+        { "session-service",    "s", G_TYPE_STRING },
         { "is-local",           "b", G_TYPE_BOOLEAN },
         { "unix-user",          "i", G_TYPE_INT },
         { "user",               "i", G_TYPE_INT },
