@@ -1,4 +1,16 @@
 ==============
+Version 1.2.4
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.3
+New Features:
+- Implement session-service parameter
+
+Bug Fixes:
+- Do not hardcode seat0 for Seat1 in ListSessions
+
+==============
 Version 1.2.3
 ==============
 Stable release of ConsoleKit2
