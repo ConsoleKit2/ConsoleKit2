@@ -5,12 +5,20 @@ SHUTDOWN_CMD=shutdown
 SHUTDOWN_CMD_ARGS='-r now'
 
 # Check based on init
-if [ "$(ps -p 1 -o comm=)" = openrc-init ]; then
-	SHUTDOWN_CMD=openrc-shutdown
-elif [ "$(ps -p 1 -o comm=)" = runit ]; then
-	SHUTDOWN_CMD=runit-init
-	SHUTDOWN_CMD_ARGS="6"
-fi
+case "$(ps -p 1 -o comm=)" in
+	openrc-init)
+		SHUTDOWN_CMD=openrc-shutdown
+		SHUTDOWN_CMD_ARGS='-r now'
+	;;
+	runit)
+		SHUTDOWN_CMD=runit-init
+		SHUTDOWN_CMD_ARGS="6"
+	;;
+	*)
+		SHUTDOWN_CMD=shutdown
+		SHUTDOWN_CMD_ARGS='-r now'
+	;;
+esac
 
 if [ -x "/sbin/${SHUTDOWN_CMD}" ] ; then
 	/sbin/${SHUTDOWN_CMD} ${SHUTDOWN_CMD_ARGS}
