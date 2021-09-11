@@ -172,6 +172,7 @@ list_session (GDBusConnection *connection,
         char       *session_type;
         char       *session_class;
         char       *session_state;
+        char       *session_service;
         char       *x11_display;
         char       *x11_display_device;
         char       *display_device;
@@ -205,6 +206,7 @@ list_session (GDBusConnection *connection,
         session_type = NULL;
         session_class = NULL;
         session_state = NULL;
+        session_service = NULL;
         x11_display = NULL;
         x11_display_device = NULL;
         display_device = NULL;
@@ -219,6 +221,7 @@ list_session (GDBusConnection *connection,
         get_string (proxy, "GetSessionType", &session_type);
         get_string (proxy, "GetSessionClass", &session_class);
         get_string (proxy, "GetSessionState", &session_state);
+        get_string (proxy, "GetSessionService", &session_service);
         get_string (proxy, "GetX11Display", &x11_display);
         get_string (proxy, "GetX11DisplayDevice", &x11_display_device);
         get_string (proxy, "GetDisplayDevice", &display_device);
@@ -249,6 +252,7 @@ list_session (GDBusConnection *connection,
                 "\tsession-type = '%s'\n"
                 "\tsession-class = '%s'\n"
                 "\tsession-state = '%s'\n"
+                "\tsession-service = '%s'\n"
                 "\tactive = %s\n"
                 "\tx11-display = '%s'\n"
                 "\tx11-display-device = '%s'\n"
@@ -265,6 +269,7 @@ list_session (GDBusConnection *connection,
                 session_type,
                 session_class,
                 session_state,
+                session_service,
                 is_active ? "TRUE" : "FALSE",
                 x11_display,
                 x11_display_device,

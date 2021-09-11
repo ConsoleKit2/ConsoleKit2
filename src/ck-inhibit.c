@@ -445,7 +445,7 @@ cb_named_pipe_close (GIOChannel *source,
 
 /* Builds the path to the named pipe. Free the returned string when done. */
 static gchar*
-get_named_pipe_path (const char* who)
+get_named_pipe_path (void)
 {
         char *path;
         gint tmp_fd;
@@ -594,7 +594,7 @@ ck_inhibit_create_lock (CkInhibit   *inhibit,
         priv->why = g_strdup (why);
         priv->uid = uid;
         priv->pid = pid;
-        priv->named_pipe_path = get_named_pipe_path (who);
+        priv->named_pipe_path = get_named_pipe_path ();
         if (!parse_inhibitors_string(inhibit, what)) {
                 g_warning ("Failed to set any inhibitors.");
                 return CK_INHIBIT_ERROR_INVALID_INPUT;
@@ -748,6 +748,21 @@ ck_inhibit_get_mode (CkInhibit   *inhibit)
         /* if mode wasn't set to block or delay, there was an error */
         return NULL;
 }
+
+/**
+ * ck_inhibit_get_named_pipe:
+ * @inhibit: The @CkInhibit object
+ *
+ * Return value: the inhibit mode, either "delay" or "block" (or NULL on failure).
+ **/
+const gchar*
+ck_inhibit_get_named_pipe_path (CkInhibit   *inhibit)
+{
+        g_return_val_if_fail (CK_IS_INHIBIT (inhibit), NULL);
+
+        return inhibit->priv->named_pipe_path;
+}
+
 
 /**
  * ck_inhibit_get_uid:

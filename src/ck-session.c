@@ -261,6 +261,11 @@ register_session (CkSession *session, GDBusConnection *connection)
                 console_kit_session_set_session_type (CONSOLE_KIT_SESSION (session), "unspecified");
         }
 
+        /* default to unspecified for the session service on startup */
+        if (console_kit_session_get_session_service (CONSOLE_KIT_SESSION (session)) == NULL) {
+                console_kit_session_set_session_service (CONSOLE_KIT_SESSION (session), "unspecified");
+        }
+
         /* default to user for the session class on startup */
         if (console_kit_session_get_session_class (CONSOLE_KIT_SESSION (session)) == NULL) {
                 console_kit_session_set_session_class (CONSOLE_KIT_SESSION (session), "user");
@@ -535,6 +540,23 @@ dbus_set_locked_hint (ConsoleKitSession     *cksession,
         console_kit_session_set_locked_hint (cksession, arg_locked_hint);
 
         console_kit_session_complete_set_idle_hint (cksession, context);
+        return TRUE;
+}
+
+static gboolean
+dbus_get_session_service (ConsoleKitSession     *cksession,
+                          GDBusMethodInvocation *context)
+{
+        const gchar *session_service = console_kit_session_get_session_service (cksession);
+
+        TRACE ();
+
+        if (session_service == NULL) {
+                /* default to unspecified */
+                session_service = "unspecified";
+        }
+
+        console_kit_session_complete_get_session_service (cksession, context, session_service);
         return TRUE;
 }
 
@@ -1369,6 +1391,20 @@ ck_session_set_login_session_id (CkSession      *session,
 }
 
 gboolean
+ck_session_set_session_service (CkSession      *session,
+                                const char     *service,
+                                GError        **error)
+{
+        ConsoleKitSession *cksession = CONSOLE_KIT_SESSION (session);
+
+        g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
+
+        console_kit_session_set_session_service (cksession, service);
+
+        return TRUE;
+}
+
+gboolean
 ck_session_set_session_type (CkSession      *session,
                              const char     *type,
                              GError        **error)
@@ -2080,6 +2116,7 @@ ck_session_iface_init (ConsoleKitSessionIface *iface)
         iface->handle_get_seat_id            = dbus_get_seat_id;
         iface->handle_get_login_session_id   = dbus_get_login_session_id;
         iface->handle_get_vtnr               = dbus_get_vtnr;
+        iface->handle_get_session_service    = dbus_get_session_service;
         iface->handle_get_session_type       = dbus_get_session_type;
         iface->handle_get_session_class      = dbus_get_session_class;
         iface->handle_get_session_state      = dbus_get_session_state;
@@ -2294,6 +2331,9 @@ ck_session_run_programs (CkSession  *session,
         cksession = CONSOLE_KIT_SESSION (session);
 
         extra_env[n++] = g_strdup_printf ("CK_SESSION_ID=%s", session->priv->id);
+        if (console_kit_session_get_session_service (cksession) != NULL) {
+                extra_env[n++] = g_strdup_printf ("CK_SESSION_SERVICE=%s", console_kit_session_get_session_service (cksession));
+        }
         if (console_kit_session_get_session_type (cksession) != NULL) {
                 extra_env[n++] = g_strdup_printf ("CK_SESSION_TYPE=%s", console_kit_session_get_session_type (cksession));
         }
@@ -2342,6 +2382,12 @@ ck_session_dump (CkSession *session,
                                group_name,
                                "seat",
                                NONULL_STRING (session->priv->seat_id));
+        if (console_kit_session_get_session_service (cksession) != NULL) {
+                g_key_file_set_string (key_file,
+                                       group_name,
+                                       "service",
+                                       NONULL_STRING (console_kit_session_get_session_service (cksession)));
+        }
         if (console_kit_session_get_session_type (cksession) != NULL) {
                 g_key_file_set_string (key_file,
                                        group_name,

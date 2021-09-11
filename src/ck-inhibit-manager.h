@@ -63,7 +63,7 @@ gint              ck_inhibit_manager_create_lock                 (CkInhibitManag
                                                                   pid_t             pid);
 
 gboolean          ck_inhibit_manager_remove_lock                 (CkInhibitManager *manager,
-                                                                  const gchar      *who);
+                                                                  const gchar      *named_pipe_path);
 
 gboolean          ck_inhibit_manager_is_shutdown_delayed         (CkInhibitManager *manager);
 gboolean          ck_inhibit_manager_is_suspend_delayed          (CkInhibitManager *manager);

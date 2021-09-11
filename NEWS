@@ -1,4 +1,43 @@
 ==============
+Version 1.2.4
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.3
+New Features:
+- Implement session-service parameter
+
+Bug Fixes:
+- Do not hardcode seat0 for Seat1 in ListSessions
+
+==============
+Version 1.2.3
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.2
+Bug Fixes:
+- Fix a crash with glib debugging enable by not unreferencing
+  an instance object which was not referenced before while
+  removing the lock on it.
+
+Translation Updates: French
+
+==============
+Version 1.2.2
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.1
+Bug Fixes:
+- Use the named pipe's random filepath as a lock reference
+- Fix signal handling with multiple inhibit events
+
+Misc Changes:
+- Merge enhancements from the OpenBSD port
+- Remove unused argument from the get_named_pipe_path() function
+
+==============
 Version 1.2.1
 ==============
 Stable release of ConsoleKit2

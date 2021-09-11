@@ -1121,13 +1121,7 @@ _ck_seat_set_kind (CkSeat    *seat,
                    CkSeatKind kind)
 {
         seat->priv->kind = kind;
-        if (kind == CK_SEAT_KIND_STATIC) {
-                console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), "seat0");
-        } else {
-                /* FIXME: At some point we should properly map this to the
-                 * udev/devattr seat name when we do multi-seat */
-                console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), g_strrstr(seat->priv->id, "/"));
-        }
+        console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), seat->priv->id);
 }
 
 static void
