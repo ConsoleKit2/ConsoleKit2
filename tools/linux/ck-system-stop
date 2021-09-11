@@ -16,6 +16,7 @@ case "$(ps -p 1 -o comm=)" in
 		SHUTDOWN_CMD_ARGS='-p now'
 	;;
 	*)
+		# sysvinit compatible
 		SHUTDOWN_CMD=shutdown
 		SHUTDOWN_CMD_ARGS='-h now'
 	;;
