@@ -1,9 +1,6 @@
 #!/bin/sh
 # ck-system-restart
 
-SHUTDOWN_CMD=shutdown
-SHUTDOWN_CMD_ARGS='-r now'
-
 # Check based on init
 case "$(ps -p 1 -o comm=)" in
 	openrc-init)
