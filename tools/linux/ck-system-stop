@@ -11,14 +11,10 @@ case "$(ps -p 1 -o comm=)" in
 		SHUTDOWN_CMD=runit-init
 		SHUTDOWN_CMD_ARGS="0"
 	;;
-	s6-svscan)
-		SHUTDOWN_CMD=shutdown
-		SHUTDOWN_CMD_ARGS='-p now'
-	;;
 	*)
 		# sysvinit compatible
 		SHUTDOWN_CMD=shutdown
-		SHUTDOWN_CMD_ARGS='-h now'
+		SHUTDOWN_CMD_ARGS='-h -P now'
 	;;
 esac
 
