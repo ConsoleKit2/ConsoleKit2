@@ -1557,6 +1557,8 @@ do_restart (CkManager             *manager,
                 return;
         }
 
+        system("run-parts /etc/Consolekit/preshutdown.d");
+        
         data->manager = manager;
         data->context = context;
         data->command = LIBDIR "/ConsoleKit/scripts/ck-system-restart";
@@ -1664,6 +1666,8 @@ do_stop (CkManager             *manager,
                 return;
         }
 
+        system("run-parts /etc/Consolekit/preshutdown.d");
+        
         data->manager = manager;
         data->context = context;
         data->command = LIBDIR "/ConsoleKit/scripts/ck-system-stop";
