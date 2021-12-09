@@ -1557,7 +1557,7 @@ do_restart (CkManager             *manager,
                 return;
         }
 
-        system("run-parts /etc/Consolekit/preshutdown.d");
+        system(SYSCONFDIR "/etc/ConsoleKit/preshutdown.d");
         
         data->manager = manager;
         data->context = context;
