@@ -263,6 +263,64 @@ lib_consolekit_seat_get_active (LibConsoleKit *ck,
 }
 
 /**
+ * lib_consolekit_uid_get_sessions:
+ **/
+gint
+lib_consolekit_uid_get_sessions (LibConsoleKit *ck,
+                                  uid_t uid,
+                                  gchar ***sessions,
+                                  GError **error)
+{
+        GDBusProxy *manager_proxy = NULL;
+        GVariant   *variant = NULL;
+
+        if (ck == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Invalid LibConsoleKit");
+                return -1;
+        }
+
+        /* connect to the ConsoleKit manager */
+        manager_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                                       NULL,
+                                                       CK_NAME,
+                                                       CK_MANAGER_PATH,
+                                                       CK_MANAGER_NAME,
+                                                       NULL,
+                                                       error);
+
+        /* failed to connect */
+        if (manager_proxy == NULL) {
+                return FALSE;
+        }
+
+        variant = g_dbus_proxy_call_sync (manager_proxy,
+                                          "GetSessionsForUnixUser",
+                                          g_variant_new ("(u)", uid),
+                                          G_DBUS_CALL_FLAGS_NONE,
+                                          -1,
+                                          NULL,
+                                          error);
+
+        /* We're done with the seat proxy */
+        g_clear_object(&manager_proxy);
+
+        if (variant == NULL) {
+                return -1;
+        }
+
+        g_variant_get (variant, "(^ao)", sessions);
+
+        g_variant_unref (variant);
+        variant = NULL;
+
+        return g_strv_length (*sessions);
+}
+
+/**
  * lib_consolekit_seat_get_sessions:
  * @ck      : A #LibConsoleKit
  * @seat    : The seat to query

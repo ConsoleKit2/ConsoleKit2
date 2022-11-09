@@ -142,6 +142,11 @@ gboolean        lib_consolekit_pid_get_session         (LibConsoleKit *ck,
                                                         GError **error);
 
 
+gint
+lib_consolekit_uid_get_sessions (LibConsoleKit *ck,
+                                  uid_t uid,
+                                  gchar ***sessions,
+                                  GError **error);
 
 
 #endif /* LIB_CONSOLEKIT_H_ */

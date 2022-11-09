@@ -16,11 +16,14 @@ libconsolekitincludedir = $(includedir)/ConsoleKit/
 
 libconsolekitinclude_HEADERS =	\
 	libconsolekit.h			\
+	sd-login.h			\
 	$(NULL)
 
 libconsolekit_la_SOURCES = 		\
 	libconsolekit.c			\
 	libconsolekit.h			\
+	sd-compat.c			\
+	sd-login.h			\
 	$(NULL)
 
 
