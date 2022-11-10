@@ -5,6 +5,7 @@ int sd_session_get_seat(const char *session, char **seat);
 int sd_session_get_type(const char *session, char **type);
 int sd_session_get_state(const char *session, char **state);
 int sd_session_get_uid(const char *session, uid_t *uid);
+int sd_session_get_service(const char *session, char **service);
 
 int sd_pid_get_session(pid_t pid, char **session);
 
