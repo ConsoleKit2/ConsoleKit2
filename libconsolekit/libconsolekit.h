@@ -148,5 +148,10 @@ lib_consolekit_uid_get_sessions (LibConsoleKit *ck,
                                   gchar ***sessions,
                                   GError **error);
 
+gint
+lib_consolekit_get_sessions (LibConsoleKit *ck,
+                               gchar ***sessions,
+                               GError **error);
+
 
 #endif /* LIB_CONSOLEKIT_H_ */

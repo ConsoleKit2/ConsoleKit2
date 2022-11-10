@@ -165,3 +165,26 @@ sd_seat_can_multi_session(const char *seat)
 
 	return can_activate;
 }
+
+int
+sd_get_sessions(char ***sessions)
+{
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+	int ret = 0;
+
+	ck = lib_consolekit_new ();
+
+	ret = lib_consolekit_get_sessions (ck, sessions, &error);
+	if (error)  {
+		g_warning ("Unable to get sessions: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return -ENXIO;
+	}
+
+	g_object_unref (ck);
+
+	return ret;
+}
