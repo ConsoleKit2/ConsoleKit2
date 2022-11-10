@@ -121,6 +121,52 @@ sd_session_get_uid(const char *session, uid_t *uid)
 }
 
 int
+sd_session_get_service(const char *session, char **service)
+{
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+
+	ck = lib_consolekit_new ();
+
+	lib_consolekit_session_get_service (ck, session, service, &error);
+	if (error)  {
+		g_warning ("Unable to determine session service: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return -ENXIO;
+	}
+
+	g_object_unref (ck);
+
+	return 0;
+}
+
+
+int
+sd_pid_get_session(pid_t pid, char **session)
+{
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+	int ret = 0;
+
+	ck = lib_consolekit_new ();
+
+	ret = lib_consolekit_pid_get_session (ck, pid, session, &error);
+	if (error)  {
+		g_warning ("Unable to determine list of session for pid: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return -ENXIO;
+	}
+
+	g_object_unref (ck);
+
+	return ret;
+}
+
+int
 sd_uid_get_sessions(uid_t uid, int require_active, char ***sessions)
 {
 	LibConsoleKit *ck = NULL;
@@ -144,6 +190,13 @@ sd_uid_get_sessions(uid_t uid, int require_active, char ***sessions)
 }
 
 int
+sd_seat_can_graphical(const char *seat)
+{
+	// XXX
+	return 1;
+}
+
+int
 sd_seat_can_multi_session(const char *seat)
 {
 	LibConsoleKit *ck = NULL;
@@ -164,6 +217,30 @@ sd_seat_can_multi_session(const char *seat)
 	g_object_unref (ck);
 
 	return can_activate;
+}
+
+int
+sd_seat_get_sessions(const char *seat, char ***sessions,
+	uid_t **uid, unsigned int *n_uids)
+{
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+	int num_sessions;
+
+	ck = lib_consolekit_new ();
+
+	num_sessions = lib_consolekit_seat_get_sessions (ck, seat, sessions, &error);
+	if (error) {
+		g_warning ("Unable to determine if seat can activate sessions: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return FALSE;
+	}
+
+	g_object_unref (ck);
+
+	return num_sessions;
 }
 
 int
