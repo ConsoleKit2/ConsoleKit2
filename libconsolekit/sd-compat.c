@@ -142,3 +142,26 @@ sd_uid_get_sessions(uid_t uid, int require_active, char ***sessions)
 
 	return ret;
 }
+
+int
+sd_seat_can_multi_session(const char *seat)
+{
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+	gboolean can_activate = FALSE;
+
+	ck = lib_consolekit_new ();
+
+	can_activate = lib_consolekit_seat_can_multi_session (ck, seat, &error);
+	if (error) {
+		g_warning ("Unable to determine if seat can activate sessions: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return FALSE;
+	}
+
+	g_object_unref (ck);
+
+	return can_activate;
+}
