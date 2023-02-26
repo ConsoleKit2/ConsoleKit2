@@ -1,12 +1,3 @@
 #!/bin/sh
 
-#Try for common tools
-if [ -x "/sbin/pm-suspend" ] ; then
-	/sbin/pm-suspend
-	exit $?
-elif [ -x "/usr/sbin/pm-suspend" ] ; then
-	/usr/sbin/pm-suspend
-	exit $?
-else
-	exit 1
-fi
+echo mem > /sys/power/state
