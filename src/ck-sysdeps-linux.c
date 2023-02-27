@@ -884,9 +884,8 @@ linux_supports_sleep_state (const gchar *state)
         GError *error = NULL;
         gint exit_status;
 
-        /* run script from pm-utils */
-        command = g_strdup_printf ("/usr/bin/pm-is-supported --%s", state);
-        g_debug ("excuting command: %s", command);
+        command = g_strdup_printf ("grep -q %s /sys/power/state", state);
+        g_debug ("executing command: %s", command);
         ret = g_spawn_command_line_sync (command, NULL, NULL, &exit_status, &error);
         if (!ret) {
                 g_debug ("failed to run script: %s", error->message);
@@ -904,13 +903,13 @@ out:
 gboolean
 ck_system_can_suspend (void)
 {
-        return linux_supports_sleep_state ("suspend");
+        return linux_supports_sleep_state ("mem");
 }
 
 gboolean
 ck_system_can_hibernate (void)
 {
-        if (linux_supports_sleep_state ("hibernate"))
+        if (linux_supports_sleep_state ("disk"))
 		return linux_check_enough_swap() ;
         return FALSE;
 }
@@ -918,7 +917,8 @@ ck_system_can_hibernate (void)
 gboolean
 ck_system_can_hybrid_sleep (void)
 {
-        return linux_supports_sleep_state ("suspend-hybrid");
+        /* hybrid suspend will create the hibernation image as a fallback, then suspend to RAM */
+        return (linux_supports_sleep_state ("disk") & linux_supports_sleep_state("mem"));
 }
 
 static gboolean
