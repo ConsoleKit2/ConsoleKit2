@@ -128,7 +128,7 @@ gboolean        lib_consolekit_session_get_remote_host (LibConsoleKit *ck,
 
 gboolean        lib_consolekit_session_get_service     (LibConsoleKit *ck,
                                                         const gchar *session,
-                                                        gchar **sercice,
+                                                        gchar **service,
                                                         GError **error);
 
 gboolean        lib_consolekit_session_get_tty         (LibConsoleKit *ck,
