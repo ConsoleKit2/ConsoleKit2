@@ -83,7 +83,8 @@ INTROSPECTION_SCANNER_ARGS = \
 	--add-include-path=$(srcdir) \
 	--warn-all \
 	--identifier-prefix=Lib \
-	--symbol-prefix=lib_
+	--symbol-prefix=lib_ \
+	--symbol-prefix=sd_
 INTROSPECTION_COMPILER_ARGS = \
 	--includedir=$(srcdir) \
 	--includedir=.
