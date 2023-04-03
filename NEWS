@@ -1,4 +1,21 @@
 ==============
+Version 1.2.5
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.4
+New Features:
+- Use sd_* shim functions on !systemd platforms
+
+Bug Fixes:
+- Fix gtk-doc test failure
+
+Misc Changes:
+- Sleep before suspending or hibernating to give time for
+  the screen to lock
+- Remove pm-utils dependency
+
+==============
 Version 1.2.4
 ==============
 Stable release of ConsoleKit2
