@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (c) 2017, Eric Koegel <eric.koegel@gmail.com>
+ * Copyright (C) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -535,6 +537,75 @@ lib_consolekit_seat_can_multi_session (LibConsoleKit *ck,
         variant = NULL;
 
         return can_activate;
+}
+
+/**
+ * lib_consolekit_seat_can_graphical:
+ * @ck      : A #LibConsoleKit
+ * @seat    : The seat to query
+ * @error   : (out) (allow-none) (transfer full): The error message if something failed
+ *
+ * Returns whether the provided seat is capable of starting graphical sessions.
+ *
+ * Return value: TRUE if capable of graphical sessions.
+ *
+ * Since: 1.2.6
+ **/
+gboolean
+lib_consolekit_seat_can_graphical (LibConsoleKit *ck,
+                                   const gchar *seat,
+                                   GError **error)
+{
+        GDBusProxy *seat_proxy = NULL;
+        GVariant   *variant = NULL;
+        gboolean    can_graphical = FALSE;
+
+        if (ck == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Invalid LibConsoleKit");
+                return FALSE;
+        }
+
+        if (seat == NULL) {
+                g_set_error (error,
+                             CONSOLEKIT_ERROR,
+                             CONSOLEKIT_ERROR_INVALID_INPUT,
+                             "Seat must not be NULL");
+                return FALSE;
+        }
+
+        /* connect to the ConsoleKit seat */
+        seat_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                                    G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+                                                    NULL,
+                                                    CK_NAME,
+                                                    seat,
+                                                    CK_SEAT_NAME,
+                                                    NULL,
+                                                    error);
+
+        /* failed to connect */
+        if (seat_proxy == NULL) {
+                return FALSE;
+        }
+
+        variant = g_dbus_proxy_get_cached_property (seat_proxy, "CanGraphical");
+
+        /* We're done with the seat proxy */
+        g_clear_object(&seat_proxy);
+
+        if (variant == NULL) {
+                return FALSE;
+        }
+
+        can_graphical = g_variant_get_boolean (variant);
+
+        g_variant_unref (variant);
+        variant = NULL;
+
+        return can_graphical;
 }
 
 /**

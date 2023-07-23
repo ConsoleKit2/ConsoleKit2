@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (C) 2006 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -968,10 +970,18 @@ active_vt_changed (CkVtMonitor    *vt_monitor,
         update_active_vt (seat, num);
 }
 
+static gboolean
+ck_seat_can_graphical (void)
+{
+        // XXX
+        return TRUE;
+}
+
 gboolean
 ck_seat_register (CkSeat *seat)
 {
         GError   *error = NULL;
+        ConsoleKitSeat *ckseat = CONSOLE_KIT_SEAT (seat);
 
         g_debug ("register seat");
 
@@ -984,7 +994,7 @@ ck_seat_register (CkSeat *seat)
 
         g_debug ("exporting path %s", seat->priv->id);
 
-        if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_SEAT (seat)),
+        if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (ckseat),
                                                seat->priv->connection,
                                                seat->priv->id,
                                                &error)) {
@@ -995,7 +1005,9 @@ ck_seat_register (CkSeat *seat)
                 }
         }
 
-        g_debug ("exported on %s", g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_SEAT (seat))));
+        console_kit_seat_set_can_graphical (ckseat, ck_seat_can_graphical ());
+
+        g_debug ("exported on %s", g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (ckseat)));
 
         return TRUE;
 }
