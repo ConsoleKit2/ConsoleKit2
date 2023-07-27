@@ -2667,7 +2667,7 @@ find_seat_for_session (CkManager *manager,
 
         if ((is_static_x11 || is_static_text) && vtnr > 0) {
                 char *sid;
-                sid = g_strdup_printf ("%s/seat%u", CK_DBUS_PATH, 1);
+                sid = g_strdup_printf ("%s/seat%u", CK_DBUS_PATH, 0);
                 seat = g_hash_table_lookup (manager->priv->seats, sid);
                 g_free (sid);
         }
