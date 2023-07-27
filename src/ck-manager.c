@@ -3848,7 +3848,7 @@ dbus_list_seats (ConsoleKitManager     *ckmanager,
         GVariantBuilder  seat_builder;
         GVariant        *seat;
         GHashTableIter   seat_iter;
-        const gchar     *key;
+        const gchar     *key, *seat_name, *sid;
         CkSeat          *value;
 
         TRACE ();
@@ -3867,8 +3867,12 @@ dbus_list_seats (ConsoleKitManager     *ckmanager,
 
         g_hash_table_iter_init (&seat_iter, manager->priv->seats);
         while (g_hash_table_iter_next (&seat_iter,  (gpointer *)&key,  (gpointer *)&value)) {
+                seat_name = console_kit_seat_get_name( CONSOLE_KIT_SEAT(value) );
+                if (g_str_has_prefix (seat_name, CK_DBUS_PATH "/")) {
+                        sid = seat_name + strlen (CK_DBUS_PATH) + 1;
+                }
                 seat = g_variant_new("(so)",
-                                     console_kit_seat_get_name( CONSOLE_KIT_SEAT(value) ),
+                                     sid,
                                      key);
 
                 g_variant_builder_add_value (&seat_builder, seat);
