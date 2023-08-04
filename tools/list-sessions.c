@@ -34,7 +34,6 @@
 #include <gio/gio.h>
 
 #define CK_NAME      "org.freedesktop.ConsoleKit"
-#define CK_PATH      "/org/freedesktop/ConsoleKit"
 #define CK_INTERFACE "org.freedesktop.ConsoleKit"
 
 #define CK_MANAGER_PATH      "/org/freedesktop/ConsoleKit/Manager"
