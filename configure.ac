@@ -3,7 +3,7 @@ AC_COPYRIGHT([Copyright 2014-2017 The ConsoleKit2 Team])
 
 AC_PREREQ([2.62])
 AC_INIT([ConsoleKit2],
-        [1.2.5],
+        [1.2.6],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
         [ConsoleKit2],
         [https://github.com/ConsoleKit2/ConsoleKit2])

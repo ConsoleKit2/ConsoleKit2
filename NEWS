@@ -1,4 +1,22 @@
 ==============
+Version 1.2.6
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.4
+New Features:
+- Use 0 as a starting point for the seat serial and lowercase
+  the seat name as well to imitate systemd/logind
+- Enable VT support for __aarch64__
+
+Bug Fixes:
+- Do not call g_close() on invalid file descriptors
+- Properly handle PROP_KIND in ck_seat_get_property()
+
+Misc Changes:
+- Simplify ck_system_can_suspend on OpenBSD
+
+==============
 Version 1.2.5
 ==============
 Stable release of ConsoleKit2
