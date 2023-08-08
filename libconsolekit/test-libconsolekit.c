@@ -322,7 +322,7 @@ test_pid_get_session (LibConsoleKit *ck,
 
 
 
-gchar *opt_seat = "/org/freedesktop/ConsoleKit/Seat1";
+gchar *opt_seat = "/org/freedesktop/ConsoleKit/seat0";
 gchar *opt_session = "/org/freedesktop/ConsoleKit/Session2";
 gint opt_pid = 0;
 

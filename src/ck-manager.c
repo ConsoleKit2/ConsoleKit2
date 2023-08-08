@@ -543,7 +543,7 @@ get_next_seat_serial (CkManager *manager)
         serial = manager->priv->seat_serial++;
 
         if ((gint32)manager->priv->seat_serial < 0) {
-                manager->priv->seat_serial = 1;
+                manager->priv->seat_serial = 0;
         }
 
         return serial;
@@ -610,7 +610,7 @@ generate_seat_id (CkManager *manager)
  again:
         serial = get_next_seat_serial (manager);
         g_free (id);
-        id = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, serial);
+        id = g_strdup_printf ("%s/seat%u", CK_DBUS_PATH, serial);
 
         if (g_hash_table_lookup (manager->priv->seats, id)) {
                 goto again;
@@ -2667,7 +2667,7 @@ find_seat_for_session (CkManager *manager,
 
         if ((is_static_x11 || is_static_text) && vtnr > 0) {
                 char *sid;
-                sid = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, 1);
+                sid = g_strdup_printf ("%s/seat%u", CK_DBUS_PATH, 1);
                 seat = g_hash_table_lookup (manager->priv->seats, sid);
                 g_free (sid);
         }
@@ -4060,7 +4060,7 @@ ck_manager_init (CkManager *manager)
 
         /* reserve zero */
         manager->priv->session_serial = 1;
-        manager->priv->seat_serial = 1;
+        manager->priv->seat_serial = 0;
 
         manager->priv->system_idle_hint = TRUE;
 

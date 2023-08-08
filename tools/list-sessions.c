@@ -34,7 +34,6 @@
 #include <gio/gio.h>
 
 #define CK_NAME      "org.freedesktop.ConsoleKit"
-#define CK_PATH      "/org/freedesktop/ConsoleKit"
 #define CK_INTERFACE "org.freedesktop.ConsoleKit"
 
 #define CK_MANAGER_PATH      "/org/freedesktop/ConsoleKit/Manager"
@@ -183,7 +182,7 @@ list_session (GDBusConnection *connection,
         gboolean    is_active;
         gboolean    is_local;
         char       *short_sid;
-        const char *short_ssid;
+        char       *short_ssid;
         guint       vtnum;
         GError     *error = NULL;
 
@@ -235,15 +234,8 @@ list_session (GDBusConnection *connection,
 
         realname = get_real_name (uid);
 
-        short_sid = sid;
-        short_ssid = ssid;
-
-        if (g_str_has_prefix (sid, CK_PATH "/")) {
-                short_sid = sid + strlen (CK_PATH) + 1;
-        }
-        if (g_str_has_prefix (ssid, CK_PATH "/")) {
-                short_ssid = ssid + strlen (CK_PATH) + 1;
-        }
+        short_sid = g_path_get_basename(sid);
+        short_ssid = g_path_get_basename(ssid);
 
         printf ("%s:\n"
                 "\tunix-user = '%d'\n"
@@ -292,6 +284,8 @@ list_session (GDBusConnection *connection,
         g_free (remote_host_name);
         g_free (realname);
         g_free (sid);
+        g_free (short_sid);
+        g_free (short_ssid);
         g_free (lsid);
         g_free (session_type);
         g_free (session_class);
