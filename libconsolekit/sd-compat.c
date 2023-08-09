@@ -142,6 +142,28 @@ sd_session_get_service(const char *session, char **service)
 	return 0;
 }
 
+int
+sd_session_get_display(const char *session, char **service)
+{
+	LibConsoleKit *ck = NULL;
+	g_autoptr(GError) error = NULL;
+
+	ck = lib_consolekit_new ();
+
+	lib_consolekit_session_get_display (ck, session, service, &error);
+	if (error)  {
+		g_warning ("Unable to determine session service: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return -ENXIO;
+	}
+
+	g_object_unref (ck);
+
+	return 0;
+}
+
 
 int
 sd_pid_get_session(pid_t pid, char **session)
