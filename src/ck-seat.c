@@ -353,7 +353,7 @@ ck_seat_activate_session (CkSeat                *seat,
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
-  /org/freedesktop/ConsoleKit/Seat1 \
+  /org/freedesktop/ConsoleKit/seat0 \
   org.freedesktop.ConsoleKit.Seat.ActivateSession \
   objpath:/org/freedesktop/ConsoleKit/Session2
 */
@@ -1069,7 +1069,7 @@ copy_devices (gpointer    data,
   Example:
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
-  /org/freedesktop/ConsoleKit/Seat1 \
+  /org/freedesktop/ConsoleKit/seat0 \
   org.freedesktop.ConsoleKit.Seat.GetDevices
 */
 
