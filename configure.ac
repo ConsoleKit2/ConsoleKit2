@@ -70,7 +70,7 @@ AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/wait.h sys/resource.h sys/mount.h sys/param.h ftw.h \
 		  sys/sysmacros.h sys/types.h libudev.h linux/input.h \
 		  sys/mkdev.h devattr.h sys/kd.h sys/kbio.h libprop/proplib.h \
-		  linux/kd.h sys/queue.h sys/stat.h sys/fcntl.h \
+		  linux/kd.h sys/queue.h sys/stat.h sys/fcntl.h sys/event.h \
 		  dev/wscons/wsdisplay_usl_io.h dev/wscons/wsconsio.h \
 		  vfs/tmpfs/tmpfs_mount.h])
 

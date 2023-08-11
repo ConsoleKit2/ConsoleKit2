@@ -42,7 +42,7 @@
 #include <gio/gio.h>
 
 #include "libconsolekit.h"
-
+#include "sd-login.h"
 
 
 static void
@@ -320,6 +320,33 @@ test_session_get_vt (LibConsoleKit *ck,
 }
 
 static void
+test_sd_login_monitor (LibConsoleKit *ck)
+{
+    sd_login_monitor* m;
+    int res = sd_login_monitor_new ("session", &m);
+    if (res < 0) {
+        g_print ("sd_login_monitor : new error %s\n", strerror(-res));
+        return;
+    }
+
+    res = sd_login_monitor_get_fd (m);
+    if (res < 0) {
+        g_print ("sd_login_monitor : get_fd error %s\n", strerror(-res));
+        return;
+    }
+
+    res = sd_login_monitor_flush (m);
+    if (res < 0) {
+        g_print ("sd_login_monitor : flush error %s\n", strerror(-res));
+        return;
+    }
+
+    sd_login_monitor_unref (m);
+
+    g_print ("sd_login_monitor : OK\n");
+}
+
+static void
 test_pid_get_session (LibConsoleKit *ck,
                       gint pid)
 {
@@ -415,6 +442,8 @@ main (int   argc,
     test_session_get_tty (ck, opt_session);
 
     test_session_get_vt (ck, opt_session);
+
+    test_sd_login_monitor (ck);
 
     test_pid_get_session (ck, opt_pid);
 
