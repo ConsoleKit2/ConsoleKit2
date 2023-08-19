@@ -549,6 +549,21 @@
       </doc:doc>
     </method>
 
+    <method name="ListSessions">
+      <arg name="sessions" direction="out" type="a(susso)">
+        <doc:doc>
+          <doc:summary>an array of structures (session ID, user ID, user name, seat ID, session path)</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Retrieves a list of all <doc:ref type="interface" to="Session">Sessions</doc:ref>
+          that are present on the system.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="method" to="Manager.GetSeats">GetSeats()</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao">
         <doc:doc>

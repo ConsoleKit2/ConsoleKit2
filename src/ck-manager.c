@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (C) 2006-2008 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2023 Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                    Author: Gleb Popov <arrowd@FreeBSD.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3841,6 +3843,57 @@ dbus_unlock_session (ConsoleKitManager *ckmanager,
 }
 
 static gboolean
+dbus_list_sessions (ConsoleKitManager     *ckmanager,
+                    GDBusMethodInvocation *context)
+{
+        CkManager       *manager;
+        GVariantBuilder  session_builder;
+        GVariant        *session;
+        GHashTableIter   session_iter;
+        const gchar     *key;
+        CkSeat          *value;
+
+        TRACE ();
+
+        manager = CK_MANAGER (ckmanager);
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        /* if we don't have sessions, we need to return NULL */
+        if (g_hash_table_size (manager->priv->sessions) == 0) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SESSIONS, _("User has no sessions"));
+                return TRUE;
+        }
+
+        g_variant_builder_init (&session_builder, G_VARIANT_TYPE_ARRAY);
+
+        g_hash_table_iter_init (&session_iter, manager->priv->sessions);
+        while (g_hash_table_iter_next (&session_iter,  (gpointer *)&key,  (gpointer *)&value)) {
+                gchar *sid0, *sid;
+                gchar *ssid = g_path_get_basename (key);
+                struct passwd *ent = getpwuid (console_kit_session_get_unix_user ( CONSOLE_KIT_SESSION(value) ));
+                ck_session_get_seat_id ( CK_SESSION(value), &sid0, NULL );
+                sid = g_path_get_basename (sid0);
+
+                session = g_variant_new("(susso)",
+                                        ssid,
+                                        console_kit_session_get_unix_user ( CONSOLE_KIT_SESSION(value) ),
+                                        ent ? ent->pw_name : "",
+                                        sid,
+                                        key
+                                        );
+
+                g_variant_builder_add_value (&session_builder, session);
+
+                g_free (sid0);
+                g_free (sid);
+        }
+
+        console_kit_manager_complete_list_sessions (ckmanager, context, g_variant_builder_end (&session_builder));
+        return TRUE;
+}
+
+static gboolean
 dbus_list_seats (ConsoleKitManager     *ckmanager,
                  GDBusMethodInvocation *context)
 {
@@ -4172,6 +4225,7 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_stop                         = dbus_stop;
         iface->handle_suspend                      = dbus_suspend;
         iface->handle_close_session                = dbus_close_session;
+        iface->handle_list_sessions                = dbus_list_sessions;
         iface->handle_list_seats                   = dbus_list_seats;
         iface->handle_get_seats                    = dbus_get_seats;
         iface->handle_get_sessions                 = dbus_get_sessions;
