@@ -83,6 +83,10 @@ gboolean        lib_consolekit_seat_can_multi_session  (LibConsoleKit *ck,
                                                         const gchar *seat,
                                                         GError **error);
 
+gboolean        lib_consolekit_seat_can_graphical      (LibConsoleKit *ck,
+                                                        const gchar *seat,
+                                                        GError **error);
+
 gboolean        lib_consolekit_session_is_active       (LibConsoleKit *ck,
                                                         const gchar *session,
                                                         GError **error);

@@ -205,5 +205,14 @@ seat at a time.</doc:para>
         </doc:description>
       </doc:doc>
     </property>
+
+    <property name="CanGraphical" type="b" access="read">
+      <doc:doc>
+        <doc:description>
+          <doc:para>Determines whether the seat is suitable for graphical sessions</doc:para>
+          <doc:para>Since 1.2.6</doc:para>
+        </doc:description>
+      </doc:doc>
+    </property>
   </interface>
 </node>

@@ -221,8 +221,24 @@ sd_uid_get_sessions(uid_t uid, int require_active, char ***sessions)
 int
 sd_seat_can_graphical(const char *seat)
 {
-	// XXX
-	return 1;
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+	gboolean can_graphical = FALSE;
+
+	ck = lib_consolekit_new ();
+
+	can_graphical = lib_consolekit_seat_can_graphical (ck, seat, &error);
+	if (error) {
+		g_warning ("Unable to determine if seat can activate sessions: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return FALSE;
+	}
+
+	g_object_unref (ck);
+
+	return can_graphical;
 }
 
 int

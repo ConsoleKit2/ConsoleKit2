@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (c) 2017, Eric Koegel <eric.koegel@gmail.com>
+ * Copyright (C) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,6 +109,22 @@ test_seat_can_multisession (LibConsoleKit *ck,
         g_print ("lib_consolekit_seat_can_multi_session (seat %s) : %s\n", seat, can_multisession ? "TRUE" : "FALSE");
     } else {
         g_print ("lib_consolekit_seat_can_multi_session (seat %s) : error %s\n", seat, error->message);
+        g_clear_error (&error);
+    }
+}
+
+static void
+test_seat_can_graphical (LibConsoleKit *ck,
+                         const gchar *seat)
+{
+    gboolean can_graphical;
+    GError *error = NULL;
+
+    can_graphical = lib_consolekit_seat_can_graphical (ck, seat, &error);
+    if (!error) {
+        g_print ("lib_consolekit_seat_can_graphical (seat %s) : %s\n", seat, can_graphical ? "TRUE" : "FALSE");
+    } else {
+        g_print ("lib_consolekit_seat_can_graphical (seat %s) : error %s\n", seat, error->message);
         g_clear_error (&error);
     }
 }
@@ -373,6 +391,8 @@ main (int   argc,
     test_seat_get_sessions (ck, opt_seat);
 
     test_seat_can_multisession (ck, opt_seat);
+
+    test_seat_can_graphical (ck, opt_seat);
 
     test_session_is_active (ck, opt_session);
 
