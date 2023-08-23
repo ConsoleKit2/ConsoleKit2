@@ -1,4 +1,6 @@
-/*
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
+ *
+ * Copyright (c) 2022, Robert Nagy <robert@openbsd.org>
  * Copyright (c) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
  *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  * All rights reserved.
