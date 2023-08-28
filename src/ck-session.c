@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (C) 2006-2007 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +68,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "ck-tty-idle-monitor.h"
+#include "ck-manager.h"
 #include "ck-session.h"
 #include "ck-seat.h"
 #include "ck-marshal.h"
@@ -94,6 +97,7 @@
 struct CkSessionPrivate
 {
         char            *id;
+        char            *path;
         char            *cookie;
         char            *seat_id;
         char            *runtime_dir;
@@ -230,11 +234,11 @@ register_session (CkSession *session, GDBusConnection *connection)
                 return FALSE;
         }
 
-        g_debug ("exporting path %s", session->priv->id);
+        g_debug ("exporting path %s", session->priv->path);
 
         if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_SESSION (session)),
                                                session->priv->connection,
-                                               session->priv->id,
+                                               session->priv->path,
                                                &error)) {
                 if (error != NULL) {
                         g_critical ("error exporting interface: %s", error->message);
@@ -811,7 +815,7 @@ ck_session_resume_all_devices (CkSession *session)
                 }
 
                 message = g_dbus_message_new_signal (session->priv->id,
-                                                     CK_SESSION_DBUS_NAME,
+                                                     DBUS_SESSION_INTERFACE,
                                                      "ResumeDevice");
 
                 /* We always send to the session controller */
@@ -966,7 +970,7 @@ dbus_get_id (ConsoleKitSession     *cksession,
                 id = "";
         }
 
-        console_kit_session_complete_get_id (cksession, context, session->priv->id);
+        console_kit_session_complete_get_id (cksession, context, session->priv->path);
         return TRUE;
 }
 
@@ -982,6 +986,11 @@ ck_session_get_id (CkSession *session,
         }
 
         return TRUE;
+}
+
+const char *ck_session_get_path (CkSession *session)
+{
+        return session->priv->path;
 }
 
 static gboolean
@@ -2073,6 +2082,8 @@ ck_session_constructor (GType                  type,
                 session_add_activity_watch (session);
         }
 
+        session->priv->path = g_strdup_printf ("%s/%s", CK_DBUS_PATH, session->priv->id);
+
         return G_OBJECT (session);
 }
 
@@ -2199,6 +2210,7 @@ ck_session_finalize (GObject *object)
         ck_session_remove_all_devices (session);
 
         g_free (session->priv->id);
+        g_free (session->priv->path);
         g_free (session->priv->cookie);
         g_free (session->priv->login_session_id);
         g_free (session->priv->runtime_dir);
@@ -2475,6 +2487,4 @@ ck_session_dump (CkSession *session,
                                "creation_time",
                                NONULL_STRING (s));
         g_free (s);
-
-        g_free (group_name);
 }

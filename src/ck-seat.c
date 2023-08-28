@@ -36,7 +36,6 @@
 
 #include "ck-seat.h"
 #include "ck-marshal.h"
-
 #include "ck-session.h"
 #include "ck-vt-monitor.h"
 #include "ck-run-programs.h"
@@ -173,39 +172,26 @@ ck_seat_kind_get_type (void)
 
 gboolean
 ck_seat_get_active_session (CkSeat         *seat,
-                            char          **ssid,
+                            char          **session_path,
                             GError        **error)
 {
         gboolean ret;
-        char    *session_id;
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
         g_debug ("CkSeat: get active session");
-        session_id = NULL;
         ret = FALSE;
         if (seat->priv->active_session != NULL) {
-                gboolean res;
-                res = ck_session_get_id (seat->priv->active_session, &session_id, NULL);
-                if (res) {
-                        ret = TRUE;
-                }
+                *session_path = g_strdup (ck_session_get_path (seat->priv->active_session));
+                ret = TRUE;
         } else {
                 g_debug ("CkSeat: seat has no active session");
-        }
-
-        if (! ret) {
                 g_set_error (error,
                              CK_SEAT_ERROR,
                              CK_SEAT_ERROR_NO_ACTIVE_SESSION,
                              "%s", "Seat has no active session");
-        } else {
-                if (ssid != NULL) {
-                        *ssid = g_strdup (session_id);
-                }
         }
 
-        g_free (session_id);
         return ret;
 }
 
@@ -214,22 +200,22 @@ dbus_get_active_session (ConsoleKitSeat        *ckseat,
                          GDBusMethodInvocation *context)
 {
         CkSeat *seat = CK_SEAT (ckseat);
-        char    *session_id = NULL;
+        char    *session_path = NULL;
 
         TRACE ();
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        ck_seat_get_active_session (seat, &session_id, NULL);
+        ck_seat_get_active_session (seat, &session_path, NULL);
 
-        if (session_id == NULL) {
+        if (session_path == NULL) {
                 throw_error (context, CK_SEAT_ERROR_NO_ACTIVE_SESSION, "Seat has no active session");
                 return TRUE;
         }
 
-        g_debug ("session_id '%s'", session_id);
+        g_debug ("session_id '%s'", session_path);
 
-        console_kit_seat_complete_get_active_session (ckseat, context, session_id);
+        console_kit_seat_complete_get_active_session (ckseat, context, session_path);
         return TRUE;
 }
 
@@ -623,8 +609,8 @@ static void
 change_active_session (CkSeat    *seat,
                        CkSession *session)
 {
-        char      *ssid;
         CkSession *old_session;
+        const char *session_path = NULL;
 
         if (seat->priv->active_session == session) {
                 g_debug ("ckseat: change_active_session: seat->priv->active_session == session");
@@ -646,14 +632,13 @@ change_active_session (CkSeat    *seat,
 
         seat->priv->active_session = session;
 
-        ssid = NULL;
         if (session != NULL) {
                 g_object_ref (session);
-                ck_session_get_id (session, &ssid, NULL);
+                session_path = ck_session_get_path (session);
                 ck_session_set_active (session, TRUE, TRUE);
         }
 
-        g_debug ("Active session changed: %s", ssid ? ssid : "(null)");
+        g_debug ("Active session changed: %s", session_path ? session_path : "(null)");
 
         /* The order of signal emission matters here. The manager
          * dumps the database when receiving the
@@ -664,16 +649,14 @@ change_active_session (CkSeat    *seat,
          * important that the '-full' signalled is emitted first. */
 
         g_signal_emit (seat, signals [ACTIVE_SESSION_CHANGED_FULL], 0, old_session, session);
-        if (ssid != NULL) {
-                /* Only emit if we have a valid ssid or GDBus/GVariant gets mad */
-                console_kit_seat_emit_active_session_changed (CONSOLE_KIT_SEAT (seat), ssid);
+        if (session_path != NULL) {
+                /* Only emit if we have a valid session_path or GDBus/GVariant gets mad */
+                console_kit_seat_emit_active_session_changed (CONSOLE_KIT_SEAT (seat), session_path);
         }
 
         if (old_session != NULL) {
                 g_object_unref (old_session);
         }
-
-        g_free (ssid);
 }
 
 static void
@@ -762,7 +745,7 @@ ck_seat_remove_session (CkSeat         *seat,
          * above. */
 
         g_signal_emit (seat, signals [SESSION_REMOVED_FULL], 0, session);
-        console_kit_seat_emit_session_removed (CONSOLE_KIT_SEAT (seat), ssid);
+        console_kit_seat_emit_session_removed (CONSOLE_KIT_SEAT (seat), ck_session_get_path (session));
 
         /* try to change the active session */
         maybe_update_active_session (seat);
@@ -798,13 +781,13 @@ ck_seat_add_session (CkSeat         *seat,
         g_signal_connect_object (session, "activate", G_CALLBACK (session_activate), seat, G_CONNECT_AFTER);
         /* FIXME: attach to property notify signals? */
 
-        g_debug ("Emitting added signal: %s", ssid);
+        g_debug ("Emitting added signal: %s", ck_session_get_path (session));
 
         /* The order of signal emission matters here, too. See
          * above. */
 
         g_signal_emit (seat, signals [SESSION_ADDED_FULL], 0, session);
-        console_kit_seat_emit_session_added (CONSOLE_KIT_SEAT (seat), ssid);
+        console_kit_seat_emit_session_added (CONSOLE_KIT_SEAT (seat), ck_session_get_path (session));
 
         maybe_update_active_session (seat);
 
@@ -1042,7 +1025,7 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
                    GDBusMethodInvocation *context)
 {
         CkSeat       *seat;
-        const gchar **sessions;
+        GPtrArray    *sessions;
 
         TRACE ();
 
@@ -1050,16 +1033,22 @@ dbus_get_sessions (ConsoleKitSeat        *ckseat,
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        sessions = (const gchar**)g_hash_table_get_keys_as_array (seat->priv->sessions, NULL);
+        sessions = g_hash_table_get_values_as_ptr_array (seat->priv->sessions);
 
         /* gdbus/gvariant requires that we throw an error to return NULL */
-        if (sessions == NULL) {
+        if (sessions->len == NULL) {
                 throw_error (context, CK_SEAT_ERROR_NO_SESSIONS, _("Seat has no sessions"));
                 return TRUE;
         }
 
-        console_kit_seat_complete_get_sessions (ckseat, context, sessions);
-        g_free (sessions);
+        /* replace each session with its path */
+        for (guint i = 0; i < sessions->len; i++) {
+                sessions->pdata[i] = ck_session_get_path ( CK_SESSION(sessions->pdata[i]) );
+        }
+
+        g_ptr_array_add (sessions, NULL);
+        console_kit_seat_complete_get_sessions (ckseat, context, sessions->pdata);
+        g_ptr_array_unref (sessions);
         return TRUE;
 }
 
