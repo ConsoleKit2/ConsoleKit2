@@ -100,6 +100,7 @@ struct CkSessionPrivate
         char            *path;
         char            *cookie;
         char            *seat_id;
+        char            *seat_path;
         char            *runtime_dir;
         char            *login_session_id;
 
@@ -998,19 +999,19 @@ dbus_get_seat_id (ConsoleKitSession     *cksession,
                   GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION (cksession);
-        const gchar *seat_id;
+        const gchar *seat_path;
 
         TRACE ();
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        seat_id = session->priv->seat_id;
-        if (seat_id == NULL) {
+        seat_path = session->priv->seat_id;
+        if (seat_path == NULL) {
                 throw_error (context, CK_SESSION_ERROR_FAILED, "session not attached to a seat");
                 return TRUE;
         }
 
-        console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_id);
+        console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_path);
         return TRUE;
 }
 
@@ -1279,6 +1280,7 @@ ck_session_set_cookie (CkSession      *session,
 gboolean
 ck_session_set_seat_id (CkSession      *session,
                         const char     *id,
+                        const char     *path,
                         GError        **error)
 {
         GVariant *seat = NULL;
@@ -1288,18 +1290,14 @@ ck_session_set_seat_id (CkSession      *session,
 
         g_free (session->priv->seat_id);
         session->priv->seat_id = g_strdup (id);
+        g_free (session->priv->seat_path);
+        session->priv->seat_path = g_strdup (path);
 
-        if (id != NULL) {
-                /* we need to remove the prefix from the first seat_id returned */
-                seat_split = g_strsplit (id, "/org/freedesktop/ConsoleKit/", 2);
-
-                if (seat_split[0] == NULL) {
-                        g_critical ("id %s is invalid or g_strsplit has changed", id);
-                        return FALSE;
-                }
-
-                seat = g_variant_new ("(so)", seat_split[1], id);
-                g_strfreev (seat_split);
+        if (id != NULL && path != NULL) {
+                seat = g_variant_new ("(so)", id, path);
+        } else {
+                g_critical ("id %s or path %s are invalid", id, path);
+                return FALSE;
         }
 
         console_kit_session_set_seat (CONSOLE_KIT_SESSION (session), seat);
@@ -2215,6 +2213,7 @@ ck_session_finalize (GObject *object)
         g_free (session->priv->login_session_id);
         g_free (session->priv->runtime_dir);
         g_free (session->priv->seat_id);
+        g_free (session->priv->seat_path);
         g_free (session->priv->session_controller);
 
         if (session->priv->bus_proxy) {

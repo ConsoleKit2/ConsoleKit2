@@ -111,6 +111,7 @@ gboolean            ck_seat_remove_device       (CkSeat                *seat,
 gboolean            ck_seat_get_id                (CkSeat                *seat,
                                                    char                 **sid,
                                                    GError               **error);
+const char        * ck_seat_get_path              (CkSeat                *seat);
 gboolean            ck_seat_get_sessions          (CkSeat                *seat,
                                                    GPtrArray            **sessions,
                                                    GError               **error);

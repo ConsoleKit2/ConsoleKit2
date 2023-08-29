@@ -36,6 +36,7 @@
 
 #include "ck-seat.h"
 #include "ck-marshal.h"
+#include "ck-manager.h"
 #include "ck-session.h"
 #include "ck-vt-monitor.h"
 #include "ck-run-programs.h"
@@ -49,6 +50,7 @@
 struct CkSeatPrivate
 {
         char            *id;
+        char            *path;
         CkSeatKind       kind;
         GHashTable      *sessions;
         GPtrArray       *devices;
@@ -776,7 +778,7 @@ ck_seat_add_session (CkSeat         *seat,
 
         g_hash_table_insert (seat->priv->sessions, g_strdup (ssid), g_object_ref (session));
 
-        ck_session_set_seat_id (session, seat->priv->id, NULL);
+        ck_session_set_seat_id (session, seat->priv->id, seat->priv->path, NULL);
 
         g_signal_connect_object (session, "activate", G_CALLBACK (session_activate), seat, G_CONNECT_AFTER);
         /* FIXME: attach to property notify signals? */
@@ -915,6 +917,11 @@ ck_seat_get_id (CkSeat         *seat,
         return TRUE;
 }
 
+const char *ck_seat_get_path (CkSeat *seat)
+{
+        return seat->priv->path;
+}
+
 static gboolean
 dbus_get_id (ConsoleKitSeat        *ckseat,
              GDBusMethodInvocation *context)
@@ -925,7 +932,7 @@ dbus_get_id (ConsoleKitSeat        *ckseat,
 
         g_return_val_if_fail (CK_IS_SEAT (seat), FALSE);
 
-        console_kit_seat_complete_get_id (ckseat, context, seat->priv->id);
+        console_kit_seat_complete_get_id (ckseat, context, seat->priv->path);
         return TRUE;
 }
 
@@ -975,11 +982,11 @@ ck_seat_register (CkSeat *seat)
                 return FALSE;
         }
 
-        g_debug ("exporting path %s", seat->priv->id);
+        g_debug ("exporting path %s", seat->priv->path);
 
         if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (ckseat),
                                                seat->priv->connection,
-                                               seat->priv->id,
+                                               seat->priv->path,
                                                &error)) {
                 if (error != NULL) {
                         g_critical ("error exporting interface: %s", error->message);
@@ -1127,9 +1134,7 @@ _ck_seat_set_kind (CkSeat    *seat,
         } else {
                 /* FIXME: At some point we should properly map this to the
                  * udev/devattr seat name when we do multi-seat */
-                gchar *sid = g_path_get_basename(seat->priv->id);
-                console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), sid);
-                g_free(sid);
+                console_kit_seat_set_name (CONSOLE_KIT_SEAT (seat), seat->priv->id);
         }
 }
 
@@ -1202,6 +1207,8 @@ ck_seat_constructor (GType                  type,
                 seat->priv->vt_monitor = ck_vt_monitor_new ();
                 g_signal_connect (seat->priv->vt_monitor, "active-changed", G_CALLBACK (active_vt_changed), seat);
         }
+
+        seat->priv->path = g_strdup_printf ("%s/%s", CK_DBUS_PATH, seat->priv->id);
 
         return G_OBJECT (seat);
 }
@@ -1306,6 +1313,7 @@ ck_seat_finalize (GObject *object)
         g_ptr_array_free (seat->priv->devices, TRUE);
         g_hash_table_destroy (seat->priv->sessions);
         g_free (seat->priv->id);
+        g_free (seat->priv->path);
 
         G_OBJECT_CLASS (ck_seat_parent_class)->finalize (object);
 }
