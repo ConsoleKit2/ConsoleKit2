@@ -1,4 +1,21 @@
+#pragma once
+
 #include <sys/types.h>
+
+typedef struct
+{
+    int kq;
+    GDBusProxy *manager;
+    const char *category;
+} sd_login_monitor;
+
+int sd_login_monitor_new(const char *category, sd_login_monitor **ret);
+sd_login_monitor *sd_login_monitor_unref(sd_login_monitor *monitor);
+void sd_login_monitor_unrefp(sd_login_monitor **monitor);
+int sd_login_monitor_flush(sd_login_monitor *monitor);
+int sd_login_monitor_get_fd(sd_login_monitor *monitor);
+int sd_login_monitor_get_events(sd_login_monitor *monitor);
+int sd_login_monitor_get_timeout(sd_login_monitor *monitor, uint64_t *timeout_usec);
 
 int sd_session_get_class(const char *session, char **class);
 int sd_session_get_seat(const char *session, char **seat);

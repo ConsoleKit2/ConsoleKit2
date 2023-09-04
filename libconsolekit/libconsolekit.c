@@ -40,13 +40,6 @@
 
 #include "libconsolekit.h"
 
-#define CK_NAME          "org.freedesktop.ConsoleKit"
-#define CK_MANAGER_PATH  "/org/freedesktop/ConsoleKit/Manager"
-#define CK_MANAGER_NAME  CK_NAME ".Manager"
-#define CK_SEAT_NAME     CK_NAME ".Seat"
-#define CK_SESSION_NAME  CK_NAME ".Session"
-
-
 #define CONSOLEKIT_ERROR lib_consolekit_error_quark ()
 
 /**

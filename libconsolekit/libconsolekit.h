@@ -32,6 +32,12 @@
 
 #include <glib-object.h>
 
+#define CK_NAME          "org.freedesktop.ConsoleKit"
+#define CK_MANAGER_PATH  "/org/freedesktop/ConsoleKit/Manager"
+#define CK_MANAGER_NAME  CK_NAME ".Manager"
+#define CK_SEAT_NAME     CK_NAME ".Seat"
+#define CK_SESSION_NAME  CK_NAME ".Session"
+
 #define LIB_TYPE_CONSOLEKIT           (lib_consolekit_get_type ())
 #define LIB_CONSOLEKIT(o)             (G_TYPE_CHECK_INSTANCE_CAST ((o), LIB_TYPE_CONSOLEKIT, LibConsoleKit))
 #define LIB_CONSOLEKIT_CLASS(k)       (G_TYPE_CHECK_CLASS_CAST((k), LIB_TYPE_CONSOLEKIT, LibConsoleKitClass))
