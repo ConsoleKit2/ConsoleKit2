@@ -112,6 +112,7 @@ void                ck_session_set_session_controller (CkSession             *se
 gboolean            ck_session_get_id                 (CkSession             *session,
                                                        char                 **ssid,
                                                        GError               **error);
+const char        * ck_session_get_path               (CkSession             *session);
 gboolean            ck_session_get_seat_id            (CkSession             *session,
                                                        char                 **sid,
                                                        GError               **error);
@@ -141,6 +142,7 @@ gboolean            ck_session_set_cookie             (CkSession             *se
                                                        GError               **error);
 gboolean            ck_session_set_seat_id            (CkSession             *session,
                                                        const char            *sid,
+                                                       const char            *path,
                                                        GError               **error);
 gboolean            ck_session_set_login_session_id   (CkSession             *session,
                                                        const char            *login_session_id,
