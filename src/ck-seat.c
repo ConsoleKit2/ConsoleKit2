@@ -318,7 +318,7 @@ ck_seat_activate_session (CkSeat                *seat,
 
         g_debug ("Attempting to activate VT %u", num);
 
-        if (seat->priv->active_session != session) {
+        if (seat->priv->active_session != session && seat->priv->active_session != NULL) {
                 /* let the old session know it's about to change */
                 ck_session_set_active (seat->priv->active_session, FALSE, TRUE);
         }
