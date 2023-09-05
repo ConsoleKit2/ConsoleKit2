@@ -59,10 +59,10 @@ test_libconsolekit_SOURCES = 		\
 	$(NULL)
 
 test_libconsolekit_LDADD =		\
+	libconsolekit.la		\
 	$(GLIB_LIBS)		\
 	$(GIO_LIBS)			\
 	$(GIO_UNIX_LIBS)	\
-	libconsolekit.la		\
 	$(NULL)
 
 endif
