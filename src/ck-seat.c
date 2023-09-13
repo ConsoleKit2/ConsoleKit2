@@ -699,7 +699,7 @@ session_activate (CkSession             *session,
 {
         TRACE ();
 
-        return ck_seat_activate_session (seat, session, context);
+        return ck_seat_activate_session (seat, session, NULL);
 
 }
 
