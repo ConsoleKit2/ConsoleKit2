@@ -80,6 +80,7 @@ static struct {
         { "x11-display",        DBUS_TYPE_STRING },
         { "remote-host-name",   DBUS_TYPE_STRING },
         { "session-type",       DBUS_TYPE_STRING },
+        { "session-service",    DBUS_TYPE_STRING },
         { "is-local",           DBUS_TYPE_BOOLEAN },
         { "unix-user",          DBUS_TYPE_INT32 },
 };
@@ -719,10 +720,6 @@ ck_connector_get_runtime_dir (CkConnector *connector,
         reply = NULL;
         message = NULL;
         runtime_dir = NULL;
-
-        if (!connector->session_created || connector->cookie == NULL) {
-                return NULL;
-        }
 
         dbus_error_init (&local_error);
         message = dbus_message_new_method_call ("org.freedesktop.ConsoleKit",
