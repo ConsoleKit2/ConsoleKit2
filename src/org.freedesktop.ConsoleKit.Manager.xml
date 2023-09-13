@@ -598,6 +598,26 @@
       </doc:doc>
     </method>
 
+    <method name="GetSession">
+      <arg name="session_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The session's ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="session_path" direction="out" type="o">
+        <doc:doc>
+          <doc:summary>The object identifier for the requested session</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Returns the session path that is associated with the specified session ID.
+          </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+
     <method name="GetSessionForCookie">
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="cookie" direction="in" type="s">

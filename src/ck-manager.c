@@ -132,6 +132,8 @@ static void     remove_sessions_for_connection (CkManager   *manager,
 static void     create_seats                   (CkManager *manager);
 static gboolean session_is_real_user           (CkSession *session,
                                                 char     **userp);
+static CkSession* get_session_from_id          (CkManager   *manager,
+                                                const gchar *arg_session_id);
 
 static gpointer manager_object = NULL;
 
@@ -3018,6 +3020,35 @@ create_session_for_sender (CkManager             *manager,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.GetSession Session1
+*/
+static gboolean
+dbus_get_session (ConsoleKitManager     *ckmanager,
+                  GDBusMethodInvocation *context,
+                  const char            *ssid)
+{
+        CkManager       *manager;
+        CkSession       *session;
+
+        manager = CK_MANAGER (ckmanager);
+
+        session = get_session_from_id (manager, ssid);
+        if (session == NULL) {
+                g_debug ("CkManager: Unable to lookup session for ID - failing");
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to find session for ID"));
+                return TRUE;
+        }
+
+        console_kit_manager_complete_get_session (ckmanager, context, ck_session_get_path (session));
+
+        return TRUE;
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetSessionForCookie string:$XDG_SESSION_COOKIE
 */
 static gboolean
@@ -4233,6 +4264,7 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_get_sessions                 = dbus_get_sessions;
         iface->handle_get_sessions_for_unix_user   = dbus_get_sessions_for_unix_user;
         iface->handle_get_sessions_for_user        = dbus_get_sessions_for_user;
+        iface->handle_get_session                  = dbus_get_session;
         iface->handle_get_session_for_cookie       = dbus_get_session_for_cookie;
         iface->handle_get_session_for_unix_process = dbus_get_session_for_unix_process;
         iface->handle_get_session_by_pid           = dbus_get_session_by_pid;
