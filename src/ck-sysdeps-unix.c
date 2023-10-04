@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <pwd.h>
 
@@ -152,6 +153,18 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                            (int) sizeof (cr),
                            g_strerror (errno));
         }
+#elif defined(LOCAL_PEERCRED)
+        struct xucred creds;
+        socklen_t credSize = sizeof(struct xucred);
+        if(getsockopt(socket_fd, 0, LOCAL_PEERCRED, &creds, &credSize) == 0)
+        {
+                pid_read = creds.cr_pid;
+                uid_read = creds.cr_uid;
+                ret = TRUE;
+        } else {
+                g_warning ("Failed to getsockopt() credentials, returned %s\n",
+                           g_strerror (errno));
+        }
 #elif defined(HAVE_GETPEEREID)
 	gid_t dummy;
         char errbuf[_POSIX2_LINE_MAX];
@@ -165,23 +178,6 @@ ck_get_socket_peer_credentials   (int      socket_fd,
                 g_warning ("Failed to getpeereid() credentials: %s\n",
                            g_strerror (errno));
         }
-#if defined(__FreeBSD__)
-        kd = kvm_openfiles (NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
-        if (kd == NULL) {
-                g_warning ("kvm_openfiles failed: %s", errbuf);
-                return FALSE;
-        }
-
-        prc = kvm_getprocs (kd, KERN_PROC_UID, uid_read, &cnt);
-        for (int i = 0; i < cnt; i++) {
-                if(strncmp (prc[i].ki_comm, "Xorg", 4) == 0) {
-                        pid_read = prc[i].ki_pid;
-                        break;
-                }
-        }
-
-        kvm_close(kd);
-#endif /* __FreeBSD__ */
 #if defined(__DragonFly__)
         kd = kvm_openfiles (NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
         if (kd == NULL) {
