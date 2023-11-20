@@ -2895,7 +2895,8 @@ verify_and_open_session_for_leader (CkManager             *manager,
                                     GVariant              *parameters,
                                     GDBusMethodInvocation *context)
 {
-        gboolean is_local = FALSE;
+        gboolean is_local = -1;
+        gboolean is_session_id_local = -1;
         GVariantIter     *iter;
         gchar            *prop_name;
         GVariant         *value;
@@ -2907,17 +2908,22 @@ verify_and_open_session_for_leader (CkManager             *manager,
         g_debug ("CkManager: verifying session for leader");
 
         g_variant_get ((GVariant *)parameters, "a{sv}", &iter);
-        while (!is_local && g_variant_iter_next (iter, "{sv}", &prop_name, &value)) {
+        while (g_variant_iter_next (iter, "{sv}", &prop_name, &value)) {
                 if (g_strcmp0 (prop_name, "is-local") == 0) {
-                        is_local = TRUE;
+                        is_local = g_variant_get_boolean (value);
                 }
                 if (g_strcmp0 (prop_name, "login-session-id") == 0) {
-                        is_local = _verify_login_session_id_is_local (manager, g_variant_get_string (value, 0));
+                        is_session_id_local = _verify_login_session_id_is_local (manager, g_variant_get_string (value, 0));
                 }
                 g_free (prop_name);
                 g_variant_unref (value);
         }
         g_variant_iter_free (iter);
+
+        if (is_local == -1 && is_session_id_local == TRUE)
+                is_local = TRUE;
+        else if (is_local == -1)
+                is_local = FALSE;
 
         g_debug ("CkManager: found is-local=%s", is_local ? "true" : "false");
 
