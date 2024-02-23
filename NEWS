@@ -3,7 +3,33 @@ Version 2.0.0
 =============
 Stable release of ConsoleKit2
 
-Placeholder for breaking changes.
+This release contains breaking changes in the D-Bus API:
+- The naming scheme of Session and Seat objects was changed and now follows
+  systemd login1. The seat numbering starts from 0 and the word "seat" is now
+  in lowercase.
+- Throughout the whole D-Bus API the object ID values are no more match D-Bus
+  object paths. This means that any method that was accepting IDs in form of
+  `/org/freedesktop/ConsoleKit/seatX` now accepts `seatX`. This is done for
+  systemd login1 compatibility.
+
+New Features:
+- Added the Manager.ListSessions method that behaves like systemd login1 counterpart.
+- Added the Manager.GetSession method that maps session ID to a corresponding
+  D-Bus object path.
+- sd-compat shim of libconsolekit API now implements sd_session_get_display() and
+  sd_seat_can_graphical() functions.
+- sd-compat shim gained an implementation of sd_login_monitor_* functions. This
+  implementation required kqueue/kevent with EVFILT_USER support, which means
+  that it only works on FreeBSD for now.
+
+Bug Fixes:
+- Seat.CanGraphical property is now exported on the D-Bus.
+- Fixed a crash at the end of the Session.Activate call.
+- Corrected an implementation of the ck-get-x11-server-pid utility for FreeBSD.
+
+Misc Changes:
+- Add -s/--service argument to the ck-launch-session utility that allows setting
+  otherwise read-only "session-service" property of the Session object.
 
 ==============
 Version 1.2.6
@@ -96,12 +122,12 @@ Bug Fixes:
 - Remove some redundant code probing for hibernation, suspend, and sleep
 - make_tmpfs for DragonFly
 - memory leak in ck-manager
-- Seat property on Session interface 
+- Seat property on Session interface
 
 Misc Changes:
-- Add DragonFlyBSD as a platform 
+- Add DragonFlyBSD as a platform
 - Remove DragonFly specific code from FreeBSD sysdeps
-- Switch away from AC_DISABLE_STATIC 
+- Switch away from AC_DISABLE_STATIC
 
 ==============
 Version 1.2.0
@@ -210,9 +236,9 @@ Changes:
 - login_session_id will be G_MAXUINT32 when unset
 - Handle the legacy 'user' property as an override setting
 - Change owner of newly created cgroup to owner of progress group leader
-- Create cgroup on all controllers managed by cgmanager 
-- Implement XDG_RUNTIME_DIR 
-- When assigning session to active VT prefer graphical sessions 
+- Create cgroup on all controllers managed by cgmanager
+- Implement XDG_RUNTIME_DIR
+- When assigning session to active VT prefer graphical sessions
 - Fix undefined behavior in ck-log-system-start
 
 Translation Updates: Bulgarian, Spanish, Spanish (Latin America),
@@ -268,7 +294,7 @@ https://github.com/ConsoleKit2/ConsoleKit2/issues
 - Add new DBUS method: ListInhibitors
 - Mark sessions as local explicitly when not built with PAM support
 - Watch and handle dbus NameOwnerChanged events
-- Add an --enable-tests configure option 
+- Add an --enable-tests configure option
 
 ==============
 Version 0.9.4
