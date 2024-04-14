@@ -241,6 +241,29 @@ sd_uid_get_sessions(uid_t uid, int require_active, char ***sessions)
 }
 
 int
+sd_session_is_remote(const char *session)
+{
+	LibConsoleKit *ck = NULL;
+	GError *error = NULL;
+	gboolean is_remote = FALSE;
+
+	ck = lib_consolekit_new ();
+
+	is_remote = lib_consolekit_session_is_remote (ck, session, &error);
+	if (error) {
+		g_warning ("Unable to determine if session is remote: %s",
+				error ? error->message : "");
+		g_error_free (error);
+		g_object_unref (ck);
+		return FALSE;
+	}
+
+	g_object_unref (ck);
+
+	return is_remote;
+}
+
+int
 sd_seat_can_graphical(const char *seat)
 {
 	LibConsoleKit *ck = NULL;
