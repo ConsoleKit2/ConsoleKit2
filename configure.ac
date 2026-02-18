@@ -96,7 +96,11 @@ AC_DEFINE(GLIB_VERSION_MAX_ALLOWED, GLIB_VERSION_2_40, [Prevent post 2.40 APIs])
 
 
 # Check for X11 installed
-XDT_CHECK_LIBX11_REQUIRE()
+XDT_CHECK_LIBX11()
+if test "x$with_x" = "xyes" ; then
+        XDT_CHECK_LIBX11_REQUIRE()
+fi
+AM_CONDITIONAL([USE_LIBX11], [test "x$with_x" = xyes])
 
 # Check for Polkit/PolicyKit
 XDT_CHECK_OPTIONAL_PACKAGE([POLKIT], [polkit-gobject-1], [polkit_minimum_version],

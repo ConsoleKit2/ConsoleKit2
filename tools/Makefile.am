@@ -148,10 +148,14 @@ ck_log_system_stop_LDADD =		\
 
 libexec_PROGRAMS = 			\
 	ck-collect-session-info		\
-	ck-get-x11-server-pid		\
-	ck-get-x11-display-device	\
 	ck-remove-directory			\
 	$(NULL)
+
+if USE_LIBX11
+libexec_PROGRAMS += 			\
+	ck-get-x11-server-pid		\
+	ck-get-x11-display-device
+endif
 
 ck_collect_session_info_SOURCES =	\
 	ck-collect-session-info.c	\
