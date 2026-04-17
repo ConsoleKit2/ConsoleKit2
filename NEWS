@@ -11,6 +11,8 @@ This release contains breaking changes in the D-Bus API:
   object paths. This means that any method that was accepting IDs in form of
   `/org/freedesktop/ConsoleKit/seatX` now accepts `seatX`. This is done for
   systemd login1 compatibility.
+- At least polkit will require patching to work after the new changes, e.g.:
+  https://github.com/freebsd/freebsd-ports/commit/12b84b980b45573c93be5382a274dbe872a1eb73
 
 New Features:
 - Added the Manager.ListSessions method that behaves like systemd login1 counterpart.
@@ -21,11 +23,13 @@ New Features:
 - sd-compat shim gained an implementation of sd_login_monitor_* functions. This
   implementation required kqueue/kevent with EVFILT_USER support, which means
   that it only works on FreeBSD for now.
+- Make X11 optional
 
 Bug Fixes:
 - Seat.CanGraphical property is now exported on the D-Bus.
 - Fixed a crash at the end of the Session.Activate call.
 - Corrected an implementation of the ck-get-x11-server-pid utility for FreeBSD.
+- Emit correct DBus path for ResumeDevice
 
 Misc Changes:
 - Add -s/--service argument to the ck-launch-session utility that allows setting
