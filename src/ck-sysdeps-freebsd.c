@@ -512,7 +512,11 @@ freebsd_supports_sleep_state (const gchar *state)
         gboolean ret = FALSE;
         gchar *sleep_states;
 
+#if __FreeBSD_version < 1600018
         sleep_states = get_string_sysctl (NULL, "hw.acpi.supported_sleep_state");
+#else
+        sleep_states = get_string_sysctl (NULL, "kern.power.supported_stype");
+#endif
         if (sleep_states != NULL) {
                 if (strstr (sleep_states, state) != NULL)
                         ret = TRUE;
@@ -526,13 +530,21 @@ freebsd_supports_sleep_state (const gchar *state)
 gboolean
 ck_system_can_suspend (void)
 {
+#if __FreeBSD_version < 1600018
         return freebsd_supports_sleep_state ("S3");
+#else
+        return freebsd_supports_sleep_state ("suspend_to_idle");
+#endif
 }
 
 gboolean
 ck_system_can_hibernate (void)
 {
+#if __FreeBSD_version < 1600018
         return freebsd_supports_sleep_state ("S4");
+#else
+        return freebsd_supports_sleep_state ("fw_hibernate");
+#endif
 }
 
 gboolean
