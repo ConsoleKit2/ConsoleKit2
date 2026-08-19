@@ -231,6 +231,7 @@ ck_process_stat_new_for_unix_pid (pid_t           pid,
         if (res) {
                 *stat = proc;
         } else {
+                g_free (proc);
                 *stat = NULL;
         }
 
