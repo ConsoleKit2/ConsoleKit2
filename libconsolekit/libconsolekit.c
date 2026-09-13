@@ -264,6 +264,17 @@ lib_consolekit_seat_get_active (LibConsoleKit *ck,
 
 /**
  * lib_consolekit_uid_get_sessions:
+ * @ck      : A #LibConsoleKit
+ * @uid     : The user id to query
+ * @sessions: (out) (transfer full) (array zero-terminated=1): The sessions of the user, if any
+ * @error   : (out) (allow-none) (transfer full): The error message if something failed
+ *
+ * Returns the sessions that belong to the given user. Free the sessions with
+ * g_strfreev when done.
+ *
+ * Return value: The number of sessions returned or -1 on failure
+ *
+ * Since: 1.2.5
  **/
 gint
 lib_consolekit_uid_get_sessions (LibConsoleKit *ck,
@@ -322,6 +333,16 @@ lib_consolekit_uid_get_sessions (LibConsoleKit *ck,
 
 /**
  * lib_consolekit_get_sessions:
+ * @ck      : A #LibConsoleKit
+ * @sessions: (out) (transfer full) (array zero-terminated=1): The sessions known to ConsoleKit, if any
+ * @error   : (out) (allow-none) (transfer full): The error message if something failed
+ *
+ * Returns every session known to ConsoleKit. Free the sessions with
+ * g_strfreev when done.
+ *
+ * Return value: The number of sessions returned or -1 on failure
+ *
+ * Since: 1.2.5
  **/
 gint
 lib_consolekit_get_sessions (LibConsoleKit *ck,

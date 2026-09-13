@@ -33,14 +33,7 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
-#define CK_NAME      "org.freedesktop.ConsoleKit"
-#define CK_PATH      "/org/freedesktop/ConsoleKit"
-#define CK_INTERFACE "org.freedesktop.ConsoleKit"
-
-#define CK_MANAGER_PATH      "/org/freedesktop/ConsoleKit/Manager"
-#define CK_MANAGER_INTERFACE "org.freedesktop.ConsoleKit.Manager"
-#define CK_SEAT_INTERFACE    "org.freedesktop.ConsoleKit.Seat"
-#define CK_SESSION_INTERFACE "org.freedesktop.ConsoleKit.Session"
+#include "libconsolekit.h"
 
 static gboolean
 get_value (GDBusProxy *proxy,
@@ -192,7 +185,7 @@ list_session (GDBusConnection *connection,
                                        NULL,
                                        CK_NAME,
                                        ssid,
-                                       CK_SESSION_INTERFACE,
+                                       CK_SESSION_NAME,
                                        NULL,
                                        &error);
         if (proxy == NULL) {
@@ -317,7 +310,7 @@ list_sessions (GDBusConnection *connection,
                                        NULL,
                                        CK_NAME,
                                        sid,
-                                       CK_SEAT_INTERFACE,
+                                       CK_SEAT_NAME,
                                        NULL,
                                        &error);
 
@@ -368,7 +361,7 @@ list_seats (GDBusConnection *connection)
                                        NULL,
                                        CK_NAME,
                                        CK_MANAGER_PATH,
-                                       CK_MANAGER_INTERFACE,
+                                       CK_MANAGER_NAME,
                                        NULL,
                                        &error);
 

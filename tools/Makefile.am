@@ -39,6 +39,7 @@ AM_CFLAGS =							\
 	-I$(srcdir)						\
 	-I$(top_srcdir)/src					\
 	-I$(top_srcdir)/libck-connector				\
+	-I$(top_srcdir)/libconsolekit				\
 	$(GLIB_CFLAGS)							\
 	$(GIO_CFLAGS)							\
 	$(GIO_UNIX_CFLAGS)						\
