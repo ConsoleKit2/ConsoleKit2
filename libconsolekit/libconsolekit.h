@@ -32,6 +32,54 @@
 
 #include <glib-object.h>
 
+/**
+ * CK_NAME:
+ *
+ * The D-Bus name owned by the ConsoleKit daemon.
+ *
+ * Since: 1.0
+ **/
+#define CK_NAME          "org.freedesktop.ConsoleKit"
+
+/**
+ * CK_MANAGER_PATH:
+ *
+ * The D-Bus object path of the ConsoleKit Manager object.
+ *
+ * Since: 1.0
+ **/
+#define CK_MANAGER_PATH  "/org/freedesktop/ConsoleKit/Manager"
+
+/**
+ * CK_MANAGER_NAME:
+ *
+ * The name of the D-Bus interface implemented by the ConsoleKit
+ * Manager object.
+ *
+ * Since: 1.0
+ **/
+#define CK_MANAGER_NAME  CK_NAME ".Manager"
+
+/**
+ * CK_SEAT_NAME:
+ *
+ * The name of the D-Bus interface implemented by ConsoleKit Seat
+ * objects.
+ *
+ * Since: 1.0
+ **/
+#define CK_SEAT_NAME     CK_NAME ".Seat"
+
+/**
+ * CK_SESSION_NAME:
+ *
+ * The name of the D-Bus interface implemented by ConsoleKit Session
+ * objects.
+ *
+ * Since: 1.0
+ **/
+#define CK_SESSION_NAME  CK_NAME ".Session"
+
 #define LIB_TYPE_CONSOLEKIT           (lib_consolekit_get_type ())
 #define LIB_CONSOLEKIT(o)             (G_TYPE_CHECK_INSTANCE_CAST ((o), LIB_TYPE_CONSOLEKIT, LibConsoleKit))
 #define LIB_CONSOLEKIT_CLASS(k)       (G_TYPE_CHECK_CLASS_CAST((k), LIB_TYPE_CONSOLEKIT, LibConsoleKitClass))
@@ -150,12 +198,6 @@ gboolean        lib_consolekit_pid_get_session         (LibConsoleKit *ck,
                                                         gchar **session,
                                                         GError **error);
 
-
-gint
-lib_consolekit_pid_get_sessions (LibConsoleKit *ck,
-                                  pid_t pid,
-                                  gchar **sessions,
-                                  GError **error);
 
 gint
 lib_consolekit_uid_get_sessions (LibConsoleKit *ck,
