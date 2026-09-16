@@ -461,8 +461,7 @@ ck_get_active_console_num (int    console_fd,
 gboolean
 ck_system_can_suspend (void)
 {
-/* needs acpi(4) */
-#if defined(__i386__) || defined(__amd64__) || defined(__aarch64__)
+	/* needs apmd(8) running */
 	struct stat st;
 
 	if (stat("/var/run/apmdev", &st) < 0) {
@@ -474,9 +473,6 @@ ck_system_can_suspend (void)
 	}
 
 	return TRUE;
-#else
-	return FALSE;
-#endif
 }
 
 gboolean

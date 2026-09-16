@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (c) 2017, Eric Koegel <eric.koegel@gmail.com>
+ * Copyright (C) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +42,7 @@
 #include <gio/gio.h>
 
 #include "libconsolekit.h"
-
+#include "sd-login.h"
 
 
 static void
@@ -107,6 +109,22 @@ test_seat_can_multisession (LibConsoleKit *ck,
         g_print ("lib_consolekit_seat_can_multi_session (seat %s) : %s\n", seat, can_multisession ? "TRUE" : "FALSE");
     } else {
         g_print ("lib_consolekit_seat_can_multi_session (seat %s) : error %s\n", seat, error->message);
+        g_clear_error (&error);
+    }
+}
+
+static void
+test_seat_can_graphical (LibConsoleKit *ck,
+                         const gchar *seat)
+{
+    gboolean can_graphical;
+    GError *error = NULL;
+
+    can_graphical = lib_consolekit_seat_can_graphical (ck, seat, &error);
+    if (!error) {
+        g_print ("lib_consolekit_seat_can_graphical (seat %s) : %s\n", seat, can_graphical ? "TRUE" : "FALSE");
+    } else {
+        g_print ("lib_consolekit_seat_can_graphical (seat %s) : error %s\n", seat, error->message);
         g_clear_error (&error);
     }
 }
@@ -302,6 +320,33 @@ test_session_get_vt (LibConsoleKit *ck,
 }
 
 static void
+test_sd_login_monitor (LibConsoleKit *ck)
+{
+    sd_login_monitor* m;
+    int res = sd_login_monitor_new ("session", &m);
+    if (res < 0) {
+        g_print ("sd_login_monitor : new error %s\n", strerror(-res));
+        return;
+    }
+
+    res = sd_login_monitor_get_fd (m);
+    if (res < 0) {
+        g_print ("sd_login_monitor : get_fd error %s\n", strerror(-res));
+        return;
+    }
+
+    res = sd_login_monitor_flush (m);
+    if (res < 0) {
+        g_print ("sd_login_monitor : flush error %s\n", strerror(-res));
+        return;
+    }
+
+    sd_login_monitor_unref (m);
+
+    g_print ("sd_login_monitor : OK\n");
+}
+
+static void
 test_pid_get_session (LibConsoleKit *ck,
                       gint pid)
 {
@@ -322,7 +367,7 @@ test_pid_get_session (LibConsoleKit *ck,
 
 
 
-gchar *opt_seat = "/org/freedesktop/ConsoleKit/Seat1";
+gchar *opt_seat = "/org/freedesktop/ConsoleKit/seat0";
 gchar *opt_session = "/org/freedesktop/ConsoleKit/Session2";
 gint opt_pid = 0;
 
@@ -374,6 +419,8 @@ main (int   argc,
 
     test_seat_can_multisession (ck, opt_seat);
 
+    test_seat_can_graphical (ck, opt_seat);
+
     test_session_is_active (ck, opt_session);
 
     test_session_is_remote (ck, opt_session);
@@ -395,6 +442,8 @@ main (int   argc,
     test_session_get_tty (ck, opt_session);
 
     test_session_get_vt (ck, opt_session);
+
+    test_sd_login_monitor (ck);
 
     test_pid_get_session (ck, opt_pid);
 

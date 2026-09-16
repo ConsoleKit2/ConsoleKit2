@@ -1,11 +1,7 @@
 #!/bin/sh
 
-#Try for common tools
-if [ -x "/sbin/acpiconf" ] ; then
-	/sbin/acpiconf -s 3
-	exit $?
-elif [ -x "/usr/sbin/acpiconf" ] ; then
-	/usr/sbin/acpiconf -s 3
+if [ -x "/usr/sbin/zzz" ] ; then
+	/usr/sbin/zzz
 	exit $?
 else
 	exit 1

@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (C) 2006-2007 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2023, Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                     Author: Gleb Popov <arrowd@FreeBSD.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +56,10 @@
 #include <dev/wscons/wsdisplay_usl_io.h>
 #endif
 
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#include <termios.h>
+#endif
+
 #include <glib.h>
 #include <glib-unix.h>
 #include <glib/gi18n.h>
@@ -62,6 +68,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "ck-tty-idle-monitor.h"
+#include "ck-manager.h"
 #include "ck-session.h"
 #include "ck-seat.h"
 #include "ck-marshal.h"
@@ -90,8 +97,10 @@
 struct CkSessionPrivate
 {
         char            *id;
+        char            *path;
         char            *cookie;
         char            *seat_id;
+        char            *seat_path;
         char            *runtime_dir;
         char            *login_session_id;
 
@@ -226,11 +235,11 @@ register_session (CkSession *session, GDBusConnection *connection)
                 return FALSE;
         }
 
-        g_debug ("exporting path %s", session->priv->id);
+        g_debug ("exporting path %s", session->priv->path);
 
         if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (CONSOLE_KIT_SESSION (session)),
                                                session->priv->connection,
-                                               session->priv->id,
+                                               session->priv->path,
                                                &error)) {
                 if (error != NULL) {
                         g_critical ("error exporting interface: %s", error->message);
@@ -806,8 +815,8 @@ ck_session_resume_all_devices (CkSession *session)
                         continue;
                 }
 
-                message = g_dbus_message_new_signal (session->priv->id,
-                                                     CK_SESSION_DBUS_NAME,
+                message = g_dbus_message_new_signal (session->priv->path,
+                                                     DBUS_SESSION_INTERFACE,
                                                      "ResumeDevice");
 
                 /* We always send to the session controller */
@@ -962,7 +971,7 @@ dbus_get_id (ConsoleKitSession     *cksession,
                 id = "";
         }
 
-        console_kit_session_complete_get_id (cksession, context, session->priv->id);
+        console_kit_session_complete_get_id (cksession, context, session->priv->path);
         return TRUE;
 }
 
@@ -980,24 +989,29 @@ ck_session_get_id (CkSession *session,
         return TRUE;
 }
 
+const char *ck_session_get_path (CkSession *session)
+{
+        return session->priv->path;
+}
+
 static gboolean
 dbus_get_seat_id (ConsoleKitSession     *cksession,
                   GDBusMethodInvocation *context)
 {
         CkSession *session = CK_SESSION (cksession);
-        const gchar *seat_id;
+        const gchar *seat_path;
 
         TRACE ();
 
         g_return_val_if_fail (CK_IS_SESSION (session), FALSE);
 
-        seat_id = session->priv->seat_id;
-        if (seat_id == NULL) {
+        seat_path = session->priv->seat_id;
+        if (seat_path == NULL) {
                 throw_error (context, CK_SESSION_ERROR_FAILED, "session not attached to a seat");
                 return TRUE;
         }
 
-        console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_id);
+        console_kit_session_complete_get_seat_id (cksession, context, session->priv->seat_path);
         return TRUE;
 }
 
@@ -1266,6 +1280,7 @@ ck_session_set_cookie (CkSession      *session,
 gboolean
 ck_session_set_seat_id (CkSession      *session,
                         const char     *id,
+                        const char     *path,
                         GError        **error)
 {
         GVariant *seat = NULL;
@@ -1275,18 +1290,14 @@ ck_session_set_seat_id (CkSession      *session,
 
         g_free (session->priv->seat_id);
         session->priv->seat_id = g_strdup (id);
+        g_free (session->priv->seat_path);
+        session->priv->seat_path = g_strdup (path);
 
-        if (id != NULL) {
-                /* we need to remove the prefix from the first seat_id returned */
-                seat_split = g_strsplit (id, "/org/freedesktop/ConsoleKit/", 2);
-
-                if (seat_split[0] == NULL) {
-                        g_critical ("id %s is invalid or g_strsplit has changed", id);
-                        return FALSE;
-                }
-
-                seat = g_variant_new ("(so)", seat_split[1], id);
-                g_strfreev (seat_split);
+        if (id != NULL && path != NULL) {
+                seat = g_variant_new ("(so)", id, path);
+        } else {
+                g_critical ("id %s or path %s are invalid", id, path);
+                return FALSE;
         }
 
         console_kit_session_set_seat (CONSOLE_KIT_SESSION (session), seat);
@@ -1518,6 +1529,16 @@ ck_session_setup_vt_signal (CkSession *session,
                 return;
         }
 
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+        /* Put the tty into raw mode */
+        struct termios tios;
+        if (tcgetattr (session->priv->tty_fd, &tios))
+          g_warning ("Failed to get terminal attributes");
+        cfmakeraw (&tios);
+        if (tcsetattr (session->priv->tty_fd, TCSAFLUSH, &tios))
+          g_warning ("Failed to set terminal attributes");
+#endif
+
         session->priv->sig_watch_s1 = g_unix_signal_add_full (G_PRIORITY_HIGH,
                                                               SIGUSR1,
                                                               (GSourceFunc)vt_leave_handler,
@@ -1586,6 +1607,19 @@ ck_session_controller_cleanup (CkSession *session)
                         g_warning ("failed to restore old keyboard mode");
                 }
 #endif /* defined(KDSKBMODE) */
+
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+                /* Restore sane mode */
+                struct termios tios;
+                if (tcgetattr (session->priv->tty_fd, &tios)) {
+                  g_warning ("Failed to get terminal attributes");
+                } else {
+                  cfmakesane (&tios);
+                  if (tcsetattr (session->priv->tty_fd, TCSAFLUSH, &tios)) {
+                    g_warning ("Failed to set terminal attributes");
+                  }
+                }
+#endif
 
                 if (ioctl (session->priv->tty_fd, VT_SETMODE, &mode) < 0) {
                         g_warning ("failed to return control of vt handling");
@@ -1737,6 +1771,15 @@ ck_session_get_device (CkSession *session,
         for (iter = session->priv->devices; iter != NULL; iter = g_list_next (iter)) {
                 if (ck_device_compare (iter->data, major, minor)) {
                         g_debug ("found device");
+                        CkDevice *device = CK_DEVICE (iter->data);
+                        if (ck_device_get_category(device) == DEVICE_EVDEV) {
+                                struct stat st;
+                                if (fstat(ck_device_get_fd(device), &st) == -1 && errno == EBADF) {
+                                        g_debug ("but it was a dead input device, removing");
+                                        session->priv->devices = g_list_remove (session->priv->devices, device);
+                                        return NULL;
+                                }
+                        }
                         return iter->data;
                 }
         }
@@ -2037,6 +2080,8 @@ ck_session_constructor (GType                  type,
                 session_add_activity_watch (session);
         }
 
+        session->priv->path = g_strdup_printf ("%s/%s", CK_DBUS_PATH, session->priv->id);
+
         return G_OBJECT (session);
 }
 
@@ -2163,10 +2208,12 @@ ck_session_finalize (GObject *object)
         ck_session_remove_all_devices (session);
 
         g_free (session->priv->id);
+        g_free (session->priv->path);
         g_free (session->priv->cookie);
         g_free (session->priv->login_session_id);
         g_free (session->priv->runtime_dir);
         g_free (session->priv->seat_id);
+        g_free (session->priv->seat_path);
         g_free (session->priv->session_controller);
 
         if (session->priv->bus_proxy) {
@@ -2439,6 +2486,4 @@ ck_session_dump (CkSession *session,
                                "creation_time",
                                NONULL_STRING (s));
         g_free (s);
-
-        g_free (group_name);
 }

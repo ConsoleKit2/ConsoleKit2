@@ -1,6 +1,8 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
  *
  * Copyright (C) 2006-2008 William Jon McCann <mccann@jhu.edu>
+ * Copyright (C) 2023 Serenity Cybersecurity, LLC <license@futurecrew.ru>
+ *                    Author: Gleb Popov <arrowd@FreeBSD.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,11 +62,6 @@
 
 #define CK_SEAT_DIR            SYSCONFDIR "/ConsoleKit/seats.d"
 #define LOG_FILE               LOCALSTATEDIR "/log/ConsoleKit/history"
-#define DBUS_NAME              "org.freedesktop.ConsoleKit"
-#define CK_DBUS_PATH           "/org/freedesktop/ConsoleKit"
-#define CK_MANAGER_DBUS_PATH   CK_DBUS_PATH "/Manager"
-#define DBUS_SESSION_INTERFACE DBUS_NAME ".Session"
-#define DBUS_MANAGER_INTERFACE DBUS_NAME ".Manager"
 
 typedef enum {
         PREPARE_FOR_SHUTDOWN,
@@ -135,6 +132,8 @@ static void     remove_sessions_for_connection (CkManager   *manager,
 static void     create_seats                   (CkManager *manager);
 static gboolean session_is_real_user           (CkSession *session,
                                                 char     **userp);
+static CkSession* get_session_from_id          (CkManager   *manager,
+                                                const gchar *arg_session_id);
 
 static gpointer manager_object = NULL;
 
@@ -543,7 +542,7 @@ get_next_seat_serial (CkManager *manager)
         serial = manager->priv->seat_serial++;
 
         if ((gint32)manager->priv->seat_serial < 0) {
-                manager->priv->seat_serial = 1;
+                manager->priv->seat_serial = 0;
         }
 
         return serial;
@@ -591,7 +590,7 @@ generate_session_id (CkManager *manager)
  again:
         serial = get_next_session_serial (manager);
         g_free (id);
-        id = g_strdup_printf ("%s/Session%u", CK_DBUS_PATH, serial);
+        id = g_strdup_printf ("Session%u", serial);
 
         if (g_hash_table_lookup (manager->priv->sessions, id)) {
                 goto again;
@@ -610,7 +609,7 @@ generate_seat_id (CkManager *manager)
  again:
         serial = get_next_seat_serial (manager);
         g_free (id);
-        id = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, serial);
+        id = g_strdup_printf ("seat%u", serial);
 
         if (g_hash_table_lookup (manager->priv->seats, id)) {
                 goto again;
@@ -652,7 +651,7 @@ log_seat_added_event (CkManager  *manager,
         ck_seat_get_id (seat, &sid, NULL);
         ck_seat_get_kind (seat, &seat_kind, NULL);
 
-        event.event.seat_added.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_added.seat_id = sid;
         event.event.seat_added.seat_kind = (int)seat_kind;
 
         error = NULL;
@@ -684,7 +683,7 @@ log_seat_removed_event (CkManager  *manager,
         ck_seat_get_id (seat, &sid, NULL);
         ck_seat_get_kind (seat, &seat_kind, NULL);
 
-        event.event.seat_removed.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_removed.seat_id = sid;
         event.event.seat_removed.seat_kind = (int)seat_kind;
 
         error = NULL;
@@ -741,8 +740,8 @@ log_seat_session_added_event (CkManager  *manager,
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
 
-        event.event.seat_session_added.seat_id = (char *)get_object_id_basename (sid);
-        event.event.seat_session_added.session_id = (char *)get_object_id_basename (ssid);
+        event.event.seat_session_added.seat_id = sid;
+        event.event.seat_session_added.session_id = (char *) ssid;
 
         session = g_hash_table_lookup (manager->priv->sessions, ssid);
         if (session != NULL) {
@@ -796,8 +795,8 @@ log_seat_session_removed_event (CkManager  *manager,
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
 
-        event.event.seat_session_removed.seat_id = (char *)get_object_id_basename (sid);
-        event.event.seat_session_removed.session_id = (char *)get_object_id_basename (ssid);
+        event.event.seat_session_removed.seat_id = sid;
+        event.event.seat_session_removed.session_id = (char *) ssid;
 
         session = g_hash_table_lookup (manager->priv->sessions, ssid);
         if (session != NULL) {
@@ -849,8 +848,8 @@ log_seat_active_session_changed_event (CkManager  *manager,
         sid = NULL;
         ck_seat_get_id (seat, &sid, NULL);
 
-        event.event.seat_active_session_changed.seat_id = (char *)get_object_id_basename (sid);
-        event.event.seat_active_session_changed.session_id = (char *)get_object_id_basename (ssid);
+        event.event.seat_active_session_changed.seat_id = sid;
+        event.event.seat_active_session_changed.session_id = (char *) ssid;
 
         error = NULL;
         res = ck_event_logger_queue_event (manager->priv->logger, &event, &error);
@@ -887,7 +886,7 @@ log_seat_device_added_event (CkManager   *manager,
 
         g_variant_get (device, "(ss)", &device_type, &device_id);
 
-        event.event.seat_device_added.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_device_added.seat_id = sid;
 
         event.event.seat_device_added.device_id = device_id;
         event.event.seat_device_added.device_type = device_type;
@@ -929,7 +928,7 @@ log_seat_device_removed_event (CkManager   *manager,
 
         g_variant_get (device, "(ss)", &device_type, &device_id);
 
-        event.event.seat_device_removed.seat_id = (char *)get_object_id_basename (sid);
+        event.event.seat_device_removed.seat_id = sid;
 
         event.event.seat_device_removed.device_id = device_id;
         event.event.seat_device_removed.device_type = device_type;
@@ -2554,8 +2553,8 @@ add_new_seat (CkManager *manager,
         ck_manager_dump (manager);
         ck_seat_run_programs (seat, NULL, NULL, "seat_added");
 
-        g_debug ("Emitting seat-added: %s", sid);
-        console_kit_manager_emit_seat_added (CONSOLE_KIT_MANAGER (manager), sid);
+        g_debug ("Emitting seat-added: %s", ck_seat_get_path (seat));
+        console_kit_manager_emit_seat_added (CONSOLE_KIT_MANAGER (manager), ck_seat_get_path (seat));
 
         log_seat_added_event (manager, seat);
 
@@ -2597,8 +2596,8 @@ remove_seat (CkManager *manager,
         ck_manager_dump (manager);
         ck_seat_run_programs (seat, NULL, NULL, "seat_removed");
 
-        g_debug ("Emitting seat-removed: %s", sid);
-        console_kit_manager_emit_seat_removed (CONSOLE_KIT_MANAGER (manager), sid);
+        g_debug ("Emitting seat-removed: %s", ck_seat_get_path (orig_seat));
+        console_kit_manager_emit_seat_removed (CONSOLE_KIT_MANAGER (manager), ck_seat_get_path (orig_seat));
 
         log_seat_removed_event (manager, orig_seat);
 
@@ -2666,10 +2665,7 @@ find_seat_for_session (CkManager *manager,
         }
 
         if ((is_static_x11 || is_static_text) && vtnr > 0) {
-                char *sid;
-                sid = g_strdup_printf ("%s/Seat%u", CK_DBUS_PATH, 1);
-                seat = g_hash_table_lookup (manager->priv->seats, sid);
-                g_free (sid);
+                seat = g_hash_table_lookup (manager->priv->seats, "seat0");
         }
 
         return seat;
@@ -2846,7 +2842,7 @@ open_session_for_leader (CkManager             *manager,
                           manager);
 
         /* let consumers know of the new session */
-        console_kit_manager_emit_session_new (CONSOLE_KIT_MANAGER (manager), ssid, ssid);
+        console_kit_manager_emit_session_new (CONSOLE_KIT_MANAGER (manager), ssid, ck_session_get_path (session));
 
         g_object_unref (session);
         g_free (runtime_dir);
@@ -3024,6 +3020,35 @@ create_session_for_sender (CkManager             *manager,
   dbus-send --system --dest=org.freedesktop.ConsoleKit \
   --type=method_call --print-reply --reply-timeout=2000 \
   /org/freedesktop/ConsoleKit/Manager \
+  org.freedesktop.ConsoleKit.Manager.GetSession Session1
+*/
+static gboolean
+dbus_get_session (ConsoleKitManager     *ckmanager,
+                  GDBusMethodInvocation *context,
+                  const char            *ssid)
+{
+        CkManager       *manager;
+        CkSession       *session;
+
+        manager = CK_MANAGER (ckmanager);
+
+        session = get_session_from_id (manager, ssid);
+        if (session == NULL) {
+                g_debug ("CkManager: Unable to lookup session for ID - failing");
+                throw_error (context, CK_MANAGER_ERROR_GENERAL, _("Unable to find session for ID"));
+                return TRUE;
+        }
+
+        console_kit_manager_complete_get_session (ckmanager, context, ck_session_get_path (session));
+
+        return TRUE;
+}
+
+/*
+  Example:
+  dbus-send --system --dest=org.freedesktop.ConsoleKit \
+  --type=method_call --print-reply --reply-timeout=2000 \
+  /org/freedesktop/ConsoleKit/Manager \
   org.freedesktop.ConsoleKit.Manager.GetSessionForCookie string:$XDG_SESSION_COOKIE
 */
 static gboolean
@@ -3096,7 +3121,7 @@ dbus_get_session_for_cookie (ConsoleKitManager     *ckmanager,
 
         g_debug ("CkManager: Found session '%s'", ssid);
 
-        console_kit_manager_complete_get_session_for_cookie (ckmanager, context, ssid);
+        console_kit_manager_complete_get_session_for_cookie (ckmanager, context, ck_session_get_path (session));
 
         g_free (ssid);
 
@@ -3325,7 +3350,7 @@ remove_session_for_cookie (CkManager  *manager,
         /* let consumers know the session is gone */
         console_kit_manager_emit_session_removed (CONSOLE_KIT_MANAGER (manager),
                                                   orig_ssid,
-                                                  orig_ssid);
+                                                  ck_session_get_path (orig_session));
 
         if (get_runtime_dir_for_user (manager, unix_user) == NULL) {
                 /* We removed the session and now there's no runtime dir
@@ -3630,7 +3655,7 @@ collect_sessions_for_user (char            *ssid,
         uid = console_kit_session_get_unix_user (CONSOLE_KIT_SESSION(session));
 
         if (uid == data->uid) {
-                g_hash_table_add (data->hash, g_strdup (ssid));
+                g_hash_table_add (data->hash, g_strdup (ck_session_get_path (session)));
         }
 }
 
@@ -3841,6 +3866,54 @@ dbus_unlock_session (ConsoleKitManager *ckmanager,
 }
 
 static gboolean
+dbus_list_sessions (ConsoleKitManager     *ckmanager,
+                    GDBusMethodInvocation *context)
+{
+        CkManager       *manager;
+        GVariantBuilder  session_builder;
+        GVariant        *session;
+        GHashTableIter   session_iter;
+        const gchar     *key;
+        CkSeat          *value;
+
+        TRACE ();
+
+        manager = CK_MANAGER (ckmanager);
+
+        g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
+
+        /* if we don't have sessions, we need to return NULL */
+        if (g_hash_table_size (manager->priv->sessions) == 0) {
+                throw_error (context, CK_MANAGER_ERROR_NO_SESSIONS, _("User has no sessions"));
+                return TRUE;
+        }
+
+        g_variant_builder_init (&session_builder, G_VARIANT_TYPE_ARRAY);
+
+        g_hash_table_iter_init (&session_iter, manager->priv->sessions);
+        while (g_hash_table_iter_next (&session_iter,  (gpointer *)&key,  (gpointer *)&value)) {
+                gchar *sid;
+                struct passwd *ent = getpwuid (console_kit_session_get_unix_user ( CONSOLE_KIT_SESSION(value) ));
+                ck_session_get_seat_id ( CK_SESSION(value), &sid, NULL );
+
+                session = g_variant_new("(susso)",
+                                        key,
+                                        console_kit_session_get_unix_user ( CONSOLE_KIT_SESSION(value) ),
+                                        ent ? ent->pw_name : "",
+                                        sid,
+                                        ck_session_get_path ( CK_SESSION(value) )
+                                        );
+
+                g_variant_builder_add_value (&session_builder, session);
+
+                g_free (sid);
+        }
+
+        console_kit_manager_complete_list_sessions (ckmanager, context, g_variant_builder_end (&session_builder));
+        return TRUE;
+}
+
+static gboolean
 dbus_list_seats (ConsoleKitManager     *ckmanager,
                  GDBusMethodInvocation *context)
 {
@@ -3869,7 +3942,7 @@ dbus_list_seats (ConsoleKitManager     *ckmanager,
         while (g_hash_table_iter_next (&seat_iter,  (gpointer *)&key,  (gpointer *)&value)) {
                 seat = g_variant_new("(so)",
                                      console_kit_seat_get_name( CONSOLE_KIT_SEAT(value) ),
-                                     key);
+                                     ck_seat_get_path (value));
 
                 g_variant_builder_add_value (&seat_builder, seat);
         }
@@ -3883,7 +3956,7 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
                 GDBusMethodInvocation *context)
 {
         CkManager    *manager;
-        const gchar **seats;
+        GPtrArray    *seats;
 
         TRACE ();
 
@@ -3891,16 +3964,22 @@ dbus_get_seats (ConsoleKitManager     *ckmanager,
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        seats = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->seats, NULL);
+        seats = g_hash_table_get_values_as_ptr_array (manager->priv->seats);
 
         /* gdbus/gvariant requires that we throw an error to return NULL */
-        if (seats == NULL) {
+        if (seats->len == 0) {
                 throw_error (context, CK_MANAGER_ERROR_NO_SEATS, _("User has no seats"));
                 return TRUE;
         }
 
-        console_kit_manager_complete_get_seats (ckmanager, context, seats);
-        g_free (seats);
+        /* replace each session with its path */
+        for (guint i = 0; i < seats->len; i++) {
+                seats->pdata[i] = (gpointer) ck_seat_get_path ( CK_SEAT(seats->pdata[i]) );
+        }
+
+        g_ptr_array_add (seats, NULL);
+        console_kit_manager_complete_get_seats (ckmanager, context, (const gchar**)seats->pdata);
+        g_ptr_array_unref (seats);
         return TRUE;
 }
 
@@ -3909,7 +3988,7 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
                    GDBusMethodInvocation *context)
 {
         CkManager    *manager;
-        const gchar **sessions;
+        GPtrArray    *sessions;
 
         TRACE ();
 
@@ -3917,16 +3996,23 @@ dbus_get_sessions (ConsoleKitManager     *ckmanager,
 
         g_return_val_if_fail (CK_IS_MANAGER (manager), FALSE);
 
-        sessions = (const gchar**)g_hash_table_get_keys_as_array (manager->priv->sessions, NULL);
+        sessions = g_hash_table_get_values_as_ptr_array (manager->priv->sessions);
 
         /* gdbus/gvariant requires that we throw an error to return NULL */
-        if (sessions == NULL) {
+        if (sessions->len == 0) {
                 throw_error (context, CK_MANAGER_ERROR_NO_SESSIONS, _("There are no sessions"));
                 return TRUE;
         }
 
-        console_kit_manager_complete_get_sessions (ckmanager, context, sessions);
-        g_free (sessions);
+        /* replace each session with its path */
+        for (guint i = 0; i < sessions->len; i++) {
+                sessions->pdata[i] = (gpointer)ck_session_get_path ( CK_SESSION(sessions->pdata[i]) );
+        }
+
+        g_ptr_array_add (sessions, NULL);
+        console_kit_manager_complete_get_sessions (ckmanager, context, (const gchar**)sessions->pdata);
+        g_ptr_array_unref (sessions);
+
         return TRUE;
 }
 
@@ -3961,8 +4047,8 @@ add_seat_for_file (CkManager  *manager,
         ck_manager_dump (manager);
         ck_seat_run_programs (seat, NULL, NULL, "seat_added");
 
-        g_debug ("Emitting seat-added: %s", sid);
-        console_kit_manager_emit_seat_added (CONSOLE_KIT_MANAGER (manager), sid);
+        g_debug ("Emitting seat-added: %s", ck_seat_get_path (seat));
+        console_kit_manager_emit_seat_added (CONSOLE_KIT_MANAGER (manager), ck_seat_get_path (seat));
 
         log_seat_added_event (manager, seat);
 }
@@ -4060,7 +4146,7 @@ ck_manager_init (CkManager *manager)
 
         /* reserve zero */
         manager->priv->session_serial = 1;
-        manager->priv->seat_serial = 1;
+        manager->priv->seat_serial = 0;
 
         manager->priv->system_idle_hint = TRUE;
 
@@ -4172,11 +4258,13 @@ ck_manager_iface_init (ConsoleKitManagerIface *iface)
         iface->handle_stop                         = dbus_stop;
         iface->handle_suspend                      = dbus_suspend;
         iface->handle_close_session                = dbus_close_session;
+        iface->handle_list_sessions                = dbus_list_sessions;
         iface->handle_list_seats                   = dbus_list_seats;
         iface->handle_get_seats                    = dbus_get_seats;
         iface->handle_get_sessions                 = dbus_get_sessions;
         iface->handle_get_sessions_for_unix_user   = dbus_get_sessions_for_unix_user;
         iface->handle_get_sessions_for_user        = dbus_get_sessions_for_user;
+        iface->handle_get_session                  = dbus_get_session;
         iface->handle_get_session_for_cookie       = dbus_get_session_for_cookie;
         iface->handle_get_session_for_unix_process = dbus_get_session_for_unix_process;
         iface->handle_get_session_by_pid           = dbus_get_session_by_pid;

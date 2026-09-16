@@ -8,39 +8,14 @@ ck-list-sessions \- Show ConsoleKit Session Information
 .SH "DESCRIPTION"
 .PP
 \fBck-list-sessions\fR is a utility that displays information from the
-ConsoleKit database\&.  By default, only open sessions are shown\&.  The
--\fB-all\fR option can be used to display all existing sessions on
-the system\&.  \fBck-list-sessions\fR returns information about each ConsoleKit
-session\&.  Users can specify which properties to display via the
--\fB-format\fR option\&.
+ConsoleKit database\&.
+\fBck-list-sessions\fR returns information about each ConsoleKit
+session\&.
 .PP
 The following properties can be displayed for each session:
 .SH "OPTIONS"
 .PP
 The following options are supported:
-.sp
-.ne 2
-.mk
-\fB-\fBa\fR, -\fB-all\fR\fR
-.in +24n
-.rt
-Show all ConsoleKit sessions\&.  If this option is not provided, only open
-sessions are shown\&.
-.sp
-.sp 1
-.in -24n
-.sp
-.ne 2
-.mk
-\fB-\fBf\fR, -\fB-format=\fIformat\fR\fR\fR
-.in +24n
-.rt
-Display information using the specified \fIformat\fR\&.  The
-\fIformat\fR value is a list of properties to display
-separated by commas\&.
-.sp
-.sp 1
-.in -24n
 .sp
 .ne 2
 .mk
@@ -272,7 +247,7 @@ This should not be considered authoritative\&.
 .in -24n
 .SH "EXAMPLES"
 .PP
-\fBExample 1: Show running sessions\&.\fR
+\fBExample : Show running sessions\&.\fR
 .PP
 .PP
 .nf
@@ -283,36 +258,24 @@ This command would generate output like the following for each session:
 .PP
 .PP
 .nf
-SessionSeat1Local:
-        unix-user = \&'50\&'
-        realname = \&'GDM Reserved UID\&'
-        seat = \&'Seat1\&'
-        session-type = \&'LoginWindow\&'
-        display-type = \&'Local\&'
-        open = \&'TRUE\&'
-        active = \&'TRUE\&'
-        x11-display = \&':0\&'
-        x11-display-device = \&'/dev/console\&'
-        display-device = \&'/dev/console\&'
-        remote-host-name = \&'\&'
-        is-local = \&'TRUE\&'
-        on-since = \&'2009-08-11T06:46:42\&.941134Z\&'
-        login-session-id = \&'\&'
-        idle-since-hint = \&'\&'
-.fi
-.PP
-\fBExample 2: Show only the session-id, unix-user, and display-type properties\&.\fR
-.PP
-.PP
-.nf
-example% \fBck-list-sessions -\fB-format="session-id,unix-user,display-type"\fR\fR
-.fi
-.PP
-This command would generate output like the following for each session:
-.PP
-.PP
-.nf
-SessionSeat1Local       50      Local
+Session2:
+	unix-user = \&'1000\&'
+	realname = \&'John Doe\&'
+	seat = \&'seat0\&'
+	session-type = \&'x11\&'
+	session-class = \&'user\&'
+	session-state = \&'active\&'
+	session-service = \&'gdm-password\&'
+	active = TRUE
+	x11-display = \&':0\&'
+	x11-display-device = \&'/dev/ttyC4\&'
+	display-device = \&'\&'
+	remote-host-name = \&'\&'
+	is-local = TRUE
+	on-since = \&'2023-08-09T05:55:15.544361Z\&'
+	login-session-id = \&'\&'
+	XDG_RUNTIME_DIR = \&'/var/run/user/1000\&'
+	VTNr = \&'5\&'
 .fi
 .SH "SEE ALSO"
 .PP

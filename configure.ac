@@ -1,9 +1,9 @@
 
-AC_COPYRIGHT([Copyright 2014-2017 The ConsoleKit2 Team])
+AC_COPYRIGHT([Copyright 2014-2026 The ConsoleKit2 Team])
 
 AC_PREREQ([2.62])
 AC_INIT([ConsoleKit2],
-        [1.2.4],
+        [2.0.0],
         [https://github.com/ConsoleKit2/ConsoleKit2/issues],
         [ConsoleKit2],
         [https://github.com/ConsoleKit2/ConsoleKit2])
@@ -12,7 +12,7 @@ VERSION_MINOR=2
 VERSION_REVISION=1
 
 
-COPYRIGHT_YEARS="2014 - 2017"
+COPYRIGHT_YEARS="2014 - 2026"
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([autotools])
@@ -70,7 +70,7 @@ AC_CHECK_HEADERS([unistd.h paths.h sys/vt.h sys/consio.h fcntl.h limits.h \
                   sys/wait.h sys/resource.h sys/mount.h sys/param.h ftw.h \
 		  sys/sysmacros.h sys/types.h libudev.h linux/input.h \
 		  sys/mkdev.h devattr.h sys/kd.h sys/kbio.h libprop/proplib.h \
-		  linux/kd.h sys/queue.h sys/stat.h sys/fcntl.h \
+		  linux/kd.h sys/queue.h sys/stat.h sys/fcntl.h sys/event.h \
 		  dev/wscons/wsdisplay_usl_io.h dev/wscons/wsconsio.h \
 		  vfs/tmpfs/tmpfs_mount.h])
 
@@ -96,7 +96,11 @@ AC_DEFINE(GLIB_VERSION_MAX_ALLOWED, GLIB_VERSION_2_40, [Prevent post 2.40 APIs])
 
 
 # Check for X11 installed
-XDT_CHECK_LIBX11_REQUIRE()
+XDT_CHECK_LIBX11()
+if test "x$with_x" = "xyes" ; then
+        XDT_CHECK_LIBX11_REQUIRE()
+fi
+AM_CONDITIONAL([USE_LIBX11], [test "x$with_x" = xyes])
 
 # Check for Polkit/PolicyKit
 XDT_CHECK_OPTIONAL_PACKAGE([POLKIT], [polkit-gobject-1], [polkit_minimum_version],

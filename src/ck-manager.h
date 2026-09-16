@@ -27,6 +27,12 @@
 
 #include "ck-seat.h"
 
+#define DBUS_NAME              "org.freedesktop.ConsoleKit"
+#define CK_DBUS_PATH           "/org/freedesktop/ConsoleKit"
+#define CK_MANAGER_DBUS_PATH   CK_DBUS_PATH "/Manager"
+#define DBUS_SESSION_INTERFACE DBUS_NAME ".Session"
+#define DBUS_MANAGER_INTERFACE DBUS_NAME ".Manager"
+
 G_BEGIN_DECLS
 
 #define CK_TYPE_MANAGER         (ck_manager_get_type ())

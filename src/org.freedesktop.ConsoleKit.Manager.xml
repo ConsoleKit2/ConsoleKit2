@@ -549,6 +549,21 @@
       </doc:doc>
     </method>
 
+    <method name="ListSessions">
+      <arg name="sessions" direction="out" type="a(susso)">
+        <doc:doc>
+          <doc:summary>an array of structures (session ID, user ID, user name, seat ID, session path)</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Retrieves a list of all <doc:ref type="interface" to="Session">Sessions</doc:ref>
+          that are present on the system.</doc:para>
+        </doc:description>
+        <doc:seealso><doc:ref type="method" to="Manager.GetSeats">GetSeats()</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
     <method name="GetSeats">
       <arg name="seats" direction="out" type="ao">
         <doc:doc>
@@ -580,6 +595,26 @@
           <doc:ref type="interface" to="Session">Session</doc:ref> interface.</doc:para>
         </doc:description>
         <doc:seealso><doc:ref type="interface" to="Session">org.freedesktop.ConsoleKit.Session</doc:ref></doc:seealso>
+      </doc:doc>
+    </method>
+
+    <method name="GetSession">
+      <arg name="session_id" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The session's ID</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="session_path" direction="out" type="o">
+        <doc:doc>
+          <doc:summary>The object identifier for the requested session</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>Returns the session path that is associated with the specified session ID.
+          </doc:para>
+          <doc:para>May fail with: CK_MANAGER_ERROR_GENERAL</doc:para>
+        </doc:description>
       </doc:doc>
     </method>
 

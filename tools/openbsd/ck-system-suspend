@@ -1,3 +1,4 @@
 #!/bin/sh
 
-/usr/sbin/zzz
+# add small time buffer for a screen lock to settle first (when called by a DE)
+(sleep 2; /usr/sbin/zzz) &

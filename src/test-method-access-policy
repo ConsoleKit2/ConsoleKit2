@@ -173,7 +173,7 @@ print "\t%s" % res
 # Test Seat Interface
 print "Testing Seat"
 
-seat_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/Seat1')
+seat_obj = bus.get_object ('org.freedesktop.ConsoleKit', '/org/freedesktop/ConsoleKit/seat0')
 seat = dbus.Interface (seat_obj, 'org.freedesktop.ConsoleKit.Seat')
 
 print "Testing Seat.GetId:",

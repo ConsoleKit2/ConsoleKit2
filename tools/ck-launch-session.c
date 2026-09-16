@@ -1,5 +1,7 @@
 /*
  * Copyright Red Hat, Inc. 2007-2008.
+ * Copyright Serenity Cybersecurity, LLC 2023
+ *           Author: Gleb Popov <arrowd@FreeBSD.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +47,7 @@
 #include <libintl.h>
 #include <locale.h>
 #include <glib.h>
+#include <glib/gi18n.h>
 #include <glib/gstdio.h>
 
 #include "ck-connector.h"
@@ -68,11 +71,23 @@ check_shell (const gchar *shell)
 int
 main (int argc, char **argv)
 {
+        GOptionContext *context;
         CkConnector *ckc = NULL;
+        gboolean     retval;
+        GError      *parse_error = NULL;
         DBusError    error;
         const char  *shell;
         pid_t        pid;
         int          status;
+        dbus_bool_t  ret;
+
+        static char        *service = NULL;
+        static gchar      **command = NULL;
+        static GOptionEntry entries [] = {
+                { "service",         's', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING, &service, N_("Set the session's service to this value"), NULL },
+                { G_OPTION_REMAINING,  0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING_ARRAY, &command, N_("The command to start inside the session"), NULL },
+                G_OPTION_ENTRY_NULL
+        };
 
         /* Setup for i18n */
         setlocale(LC_ALL, "");
@@ -82,10 +97,26 @@ main (int argc, char **argv)
         textdomain(PACKAGE);
 #endif
 
+        context = g_option_context_new (NULL);
+        g_option_context_add_main_entries (context, entries, NULL);
+        retval = g_option_context_parse (context, &argc, &argv, &parse_error);
+
+        g_option_context_free (context);
+
+        if (! retval) {
+                g_warning ("%s", parse_error->message);
+                g_error_free (parse_error);
+                exit (1);
+        }
+
         ckc = ck_connector_new ();
         if (ckc != NULL) {
                 dbus_error_init (&error);
-                if (ck_connector_open_session (ckc, &error)) {
+                ret = service == NULL
+                        ? ck_connector_open_session (ckc, &error)
+                        : ck_connector_open_session_with_parameters (ckc, &error, "session-service", &service);
+
+                if (ret) {
                         const char *runtime_dir = NULL;
                         pid = fork ();
                         switch (pid) {
@@ -113,8 +144,8 @@ main (int argc, char **argv)
                 syslog (LOG_ERR, "error setting up to connection to ConsoleKit");
         }
 
-        if (argc > 1) {
-                execvp (argv[1], argv + 1);
+        if (command[0] != NULL) {
+                execvp (command[0], command);
         } else {
                 shell = getenv ("SHELL");
                 if (!check_shell (shell)) {
