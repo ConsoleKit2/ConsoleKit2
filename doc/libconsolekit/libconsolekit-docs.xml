@@ -38,9 +38,19 @@
     <xi:include href="xml/api-index-1.0.xml"><xi:fallback /></xi:include>
   </index>
 
-  <index id="api-index-1.2">
-    <title>Version 1.2 API Index</title>
+  <index id="api-index-1.2.4">
+    <title>Version 1.2.4 API Index</title>
     <xi:include href="xml/api-index-1.2.4.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <index id="api-index-1.2.5">
+    <title>Version 1.2.5 API Index</title>
+    <xi:include href="xml/api-index-1.2.5.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <index id="api-index-1.2.6">
+    <title>Version 1.2.6 API Index</title>
+    <xi:include href="xml/api-index-1.2.6.xml"><xi:fallback /></xi:include>
   </index>
 
   <index id="api-index-deprecated">
