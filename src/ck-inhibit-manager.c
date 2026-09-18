@@ -152,7 +152,8 @@ cb_changed_event (CkInhibit *inhibit,
 
                 /* When an inhibitor loses it lockes, remove the inhibitor from
                  * the list */
-                ck_inhibit_manager_remove_lock (manager, ck_inhibit_get_named_pipe_path (inhibit));
+                if (priv->inhibit_list == NULL)
+                        ck_inhibit_manager_remove_lock (manager, ck_inhibit_get_named_pipe_path (inhibit));
         }
 }
 
