@@ -15,6 +15,7 @@ Misc Changes:
 - Don't manage XDG_RUNTIME_DIR on OpenBSD,
   the OS takes care of it.
 - Fix documentation and tests
+- Remove workaround to sleep before calling zzz
 
 ==============
 Version 1.2.6
