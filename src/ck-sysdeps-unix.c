@@ -479,7 +479,12 @@ ck_generate_runtime_dir_for_user (guint uid)
 
         dest = get_rundir (uid);
 
-        /* Ensure any files from the last session are removed */
+#ifndef __OpenBSD__
+        /*
+         * On OpenBSD the runtime dir is owned by setusercontext(3)
+         * (LOGIN_SETXDGENV) and shared with non-ConsoleKit logins; only ensure
+         * any files from the last session are removed on other OSes
+         */
         if (g_file_test (dest, G_FILE_TEST_EXISTS) == TRUE) {
                 remove_rundir (uid, dest);
         }
@@ -504,6 +509,7 @@ ck_generate_runtime_dir_for_user (guint uid)
 
         /* attempt to make it a small tmpfs location */
         ck_make_tmpfs (uid, pwent->pw_gid, dest);
+#endif
 
         return dest;
 }
@@ -511,6 +517,7 @@ ck_generate_runtime_dir_for_user (guint uid)
 gboolean
 ck_remove_runtime_dir_for_user (guint uid)
 {
+#ifndef __OpenBSD__ /* see rational in ck_generate_runtime_dir_for_user */
         gchar        *dest;
 
         TRACE ();
@@ -526,6 +533,7 @@ ck_remove_runtime_dir_for_user (guint uid)
 
         g_free (dest);
 
+#endif
         return TRUE;
 }
 
