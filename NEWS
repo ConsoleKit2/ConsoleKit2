@@ -1,4 +1,22 @@
 ==============
+Version 1.2.7
+==============
+Stable release of ConsoleKit2
+
+Changes since 1.2.6
+New Features:
+- Implement sd_session_is_remote() and sd_session_get_display()
+- Export Seat's CanGraphical property on the D-Bus
+
+Bug Fixes:
+- Only remove the inhibit lock if the event list is empty
+
+Misc Changes:
+- Don't manage XDG_RUNTIME_DIR on OpenBSD,
+  the OS takes care of it.
+- Fix documentation and tests
+
+==============
 Version 1.2.6
 ==============
 Stable release of ConsoleKit2
