@@ -80,10 +80,11 @@ AC_CHECK_FUNCS([getpeerucred getpeereid memset setenv strchr strdup \
 
 AC_CHECK_MEMBERS([struct stat.st_rdev])
 
-AC_CHECK_FILE(/sys/class/tty/tty0/active,
-              [AC_DEFINE([HAVE_SYS_VT_SIGNAL], [1], [System has a means of signaling VT changes])],
-              [])
-
+if test ${cross_compiling} != "yes"; then
+	AC_CHECK_FILE(/sys/class/tty/tty0/active,
+      	[AC_DEFINE([HAVE_SYS_VT_SIGNAL], [1], [System has a means of signaling VT changes])],
+      	[])
+fi
 
 XDT_CHECK_PACKAGE([LIBDBUS], [dbus-1], [dbus_minimum_version])
 XDT_CHECK_PACKAGE([GLIB], [glib-2.0], [glib_minimum_version])
